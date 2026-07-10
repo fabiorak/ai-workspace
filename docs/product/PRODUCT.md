@@ -78,3 +78,6 @@ replay.
 - provider-specific behavior remains behind adapters;
 - savings claims require explicit baselines;
 - unsafe or uncertain actions remain visible to the user.
+- every interface is self-guiding: first-run paths, contextual help, actionable
+  errors, examples, and recovery instructions must let a new user complete the
+  supported workflow without reading the full project documentation first.

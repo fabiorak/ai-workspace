@@ -1,8 +1,8 @@
 {
-  "name": "@ai-workspace/local-session-ingestion",
+  "name": "@ai-workspace/historical-search",
   "version": "0.0.0",
   "private": true,
-  "description": "Local session, artifact, and restricted-data adapters",
+  "description": "Provider-neutral historical event retrieval contracts and use cases",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -18,7 +18,6 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@ai-workspace/historical-search": "0.0.0",
     "@ai-workspace/session-ingestion": "0.0.0"
   }
 }

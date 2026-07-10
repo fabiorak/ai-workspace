@@ -36,7 +36,9 @@ export class CodexSessionSourceAdapter implements SessionSourceAdapter {
       const sourceStat = await stat(filePath);
 
       if (!sourceStat.isFile()) {
-        throw new SessionImportError("The Codex session source is not a file");
+        throw new SessionImportError(
+          `The Codex session source '${filePath}' is not a regular file. Pass an existing JSONL file with --file.`,
+        );
       }
 
       if (sourceStat.size > MAX_SOURCE_BYTES) {
@@ -51,9 +53,7 @@ export class CodexSessionSourceAdapter implements SessionSourceAdapter {
         throw error;
       }
 
-      throw new SessionImportError("Cannot read the Codex session source", {
-        cause: error,
-      });
+      throw sourceReadError(filePath, error);
     }
 
     let content: string;
@@ -246,4 +246,32 @@ function invalidLine(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function sourceReadError(filePath: string, cause: unknown): SessionImportError {
+  if (isNodeError(cause) && cause.code === "ENOENT") {
+    return new SessionImportError(
+      `Codex session source file not found at '${filePath}'. Check the path or try the bundled fixture: integrations/codex/test/fixtures/session.jsonl`,
+      { cause },
+    );
+  }
+
+  if (
+    isNodeError(cause) &&
+    (cause.code === "EACCES" || cause.code === "EPERM")
+  ) {
+    return new SessionImportError(
+      `Codex session source '${filePath}' is not readable. Check its permissions and retry.`,
+      { cause },
+    );
+  }
+
+  return new SessionImportError(
+    `Cannot read Codex session source '${filePath}'. Check that it exists, is a readable regular file, and retry.`,
+    { cause },
+  );
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error;
 }

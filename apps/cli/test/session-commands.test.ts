@@ -161,6 +161,163 @@ describe("session CLI workflow", () => {
     assert.doesNotMatch(result.stdout, /fictional-private-artifact-body/u);
   });
 
+  it("guides a first-time user from help through search and source evidence", async () => {
+    const sessionPath = join(workspaceHome, "sessions", `${sessionId}.json`);
+    const sessionBeforeSearch = await readFile(sessionPath, "utf8");
+    const help = await runSuccessfulCli(["help"]);
+    assert.match(help.stdout, /Start here:/u);
+    assert.match(help.stdout, /history search/u);
+
+    const contextualHelp = await runSuccessfulCli([
+      "history",
+      "search",
+      "--help",
+    ]);
+    assert.match(contextualHelp.stdout, /Search imported historical events/u);
+    assert.match(contextualHelp.stdout, /Example:/u);
+
+    const searched = await runSuccessfulCli([
+      "history",
+      "search",
+      "synthetic expectation failed",
+      "--project",
+      projectId,
+      "--type",
+      "command_result",
+      "--json",
+    ]);
+    const report = JSON.parse(searched.stdout) as {
+      searchedEvents: number;
+      results: readonly {
+        eventId: string;
+        type: string;
+        trust: string;
+        source: { artifactId: string };
+      }[];
+    };
+    assert.equal(report.searchedEvents, 1);
+    assert.equal(report.results.length, 1);
+    assert.equal(report.results[0]?.type, "COMMAND_RESULT");
+    assert.equal(report.results[0]?.trust, "UNTRUSTED");
+
+    const eventId = report.results[0]?.eventId ?? "";
+    const artifactId = report.results[0]?.source.artifactId ?? "";
+    const artifactDigest = artifactId.slice("artifact://sha256/".length);
+    const artifactPath = join(
+      workspaceHome,
+      "artifacts",
+      "sha256",
+      artifactDigest.slice(0, 2),
+      artifactDigest,
+    );
+    const artifactBeforeShow = await readFile(artifactPath);
+    const shown = await runSuccessfulCli([
+      "history",
+      "show",
+      eventId,
+      "--project",
+      projectId,
+      "--json",
+    ]);
+    const historicalEvent = JSON.parse(shown.stdout) as {
+      projectId: string;
+      event: { id: string; trust: string };
+    };
+    assert.equal(historicalEvent.projectId, projectId);
+    assert.equal(historicalEvent.event.id, eventId);
+    assert.equal(historicalEvent.event.trust, "UNTRUSTED");
+
+    const artifact = await runSuccessfulCli([
+      "artifact",
+      "show",
+      artifactId,
+      "--json",
+    ]);
+    const opened = JSON.parse(artifact.stdout) as {
+      id: string;
+      content: string;
+    };
+    assert.equal(opened.id, artifactId);
+    assert.match(opened.content, /synthetic expectation failed/iu);
+    assert.equal(await readFile(sessionPath, "utf8"), sessionBeforeSearch);
+    assert.deepEqual(await readFile(artifactPath), artifactBeforeShow);
+
+    const noMatch = await runSuccessfulCli([
+      "history",
+      "search",
+      "phrase that is not present",
+      "--project",
+      projectId,
+    ]);
+    assert.match(noMatch.stdout, /No matches found/u);
+    assert.match(noMatch.stdout, /Try a shorter phrase/u);
+
+    const emptyRepository = join(temporaryRoot, "empty-history-repository");
+    await mkdir(emptyRepository);
+    await runGit(emptyRepository, ["init", "--initial-branch=main"]);
+    await writeFile(
+      join(emptyRepository, "README.md"),
+      "# Empty history\n",
+      "utf8",
+    );
+    await runGit(emptyRepository, ["add", "README.md"]);
+    await runGit(emptyRepository, [
+      "-c",
+      "user.name=Synthetic User",
+      "-c",
+      "user.email=synthetic@example.invalid",
+      "commit",
+      "-m",
+      "synthetic empty history",
+    ]);
+    const emptyProjectResult = await runSuccessfulCli([
+      "project",
+      "register",
+      emptyRepository,
+      "--json",
+    ]);
+    const emptyProjectId = (
+      JSON.parse(emptyProjectResult.stdout) as { id: string }
+    ).id;
+    const emptyHistory = await runSuccessfulCli([
+      "history",
+      "search",
+      "anything",
+      "--project",
+      emptyProjectId,
+    ]);
+    assert.match(emptyHistory.stdout, /No imported events/u);
+    assert.match(emptyHistory.stdout, /Next: import a session/u);
+  });
+
+  it("neutralizes terminal controls in historical snippets", async () => {
+    const controlSource = join(temporaryRoot, "control-session.jsonl");
+    await writeFile(
+      controlSource,
+      '{"schemaVersion":1,"recordType":"session","sessionId":"synthetic-control-session","agent":"codex","model":null,"timestamp":null}\n{"recordType":"event","eventType":"error","timestamp":null,"payload":"\\u001b[31mCONTROL_MATCH"}\n',
+      "utf8",
+    );
+    await runSuccessfulCli([
+      "session",
+      "import",
+      "--project",
+      projectId,
+      "--source",
+      "codex",
+      "--file",
+      controlSource,
+    ]);
+    const result = await runSuccessfulCli([
+      "history",
+      "search",
+      "CONTROL_MATCH",
+      "--project",
+      projectId,
+    ]);
+    assert.equal(result.stdout.includes("\u001b"), false);
+    assert.match(result.stdout, /�\[31mCONTROL_MATCH/u);
+  });
+
   it("rejects a changed prefix and restricted data without exposing values", async () => {
     const changed = `${originalSource}${extensionRecord}`.replace(
       "Add a fictional greeting and verify it.",

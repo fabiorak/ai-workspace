@@ -3,10 +3,10 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 2](docs/planning/sprints/SPRINT-002.md) are complete.
-The next forecast increment retrieves imported historical events and opens
-their immutable source artifacts. Detailed commitments and completed evidence
-remain in the sprint records rather than this summary.
+Sprint 0 through [Sprint 3](docs/planning/sprints/SPRINT-003.md) are complete.
+The next forecast increment consolidates active decisions, constraints, and
+failures while retaining links to historical evidence. Detailed commitments
+and completed evidence remain in the sprint records rather than this summary.
 
 ## 1. Project Memory
 

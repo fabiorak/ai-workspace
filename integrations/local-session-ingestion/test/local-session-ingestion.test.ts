@@ -10,6 +10,7 @@ import {
   FileArtifactStore,
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
+  LocalHistoricalEventReader,
 } from "../src/index.ts";
 
 test("stores identical artifacts once and detects content corruption", async () => {
@@ -21,6 +22,7 @@ test("stores identical artifacts once and detects content corruption", async () 
     const first = await store.put(content);
     const second = await store.put(content);
     assert.deepEqual(second, first);
+    assert.deepEqual(await store.read(first.id), content);
 
     const digest = first.id.slice("artifact://sha256/".length);
     const artifactPath = join(
@@ -34,6 +36,11 @@ test("stores identical artifacts once and detects content corruption", async () 
     await chmod(artifactPath, 0o600);
     await writeFile(artifactPath, "corrupted", "utf8");
     await assert.rejects(store.put(content), /integrity check failed/u);
+    await assert.rejects(store.read(first.id), /failed its SHA-256/u);
+    await assert.rejects(
+      store.read(`artifact://sha256/${"f".repeat(64)}`),
+      /was not found.*Reimport/u,
+    );
   } finally {
     await rm(home, { recursive: true, force: true });
   }
@@ -55,6 +62,14 @@ test("persists an append-only session and rejects event replacement and locks", 
     const extended = makeSession(["first", "second"]);
     await store.append(extended, 1);
     assert.equal((await store.load(first.id))?.events.length, 2);
+    const reader = new LocalHistoricalEventReader(home);
+    assert.equal((await reader.list("project-1")).length, 2);
+    assert.equal((await reader.list("another-project")).length, 0);
+    assert.equal(
+      (await reader.find("project-1", extended.events[1]?.id ?? ""))?.event
+        .sequence,
+      2,
+    );
 
     const replaced = makeSession(["changed", "second"]);
     await assert.rejects(store.append(replaced, 2), /cannot be changed/u);

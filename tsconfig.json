@@ -7,6 +7,9 @@
       "@ai-workspace/core": ["./packages/core/src/index.ts"],
       "@ai-workspace/codex-adapter": ["./integrations/codex/src/index.ts"],
       "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],
+      "@ai-workspace/historical-search": [
+        "./packages/historical-search/src/index.ts"
+      ],
       "@ai-workspace/local-session-ingestion": [
         "./integrations/local-session-ingestion/src/index.ts"
       ],

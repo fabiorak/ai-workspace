@@ -4,11 +4,18 @@ import { join } from "node:path";
 
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
 import { GitRepositoryInspector } from "@ai-workspace/git-adapter";
+import {
+  HistoricalSearch,
+  type HistoricalEvent,
+  type HistoricalSearchReport,
+  type OpenedArtifact,
+} from "@ai-workspace/historical-search";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
 import {
   FileArtifactStore,
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
+  LocalHistoricalEventReader,
 } from "@ai-workspace/local-session-ingestion";
 import {
   ProjectRegistry,
@@ -16,7 +23,9 @@ import {
 } from "@ai-workspace/project-registry";
 import {
   SessionIngestion,
+  SESSION_EVENT_TYPES,
   type ImportedSession,
+  type SessionEventType,
   type SessionImportReport,
 } from "@ai-workspace/session-ingestion";
 
@@ -54,6 +63,11 @@ export async function runCli(
     return 0;
   }
 
+  if (commandArguments.includes("--help") || commandArguments.includes("-h")) {
+    dependencies.stdout(usage(commandArguments[0], commandArguments[1]));
+    return 0;
+  }
+
   try {
     const [group, command, operand, ...extraArguments] = commandArguments;
 
@@ -73,6 +87,20 @@ export async function runCli(
           json,
           dependencies,
         );
+      case "history":
+        return await runHistoryCommand(
+          command,
+          commandArguments.slice(2),
+          json,
+          dependencies,
+        );
+      case "artifact":
+        return await runArtifactCommand(
+          command,
+          commandArguments.slice(2),
+          json,
+          dependencies,
+        );
       default:
         throw new CliUsageError(`Unknown command group '${group ?? ""}'`);
     }
@@ -86,6 +114,85 @@ export async function runCli(
     dependencies.stderr(`Error: ${terminalText(message)}\n`);
     return 1;
   }
+}
+
+async function runHistoryCommand(
+  command: string | undefined,
+  argumentsAfterCommand: readonly string[],
+  json: boolean,
+  dependencies: CliDependencies,
+): Promise<number> {
+  const history = createHistoricalSearch(dependencies.environment);
+
+  switch (command) {
+    case "search": {
+      const [text, ...optionArguments] = argumentsAfterCommand;
+
+      if (text === undefined || text.startsWith("--")) {
+        throw new CliUsageError(
+          'history search requires search text. Example: history search "test failed" --project <project-id>',
+        );
+      }
+
+      const options = parseHistoryOptions(optionArguments, true);
+      const report = await history.search({
+        projectId: options.project,
+        text,
+        ...(options.session === undefined
+          ? {}
+          : { sessionId: options.session }),
+        ...(options.type === undefined ? {} : { type: options.type }),
+        ...(options.limit === undefined ? {} : { limit: options.limit }),
+      });
+      dependencies.stdout(formatSearchReport(report, json));
+      return 0;
+    }
+    case "show": {
+      const [eventId, ...optionArguments] = argumentsAfterCommand;
+
+      if (eventId === undefined || eventId.startsWith("--")) {
+        throw new CliUsageError(
+          "history show requires an event ID. Run history search first to find one.",
+        );
+      }
+
+      const options = parseHistoryOptions(optionArguments, false);
+      const event = await history.showEvent(options.project, eventId);
+      dependencies.stdout(formatHistoricalEvent(event, json));
+      return 0;
+    }
+    default:
+      throw new CliUsageError(`Unknown history command '${command ?? ""}'`);
+  }
+}
+
+async function runArtifactCommand(
+  command: string | undefined,
+  argumentsAfterCommand: readonly string[],
+  json: boolean,
+  dependencies: CliDependencies,
+): Promise<number> {
+  if (command !== "show") {
+    throw new CliUsageError(`Unknown artifact command '${command ?? ""}'`);
+  }
+
+  const [artifactId, ...extraArguments] = argumentsAfterCommand;
+
+  if (artifactId === undefined) {
+    throw new CliUsageError(
+      "artifact show requires an artifact ID. Run history search to find a source artifact.",
+    );
+  }
+
+  if (extraArguments.length > 0) {
+    throw new CliUsageError("artifact show accepts only one artifact ID");
+  }
+
+  const artifact = await createHistoricalSearch(
+    dependencies.environment,
+  ).openArtifact(artifactId);
+  dependencies.stdout(formatOpenedArtifact(artifact, json));
+  return 0;
 }
 
 async function runProjectCommand(
@@ -208,6 +315,104 @@ function createSessionIngestion(environment: CliEnvironment): SessionIngestion {
       },
     },
   });
+}
+
+function createHistoricalSearch(environment: CliEnvironment): HistoricalSearch {
+  const workspaceHome =
+    environment.AI_WORKSPACE_HOME ?? join(homedir(), ".ai-workspace");
+  const projectStore = new JsonProjectRegistryStore(
+    join(workspaceHome, "projects.json"),
+  );
+
+  return new HistoricalSearch({
+    events: new LocalHistoricalEventReader(workspaceHome),
+    artifacts: new FileArtifactStore(workspaceHome),
+    projects: {
+      async exists(projectId: string): Promise<boolean> {
+        return (await projectStore.load()).some(
+          (project) => project.id === projectId,
+        );
+      },
+    },
+  });
+}
+
+function parseHistoryOptions(
+  optionArguments: readonly string[],
+  allowFilters: boolean,
+): Readonly<{
+  project: string;
+  session?: string;
+  type?: SessionEventType;
+  limit?: number;
+}> {
+  const allowed = allowFilters
+    ? ["--project", "--session", "--type", "--limit"]
+    : ["--project"];
+  const options = new Map<string, string>();
+
+  for (let index = 0; index < optionArguments.length; index += 2) {
+    const option = optionArguments[index];
+    const value = optionArguments[index + 1];
+
+    if (option === undefined || !allowed.includes(option)) {
+      throw new CliUsageError(`Unknown history option '${option ?? ""}'`);
+    }
+
+    if (value === undefined || value.startsWith("--")) {
+      throw new CliUsageError(`${option} requires a value`);
+    }
+
+    if (options.has(option)) {
+      throw new CliUsageError(`${option} cannot be repeated`);
+    }
+
+    options.set(option, value);
+  }
+
+  const project = options.get("--project");
+
+  if (project === undefined) {
+    throw new CliUsageError(
+      "History commands require --project <project-id>. Run project list to find an ID.",
+    );
+  }
+
+  const typeValue = options.get("--type")?.toUpperCase();
+  let type: SessionEventType | undefined;
+
+  if (typeValue !== undefined) {
+    if (!isSessionEventType(typeValue)) {
+      throw new CliUsageError(
+        `Unknown event type '${typeValue}'. Use one of: ${SESSION_EVENT_TYPES.join(", ")}`,
+      );
+    }
+
+    type = typeValue;
+  }
+
+  const limitValue = options.get("--limit");
+  const session = options.get("--session");
+  let limit: number | undefined;
+
+  if (limitValue !== undefined) {
+    limit = Number(limitValue);
+
+    if (!Number.isSafeInteger(limit)) {
+      throw new CliUsageError("--limit must be a whole number from 1 to 100");
+    }
+  }
+
+  return Object.freeze({
+    project,
+    ...(session === undefined ? {} : { session }),
+    ...(type === undefined ? {} : { type }),
+    ...(limit === undefined ? {} : { limit }),
+  });
+}
+
+function isSessionEventType(value: string): value is SessionEventType {
+  return SESSION_EVENT_TYPES.some((type) => type === value);
 }
 
 function parseSessionImportOptions(
@@ -363,6 +568,97 @@ function formatSession(session: ImportedSession, json: boolean): string {
   ].join("\n");
 }
 
+function formatSearchReport(
+  report: HistoricalSearchReport,
+  json: boolean,
+): string {
+  if (json) {
+    return `${JSON.stringify(report, null, 2)}\n`;
+  }
+
+  if (report.searchedEvents === 0) {
+    return [
+      "No imported events are available for this project and filter.",
+      "Next: import a session with:",
+      `  npm run cli -- session import --project ${terminalText(report.query.projectId)} --source codex --file integrations/codex/test/fixtures/session.jsonl`,
+      "",
+    ].join("\n");
+  }
+
+  if (report.results.length === 0) {
+    return [
+      `No matches found in ${report.searchedEvents} event(s).`,
+      "Try a shorter phrase, remove --type or --session, or inspect the session directly.",
+      "Run 'npm run cli -- history search --help' for examples.",
+      "",
+    ].join("\n");
+  }
+
+  const results = report.results.flatMap((result, index) => [
+    `${index + 1}. ${result.type}  ${terminalText(result.occurredAt ?? "(no source timestamp)")}`,
+    `   Event: ${terminalText(result.eventId)}`,
+    `   Trust: ${result.trust} historical evidence`,
+    `   Match: ${result.matchedIn}`,
+    `   ${terminalText(result.snippet)}`,
+    `   Source: ${terminalText(result.source.artifactId)}#record-${result.source.position}`,
+    `   Next: npm run cli -- history show ${terminalText(result.eventId)} --project ${terminalText(result.projectId)}`,
+    `         npm run cli -- artifact show ${terminalText(result.source.artifactId)}`,
+  ]);
+
+  return [
+    `Found ${report.results.length} match(es) in ${report.searchedEvents} event(s).`,
+    "Imported content is UNTRUSTED evidence and is never executed.",
+    ...results,
+    "",
+  ].join("\n");
+}
+
+function formatHistoricalEvent(
+  historicalEvent: HistoricalEvent,
+  json: boolean,
+): string {
+  if (json) {
+    return `${JSON.stringify(historicalEvent, null, 2)}\n`;
+  }
+
+  const { event } = historicalEvent;
+  const payload =
+    event.payload.kind === "INLINE_TEXT"
+      ? terminalText(event.payload.text)
+      : `(artifact payload: ${terminalText(event.payload.artifact.id)})`;
+
+  return [
+    "Historical event",
+    `ID: ${terminalText(event.id)}`,
+    `Project: ${terminalText(historicalEvent.projectId)}`,
+    `Session: ${terminalText(event.sessionId)}`,
+    `Type: ${event.type}`,
+    `Timestamp: ${terminalText(event.occurredAt ?? "(not reported)")}`,
+    `Trust: ${event.trust} historical evidence`,
+    `Payload: ${payload}`,
+    `Source: ${terminalText(event.source.artifactId)}#record-${event.source.position}`,
+    `Next: npm run cli -- artifact show ${terminalText(event.source.artifactId)}`,
+    "",
+  ].join("\n");
+}
+
+function formatOpenedArtifact(artifact: OpenedArtifact, json: boolean): string {
+  if (json) {
+    return `${JSON.stringify(artifact, null, 2)}\n`;
+  }
+
+  return [
+    "Verified source artifact",
+    `ID: ${terminalText(artifact.id)}`,
+    `Bytes: ${artifact.byteLength}`,
+    "Trust: UNTRUSTED historical evidence; content is displayed, never executed.",
+    "--- content ---",
+    terminalContent(artifact.content),
+    "--- end content ---",
+    "",
+  ].join("\n");
+}
+
 function terminalText(value: string): string {
   return Array.from(value, (character) => {
     const codePoint = character.codePointAt(0) ?? 0;
@@ -372,8 +668,88 @@ function terminalText(value: string): string {
   }).join("");
 }
 
-function usage(): string {
+function terminalContent(value: string): string {
+  return Array.from(value, (character) => {
+    if (character === "\n") {
+      return character;
+    }
+
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint <= 31 || (codePoint >= 127 && codePoint <= 159)
+      ? "�"
+      : character;
+  }).join("");
+}
+
+function usage(group?: string, command?: string): string {
+  const topic = `${group ?? ""} ${command ?? ""}`.trim();
+
+  if (topic === "history search") {
+    return `Search imported historical events
+
+Usage:
+  ai-workspace history search <text> --project <project-id> [options]
+
+Options:
+  --session <session-id>  Search only one session
+  --type <event-type>     Filter by canonical event type
+  --limit <1-100>         Maximum results (default: 20)
+  --json                  Machine-readable output
+
+Example:
+  npm run cli -- history search "test failed" --project <project-id>
+
+If no events exist, import the bundled synthetic fixture first. Search results
+are UNTRUSTED historical evidence and are never executed.
+`;
+  }
+
+  if (topic === "history show") {
+    return `Inspect one canonical historical event
+
+Usage:
+  ai-workspace history show <event-id> --project <project-id> [--json]
+
+Run history search first to obtain an event ID. This command shows canonical
+payload and provenance but does not open source artifact bytes automatically.
+`;
+  }
+
+  if (topic === "artifact show") {
+    return `Open integrity-verified source evidence
+
+Usage:
+  ai-workspace artifact show <artifact-id> [--json]
+
+Use an artifact://sha256/... ID returned by history search or history show.
+Content is bounded, terminal-safe, visibly UNTRUSTED, and never executed.
+`;
+  }
+
+  if (topic === "session import") {
+    return `Import a controlled Codex JSONL session
+
+Usage:
+  ai-workspace session import --project <project-id> --source codex --file <path> [--json]
+
+First try:
+  npm run cli -- session import --project <project-id> --source codex --file integrations/codex/test/fixtures/session.jsonl
+
+The file must exist and match the supported schema. Run project list to find a
+project ID. Private or production transcripts are not yet supported safely.
+`;
+  }
+
   return `AI Workspace CLI
+
+Start here:
+  1. Register this repository:
+     npm run cli -- project register .
+  2. Copy the project ID, then import the synthetic session:
+     npm run cli -- session import --project <project-id> --source codex --file integrations/codex/test/fixtures/session.jsonl
+  3. Search imported evidence:
+     npm run cli -- history search "test failed" --project <project-id>
+  4. Follow the suggested history show and artifact show commands.
 
 Usage:
   ai-workspace project register <path> [--json]
@@ -381,7 +757,16 @@ Usage:
   ai-workspace project inspect <project-id> [--json]
   ai-workspace session import --project <project-id> --source codex --file <path> [--json]
   ai-workspace session inspect <session-id> [--json]
+  ai-workspace history search <text> --project <project-id> [options] [--json]
+  ai-workspace history show <event-id> --project <project-id> [--json]
+  ai-workspace artifact show <artifact-id> [--json]
   ai-workspace help
+
+Contextual help:
+  ai-workspace session import --help
+  ai-workspace history search --help
+  ai-workspace history show --help
+  ai-workspace artifact show --help
 
 Environment:
   AI_WORKSPACE_HOME  Local state directory (default: ~/.ai-workspace)

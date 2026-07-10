@@ -340,3 +340,12 @@ Adjustments for Sprint 3:
 - define retrieval acceptance fixtures and workspace/project isolation before
   choosing a search engine, keeping the first searchable slice local and
   dependency-light if its measured requirements permit.
+
+## Post-sprint correction
+
+Before Sprint 3 implementation, source-file read failures were made
+actionable. Missing files, directories passed as files, permission failures,
+and other read errors now state the cause, the next recovery action, and the
+bundled fixture path where useful. Adapter tests and the Session Ingestion
+troubleshooting guide cover the correction. This does not change the Sprint 2
+data contract or delivered scope.

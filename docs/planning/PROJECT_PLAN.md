@@ -53,6 +53,10 @@ does not support it directly must be justified, time-boxed, or deferred.
    product progress must be measured through real user workflows.
 8. **Simple first architecture:** begin as a modular monolith and introduce
    independent services only when their operational boundary is justified.
+9. **Self-guiding interfaces:** CLI, API, and future UI workflows include
+   first-run guidance, contextual help, examples, actionable errors, and clear
+   recovery steps. Documentation supports the interface but is not a
+   prerequisite for discovering the supported workflow.
 
 ## 4. Planning horizons
 
@@ -560,8 +564,11 @@ imports an explicitly selected, synthetic Codex JSONL session for an existing
 project, preserves source evidence in a content-addressed artifact store, and
 proves unchanged and incremental import idempotency through the CLI.
 
-The next forecast increment is Sprint 3: retrieve imported events and open
-their source artifacts with project-scoped provenance. Search-engine selection
-remains deferred until that vertical slice establishes its query, scale, and
-operational requirements. Active memory, handoff generation, external model
-access, and real transcript fixtures also remain deferred.
+[Sprint 3](sprints/SPRINT-003.md) completed project-scoped retrieval of imported
+events and explicit integrity-verified source opening. The bounded local scan
+validated query and guidance contracts without introducing a search engine.
+
+The next forecast increment is Sprint 4: consolidate active decisions,
+constraints, and failures while retaining their historical sources, validity,
+verification, and supersession state. Handoff generation, external model
+access, and real transcript fixtures remain deferred.

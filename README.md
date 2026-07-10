@@ -157,6 +157,19 @@ references; imported content remains untrusted and is never executed. See the
 > narrow. They are suitable for synthetic pre-release evaluation, not private
 > or production transcripts. No complete secret or PII detection is claimed.
 
+Sprint 3 adds project-scoped literal search and explicit source inspection:
+
+```bash
+npm run cli -- history search "test failed" --project <project-id>
+npm run cli -- history show <event-id> --project <project-id>
+npm run cli -- artifact show <artifact-id>
+```
+
+Run `npm run cli -- help` for a guided first-use path and contextual examples.
+Results remain visibly untrusted, source-linked evidence. Artifact content is
+shown only after an explicit command and a successful SHA-256 integrity check.
+See the [Historical Search guide](docs/user-guide/historical-search.md).
+
 ## Development
 
 AI Workspace currently requires Node.js 24 and npm 11.
@@ -170,9 +183,8 @@ See the [development guide](docs/development/README.md) for individual quality
 commands and workspace conventions.
 
 Sprint commitments and completed evidence are recorded in the
-[sprint archive](docs/planning/sprints/README.md). The next forecast increment
-adds retrieval over imported historical events; it does not yet select or
-introduce OpenSearch.
+[sprint archive](docs/planning/sprints/README.md). Search currently scans local
+canonical events; it does not select or introduce OpenSearch.
 
 ## Contributing
 

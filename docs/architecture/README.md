@@ -26,5 +26,11 @@ translates one controlled JSONL subset at the integration boundary. Imported
 events remain untrusted historical evidence and do not enter active memory or
 an execution path. These choices are recorded in ADR-0005 through ADR-0007.
 
+Historical retrieval is also behind domain-owned ports. The initial adapter
+scans validated canonical session events with mandatory project scope and
+resolves artifact-backed payloads through an integrity-checking read port. Raw
+source artifacts are opened only after explicit user action. ADR-0008 records
+the bounded literal-search strategy and the triggers for selecting an index.
+
 See the full public design documents in the parent `docs/` directory. Material
 decisions should be captured as ADRs before implementation locks them in.

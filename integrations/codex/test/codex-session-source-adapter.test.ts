@@ -60,3 +60,34 @@ test("reports malformed records without including their raw content", async () =
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("explains how to recover when the source file does not exist", async () => {
+  const missingPath = join(tmpdir(), "synthetic-missing-session.jsonl");
+
+  await assert.rejects(
+    new CodexSessionSourceAdapter().read(missingPath),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.match(error.message, /file not found/u);
+      assert.match(error.message, /Check the path/u);
+      assert.match(
+        error.message,
+        /integrations\/codex\/test\/fixtures\/session\.jsonl/u,
+      );
+      return true;
+    },
+  );
+});
+
+test("explains that --file requires a regular file", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "ai-workspace-codex-dir-"));
+
+  try {
+    await assert.rejects(
+      new CodexSessionSourceAdapter().read(directory),
+      /not a regular file.*Pass an existing JSONL file with --file/u,
+    );
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

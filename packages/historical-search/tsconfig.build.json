@@ -7,8 +7,5 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    { "path": "../../packages/historical-search/tsconfig.build.json" },
-    { "path": "../../packages/session-ingestion/tsconfig.build.json" }
-  ]
+  "references": [{ "path": "../session-ingestion/tsconfig.build.json" }]
 }

@@ -223,6 +223,27 @@ Baseline controls:
 - tests and examples use a fixture authored from scratch with fictional data;
 - ingestion performs no network, telemetry, agent, or model access.
 
+## Implemented E3 retrieval controls
+
+- every search and event lookup is scoped to an existing project ID;
+- optional session and event-type filters can only narrow that project scope;
+- canonical session documents are schema-validated and corrupt data fails
+  closed;
+- search reads canonical event payloads and does not duplicate whole raw
+  transcript matches;
+- result count, scanned session count, document size, artifact size, and
+  displayed content are bounded;
+- every result and opened artifact is visibly marked `UNTRUSTED`;
+- snippets are separated from interface guidance and terminal control
+  characters are neutralized in human output;
+- artifact reads accept only SHA-256 identifiers and verify exact bytes before
+  search or display;
+- missing, corrupt, oversized, and non-UTF-8 artifacts produce actionable
+  failures;
+- source bytes are displayed only after an explicit command and are never
+  executed, promoted to active memory, or sent to a model;
+- retrieval commands are read-only and use no network service or telemetry.
+
 ## Review triggers
 
 Review and update this model when:

@@ -27,3 +27,4 @@ Status: proposed | accepted | superseded
 - [ADR-0005: Use a local versioned JSON project registry](0005-use-a-local-versioned-json-project-registry.md)
 - [ADR-0006: Use atomic append-only session documents](0006-use-atomic-append-only-session-documents.md)
 - [ADR-0007: Use a local content-addressed artifact store](0007-use-a-local-content-addressed-artifact-store.md)
+- [ADR-0008: Scan canonical session events for initial search](0008-scan-canonical-session-events-for-initial-search.md)

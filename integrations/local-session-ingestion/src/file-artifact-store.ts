@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { chmod, link, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import type { ArtifactResolver } from "@ai-workspace/historical-search";
 import {
   SessionImportError,
   type ArtifactReference,
@@ -10,7 +11,9 @@ import {
 
 const MAX_ARTIFACT_BYTES = 10 * 1024 * 1024;
 
-export class FileArtifactStore implements ArtifactStore {
+const ARTIFACT_ID_PATTERN = /^artifact:\/\/sha256\/([a-f0-9]{64})$/u;
+
+export class FileArtifactStore implements ArtifactStore, ArtifactResolver {
   readonly #artifactDirectory: string;
   readonly #rootDirectory: string;
 
@@ -72,6 +75,55 @@ export class FileArtifactStore implements ArtifactStore {
     } finally {
       await rm(temporaryPath, { force: true }).catch(() => undefined);
     }
+  }
+
+  public async read(artifactId: string): Promise<Uint8Array> {
+    const match = ARTIFACT_ID_PATTERN.exec(artifactId);
+
+    if (match === null) {
+      throw new SessionImportError(
+        "Artifact ID is invalid. Expected artifact://sha256/<64 hexadecimal characters>.",
+      );
+    }
+
+    const digest = match[1];
+
+    if (digest === undefined) {
+      throw new SessionImportError("Artifact ID does not contain a digest.");
+    }
+
+    const artifactPath = join(this.#rootDirectory, digest.slice(0, 2), digest);
+    let content: Buffer;
+
+    try {
+      content = await readFile(artifactPath);
+    } catch (error) {
+      if (isNodeError(error) && error.code === "ENOENT") {
+        throw new SessionImportError(
+          `Artifact '${artifactId}' was not found in this AI_WORKSPACE_HOME. Reimport the source session or check that you are using the same local workspace home.`,
+          { cause: error },
+        );
+      }
+
+      throw new SessionImportError(
+        `Artifact '${artifactId}' cannot be read. Check local storage permissions and retry.`,
+        { cause: error },
+      );
+    }
+
+    if (content.byteLength > MAX_ARTIFACT_BYTES) {
+      throw new SessionImportError(
+        `Artifact '${artifactId}' exceeds the ${MAX_ARTIFACT_BYTES} byte integrity-check limit.`,
+      );
+    }
+
+    if (sha256(content) !== digest) {
+      throw new SessionImportError(
+        `Artifact '${artifactId}' failed its SHA-256 integrity check. Do not trust or display it; restore it from a trusted source or reimport the session.`,
+      );
+    }
+
+    return content;
   }
 }
 

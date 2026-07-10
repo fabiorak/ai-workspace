@@ -121,3 +121,23 @@ are ignored by Git, and must not be copied into public issues or fixtures.
 - there is no artifact garbage collection, storage encryption, search, active
   memory, API, UI, or background watcher;
 - no content is sent to a model, telemetry endpoint, or network service.
+
+## Troubleshooting
+
+### Source file not found
+
+`--file` must point to an existing regular JSONL file. Shells normally expand
+`~/session.jsonl` to a file in the current user's home directory, but they do
+not create that file.
+
+To verify the workflow with the bundled synthetic fixture, run:
+
+```bash
+npm run cli -- session import \
+  --project <project-id> \
+  --source codex \
+  --file integrations/codex/test/fixtures/session.jsonl
+```
+
+If a custom source exists but is not readable, check its filesystem
+permissions. If the path is a directory, select the JSONL file inside it.

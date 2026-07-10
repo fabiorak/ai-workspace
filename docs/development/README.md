@@ -48,6 +48,9 @@ npm run cli -- session import \
   --source codex \
   --file integrations/codex/test/fixtures/session.jsonl
 npm run cli -- session inspect <session-id>
+npm run cli -- history search "test failed" --project <project-id>
+npm run cli -- history show <event-id> --project <project-id>
+npm run cli -- artifact show <artifact-id>
 ```
 
 Add `--json` for machine-readable output. Set `AI_WORKSPACE_HOME` to use an
@@ -58,6 +61,10 @@ isolated state directory during development or tests. The default registry is
 The committed Codex fixture is fictional and intentionally public. Do not
 replace it or extend it with captured user transcripts, even after manual
 redaction.
+
+Root and command-specific help are acceptance-tested product interfaces. When
+adding a command, keep first-run steps, empty states, suggested next commands,
+examples, and recovery guidance aligned with its behavior.
 
 ## Workspace layout
 

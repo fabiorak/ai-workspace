@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-workspace/codex-adapter": "0.0.0",
     "@ai-workspace/git-adapter": "0.0.0",
+    "@ai-workspace/historical-search": "0.0.0",
     "@ai-workspace/local-project-registry": "0.0.0",
     "@ai-workspace/local-session-ingestion": "0.0.0",
     "@ai-workspace/project-registry": "0.0.0",
