@@ -7,9 +7,14 @@ telemetry, instructions, policies, agents, and skills.
 
 Implemented packages:
 
+- `active-memory/` owns provider-neutral active-memory vocabulary, lifecycle
+  use cases, and persistence and provenance ports;
 - `core/` defines initial Work Item vocabulary and pure validation;
 - `project-registry/` owns repository models, ports, and registration use
-  cases.
+  cases;
+- `session-ingestion/` owns canonical imported-session and event contracts;
+- `historical-search/` owns read-only historical evidence search contracts and
+  use cases.
 
 Other directories remain placeholders until their public contracts are defined
 through implementation and ADRs.

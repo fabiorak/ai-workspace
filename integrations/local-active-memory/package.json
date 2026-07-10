@@ -1,0 +1,25 @@
+{
+  "name": "@ai-workspace/local-active-memory",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local provenance adapter for active project memory",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/active-memory": "0.0.0",
+    "@ai-workspace/local-session-ingestion": "0.0.0",
+    "@ai-workspace/session-ingestion": "0.0.0"
+  }
+}

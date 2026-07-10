@@ -17,6 +17,9 @@
       "@ai-workspace/local-project-registry": [
         "./integrations/local-project-registry/src/index.ts"
       ],
+      "@ai-workspace/local-active-memory": [
+        "./integrations/local-active-memory/src/index.ts"
+      ],
       "@ai-workspace/project-registry": [
         "./packages/project-registry/src/index.ts"
       ],

@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../../packages/active-memory/tsconfig.build.json" },
+    { "path": "../local-session-ingestion/tsconfig.build.json" },
+    { "path": "../../packages/session-ingestion/tsconfig.build.json" }
+  ]
+}
