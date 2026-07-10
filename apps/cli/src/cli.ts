@@ -29,6 +29,12 @@ import {
   type SessionImportReport,
 } from "@ai-workspace/session-ingestion";
 
+import {
+  MemoryCliUsageError,
+  memoryUsage,
+  runMemoryCommand,
+} from "./memory-commands.ts";
+
 export type CliEnvironment = Readonly<Record<string, string | undefined>>;
 
 export type CliWriter = (content: string) => void;
@@ -37,6 +43,7 @@ export type CliDependencies = Readonly<{
   environment: CliEnvironment;
   stdout: CliWriter;
   stderr: CliWriter;
+  stdin?: () => Promise<string>;
 }>;
 
 class CliUsageError extends Error {
@@ -101,11 +108,21 @@ export async function runCli(
           json,
           dependencies,
         );
+      case "memory":
+        return await runMemoryCommand(
+          command,
+          commandArguments.slice(2),
+          json,
+          dependencies,
+        );
       default:
         throw new CliUsageError(`Unknown command group '${group ?? ""}'`);
     }
   } catch (error) {
-    if (error instanceof CliUsageError) {
+    if (
+      error instanceof CliUsageError ||
+      error instanceof MemoryCliUsageError
+    ) {
       dependencies.stderr(`Error: ${error.message}\n\n${usage()}`);
       return 2;
     }
@@ -684,6 +701,10 @@ function terminalContent(value: string): string {
 function usage(group?: string, command?: string): string {
   const topic = `${group ?? ""} ${command ?? ""}`.trim();
 
+  if (group === "memory") {
+    return memoryUsage(command);
+  }
+
   if (topic === "history search") {
     return `Search imported historical events
 
@@ -750,6 +771,8 @@ Start here:
   3. Search imported evidence:
      npm run cli -- history search "test failed" --project <project-id>
   4. Follow the suggested history show and artifact show commands.
+  5. Curate selected evidence as active memory:
+     npm run cli -- memory add --project <project-id> --type constraint --content "Synthetic constraint" --source-event <event-id>
 
 Usage:
   ai-workspace project register <path> [--json]
@@ -760,6 +783,7 @@ Usage:
   ai-workspace history search <text> --project <project-id> [options] [--json]
   ai-workspace history show <event-id> --project <project-id> [--json]
   ai-workspace artifact show <artifact-id> [--json]
+  ai-workspace memory add|list|show|verify|supersede|invalidate ... [--json]
   ai-workspace help
 
 Contextual help:
@@ -767,6 +791,8 @@ Contextual help:
   ai-workspace history search --help
   ai-workspace history show --help
   ai-workspace artifact show --help
+  ai-workspace memory add --help
+  ai-workspace memory list --help
 
 Environment:
   AI_WORKSPACE_HOME  Local state directory (default: ~/.ai-workspace)

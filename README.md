@@ -170,6 +170,23 @@ Results remain visibly untrusted, source-linked evidence. Artifact content is
 shown only after an explicit command and a successful SHA-256 integrity check.
 See the [Historical Search guide](docs/user-guide/historical-search.md).
 
+The current Sprint 4 implementation can explicitly curate selected evidence as
+active decisions, constraints, and failures:
+
+```bash
+npm run cli -- memory add --project <project-id> \
+  --type constraint --content "Synthetic runtime constraint" \
+  --source-event <event-id>
+npm run cli -- memory list --project <project-id>
+npm run cli -- memory show <memory-id> --project <project-id>
+```
+
+Memory remains visibly `USER_CURATED`, while linked historical evidence stays
+`UNTRUSTED`. Verification, supersession, and invalidation are additive and
+source-linked; no command executes evidence or invokes an agent. Sensitive
+write values can be read from stdin. See the
+[Active Memory guide](docs/user-guide/active-memory.md).
+
 ## Development
 
 AI Workspace currently requires Node.js 24 and npm 11.
