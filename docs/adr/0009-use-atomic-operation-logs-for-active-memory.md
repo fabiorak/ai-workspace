@@ -39,6 +39,30 @@ append-only. Every accepted commit must:
 - request directory mode `0700` and file mode `0600` where supported;
 - remove its own lock in a `finally` path.
 
+Schema version 1 records the project ID, a project revision equal to the
+operation count, and an ordered operation array. Every operation repeats the
+project ID, carries its one-based revision, a unique UUID, `LOCAL_USER`
+attribution, a canonical timestamp, and one or more bounded canonical source
+links. Operation kinds store only transition inputs:
+
+- `CREATE` stores the new item identity, type, content, and creation sources;
+- `VERIFY` stores the target and expected item version, note, and independent
+  verification sources;
+- `SUPERSEDE` stores the target and expected version, replacement identity and
+  creation operation ID, replacement content and sources, and the transition
+  sources;
+- `INVALIDATE` stores the target and expected version, reason, and transition
+  sources.
+
+Validity, verification status, confidence, item versions, reverse links, and
+transition histories are derived rather than duplicated in the document. A
+pure reducer rejects unsupported schemas, non-sequential revisions,
+cross-project operations, duplicate item or operation IDs, stale item
+versions, invalid bounds or provenance shapes, and illegal lifecycle
+sequences. Encoding validates and reduces the complete document before
+serialization; decoding fails closed with recovery guidance and never repairs
+or skips malformed operations.
+
 Active-memory operations are project-scoped, attributable to `LOCAL_USER` in
 the initial single-user slice, timestamped, and linked to canonical source
 events from the same project. Source payloads are not copied into the log.
