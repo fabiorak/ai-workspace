@@ -34,6 +34,21 @@ npm run test:watch    # run tests during development
 npm run check         # run the complete local/CI quality gate
 ```
 
+## Run the CLI
+
+Build the workspace and invoke the root CLI script:
+
+```bash
+npm run build
+npm run cli -- project register /path/to/repository
+npm run cli -- project list
+npm run cli -- project inspect <project-id>
+```
+
+Add `--json` for machine-readable output. Set `AI_WORKSPACE_HOME` to use an
+isolated state directory during development or tests. The default registry is
+`~/.ai-workspace/projects.json`.
+
 ## Workspace layout
 
 - `apps/` contains executable composition roots;

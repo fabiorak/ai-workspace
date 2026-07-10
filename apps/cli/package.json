@@ -1,0 +1,22 @@
+{
+  "name": "@ai-workspace/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Command-line interface for AI Workspace",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "ai-workspace": "./dist/main.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/git-adapter": "0.0.0",
+    "@ai-workspace/local-project-registry": "0.0.0",
+    "@ai-workspace/project-registry": "0.0.0"
+  }
+}

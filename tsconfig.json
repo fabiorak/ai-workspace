@@ -3,6 +3,16 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "noEmit": true,
+    "paths": {
+      "@ai-workspace/core": ["./packages/core/src/index.ts"],
+      "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],
+      "@ai-workspace/local-project-registry": [
+        "./integrations/local-project-registry/src/index.ts"
+      ],
+      "@ai-workspace/project-registry": [
+        "./packages/project-registry/src/index.ts"
+      ]
+    },
     "types": ["node"]
   },
   "include": [

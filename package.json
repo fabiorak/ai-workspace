@@ -19,11 +19,12 @@
   "scripts": {
     "build": "tsc -b tsconfig.build.json --pretty false",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm run test",
+    "cli": "node apps/cli/dist/main.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "test": "node --test packages/*/test/*.test.ts",
-    "test:watch": "node --test --watch packages/*/test/*.test.ts",
+    "test": "node --test apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
+    "test:watch": "node --test --watch apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "typecheck": "tsc --noEmit --pretty false"
   },
   "devDependencies": {

@@ -1,4 +1,6 @@
-# User guide
+# User Guide
 
-Installation and workflow documentation will be added when the first usable
-Project Memory milestone is available.
+- [Register and inspect local Git repositories](project-registry.md)
+
+Installation and workflow documentation will expand with each usable vertical
+slice.

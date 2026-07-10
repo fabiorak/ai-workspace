@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/local-project-registry",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local JSON persistence adapter for the Project Registry",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/project-registry": "0.0.0"
+  }
+}

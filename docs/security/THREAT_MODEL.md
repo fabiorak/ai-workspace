@@ -188,6 +188,19 @@ Baseline controls:
 - **E7:** encrypted reversible mappings and per-model data enforcement;
 - **E8/E9:** capability sandbox, package integrity, and approval gates.
 
+## Implemented E1 controls
+
+- repository paths are canonicalized and must resolve to directories;
+- Git receives path and command arguments without shell interpretation;
+- inspection uses read-only commands with terminal prompts, pagers, optional
+  locks, and repository-configured filesystem monitors disabled;
+- process output is bounded and command execution has a timeout;
+- credentials are removed from HTTP(S) origin URLs before persistence;
+- human CLI output neutralizes control characters from untrusted metadata;
+- registry files are schema-validated, reject duplicate identity/path records,
+  and use atomic writes with restrictive permissions;
+- project IDs are opaque UUIDs rather than path-derived identifiers.
+
 ## Review triggers
 
 Review and update this model when:

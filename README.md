@@ -112,6 +112,30 @@ decisions rather than assumed by this initial scaffold.
 - [Development guide](docs/development/README.md)
 - [Roadmap](ROADMAP.md)
 
+## Current capabilities
+
+The first Project Registry slice can register and inspect local non-bare Git
+repositories from the CLI. It records an opaque project identifier, canonical
+path, branch, HEAD revision, sanitized origin URL, and worktree state in a
+local versioned registry.
+
+```bash
+npm ci
+npm run build
+npm run cli -- project register .
+npm run cli -- project list
+```
+
+To refresh a project after its Git state changes:
+
+```bash
+npm run cli -- project inspect <project-id>
+```
+
+Add `--json` to any project command for machine-readable output. Local registry
+data is stored under `~/.ai-workspace` by default and is never committed to the
+registered repository. See the [Project Registry guide](docs/user-guide/project-registry.md).
+
 ## Development
 
 AI Workspace currently requires Node.js 24 and npm 11.

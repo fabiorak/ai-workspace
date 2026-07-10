@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/git-adapter",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Safe Git repository inspection adapter",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/project-registry": "0.0.0"
+  }
+}
