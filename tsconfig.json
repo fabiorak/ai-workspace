@@ -4,6 +4,7 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "paths": {
+      "@ai-workspace/active-memory": ["./packages/active-memory/src/index.ts"],
       "@ai-workspace/core": ["./packages/core/src/index.ts"],
       "@ai-workspace/codex-adapter": ["./integrations/codex/src/index.ts"],
       "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],

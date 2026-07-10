@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "./packages/active-memory/tsconfig.build.json" },
     { "path": "./packages/core/tsconfig.build.json" },
     { "path": "./packages/historical-search/tsconfig.build.json" },
     { "path": "./packages/project-registry/tsconfig.build.json" },
