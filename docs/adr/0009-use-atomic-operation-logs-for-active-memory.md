@@ -23,6 +23,10 @@ below `AI_WORKSPACE_HOME/memory/`. The document is a complete ordered log of
 domain operations, not a mutable collection of current items. The initial
 operations create, verify, supersede, or invalidate an item.
 
+The filename is `project_<sha256(project-id)>.json`; the raw project ID is not
+used as a path segment and remains mandatory inside the validated document.
+This prevents path traversal while preserving deterministic project isolation.
+
 The store is physically rewritten as a complete snapshot and logically
 append-only. Every accepted commit must:
 
@@ -38,6 +42,18 @@ append-only. Every accepted commit must:
   version;
 - request directory mode `0700` and file mode `0600` where supported;
 - remove its own lock in a `finally` path.
+
+The lock document contains a schema version, random owner token, PID, and
+creation timestamp. A collision reports this metadata for diagnosis but never
+removes a lock based only on age or PID. Cleanup rereads the lock and removes
+it only when the owner token still matches. Manual removal always requires the
+user to confirm that the recorded owner is no longer active.
+
+Temporary documents are exclusively created with mode `0600`, fully encoded
+and reduced before writing, flushed before rename, and removed on pre-commit
+failure. The rename is the final fallible publication step; the resulting file
+inherits the temporary file's restrictive mode. The adapter performs no
+fallible validation or permission change after publication.
 
 Schema version 1 records the project ID, a project revision equal to the
 operation count, and an ordered operation array. Every operation repeats the
@@ -106,6 +122,8 @@ and the logical append-only prefix.
 - initial listing still reconstructs and filters the full project log even
   though its public result is paginated;
 - stale locks require manual recovery after confirming no writer is active;
+- project IDs are hidden from filenames but remain visible inside the local,
+  user-owned JSON document;
 - compaction cannot discard operations and requires a future ADR if scale
   measurements justify snapshots or another transactional store;
 - an adapter may replace the JSON representation later while preserving the

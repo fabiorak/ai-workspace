@@ -19,7 +19,9 @@ The implemented local persistence baseline now consists of:
 - a schema-versioned atomic JSON Project Registry;
 - schema-versioned per-session JSON documents that enforce logical append-only
   event prefixes and use exclusive per-session locks;
-- immutable exact-byte artifacts addressed by SHA-256 on the local filesystem.
+- immutable exact-byte artifacts addressed by SHA-256 on the local filesystem;
+- schema-validated per-project active-memory operation logs with diagnostic
+  owner-token locks and atomic whole-document replacement.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
@@ -31,6 +33,14 @@ scans validated canonical session events with mandatory project scope and
 resolves artifact-backed payloads through an integrity-checking read port. Raw
 source artifacts are opened only after explicit user action. ADR-0008 records
 the bounded literal-search strategy and the triggers for selecting an index.
+
+Active memory remains separate from historical evidence and artifacts. Its
+provider-neutral lifecycle is implemented in `packages/active-memory`, while
+the local adapter derives current state from append-only logical operations.
+Project IDs are hashed for filenames, documents repeat and validate project
+scope, and source links retain canonical evidence identity without copying
+payloads. ADR-0009 records the storage, locking, reconstruction, and migration
+rules.
 
 See the full public design documents in the parent `docs/` directory. Material
 decisions should be captured as ADRs before implementation locks them in.

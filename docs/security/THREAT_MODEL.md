@@ -244,6 +244,27 @@ Baseline controls:
   executed, promoted to active memory, or sent to a model;
 - retrieval commands are read-only and use no network service or telemetry.
 
+## Implemented E3 active-memory storage controls
+
+- imported evidence remains `UNTRUSTED` and cannot promote itself into active
+  memory;
+- every creation and lifecycle transition requires same-project canonical
+  source links resolved through a read-only adapter;
+- active-memory documents repeat project scope internally while filenames use
+  a SHA-256 digest of the project ID rather than a caller-controlled path;
+- schema, bounds, attribution, UUIDs, revisions, item versions, source shapes,
+  and lifecycle transitions are validated before use;
+- current state is reconstructed from a logically append-only operation log;
+- writes use per-project exclusive locks, `0700` directories, `0600` temporary
+  files, flush-before-rename, and atomic publication;
+- lock metadata contains an owner token, PID, and timestamp; locks are not
+  removed automatically based only on age or PID;
+- lock cleanup removes only a file whose owner token still matches;
+- corruption and concurrent changes fail closed with recovery guidance that
+  does not echo memory content;
+- active memory is never executed, sent to a model, or included in a handoff
+  automatically.
+
 ## Review triggers
 
 Review and update this model when:
@@ -260,6 +281,9 @@ Review and update this model when:
 The Sprint 2 screen is intentionally narrow and can miss secrets, PII, and
 confidential business data. Local session and artifact storage is not
 encrypted, stale locks require careful manual recovery, and failed commits may
-leave unreferenced immutable artifacts. Sandboxing and model-policy enforcement
-also remain unavailable. The repository contains only synthetic fixtures and
-must not be presented as safe for importing confidential production data.
+leave unreferenced immutable artifacts. Active-memory documents are also not
+encrypted, and a local process with filesystem access can tamper with data or
+locks despite validation and restrictive modes. Sandboxing and model-policy
+enforcement also remain unavailable. The repository contains only synthetic
+fixtures and must not be presented as safe for importing confidential
+production data.

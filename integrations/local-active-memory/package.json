@@ -2,7 +2,7 @@
   "name": "@ai-workspace/local-active-memory",
   "version": "0.0.0",
   "private": true,
-  "description": "Local provenance adapter for active project memory",
+  "description": "Local storage and provenance adapters for active project memory",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
