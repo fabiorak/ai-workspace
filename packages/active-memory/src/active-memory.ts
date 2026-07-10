@@ -2,7 +2,6 @@ import type { SessionEvent } from "@ai-workspace/session-ingestion";
 
 import { ActiveMemoryError, MemoryItemNotFoundError } from "./errors.ts";
 import {
-  MEMORY_CONFIDENCES,
   MEMORY_ITEM_TYPES,
   MEMORY_VALIDITIES,
   MEMORY_VERIFICATIONS,
@@ -10,7 +9,11 @@ import {
   type InvalidateMemoryInput,
   type ListMemoryQuery,
   type MemoryItem,
+  type MemoryItemType,
+  type MemoryPage,
   type MemorySourceLink,
+  type MemoryValidity,
+  type MemoryVerification,
   type SupersedeMemoryInput,
   type SupersededMemory,
   type VerifyMemoryInput,
@@ -23,6 +26,8 @@ const MAX_CONTENT_LENGTH = 4_096;
 const MAX_NOTE_LENGTH = 1_024;
 const MAX_REASON_LENGTH = 1_024;
 const MAX_SOURCE_EVENTS = 20;
+const MAX_CURSOR_LENGTH = 2_048;
+const CURSOR_SCHEMA_VERSION = 1;
 
 export class ActiveMemory {
   readonly #dependencies: ActiveMemoryDependencies;
@@ -39,12 +44,6 @@ export class ActiveMemory {
       "Memory content",
       MAX_CONTENT_LENGTH,
     );
-    const confidence = allowedValue(
-      input.confidence ?? "UNASSESSED",
-      MEMORY_CONFIDENCES,
-      "Memory confidence",
-    );
-
     await this.#assertProject(projectId);
     const sources = await this.#resolveSources(projectId, input.sourceEventIds);
     const occurredAt = this.#now();
@@ -56,7 +55,7 @@ export class ActiveMemory {
       curation: "USER_CURATED",
       validity: "ACTIVE",
       verification: "UNVERIFIED",
-      confidence,
+      confidence: "UNASSESSED",
       version: 1,
       sources,
       creationOperationId: this.#id("Creation operation ID"),
@@ -71,7 +70,7 @@ export class ActiveMemory {
     return this.#dependencies.store.create(item);
   }
 
-  public async list(query: ListMemoryQuery): Promise<readonly MemoryItem[]> {
+  public async list(query: ListMemoryQuery): Promise<MemoryPage> {
     const projectId = requiredValue(query.projectId, "Project ID");
     const type = optionalAllowedValue(
       query.type,
@@ -97,19 +96,41 @@ export class ActiveMemory {
     }
 
     await this.#assertProject(projectId);
+    const resolvedValidity = validity ?? "ACTIVE";
+    const cursor =
+      query.cursor === undefined
+        ? null
+        : decodeCursor(query.cursor, {
+            projectId,
+            type,
+            validity: resolvedValidity,
+            verification,
+          });
     const items = await this.#dependencies.store.list(projectId);
-    return Object.freeze(
-      items
-        .filter(
-          (item) =>
-            item.projectId === projectId &&
-            item.validity === (validity ?? "ACTIVE") &&
-            (type === undefined || item.type === type) &&
-            (verification === undefined || item.verification === verification),
-        )
-        .sort(compareItems)
-        .slice(0, limit),
-    );
+    const candidates = items
+      .filter(
+        (item) =>
+          item.projectId === projectId &&
+          item.validity === resolvedValidity &&
+          (type === undefined || item.type === type) &&
+          (verification === undefined || item.verification === verification),
+      )
+      .sort(compareItems)
+      .filter((item) => cursor === null || isAfterCursor(item, cursor))
+      .slice(0, limit + 1);
+    const pageItems = Object.freeze(candidates.slice(0, limit));
+    const lastItem = pageItems.at(-1);
+    const nextCursor =
+      candidates.length > limit && lastItem !== undefined
+        ? encodeCursor(lastItem, {
+            projectId,
+            type,
+            validity: resolvedValidity,
+            verification,
+          })
+        : null;
+
+    return Object.freeze({ items: pageItems, nextCursor });
   }
 
   public async show(
@@ -161,11 +182,6 @@ export class ActiveMemory {
       "Replacement content",
       MAX_CONTENT_LENGTH,
     );
-    const confidence = allowedValue(
-      input.confidence ?? "UNASSESSED",
-      MEMORY_CONFIDENCES,
-      "Memory confidence",
-    );
     await this.#assertProject(projectId);
     const current = await this.#findItem(projectId, memoryId);
     assertActive(current, "supersede");
@@ -180,7 +196,7 @@ export class ActiveMemory {
       curation: "USER_CURATED",
       validity: "ACTIVE",
       verification: "UNVERIFIED",
-      confidence,
+      confidence: "UNASSESSED",
       version: 1,
       sources,
       creationOperationId: this.#id("Creation operation ID"),
@@ -326,8 +342,93 @@ function assertActive(item: MemoryItem, action: string): void {
 }
 
 function compareItems(left: MemoryItem, right: MemoryItem): number {
-  const timeOrder = left.createdAt.localeCompare(right.createdAt);
+  const timeOrder = right.createdAt.localeCompare(left.createdAt);
   return timeOrder === 0 ? left.id.localeCompare(right.id) : timeOrder;
+}
+
+type CursorQuery = Readonly<{
+  projectId: string;
+  type: MemoryItemType | undefined;
+  validity: MemoryValidity;
+  verification: MemoryVerification | undefined;
+}>;
+
+type MemoryCursor = Readonly<{
+  createdAt: string;
+  id: string;
+}>;
+
+function encodeCursor(item: MemoryItem, query: CursorQuery): string {
+  return Buffer.from(
+    JSON.stringify({
+      schemaVersion: CURSOR_SCHEMA_VERSION,
+      projectId: query.projectId,
+      type: query.type ?? null,
+      validity: query.validity,
+      verification: query.verification ?? null,
+      createdAt: item.createdAt,
+      id: item.id,
+    }),
+    "utf8",
+  ).toString("base64url");
+}
+
+function decodeCursor(value: string, query: CursorQuery): MemoryCursor {
+  try {
+    if (
+      typeof value !== "string" ||
+      value.length < 1 ||
+      value.length > MAX_CURSOR_LENGTH ||
+      value.trim() !== value ||
+      !/^[A-Za-z0-9_-]+$/u.test(value) ||
+      Buffer.from(value, "base64url").toString("base64url") !== value
+    ) {
+      throw new Error("invalid encoding");
+    }
+
+    const parsed: unknown = JSON.parse(
+      Buffer.from(value, "base64url").toString("utf8"),
+    );
+
+    if (
+      !isRecord(parsed) ||
+      parsed.schemaVersion !== CURSOR_SCHEMA_VERSION ||
+      parsed.projectId !== query.projectId ||
+      parsed.type !== (query.type ?? null) ||
+      parsed.validity !== query.validity ||
+      parsed.verification !== (query.verification ?? null) ||
+      typeof parsed.createdAt !== "string" ||
+      !isCanonicalTimestamp(parsed.createdAt) ||
+      typeof parsed.id !== "string" ||
+      parsed.id.length < 1 ||
+      parsed.id.length > MAX_CONTENT_LENGTH
+    ) {
+      throw new Error("invalid cursor payload");
+    }
+
+    return Object.freeze({ createdAt: parsed.createdAt, id: parsed.id });
+  } catch (error) {
+    throw new ActiveMemoryError(
+      "Memory cursor is invalid or does not match this project and filter set. Restart listing without a cursor.",
+      { cause: error },
+    );
+  }
+}
+
+function isAfterCursor(item: MemoryItem, cursor: MemoryCursor): boolean {
+  return (
+    item.createdAt < cursor.createdAt ||
+    (item.createdAt === cursor.createdAt && item.id > cursor.id)
+  );
+}
+
+function isCanonicalTimestamp(value: string): boolean {
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date.toISOString() === value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function boundedValue(value: string, label: string, maximum: number): string {

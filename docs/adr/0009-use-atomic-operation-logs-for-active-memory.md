@@ -54,6 +54,18 @@ The allowed lifecycle is deliberately narrow:
 - terminal items cannot transition again;
 - replacements do not inherit verification or confidence.
 
+Creation and supersession inputs cannot set confidence. New items and
+replacements are always `UNASSESSED`; any future confidence change requires a
+separate attributable domain operation and is outside Sprint 4.
+
+Project-memory listing uses bounded keyset pagination. Items are ordered by
+creation timestamp descending (newest first), then by opaque memory ID
+ascending as a stable tie-break. A page returns at most the requested limit and
+an opaque, exclusive cursor only when more matching items exist. The cursor is
+bound to the project and complete filter set; changing either requires
+restarting without a cursor. This keeps every item discoverable without an
+offset whose meaning shifts when newer memory is created.
+
 Memory IDs and operation IDs are opaque, content-independent UUIDs. Project
 revision and item version are monotonic concurrency controls, not identity.
 Schema migrations must preserve operation order, attribution, source links,
@@ -67,6 +79,8 @@ and the logical append-only prefix.
 - crash safety follows the existing temporary-write and atomic-rename pattern;
 - concurrent commands fail instead of silently losing an update;
 - read and write cost grows linearly with a project's operation count;
+- initial listing still reconstructs and filters the full project log even
+  though its public result is paginated;
 - stale locks require manual recovery after confirming no writer is active;
 - compaction cannot discard operations and requires a future ADR if scale
   measurements justify snapshots or another transactional store;

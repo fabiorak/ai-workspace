@@ -81,7 +81,6 @@ export type AddMemoryInput = Readonly<{
   type: MemoryItemType;
   content: string;
   sourceEventIds: readonly string[];
-  confidence?: MemoryConfidence;
 }>;
 
 export type ListMemoryQuery = Readonly<{
@@ -90,6 +89,12 @@ export type ListMemoryQuery = Readonly<{
   validity?: MemoryValidity;
   verification?: MemoryVerification;
   limit?: number;
+  cursor?: string;
+}>;
+
+export type MemoryPage = Readonly<{
+  items: readonly MemoryItem[];
+  nextCursor: string | null;
 }>;
 
 export type VerifyMemoryInput = Readonly<{
@@ -104,7 +109,6 @@ export type SupersedeMemoryInput = Readonly<{
   memoryId: string;
   content: string;
   sourceEventIds: readonly string[];
-  confidence?: MemoryConfidence;
 }>;
 
 export type InvalidateMemoryInput = Readonly<{

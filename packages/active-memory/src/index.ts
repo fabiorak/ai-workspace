@@ -16,6 +16,7 @@ export {
   type MemoryInvalidationRecord,
   type MemoryItem,
   type MemoryItemType,
+  type MemoryPage,
   type MemorySourceLink,
   type MemorySupersessionRecord,
   type MemoryValidity,

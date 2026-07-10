@@ -63,9 +63,10 @@ test("lists active items by default with deterministic filters", async () => {
 
   const active = await memory.list({ projectId: "project-1" });
   assert.deepEqual(
-    active.map((item) => item.type),
+    active.items.map((item) => item.type),
     ["FAILURE"],
   );
+  assert.equal(active.nextCursor, null);
 
   const invalidated = await memory.list({
     projectId: "project-1",
@@ -73,8 +74,59 @@ test("lists active items by default with deterministic filters", async () => {
     type: "DECISION",
   });
   assert.deepEqual(
-    invalidated.map((item) => item.id),
+    invalidated.items.map((item) => item.id),
     [decision.id],
+  );
+});
+
+test("paginates newest-first with a stable ID tie-break", async () => {
+  const { memory } = createMemory({
+    timestamps: [
+      "2026-07-10T10:00:00.000Z",
+      "2026-07-10T12:00:00.000Z",
+      "2026-07-10T12:00:00.000Z",
+    ],
+  });
+
+  for (const content of ["First", "Second", "Third"]) {
+    await memory.add({
+      projectId: "project-1",
+      type: "DECISION",
+      content: `Synthetic ${content.toLowerCase()} decision`,
+      sourceEventIds: ["event-1"],
+    });
+  }
+
+  const firstPage = await memory.list({ projectId: "project-1", limit: 2 });
+  assert.deepEqual(
+    firstPage.items.map((item) => item.content),
+    ["Synthetic second decision", "Synthetic third decision"],
+  );
+  assert.ok(firstPage.nextCursor !== null);
+  const cursor = firstPage.nextCursor;
+
+  const secondPage = await memory.list({
+    projectId: "project-1",
+    limit: 2,
+    cursor,
+  });
+  assert.deepEqual(
+    secondPage.items.map((item) => item.content),
+    ["Synthetic first decision"],
+  );
+  assert.equal(secondPage.nextCursor, null);
+
+  await assert.rejects(
+    memory.list({
+      projectId: "project-1",
+      type: "FAILURE",
+      cursor,
+    }),
+    /cursor is invalid or does not match.*without a cursor/u,
+  );
+  await assert.rejects(
+    memory.list({ projectId: "project-1", cursor: "not-a-cursor" }),
+    /cursor is invalid or does not match.*without a cursor/u,
   );
 });
 
@@ -118,7 +170,6 @@ test("supersedes additively and resets replacement assessment", async () => {
     type: "CONSTRAINT",
     content: "Original synthetic constraint",
     sourceEventIds: ["event-1"],
-    confidence: "HIGH",
   });
   await memory.verify({
     projectId: "project-1",
@@ -178,7 +229,7 @@ test("rejects missing or foreign sources without exposing foreign data", async (
   );
 });
 
-function createMemory(): {
+function createMemory(options?: { readonly timestamps: readonly string[] }): {
   memory: ActiveMemory;
   store: InMemoryStore;
 } {
@@ -189,6 +240,7 @@ function createMemory(): {
     ["foreign-event", sourceEvent("foreign-event", "foreign-session", 1)],
   ]);
   let nextId = 0;
+  let nextTimestamp = 0;
   const memory = new ActiveMemory({
     store,
     sourceEvents: {
@@ -210,7 +262,10 @@ function createMemory(): {
       return `id-${String(nextId).padStart(4, "0")}`;
     },
     clock() {
-      return new Date("2026-07-10T12:00:00.000Z");
+      const timestamp =
+        options?.timestamps[nextTimestamp] ?? "2026-07-10T12:00:00.000Z";
+      nextTimestamp += 1;
+      return new Date(timestamp);
     },
   });
   return { memory, store };

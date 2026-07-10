@@ -335,3 +335,15 @@ Sprint 4 is complete only when:
 - quality, security, documentation, migration, and public-fixture gates pass;
 - M2 exit criteria pass and review and retrospective are appended without
   rewriting this commitment.
+
+## Implementation clarifications
+
+These clarifications resolve contract ambiguity without changing the sprint
+commitment above:
+
+- creation and supersession always produce `UNASSESSED` items; setting or
+  changing confidence requires a future attributable operation and is not an
+  input to either command;
+- list ordering is creation time descending, then memory ID ascending;
+- bounded list results use an opaque keyset cursor bound to the project and
+  filters, so all matching items remain discoverable beyond the first page.
