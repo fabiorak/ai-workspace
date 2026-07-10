@@ -1,5 +1,73 @@
-# Development guide
+# Development Guide
 
-Environment setup, build, test, lint, migration, and release instructions will
-be documented here after the initial implementation toolchain is selected.
+## Prerequisites
 
+- Git;
+- Node.js 24;
+- npm 11, bundled with the supported Node.js release.
+
+The repository includes `.nvmrc` for compatible Node version managers. Runtime
+and package-manager constraints are also declared in `package.json`.
+
+## Set up a clean clone
+
+```bash
+git clone https://github.com/fabiorak/ai-workspace.git
+cd ai-workspace
+npm ci
+npm run check
+```
+
+Use `npm install` only when intentionally adding or changing dependencies. CI
+and reproducibility checks use `npm ci` against the committed lockfile.
+
+## Quality commands
+
+```bash
+npm run format:check  # verify formatting
+npm run format        # apply formatting
+npm run lint          # static checks
+npm run typecheck     # strict TypeScript check without output
+npm run build         # compile buildable workspace packages
+npm run test          # run tests once
+npm run test:watch    # run tests during development
+npm run check         # run the complete local/CI quality gate
+```
+
+## Workspace layout
+
+- `apps/` contains executable composition roots;
+- `packages/` contains domain and application capabilities;
+- `integrations/` contains provider and protocol adapters;
+- `services/` contains supporting components with justified runtime
+  boundaries.
+
+Packages expose supported APIs from their root entry point. Domain packages do
+not depend on provider SDKs, databases, or application frameworks. See
+[ADR-0003](../adr/0003-module-boundaries-and-dependency-direction.md).
+
+## Adding a package
+
+1. Place the package under the appropriate workspace directory.
+2. Add a private `package.json` with an `@ai-workspace/` name.
+3. Extend `tsconfig.base.json` and add a build reference when the package emits
+   artifacts.
+4. Export only the supported public API from `src/index.ts`.
+5. Add tests alongside the package in `test/`.
+6. Run `npm run check`.
+
+Do not add a framework, database driver, provider SDK, or independently
+deployed service without documenting the decision and its boundary.
+
+## Architecture decisions
+
+Material decisions are recorded in `docs/adr/`. New ADRs use the next numeric
+identifier and start with `proposed` status. An accepted ADR is updated rather
+than silently contradicted; replacement decisions identify the superseded ADR.
+
+## Local data
+
+`.ai-workspace/`, indexes, artifacts, logs, environment files, and local
+databases are excluded from Git. Tests and examples must use synthetic data.
+Never copy real credentials, private transcripts, customer files, or reversible
+pseudonymization mappings into the repository.

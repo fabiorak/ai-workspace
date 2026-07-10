@@ -24,4 +24,3 @@ keep architectural options open and align with the public design documents.
 - external-system adapters belong in `integrations/`.
 - independently deployed supporting components belong in `services/`.
 - Architectural decisions belong in `docs/adr/`.
-

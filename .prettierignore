@@ -1,0 +1,12 @@
+.ai-workspace/
+.tokensave/
+artifacts/
+coverage/
+data/
+dist/
+node_modules/
+docs/AI_WORKSPACE_DESIGN_PUBLIC_EN.md
+docs/AI_WORKSPACE_DESIGN_PUBLIC_IT.md
+LICENSE
+package-lock.json
+

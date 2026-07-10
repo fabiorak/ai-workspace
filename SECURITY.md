@@ -14,4 +14,3 @@ private transcripts, or reversible anonymization mappings in the report.
 Security-sensitive areas include secret handling, anonymization, model routing,
 prompt injection, tool permissions, artifact storage, plugin trust, and local
 workspace isolation.
-

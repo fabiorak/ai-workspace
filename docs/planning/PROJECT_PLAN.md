@@ -401,16 +401,16 @@ search, context, provenance, and handoff model.
 The default cadence is a two-week sprint. The sequence below is a forecast and
 must be adjusted using evidence from completed increments.
 
-| Sprint | Primary epics | Demonstrable outcome |
-|---|---|---|
-| Sprint 0 | E0 | Toolchain, CI, domain baseline, and foundational ADRs |
-| Sprint 1 | E0, E1 | Register and inspect one local Git repository |
-| Sprint 2 | E1, E2 | Import a representative session from the first agent |
-| Sprint 3 | E2, E3 | Search imported events and open their source artifacts |
-| Sprint 4 | E3 | Consolidate active decisions, constraints, and failures |
-| Sprint 5 | E4 | Generate and validate a neutral handoff packet |
-| Sprint 6 | E4 | Resume the task with a second supported agent |
-| Sprint 7 | E4 | Minimal UI, workflow metrics, hardening, and MVP alpha |
+| Sprint   | Primary epics | Demonstrable outcome                                    |
+| -------- | ------------- | ------------------------------------------------------- |
+| Sprint 0 | E0            | Toolchain, CI, domain baseline, and foundational ADRs   |
+| Sprint 1 | E0, E1        | Register and inspect one local Git repository           |
+| Sprint 2 | E1, E2        | Import a representative session from the first agent    |
+| Sprint 3 | E2, E3        | Search imported events and open their source artifacts  |
+| Sprint 4 | E3            | Consolidate active decisions, constraints, and failures |
+| Sprint 5 | E4            | Generate and validate a neutral handoff packet          |
+| Sprint 6 | E4            | Resume the task with a second supported agent           |
+| Sprint 7 | E4            | Minimal UI, workflow metrics, hardening, and MVP alpha  |
 
 Sprint planning after Sprint 7 will use MVP feedback to prioritize E5 through
 E10. The default order is E5, E6, E7, E8, E9, and E10, but validated user needs
@@ -522,18 +522,18 @@ must be labeled as estimates.
 
 ## 12. Principal risks and responses
 
-| Risk | Response |
-|---|---|
-| Scope expands before the first usable workflow | Keep the cross-agent resume journey as the MVP scope anchor |
-| Agent transcript formats are unstable or unavailable | Use adapters, retain raw artifacts, and start with controlled fixtures |
-| Infrastructure complexity delays validation | Use a modular monolith and time-box infrastructure spikes |
-| Search returns outdated or unsafe instructions | Separate active memory from history and preserve validity and provenance |
-| Sensitive data enters indexes or logs | Classify data early, sanitize by default, and test forbidden paths |
-| Token-saving claims are not credible | Record explicit baselines and publish the measurement method |
-| Handoffs describe stale repository state | Validate against Git state, files, tests, and source references |
-| Provider coupling leaks into the domain | Enforce adapter boundaries and test with a second provider early |
-| Premature plugin execution creates security exposure | Defer execution until capability controls and sandboxing exist |
-| Document support dilutes the code MVP | Reuse core abstractions, but schedule document workflows after M3 |
+| Risk                                                 | Response                                                                 |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| Scope expands before the first usable workflow       | Keep the cross-agent resume journey as the MVP scope anchor              |
+| Agent transcript formats are unstable or unavailable | Use adapters, retain raw artifacts, and start with controlled fixtures   |
+| Infrastructure complexity delays validation          | Use a modular monolith and time-box infrastructure spikes                |
+| Search returns outdated or unsafe instructions       | Separate active memory from history and preserve validity and provenance |
+| Sensitive data enters indexes or logs                | Classify data early, sanitize by default, and test forbidden paths       |
+| Token-saving claims are not credible                 | Record explicit baselines and publish the measurement method             |
+| Handoffs describe stale repository state             | Validate against Git state, files, tests, and source references          |
+| Provider coupling leaks into the domain              | Enforce adapter boundaries and test with a second provider early         |
+| Premature plugin execution creates security exposure | Defer execution until capability controls and sandboxing exist           |
+| Document support dilutes the code MVP                | Reuse core abstractions, but schedule document workflows after M3        |
 
 ## 13. Governance and plan maintenance
 
@@ -554,4 +554,3 @@ must be labeled as estimates.
 Prepare Sprint 0 by defining its goal, backlog, acceptance criteria, and
 foundational ADR candidates. Sprint 0 should make the smallest set of decisions
 needed to begin E1 while keeping reversible choices open.
-

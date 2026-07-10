@@ -7,4 +7,3 @@ telemetry, instructions, policies, agents, and skills.
 
 Directories are placeholders until their public contracts are defined through
 implementation and ADRs.
-

@@ -19,9 +19,8 @@ most useful contributions.
 - Update documentation when setup, APIs, or user-visible behavior changes.
 - Do not include secrets, private transcripts, customer data, or generated
   local indexes in fixtures or examples.
-- Run the relevant formatting, linting, and test commands before submitting a
-  pull request. These commands will be documented when the initial toolchain
-  is selected.
+- Run `npm run check` before submitting a pull request. It verifies formatting,
+  linting, types, the package build, and tests using the same gate as CI.
 
 ## Pull requests
 

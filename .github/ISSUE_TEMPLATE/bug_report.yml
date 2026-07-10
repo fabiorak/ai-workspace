@@ -35,4 +35,3 @@ body:
     attributes:
       label: Sanitized logs
       render: shell
-

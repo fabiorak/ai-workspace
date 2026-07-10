@@ -1,0 +1,37 @@
+{
+  "name": "ai-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local-first control plane for cross-agent AI work",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "packageManager": "npm@11.16.0",
+  "workspaces": [
+    "apps/*",
+    "integrations/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json --pretty false",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "test": "node --test packages/*/test/*.test.ts",
+    "test:watch": "node --test --watch packages/*/test/*.test.ts",
+    "typecheck": "tsc --noEmit --pretty false"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.3",
+    "eslint": "^10.6.0",
+    "prettier": "^3.9.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.63.0"
+  }
+}

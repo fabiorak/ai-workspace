@@ -29,4 +29,3 @@ body:
       options:
         - label: This proposal preserves the local-first principle.
         - label: This proposal avoids coupling the core to one agent or provider.
-

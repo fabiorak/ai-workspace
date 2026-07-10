@@ -57,4 +57,3 @@ Document repositories evolve alongside the core roadmap, beginning with local
 registration, parsing, full-text search, annotations, and provenance. Later
 increments add semantic search, requirements traceability, structured version
 comparison, a Document Graph, OCR, and mixed code/document workflows.
-

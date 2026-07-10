@@ -107,7 +107,22 @@ decisions rather than assumed by this initial scaffold.
 - [Documento di progettazione (Italiano)](docs/AI_WORKSPACE_DESIGN_PUBLIC_IT.md)
 - [Architecture overview](docs/architecture/README.md)
 - [Architecture Decision Records](docs/adr/README.md)
+- [Product definition](docs/product/PRODUCT.md)
+- [Project plan](docs/planning/PROJECT_PLAN.md)
+- [Development guide](docs/development/README.md)
 - [Roadmap](ROADMAP.md)
+
+## Development
+
+AI Workspace currently requires Node.js 24 and npm 11.
+
+```bash
+npm ci
+npm run check
+```
+
+See the [development guide](docs/development/README.md) for individual quality
+commands and workspace conventions.
 
 ## Contributing
 

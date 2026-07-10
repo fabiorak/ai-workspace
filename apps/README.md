@@ -8,4 +8,3 @@ Runnable entry points live here:
 - `cli/` — command-line interface and automation entry point.
 
 The implementation stack is intentionally undecided at this stage.
-

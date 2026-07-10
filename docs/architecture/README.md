@@ -9,11 +9,10 @@ adapter-based integrations. The design separates:
 - large immutable artifacts;
 - temporary, budgeted context packs.
 
-The current candidate stack is TypeScript/Node.js for the control plane, a web
-UI, PostgreSQL for transactional state, OpenSearch for historical retrieval,
-and a Python-based privacy service. These are design candidates, not yet
-committed implementation choices.
+Node.js 24, strict TypeScript, ESM, and npm workspaces form the accepted control
+plane baseline. Application frameworks, UI technology, transactional storage,
+historical search, and privacy-service boundaries remain design candidates and
+will be selected when a vertical product slice requires them.
 
 See the full public design documents in the parent `docs/` directory. Material
 decisions should be captured as ADRs before implementation locks them in.
-

@@ -16,4 +16,3 @@
 - [ ] Tests were added or updated where behavior changed.
 - [ ] User-facing documentation was updated where needed.
 - [ ] Material architectural decisions are captured in an ADR.
-
