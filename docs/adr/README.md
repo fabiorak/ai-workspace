@@ -25,3 +25,5 @@ Status: proposed | accepted | superseded
 - [ADR-0003: Enforce module boundaries and inward dependency direction](0003-module-boundaries-and-dependency-direction.md)
 - [ADR-0004: Use the Git executable through a safe adapter](0004-use-the-git-executable-through-a-safe-adapter.md)
 - [ADR-0005: Use a local versioned JSON project registry](0005-use-a-local-versioned-json-project-registry.md)
+- [ADR-0006: Use atomic append-only session documents](0006-use-atomic-append-only-session-documents.md)
+- [ADR-0007: Use a local content-addressed artifact store](0007-use-a-local-content-addressed-artifact-store.md)

@@ -1,0 +1,10 @@
+{"schemaVersion":1,"recordType":"session","sessionId":"synthetic-session-001","agent":"codex","model":"synthetic-model","timestamp":"2026-01-15T09:00:00.000Z"}
+{"recordType":"event","eventType":"user_message","timestamp":"2026-01-15T09:00:01.000Z","payload":{"text":"Add a fictional greeting and verify it."}}
+{"recordType":"event","eventType":"agent_message","timestamp":"2026-01-15T09:00:02.000Z","payload":{"text":"I will inspect the synthetic project first."}}
+{"recordType":"event","eventType":"tool_call","timestamp":"2026-01-15T09:00:03.000Z","payload":{"tool":"read_file","arguments":{"path":"src/greeting.ts"}}}
+{"recordType":"event","eventType":"tool_result","timestamp":"2026-01-15T09:00:04.000Z","payload":{"tool":"read_file","status":"ok","summary":"The fictional file exports one greeting."}}
+{"recordType":"event","eventType":"command_result","timestamp":"2026-01-15T09:00:05.000Z","payload":{"command":"npm test","exitCode":1,"summary":"One synthetic expectation failed."}}
+{"recordType":"event","eventType":"file_change","timestamp":"2026-01-15T09:00:06.000Z","payload":{"path":"src/greeting.ts","operation":"modified","summary":"Updated the fictional greeting."}}
+{"recordType":"event","eventType":"test_result","timestamp":"2026-01-15T09:00:07.000Z","payload":{"command":"npm test","status":"passed","tests":1}}
+{"recordType":"event","eventType":"error","timestamp":"2026-01-15T09:00:08.000Z","payload":{"category":"synthetic-warning","message":"A fictional transient warning was retained as evidence."}}
+{"recordType":"event","eventType":"future_record","timestamp":null,"payload":{"note":"Unknown well-formed records remain source-linked evidence."}}

@@ -201,6 +201,28 @@ Baseline controls:
   and use atomic writes with restrictive permissions;
 - project IDs are opaque UUIDs rather than path-derived identifiers.
 
+## Implemented E2 ingestion controls
+
+- the first adapter reads only an explicit user-supplied file and never scans
+  Codex state directories;
+- source size, record size, event count, UTF-8, schema, ordering, timestamps,
+  and required identity fields are validated before persistence;
+- raw and extracted content is screened for a conservative set of
+  high-confidence restricted credential patterns before artifacts or events
+  become visible;
+- screening failures report detector category and source position without
+  repeating the detected value;
+- raw sources and large payloads are immutable exact-byte SHA-256 artifacts;
+- canonical events use deterministic IDs, retain source record hashes and
+  artifact references, and are always marked `UNTRUSTED`;
+- reimport validates the complete stored prefix and rejects mutation or
+  truncation instead of rewriting evidence;
+- session updates use validated schema-versioned documents, an exclusive lock,
+  temporary writes, atomic rename, and restrictive permissions;
+- imported commands and tool calls are never executed;
+- tests and examples use a fixture authored from scratch with fictional data;
+- ingestion performs no network, telemetry, agent, or model access.
+
 ## Review triggers
 
 Review and update this model when:
@@ -214,7 +236,9 @@ Review and update this model when:
 
 ## Known residual risks
 
-Sprint 0 does not provide runtime secret detection, storage encryption,
-sandboxing, or model-policy enforcement. Until those controls exist, the
-repository contains only synthetic fixtures and must not be presented as safe
-for importing confidential production data.
+The Sprint 2 screen is intentionally narrow and can miss secrets, PII, and
+confidential business data. Local session and artifact storage is not
+encrypted, stale locks require careful manual recovery, and failed commits may
+leave unreferenced immutable artifacts. Sandboxing and model-policy enforcement
+also remain unavailable. The repository contains only synthetic fixtures and
+must not be presented as safe for importing confidential production data.

@@ -43,11 +43,21 @@ npm run build
 npm run cli -- project register /path/to/repository
 npm run cli -- project list
 npm run cli -- project inspect <project-id>
+npm run cli -- session import \
+  --project <project-id> \
+  --source codex \
+  --file integrations/codex/test/fixtures/session.jsonl
+npm run cli -- session inspect <session-id>
 ```
 
 Add `--json` for machine-readable output. Set `AI_WORKSPACE_HOME` to use an
 isolated state directory during development or tests. The default registry is
-`~/.ai-workspace/projects.json`.
+`~/.ai-workspace/projects.json`; session documents and artifacts use the
+`sessions/` and `artifacts/` subdirectories of the same local home.
+
+The committed Codex fixture is fictional and intentionally public. Do not
+replace it or extend it with captured user transcripts, even after manual
+redaction.
 
 ## Workspace layout
 

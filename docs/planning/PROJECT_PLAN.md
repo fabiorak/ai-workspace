@@ -549,8 +549,19 @@ must be labeled as estimates.
 - Update this plan when milestone scope, epic ordering, or the delivery model
   changes; do not rewrite completed history to match a new forecast.
 
-## 14. Immediate next step
+## 14. Current execution state
 
-Prepare Sprint 0 by defining its goal, backlog, acceptance criteria, and
-foundational ADR candidates. Sprint 0 should make the smallest set of decisions
-needed to begin E1 while keeping reversible choices open.
+Sprint 0 established the engineering baseline and Sprint 1 delivered the first
+Project Registry vertical slice. Both sprint records are complete and retain
+their review and retrospective.
+
+[Sprint 2](sprints/SPRINT-002.md) completed the first E2 vertical slice. It
+imports an explicitly selected, synthetic Codex JSONL session for an existing
+project, preserves source evidence in a content-addressed artifact store, and
+proves unchanged and incremental import idempotency through the CLI.
+
+The next forecast increment is Sprint 3: retrieve imported events and open
+their source artifacts with project-scoped provenance. Search-engine selection
+remains deferred until that vertical slice establishes its query, scale, and
+operational requirements. Active memory, handoff generation, external model
+access, and real transcript fixtures also remain deferred.

@@ -3,8 +3,11 @@
   "references": [
     { "path": "./packages/core/tsconfig.build.json" },
     { "path": "./packages/project-registry/tsconfig.build.json" },
+    { "path": "./packages/session-ingestion/tsconfig.build.json" },
+    { "path": "./integrations/codex/tsconfig.build.json" },
     { "path": "./integrations/git/tsconfig.build.json" },
     { "path": "./integrations/local-project-registry/tsconfig.build.json" },
+    { "path": "./integrations/local-session-ingestion/tsconfig.build.json" },
     { "path": "./apps/cli/tsconfig.build.json" }
   ]
 }

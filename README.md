@@ -9,7 +9,8 @@ sensitive data before it reaches external models.
 
 > [!IMPORTANT]
 > AI Workspace is currently in the design and early scaffolding phase. There
-> is no usable release yet.
+> is no supported release yet. The repository contains early CLI slices for
+> local development and evaluation.
 
 ## Why AI Workspace?
 
@@ -114,10 +115,10 @@ decisions rather than assumed by this initial scaffold.
 
 ## Current capabilities
 
-The first Project Registry slice can register and inspect local non-bare Git
-repositories from the CLI. It records an opaque project identifier, canonical
-path, branch, HEAD revision, sanitized origin URL, and worktree state in a
-local versioned registry.
+The completed Project Registry slice can register and inspect local non-bare
+Git repositories from the CLI. It records an opaque project identifier,
+canonical path, branch, HEAD revision, sanitized origin URL, and worktree state
+in a local versioned registry.
 
 ```bash
 npm ci
@@ -136,6 +137,26 @@ Add `--json` to any project command for machine-readable output. Local registry
 data is stored under `~/.ai-workspace` by default and is never committed to the
 registered repository. See the [Project Registry guide](docs/user-guide/project-registry.md).
 
+Sprint 2 adds controlled Codex session ingestion for a registered project:
+
+```bash
+npm run cli -- session import \
+  --project <project-id> \
+  --source codex \
+  --file /path/to/session.jsonl
+npm run cli -- session inspect <session-id>
+```
+
+Repeated imports are idempotent and append-only source growth adds only new
+events. Raw evidence and large payloads use immutable SHA-256 artifact
+references; imported content remains untrusted and is never executed. See the
+[Session Ingestion guide](docs/user-guide/session-ingestion.md).
+
+> [!WARNING]
+> The supported Codex schema and restricted-data screen are deliberately
+> narrow. They are suitable for synthetic pre-release evaluation, not private
+> or production transcripts. No complete secret or PII detection is claimed.
+
 ## Development
 
 AI Workspace currently requires Node.js 24 and npm 11.
@@ -148,10 +169,16 @@ npm run check
 See the [development guide](docs/development/README.md) for individual quality
 commands and workspace conventions.
 
+Sprint commitments and completed evidence are recorded in the
+[sprint archive](docs/planning/sprints/README.md). The next forecast increment
+adds retrieval over imported historical events; it does not yet select or
+introduce OpenSearch.
+
 ## Contributing
 
-The implementation has not started, but design feedback and focused proposals
-are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change.
+Implementation is in an early pre-release phase. Design feedback and focused,
+reviewable proposals are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+before opening a change.
 
 For security-sensitive reports, follow [SECURITY.md](SECURITY.md) and do not
 publish exploit details in a public issue.
