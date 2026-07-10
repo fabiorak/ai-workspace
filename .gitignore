@@ -25,7 +25,8 @@ coverage/
 __pycache__/
 *.py[cod]
 
-# Local runtime data
+# Local runtime data and uncommitted session handoff
+.ai-workspace/HANDOFF.md
 .ai-workspace/
 data/
 artifacts/
