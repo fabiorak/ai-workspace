@@ -2067,6 +2067,13 @@ COMPLIANCE_CHECK
 MIXED_ANALYSIS
 ```
 
+The unified shape above is a later extensibility direction, not the Core MVP
+acceptance boundary. The first cross-agent handoff supports only an explicit
+software Work Item containing bounded objective state and additive handoff
+snapshots. Document analysis, mixed repositories, Context Builder budgets,
+skills, cost accounting, and orchestration remain later increments and cannot
+be required to complete the Core MVP alpha.
+
 Main flow:
 
 ```text

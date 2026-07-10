@@ -7,6 +7,8 @@ Sprint 0 through [Sprint 3](docs/planning/sprints/SPRINT-003.md) are complete.
 The next forecast increment consolidates active decisions, constraints, and
 failures while retaining links to historical evidence. Detailed commitments
 and completed evidence remain in the sprint records rather than this summary.
+[Sprint 5](docs/planning/sprints/SPRINT-005.md) is prepared as the dependent
+cross-agent handoff increment and does not begin until Sprint 4 is complete.
 
 ## 1. Project Memory
 

@@ -571,4 +571,8 @@ validated query and guidance contracts without introducing a search engine.
 The next forecast increment is Sprint 4: consolidate active decisions,
 constraints, and failures while retaining their historical sources, validity,
 verification, and supersession state. Handoff generation, external model
-access, and real transcript fixtures remain deferred.
+access, and real transcript fixtures remain deferred. Sprint 5 is planned as a
+dependent E4 increment: after Sprint 4 completes, it will attach immutable,
+source-linked handoffs to explicit software Work Items and validate one
+synthetic second-provider resume without live model execution. Document Work
+Items and E6 context packs remain later scope.

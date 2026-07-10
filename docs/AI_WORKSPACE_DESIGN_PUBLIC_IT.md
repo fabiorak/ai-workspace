@@ -2723,6 +2723,13 @@ COMPLIANCE_CHECK
 MIXED_ANALYSIS
 ```
 
+La forma unificata descritta sopra è una direzione di estensibilità successiva,
+non il confine di accettazione del Core MVP. Il primo handoff cross-agent
+supporta soltanto un Work Item software esplicito con stato dell'obiettivo
+limitato e snapshot di handoff additivi. Analisi documentale, repository misti,
+budget del Context Builder, skill, cost accounting e orchestrazione restano
+incrementi successivi e non sono requisiti per completare il Core MVP alpha.
+
 ---
 
 ## 40. Interfaccia per repository documentali
