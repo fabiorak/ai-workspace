@@ -3,12 +3,12 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 3](docs/planning/sprints/SPRINT-003.md) are complete.
-The next forecast increment consolidates active decisions, constraints, and
-failures while retaining links to historical evidence. Detailed commitments
-and completed evidence remain in the sprint records rather than this summary.
-[Sprint 5](docs/planning/sprints/SPRINT-005.md) is prepared as the dependent
-cross-agent handoff increment and does not begin until Sprint 4 is complete.
+Sprint 0 through [Sprint 4](docs/planning/sprints/SPRINT-004.md) are complete,
+including searchable canonical history and separately curated active memory.
+The next forecast increment is
+[Sprint 5](docs/planning/sprints/SPRINT-005.md): hand off one explicit software
+Work Item and evaluate a controlled synthetic second-agent resume. Detailed
+commitments and completed evidence remain in the sprint records.
 
 ## 1. Project Memory
 

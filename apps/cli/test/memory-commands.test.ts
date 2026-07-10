@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +32,7 @@ describe("active-memory CLI workflow", () => {
   let originalId: string;
   let replacementId: string;
   let invalidatedId: string;
+  let canonicalBefore: ReadonlyMap<string, Buffer>;
 
   before(async () => {
     temporaryRoot = await mkdtemp(join(tmpdir(), "ai-workspace-memory-cli-"));
@@ -69,6 +78,7 @@ describe("active-memory CLI workflow", () => {
       }
     ).session.events.map((event) => event.id);
     assert.ok(sourceEvents.length >= 4);
+    canonicalBefore = await snapshotCanonical(workspaceHome);
   });
 
   after(async () => {
@@ -76,6 +86,8 @@ describe("active-memory CLI workflow", () => {
   });
 
   it("guides creation from stdin with explicit trust language", async () => {
+    const rootHelp = await runSuccessfulCli(["help"]);
+    assert.match(rootHelp.stdout, /Curate selected evidence as active memory/u);
     const help = await runSuccessfulCli(["memory", "add", "--help"]);
     assert.match(help.stdout, /USER_CURATED/u);
     assert.match(help.stdout, /UNTRUSTED/u);
@@ -287,9 +299,105 @@ describe("active-memory CLI workflow", () => {
       ).items.map((item) => item.id),
       [invalidatedId],
     );
+
+    const superseded = await runSuccessfulCli([
+      "memory",
+      "list",
+      "--project",
+      projectId,
+      "--validity",
+      "superseded",
+      "--verification",
+      "verified",
+      "--json",
+    ]);
+    assert.deepEqual(
+      (
+        JSON.parse(superseded.stdout) as {
+          items: readonly { id: string }[];
+        }
+      ).items.map((item) => item.id),
+      [originalId],
+    );
   });
 
-  it("rejects ambiguous stdin, cross-project scope, and corrupt storage", async () => {
+  it("rejects bounds, foreign sources, ambiguous stdin, and corruption", async () => {
+    const emptyRepository = join(temporaryRoot, "empty-memory-repository");
+    await mkdir(emptyRepository);
+    await runGit(emptyRepository, ["init", "--initial-branch=main"]);
+    await writeFile(
+      join(emptyRepository, "README.md"),
+      "# Empty memory\n",
+      "utf8",
+    );
+    await runGit(emptyRepository, ["add", "README.md"]);
+    await runGit(emptyRepository, [
+      "-c",
+      "user.name=Synthetic User",
+      "-c",
+      "user.email=synthetic@example.invalid",
+      "commit",
+      "-m",
+      "synthetic empty commit",
+    ]);
+    const registered = await runSuccessfulCli([
+      "project",
+      "register",
+      emptyRepository,
+      "--json",
+    ]);
+    const emptyProjectId = (JSON.parse(registered.stdout) as { id: string }).id;
+    const empty = await runSuccessfulCli([
+      "memory",
+      "list",
+      "--project",
+      emptyProjectId,
+    ]);
+    assert.match(empty.stdout, /No memory items match/u);
+    assert.match(empty.stdout, /default is ACTIVE only/u);
+
+    const foreignSource = await runCli([
+      "memory",
+      "add",
+      "--project",
+      emptyProjectId,
+      "--type",
+      "decision",
+      "--content",
+      "Synthetic foreign-source attempt",
+      "--source-event",
+      event(0),
+    ]);
+    assert.equal(foreignSource.exitCode, 1);
+    assert.match(foreignSource.stderr, /was not found in project/u);
+    assert.doesNotMatch(foreignSource.stderr, /runtime constraint/u);
+
+    const invalidLimit = await runCli([
+      "memory",
+      "list",
+      "--project",
+      projectId,
+      "--limit",
+      "101",
+    ]);
+    assert.equal(invalidLimit.exitCode, 1);
+    assert.match(invalidLimit.stderr, /integer from 1 to 100/u);
+
+    const oversized = await runCli([
+      "memory",
+      "add",
+      "--project",
+      projectId,
+      "--type",
+      "decision",
+      "--content",
+      "x".repeat(4_097),
+      "--source-event",
+      event(0),
+    ]);
+    assert.equal(oversized.exitCode, 1);
+    assert.match(oversized.stderr, /at most 4096 characters/u);
+
     const ambiguous = await runCli(
       [
         "memory",
@@ -318,6 +426,8 @@ describe("active-memory CLI workflow", () => {
     ]);
     assert.equal(foreign.exitCode, 1);
     assert.match(foreign.stderr, /not registered/u);
+
+    assert.deepEqual(await snapshotCanonical(workspaceHome), canonicalBefore);
 
     const memoryPath = documentPath(workspaceHome, projectId);
     await writeFile(memoryPath, "synthetic corrupt JSON", "utf8");
@@ -369,4 +479,31 @@ async function runGit(cwd: string, args: readonly string[]): Promise<void> {
     encoding: "utf8",
     env: { ...process.env, GIT_TERMINAL_PROMPT: "0", LC_ALL: "C" },
   });
+}
+
+async function snapshotCanonical(
+  workspaceHome: string,
+): Promise<ReadonlyMap<string, Buffer>> {
+  const snapshot = new Map<string, Buffer>();
+
+  for (const directory of ["sessions", "artifacts"]) {
+    await collectFiles(join(workspaceHome, directory), directory, snapshot);
+  }
+  return snapshot;
+}
+
+async function collectFiles(
+  directory: string,
+  relativeDirectory: string,
+  snapshot: Map<string, Buffer>,
+): Promise<void> {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    const relativePath = join(relativeDirectory, entry.name);
+    if (entry.isDirectory()) {
+      await collectFiles(path, relativePath, snapshot);
+    } else if (entry.isFile()) {
+      snapshot.set(relativePath, await readFile(path));
+    }
+  }
 }

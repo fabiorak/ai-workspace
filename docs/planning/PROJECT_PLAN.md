@@ -412,13 +412,13 @@ must be adjusted using evidence from completed increments.
 | Sprint 2 | E1, E2        | Import a representative session from the first agent    |
 | Sprint 3 | E2, E3        | Search imported events and open their source artifacts  |
 | Sprint 4 | E3            | Consolidate active decisions, constraints, and failures |
-| Sprint 5 | E4            | Generate and validate a neutral handoff packet          |
-| Sprint 6 | E4            | Resume the task with a second supported agent           |
-| Sprint 7 | E4            | Minimal UI, workflow metrics, hardening, and MVP alpha  |
+| Sprint 5 | E4            | Hand off and evaluate one synthetic cross-agent resume  |
+| Sprint 6 | To refine     | Prioritize the next increment from Core MVP evidence    |
+| Sprint 7 | To refine     | Continue the evidence-led post-M3 sequence              |
 
-Sprint planning after Sprint 7 will use MVP feedback to prioritize E5 through
-E10. The default order is E5, E6, E7, E8, E9, and E10, but validated user needs
-may change that order.
+Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
+prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
+and E10, but validated user needs may change it.
 
 ## 9. Agile operating model
 
@@ -568,11 +568,13 @@ proves unchanged and incremental import idempotency through the CLI.
 events and explicit integrity-verified source opening. The bounded local scan
 validated query and guidance contracts without introducing a search engine.
 
-The next forecast increment is Sprint 4: consolidate active decisions,
-constraints, and failures while retaining their historical sources, validity,
-verification, and supersession state. Handoff generation, external model
-access, and real transcript fixtures remain deferred. Sprint 5 is planned as a
-dependent E4 increment: after Sprint 4 completes, it will attach immutable,
-source-linked handoffs to explicit software Work Items and validate one
-synthetic second-provider resume without live model execution. Document Work
-Items and E6 context packs remain later scope.
+[Sprint 4](sprints/SPRINT-004.md) completed M2 by adding explicit active
+decisions, constraints, and failures with same-project canonical provenance,
+additive lifecycle history, atomic local persistence, safe active-only
+listing, and guided CLI operations. Canonical sessions and artifacts remain
+unchanged and imported evidence remains `UNTRUSTED`.
+
+The next forecast increment is [Sprint 5](sprints/SPRINT-005.md), an E4 slice
+that attaches immutable, source-linked handoffs to explicit software Work
+Items and validates one synthetic second-provider resume without live model
+execution. Document Work Items and E6 context packs remain later scope.

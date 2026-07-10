@@ -2,8 +2,9 @@
 
 **Epic:** E3 — Memory and Historical Search
 **Milestone:** M2 — Searchable project history
-**Status:** planned
+**Status:** completed
 **Cadence:** two-week timebox
+**Completed:** 2026-07-10
 
 ## Sprint goal
 
@@ -347,3 +348,103 @@ commitment above:
 - list ordering is creation time descending, then memory ID ascending;
 - bounded list results use an opaque keyset cursor bound to the project and
   filters, so all matching items remain discoverable beyond the first page.
+
+## Review
+
+Sprint 4 delivered the complete guided active-memory slice without changing
+the original commitment above.
+
+Delivered increments:
+
+- `8de4fda` established provider-neutral active-memory vocabulary, lifecycle
+  use cases, provenance requirements, and store ports;
+- `ef59d08` added the project-scoped canonical source-event bridge;
+- `ce211b8` fixed creation confidence at `UNASSESSED` and added bounded keyset
+  pagination with newest-first ordering;
+- `749a701` added the schema-versioned operation-log codec and deterministic
+  reducer;
+- `ba98895` added the atomic filesystem store with diagnostic owner-token
+  locks, restrictive permissions, and corruption recovery;
+- `4884e90` added the self-guiding memory CLI, stdin inputs, stable JSON,
+  terminal-safe human output, and the focused user guide.
+
+The review began from root help and completed the isolated synthetic path:
+register, import, search, add `DECISION`, `CONSTRAINT`, and `FAILURE`, list,
+show, verify, supersede, invalidate, inspect terminal states, and navigate to
+canonical source evidence. The default list returned only active items. The
+superseded constraint retained its original content, sources, verification,
+and additive transition record; its replacement started `ACTIVE`,
+`UNVERIFIED`, and `UNASSESSED`. The invalidated failure remained explicitly
+discoverable.
+
+Acceptance evidence:
+
+- independent CLI invocations cover stdin, all lifecycle operations, filters,
+  cursor continuation, empty state, bounds, registered foreign-project source
+  rejection, corrupt storage, and terminal-control neutralization;
+- test snapshots prove every canonical session and artifact file remains
+  byte-for-byte unchanged across active-memory operations;
+- codec and adapter tests cover unsupported schemas, malformed provenance,
+  stale item/project revisions, duplicate IDs, terminal transitions,
+  concurrent writers, lock diagnostics, restrictive modes, reload, and no
+  partial replacement;
+- human output keeps `USER_CURATED`, `UNTRUSTED`, validity, verification, and
+  confidence separate and supplies copyable source-inspection commands;
+- JSON output preserves complete lifecycle and provenance fields without
+  flattening trust concepts.
+
+Final verification:
+
+```text
+npm ci --ignore-scripts: pass
+npm run check: pass
+15 test files: pass
+npm audit --audit-level=high: 0 vulnerabilities
+git diff --check: pass
+public path/credential pattern scan: pass
+isolated synthetic CLI demo: pass
+```
+
+No database, service, framework, search engine, model, network runtime,
+telemetry, background process, or external production fixture was added.
+
+Known limitations remain explicit: active-memory files are not encrypted; the
+restricted-data screen is not a complete secret/PII detector; source lookup
+and state reconstruction are bounded linear scans; stale locks require careful
+manual confirmation; confidence cannot yet be assessed; and memory is never
+automatically selected for an agent, handoff, or execution path.
+
+M2 exit criteria now pass: imported history is searchable and source-openable,
+while active project knowledge is separately curated, project-scoped,
+source-linked, lifecycle-aware, and safe by default.
+
+## Retrospective
+
+What worked:
+
+- fixing trust language and lifecycle invariants before persistence prevented
+  evidence promotion and mutable-history shortcuts;
+- separating domain, provenance bridge, reducer, atomic I/O, and CLI produced
+  small reviewable commits and kept provider/filesystem concerns replaceable;
+- synthetic acceptance fixtures exposed cross-project, terminal-output, and
+  unchanged-evidence requirements without risking private data;
+- resolving pagination and confidence ambiguity before the CLI avoided a
+  public contract that would hide records or overstate assessment.
+
+What changed during implementation:
+
+- listing moved from a bounded first page to project/filter-bound keyset
+  pagination;
+- lock recovery became owner-token diagnostic instead of age/PID-based stale
+  deletion;
+- project IDs are hashed for filenames and revalidated inside documents;
+- stdin became an explicit non-interactive alternative for sensitive write
+  values.
+
+What remains for the next increment:
+
+- Sprint 5 starts only from this completed foundation and introduces explicit
+  Work Items and immutable handoffs, not automatic memory injection;
+- the offline Claude Code format spike must precede handoff-format acceptance;
+- later scale, encryption, confidence-assessment, and session-lock alignment
+  decisions require measured evidence or separate scope.

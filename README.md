@@ -170,8 +170,8 @@ Results remain visibly untrusted, source-linked evidence. Artifact content is
 shown only after an explicit command and a successful SHA-256 integrity check.
 See the [Historical Search guide](docs/user-guide/historical-search.md).
 
-The current Sprint 4 implementation can explicitly curate selected evidence as
-active decisions, constraints, and failures:
+Sprint 4 adds explicit curation of selected evidence as active decisions,
+constraints, and failures:
 
 ```bash
 npm run cli -- memory add --project <project-id> \
