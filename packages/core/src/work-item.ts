@@ -7,8 +7,7 @@ export type WorkItemStatus = "PROPOSED" | "ACTIVE" | "BLOCKED" | "COMPLETED";
 export type WorkItem = Readonly<{
   id: WorkItemId;
   objective: string;
-  repositoryId: string;
-  repositoryType: RepositoryType;
+  projectId: string;
   status: WorkItemStatus;
   createdAt: string;
   updatedAt: string;
@@ -17,8 +16,7 @@ export type WorkItem = Readonly<{
 export type CreateWorkItemInput = Readonly<{
   id: string;
   objective: string;
-  repositoryId: string;
-  repositoryType: RepositoryType;
+  projectId: string;
   now?: Date;
 }>;
 
@@ -32,14 +30,13 @@ export class DomainValidationError extends Error {
 export function createWorkItem(input: CreateWorkItemInput): WorkItem {
   const id = requiredText(input.id, "Work item id") as WorkItemId;
   const objective = requiredText(input.objective, "Work item objective");
-  const repositoryId = requiredText(input.repositoryId, "Repository id");
+  const projectId = requiredText(input.projectId, "Project id");
   const timestamp = (input.now ?? new Date()).toISOString();
 
   return Object.freeze({
     id,
     objective,
-    repositoryId,
-    repositoryType: input.repositoryType,
+    projectId,
     status: "PROPOSED",
     createdAt: timestamp,
     updatedAt: timestamp,

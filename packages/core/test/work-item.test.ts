@@ -10,16 +10,14 @@ describe("createWorkItem", () => {
     const workItem = createWorkItem({
       id: " work-item-1 ",
       objective: " Register a local repository ",
-      repositoryId: " repository-1 ",
-      repositoryType: "SOFTWARE",
+      projectId: " project-1 ",
       now,
     });
 
     assert.deepEqual(workItem, {
       id: "work-item-1",
       objective: "Register a local repository",
-      repositoryId: "repository-1",
-      repositoryType: "SOFTWARE",
+      projectId: "project-1",
       status: "PROPOSED",
       createdAt: "2026-07-10T10:00:00.000Z",
       updatedAt: "2026-07-10T10:00:00.000Z",
@@ -30,7 +28,7 @@ describe("createWorkItem", () => {
   const emptyFieldCases = [
     ["id", { id: "" }],
     ["objective", { objective: "  " }],
-    ["repository id", { repositoryId: "" }],
+    ["project id", { projectId: "" }],
   ] as const;
 
   for (const [field, override] of emptyFieldCases) {
@@ -40,8 +38,7 @@ describe("createWorkItem", () => {
           createWorkItem({
             id: "work-item-1",
             objective: "Register a repository",
-            repositoryId: "repository-1",
-            repositoryType: "SOFTWARE",
+            projectId: "project-1",
             ...override,
           }),
         DomainValidationError,

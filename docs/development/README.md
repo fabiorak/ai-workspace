@@ -62,6 +62,10 @@ The committed Codex fixture is fictional and intentionally public. Do not
 replace it or extend it with captured user transcripts, even after manual
 redaction.
 
+The Sprint 5 second-provider boundary is documented in the offline
+[Claude Code provider spike](claude-code-provider-spike.md). Its fixture is
+synthetic-only and does not imply production or broad provider support.
+
 Root and command-specific help are acceptance-tested product interfaces. When
 adding a command, keep first-run steps, empty states, suggested next commands,
 examples, and recovery guidance aligned with its behavior.

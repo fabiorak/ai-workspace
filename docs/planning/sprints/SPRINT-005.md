@@ -310,3 +310,19 @@ Sprint 5 is complete only when:
   success criteria;
 - M3 is marked complete only after review and retrospective evidence is
   appended without rewriting this commitment.
+
+## Execution log
+
+### 2026-07-10 — S5-01 boundary aligned
+
+- migrated the Work Item scaffold from `repositoryId` to `projectId` before
+  persistence;
+- removed `repositoryType` from Work Item state so the Core MVP contract does
+  not imply document or mixed-repository support;
+- retained repository classification as a separate Project Registry concern;
+- confirmed that the English and Italian public designs already distinguish
+  the first software-only Work Item from later document and mixed-repository
+  extensions;
+- kept objective state separate from project-owned evidence and active memory;
+  persistence, lifecycle use cases, source links, and handoff history remain
+  S5-03 and later work.

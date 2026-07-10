@@ -14,3 +14,7 @@ Implemented adapters:
   schema-versioned JSON file;
 - `local-session-ingestion/` persists canonical sessions and artifacts and
   exposes local historical-event reads.
+
+`claude-code/` remains an implementation scaffold. Its authored-from-scratch
+fixture supports the offline Sprint 5 provider-boundary spike; no Claude Code
+adapter or CLI support is implemented yet.
