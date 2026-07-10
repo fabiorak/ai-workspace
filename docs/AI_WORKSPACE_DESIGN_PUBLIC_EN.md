@@ -3,7 +3,7 @@
 ## Design Document
 
 **Status:** initial draft  
-**License:** to be defined  
+**License:** Apache License 2.0  
 **Note:** all examples use fictional names and identifiers.
 
 ---
@@ -2706,17 +2706,11 @@ Goal:
 - transparent formats;
 - sustainable governance.
 
-### 43.2 License options
+### 43.2 License
 
-- Apache License 2.0;
-- Mozilla Public License 2.0;
-- GNU Affero General Public License v3.
-
-General considerations:
-
-- **Apache 2.0:** permissive and integration-friendly;
-- **MPL 2.0:** file-level copyleft and a balanced commercial model;
-- **AGPLv3:** stronger protection for network-hosted derivatives.
+The project uses the **Apache License 2.0**. Its permissive terms and explicit
+patent grant support broad adoption, commercial use, and integration with
+agent, model, and plugin ecosystems.
 
 ### 43.3 Initial repository files
 
@@ -2762,12 +2756,11 @@ Define:
 9. How should handoff accuracy be verified?
 10. How should token savings be measured credibly?
 11. How much support is possible for opaque CLI agents?
-12. Which open-source license best matches the project goals?
-13. Should the MVP be a local daemon plus web UI or a desktop application?
-14. How should historical conversations be imported?
-15. How should retrieval-time prompt injection be mitigated?
-16. Which document parsers provide sufficient structural fidelity?
-17. How should annotations survive document version changes?
+12. Should the MVP be a local daemon plus web UI or a desktop application?
+13. How should historical conversations be imported?
+14. How should retrieval-time prompt injection be mitigated?
+15. Which document parsers provide sufficient structural fidelity?
+16. How should annotations survive document version changes?
 18. Should the Document Graph use a graph database or relational storage?
 19. How should community agent packages be reviewed and trusted?
 20. Which features belong in the core and which should remain optional plugins?

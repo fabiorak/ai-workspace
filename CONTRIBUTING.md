@@ -28,7 +28,6 @@ most useful contributions.
 Describe the problem, the chosen approach, how the change was verified, and
 any follow-up work. Link related issues and ADRs where applicable.
 
-By contributing, you agree that your contribution may be distributed under
-the license eventually adopted by the project. A formal contributor policy
-will be added together with that license.
-
+Unless explicitly stated otherwise, contributions intentionally submitted for
+inclusion in this project are provided under the Apache License 2.0, in
+accordance with its terms.

@@ -3,7 +3,7 @@
 ## Documento di progettazione
 
 **Stato:** bozza iniziale  
-**Licenza:** da definire  
+**Licenza:** Apache License 2.0  
 **Nota:** gli esempi usano nomi e identificativi fittizi.  
 **Obiettivo:** realizzare una piattaforma open source, local-first, per coordinare agenti AI e modelli LLM, condividere il contesto tra strumenti diversi, ridurre il consumo di token, ricercare conoscenza storica e proteggere i dati sensibili.
 
@@ -3542,19 +3542,9 @@ ADR-010 MCP as tool integration protocol
 
 ### 57.2 Licenza
 
-Licenze da valutare:
-
-- Apache License 2.0;
-- Mozilla Public License 2.0;
-- GNU Affero General Public License v3.
-
-Indicazioni generali:
-
-- **Apache 2.0**: permissiva e adatta a favorire adozione e integrazioni;
-- **MPL 2.0**: compromesso tra apertura e possibilità di integrazione proprietaria;
-- **AGPLv3**: tutela maggiormente il progetto anche in caso di erogazione come servizio.
-
-La scelta deve dipendere dal modello di governance e dall'eventuale sostenibilità commerciale.
+Il progetto usa la **Apache License 2.0**. I termini permissivi e la concessione
+esplicita sui brevetti favoriscono l'adozione, l'uso commerciale e
+l'integrazione con ecosistemi di agenti, modelli e plugin.
 
 ### 57.3 File iniziali
 
@@ -3600,10 +3590,9 @@ Definire:
 9. Come verificare che un handoff descriva lo stato reale?
 10. Come misurare in modo credibile i token risparmiati?
 11. Qual è il livello di supporto per agenti CLI non controllabili tramite API?
-12. Quale licenza è più coerente con gli obiettivi del progetto?
-13. L'MVP deve essere daemon + web UI oppure applicazione desktop?
-14. Quale meccanismo usare per importare conversazioni storiche?
-15. Come impedire che contenuti indicizzati provochino prompt injection durante il retrieval?
+12. L'MVP deve essere daemon + web UI oppure applicazione desktop?
+13. Quale meccanismo usare per importare conversazioni storiche?
+14. Come impedire che contenuti indicizzati provochino prompt injection durante il retrieval?
 
 ---
 
@@ -3684,4 +3673,3 @@ Il risultato atteso è un **local-first AI workbench** con:
 - catalogo di automazioni;
 - misurazione dei costi;
 - riduzione concreta del consumo di token.
-

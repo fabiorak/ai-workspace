@@ -119,7 +119,4 @@ publish exploit details in a public issue.
 
 ## License
 
-No license has been selected yet. Until a `LICENSE` file is added, copyright
-law applies and the repository should not be treated as granting permission to
-copy, modify, or redistribute the work.
-
+Licensed under the [Apache License 2.0](LICENSE).
