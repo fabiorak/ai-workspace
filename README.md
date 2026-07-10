@@ -1,0 +1,125 @@
+# AI Workspace
+
+AI Workspace is an open-source, local-first control plane for working with
+multiple AI agents and language models.
+
+It aims to preserve project knowledge across tools, build the smallest useful
+context for each task, support reliable handoffs between agents, and protect
+sensitive data before it reaches external models.
+
+> [!IMPORTANT]
+> AI Workspace is currently in the design and early scaffolding phase. There
+> is no usable release yet.
+
+## Why AI Workspace?
+
+Moving work between coding agents usually means rebuilding context from chat
+history, source files, decisions, failed attempts, and test output. That costs
+time and tokens, and important details are easily lost.
+
+AI Workspace is intended to provide a vendor-neutral layer for:
+
+- project and session memory with traceable sources;
+- global search across conversations, code, documents, decisions, and tools;
+- compact, task-specific context packs;
+- neutral handoffs between agents and models;
+- privacy-aware access to local and cloud models;
+- reusable scripts, skills, and automation recipes;
+- token, cost, and context-quality measurements.
+
+It is not another coding agent. It coordinates the agents and tools you
+already use.
+
+## Design principles
+
+- **Local-first:** project data remains local unless explicitly configured
+  otherwise.
+- **Agent-agnostic:** integrations are adapters, not hard dependencies on one
+  provider.
+- **Context-minimal:** models receive the minimum sufficient context for the
+  current task.
+- **Verifiable memory:** persisted knowledge keeps provenance, confidence,
+  validity, and status.
+- **Privacy by design:** redaction, policy enforcement, and auditability are
+  architectural concerns.
+- **Composable and open:** standard protocols, replaceable storage, plugins,
+  and documented APIs are preferred.
+
+## Core model
+
+AI Workspace separates active memory from historical evidence:
+
+```text
+Projects, sessions, files, logs, documents, commits
+                         |
+               Historical archive/search
+                         |
+              +----------+----------+
+              |                     |
+        Search index           Active memory
+              |                     |
+              +----------+----------+
+                         |
+                  Context Builder
+                         |
+                    AI agent
+```
+
+The central domain object is a **Work Item**: an objective connected to a
+repository, context, decisions, constraints, agents, outputs, verification,
+costs, artifacts, and handoff state.
+
+## Initial roadmap
+
+The first milestone is **Project Memory**:
+
+1. discover and register local repositories;
+2. detect Git metadata and acquire agent sessions;
+3. persist project instructions, handoffs, decisions, and session summaries;
+4. index historical evidence for global search;
+5. expose a minimal UI and an MCP search interface;
+6. resume work with a different agent without replaying the full session.
+
+Later milestones add instruction and agent management, context optimization,
+a privacy proxy, a tool registry, multi-agent orchestration, and document-first
+workflows. See [ROADMAP.md](ROADMAP.md) for the phased plan.
+
+## Repository layout
+
+```text
+apps/          runnable server, web, desktop, and CLI applications
+packages/      reusable domain and application modules
+services/      independently deployed supporting services
+integrations/  adapters for agents, gateways, and protocols
+deploy/        local and production deployment assets
+docs/          design, architecture, ADRs, security, and guides
+examples/      example configurations and workflows
+scripts/       development and maintenance automation
+```
+
+The project starts as a simple modular monorepo. Package managers, frameworks,
+and service boundaries will be introduced through explicit architectural
+decisions rather than assumed by this initial scaffold.
+
+## Documentation
+
+- [Public design document (English)](docs/AI_WORKSPACE_DESIGN_PUBLIC_EN.md)
+- [Documento di progettazione (Italiano)](docs/AI_WORKSPACE_DESIGN_PUBLIC_IT.md)
+- [Architecture overview](docs/architecture/README.md)
+- [Architecture Decision Records](docs/adr/README.md)
+- [Roadmap](ROADMAP.md)
+
+## Contributing
+
+The implementation has not started, but design feedback and focused proposals
+are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change.
+
+For security-sensitive reports, follow [SECURITY.md](SECURITY.md) and do not
+publish exploit details in a public issue.
+
+## License
+
+No license has been selected yet. Until a `LICENSE` file is added, copyright
+law applies and the repository should not be treated as granting permission to
+copy, modify, or redistribute the work.
+
