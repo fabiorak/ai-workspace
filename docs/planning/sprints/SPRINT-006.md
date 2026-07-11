@@ -157,3 +157,18 @@ measurements do not justify migration.
   immutable handoffs;
 - left the default writer at v1 until S6-04 contract fixtures and tests pass;
 - added no implementation, dependency, E6 feature, or token-budget claim.
+
+### 2026-07-11 — S6-04 normalized persisted handoff completed
+
+- separated the unchanged logical handoff model from explicit v1/v2 persisted
+  codecs and enabled v2 only after the contract suite passed;
+- retained permanent v1 reads and an authored synthetic v1 fixture that tests
+  byte-for-byte immutability without rewriting historical files;
+- normalized complete canonical source values into a deterministic table with
+  canonical identifiers, ordering, and unique sorted references;
+- proved lossless logical expansion, unchanged section trust and source
+  navigation, and a v2 successor naming a v1 predecessor in the same scope;
+- rejected dangling, duplicate, malformed, unreferenced, oversized, and
+  cross-scoped persisted data without leaving partial files;
+- added no dependency, migration command, E6 feature, or compactness claim;
+  the quality gate passes with 23 test files.

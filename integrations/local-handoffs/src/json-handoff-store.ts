@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { chmod, mkdir, open, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import {
-  encodeHandoff,
+  decodePersistedHandoff,
+  encodePersistedHandoff,
   HandoffError,
   type Handoff,
   type HandoffStore,
@@ -20,7 +21,7 @@ export class JsonHandoffStore implements HandoffStore {
       await chmod(this.#directory, 0o700);
       const file = await open(path, "wx", 0o600);
       try {
-        await file.writeFile(encodeHandoff(handoff), "utf8");
+        await file.writeFile(encodePersistedHandoff(handoff), "utf8");
         await file.sync();
       } finally {
         await file.close();
@@ -56,7 +57,14 @@ export class JsonHandoffStore implements HandoffStore {
         { cause: error },
       );
     }
-    return validate(value, projectId, workItemId, handoffId);
+    const handoff = decodePersistedHandoff(value);
+    if (
+      handoff.projectId !== projectId ||
+      handoff.workItemId !== workItemId ||
+      handoff.id !== handoffId
+    )
+      throw corrupt();
+    return handoff;
   }
   #path(projectId: string, workItemId: string, handoffId: string) {
     for (const [label, value] of [
@@ -74,51 +82,10 @@ export class JsonHandoffStore implements HandoffStore {
     return join(this.#directory, `handoff_${digest}.json`);
   }
 }
-function validate(
-  value: unknown,
-  projectId: string,
-  workItemId: string,
-  handoffId: string,
-): Handoff {
-  if (
-    !isRecord(value) ||
-    value.schemaVersion !== 1 ||
-    value.projectId !== projectId ||
-    value.workItemId !== workItemId ||
-    value.id !== handoffId ||
-    value.createdBy !== "LOCAL_USER" ||
-    typeof value.createdAt !== "string" ||
-    !isRecord(value.sections)
-  )
-    throw corrupt();
-  const required = [
-    "objective",
-    "repository",
-    "selectedMemory",
-    "knownFailures",
-    "testState",
-    "relevantFiles",
-    "nextAction",
-    "sourceReferences",
-  ];
-  for (const name of required) {
-    const section = value.sections[name];
-    if (
-      !isRecord(section) ||
-      !isRecord(section.metadata) ||
-      !("value" in section)
-    )
-      throw corrupt();
-  }
-  return value as unknown as Handoff;
-}
 function corrupt() {
   return new HandoffError(
     "The local handoff is malformed, unsupported, or cross-scoped. Move it aside and create a successor from canonical sources.",
   );
-}
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;

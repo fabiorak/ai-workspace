@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "synthetic-handoff-v1",
+  "projectId": "synthetic-project",
+  "workItemId": "synthetic-work-item",
+  "predecessorId": null,
+  "createdBy": "LOCAL_USER",
+  "createdAt": "2026-07-11T12:00:00.000Z",
+  "sections": {
+    "objective": {
+      "metadata": {
+        "origin": "WORK_ITEM",
+        "trust": "USER_CURATED",
+        "curation": "USER_CURATED",
+        "verification": "UNVERIFIED",
+        "observation": "USER_AUTHORED",
+        "sources": []
+      },
+      "value": "Synthetic objective"
+    },
+    "repository": {
+      "metadata": {
+        "origin": "REPOSITORY_OBSERVATION",
+        "trust": "OBSERVED",
+        "curation": "NONE",
+        "verification": "NOT_APPLICABLE",
+        "observation": "OBSERVED",
+        "sources": []
+      },
+      "value": {
+        "branch": "main",
+        "head": "abcdef",
+        "dirty": false,
+        "changedPaths": []
+      }
+    },
+    "selectedMemory": {
+      "metadata": {
+        "origin": "ACTIVE_MEMORY",
+        "trust": "USER_CURATED",
+        "curation": "USER_CURATED",
+        "verification": "UNVERIFIED",
+        "observation": "USER_AUTHORED",
+        "sources": []
+      },
+      "value": []
+    },
+    "knownFailures": {
+      "metadata": {
+        "origin": "ACTIVE_MEMORY",
+        "trust": "USER_CURATED",
+        "curation": "USER_CURATED",
+        "verification": "UNVERIFIED",
+        "observation": "USER_AUTHORED",
+        "sources": []
+      },
+      "value": []
+    },
+    "testState": {
+      "metadata": {
+        "origin": "REPOSITORY_OBSERVATION",
+        "trust": "OBSERVED",
+        "curation": "NONE",
+        "verification": "NOT_APPLICABLE",
+        "observation": "OBSERVED",
+        "sources": []
+      },
+      "value": []
+    },
+    "relevantFiles": {
+      "metadata": {
+        "origin": "USER_INPUT",
+        "trust": "USER_CURATED",
+        "curation": "USER_CURATED",
+        "verification": "UNVERIFIED",
+        "observation": "USER_AUTHORED",
+        "sources": []
+      },
+      "value": ["README.md"]
+    },
+    "nextAction": {
+      "metadata": {
+        "origin": "USER_INPUT",
+        "trust": "USER_CURATED",
+        "curation": "USER_CURATED",
+        "verification": "UNVERIFIED",
+        "observation": "USER_AUTHORED",
+        "sources": []
+      },
+      "value": "Continue with synthetic evidence"
+    },
+    "sourceReferences": {
+      "metadata": {
+        "origin": "CANONICAL_EVENT",
+        "trust": "UNTRUSTED",
+        "curation": "NONE",
+        "verification": "NOT_APPLICABLE",
+        "observation": "IMPORTED",
+        "sources": []
+      },
+      "value": []
+    }
+  }
+}

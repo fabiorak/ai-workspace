@@ -17,7 +17,9 @@ Implemented packages:
 - `historical-search/` owns read-only historical evidence search contracts and
   use cases.
 - `handoff/` owns immutable provider-neutral handoff snapshots, section-level
-  trust and provenance, stable rendering, and persistence ports;
+  trust and provenance, stable rendering, persistence ports, and the
+  backward-readable v1/v2 persisted codec with lossless normalized source
+  references;
 
 Other directories remain placeholders until their public contracts are defined
 through implementation and ADRs.

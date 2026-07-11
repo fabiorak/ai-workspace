@@ -73,3 +73,17 @@ This decision does not enable v2 writes. S6-04 must first prove stable v1
 backward reads, immutable v1 fixtures, lossless logical equivalence,
 deterministic encoding, source-navigation equivalence, and fail-closed bounds
 and reference validation. Existing v1 files will not be migrated in place.
+
+## S6-04 persisted representation
+
+The S6-04 contract suite now proves those preconditions. The logical
+provider-neutral `Handoff` shape remains unchanged while a separate persisted
+codec reads v1 and v2 and expands both into that shape. New local immutable
+handoffs are written as v2 with a canonical source table and sorted unique
+references; existing v1 files remain readable and are never rewritten.
+
+The codec rejects unsupported versions, malformed source values, dangling or
+duplicate references, duplicate or unreferenced table entries, noncanonical
+ordering, oversized tables and references, and persisted scope mismatches.
+Rejected creation leaves no partial file. Exact before/after corpus results
+remain S6-06 work; S6-04 makes no general context or token-saving claim.

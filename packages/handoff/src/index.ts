@@ -6,6 +6,10 @@ export {
 } from "./handoffs.ts";
 export { encodeHandoff, renderHandoff } from "./render.ts";
 export {
+  decodePersistedHandoff,
+  encodePersistedHandoff,
+} from "./persisted-codec.ts";
+export {
   HandoffEvaluator,
   type HandoffEvaluation,
   type HandoffEvaluationDependencies,
