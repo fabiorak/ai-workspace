@@ -10,6 +10,8 @@ Implemented adapters:
 - `local-active-memory/` resolves project-scoped active-memory provenance from
   schema-validated canonical session events and owns the validated local
   operation-log codec, reducer, and atomic filesystem store;
+- `local-handoffs/` stores schema-versioned handoffs as immutable scoped JSON
+  files with exclusive creation and fail-closed reads;
 - `local-project-registry/` persists the Project Registry in a local,
   schema-versioned JSON file;
 - `local-session-ingestion/` persists canonical sessions and artifacts and

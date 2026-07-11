@@ -4,6 +4,7 @@
 - [Import and inspect a Codex session](session-ingestion.md)
 - [Search historical events and open source evidence](historical-search.md)
 - [Curate active project memory](active-memory.md)
+- [Create Work Items and immutable handoffs](work-items-and-handoffs.md)
 
 Installation and workflow documentation will expand with each usable vertical
 slice.

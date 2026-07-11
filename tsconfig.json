@@ -24,6 +24,9 @@
       "@ai-workspace/local-active-memory": [
         "./integrations/local-active-memory/src/index.ts"
       ],
+      "@ai-workspace/local-handoffs": [
+        "./integrations/local-handoffs/src/index.ts"
+      ],
       "@ai-workspace/local-work-items": [
         "./integrations/local-work-items/src/index.ts"
       ],

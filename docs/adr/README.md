@@ -31,3 +31,4 @@ Status: proposed | accepted | superseded
 - [ADR-0009: Use atomic operation logs for active memory](0009-use-atomic-operation-logs-for-active-memory.md)
 - [ADR-0010: Scope handoffs to Work Items within projects](0010-scope-handoffs-to-work-items-within-projects.md)
 - [ADR-0011: Use atomic operation logs for Work Items](0011-use-atomic-operation-logs-for-work-items.md)
+- [ADR-0012: Store handoffs as immutable JSON files](0012-store-handoffs-as-immutable-json-files.md)

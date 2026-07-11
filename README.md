@@ -181,11 +181,23 @@ npm run cli -- memory list --project <project-id>
 npm run cli -- memory show <memory-id> --project <project-id>
 ```
 
+Create an explicit Work Item and immutable handoff:
+
+```bash
+npm run cli -- work create --project <project-id> \
+  --objective-stdin --source-event <event-id>
+npm run cli -- work activate <work-item-id> --project <project-id> \
+  --source-event <event-id>
+npm run cli -- handoff create --project <project-id> \
+  --work-item <work-item-id> --next-action-stdin --source-event <event-id>
+```
+
 Memory remains visibly `USER_CURATED`, while linked historical evidence stays
 `UNTRUSTED`. Verification, supersession, and invalidation are additive and
 source-linked; no command executes evidence or invokes an agent. Sensitive
 write values can be read from stdin. See the
 [Active Memory guide](docs/user-guide/active-memory.md).
+[Work Item and handoff guide](docs/user-guide/work-items-and-handoffs.md).
 
 ## Development
 

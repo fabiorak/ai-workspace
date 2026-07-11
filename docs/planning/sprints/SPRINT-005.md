@@ -379,3 +379,18 @@ Sprint 5 is complete only when:
 - proved repeat import idempotency plus truncated and changed-prefix rejection;
 - kept support explicitly narrow, synthetic-only, offline, and free of live
   provider discovery or execution.
+
+### 2026-07-11 — S5-07 guided Work Item and handoff CLI implemented
+
+- accepted ADR-0012 and added immutable, fail-closed local JSON handoff
+  persistence across independent invocations;
+- exposed explicit `work create/list/show/activate/block/complete/reopen` and
+  `handoff create/show/validate` commands with stable JSON output;
+- supported objective and next-action stdin without prompts or hidden current
+  Work Item selection;
+- made handoff inclusion, bounds, immutable effects, source navigation, and
+  repository-drift recovery visible at the point of use;
+- added pre-release `--source claude-code` import with synthetic-only warnings;
+- tested the guided journey from evidence through memory, Work Item activation,
+  immutable handoff, inspection, and read-only drift validation;
+- kept model, agent, network, and imported-content execution out of scope.

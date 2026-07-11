@@ -21,6 +21,10 @@ const fixturePath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../../integrations/codex/test/fixtures/session.jsonl",
 );
+const claudeFixturePath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../integrations/claude-code/test/fixtures/synthetic-session.jsonl",
+);
 const extensionRecord =
   '{"recordType":"event","eventType":"agent_message","timestamp":"2026-01-15T09:00:09.000Z","payload":{"text":"Synthetic follow-up."}}\n';
 
@@ -107,6 +111,28 @@ describe("session CLI workflow", () => {
     assert.equal(secondReport.addedEvents, 0);
     assert.equal(secondReport.existingEvents, 9);
     assert.equal(secondReport.totalEvents, 9);
+  });
+
+  it("imports only the explicit synthetic Claude Code subset", async () => {
+    const help = await runSuccessfulCli(["session", "import", "--help"]);
+    assert.match(help.stdout, /synthetic-only/u);
+    const imported = await runSuccessfulCli([
+      "session",
+      "import",
+      "--project",
+      projectId,
+      "--source",
+      "claude-code",
+      "--file",
+      claudeFixturePath,
+      "--json",
+    ]);
+    const report = JSON.parse(imported.stdout) as {
+      session: { sourceType: string };
+      addedEvents: number;
+    };
+    assert.equal(report.session.sourceType, "claude-code");
+    assert.equal(report.addedEvents, 5);
   });
 
   it("adds only an append-only source extension", async () => {

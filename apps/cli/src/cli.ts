@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
+import { ClaudeCodeSessionSourceAdapter } from "@ai-workspace/claude-code-adapter";
 import { GitRepositoryInspector } from "@ai-workspace/git-adapter";
 import {
   HistoricalSearch,
@@ -34,6 +35,16 @@ import {
   memoryUsage,
   runMemoryCommand,
 } from "./memory-commands.ts";
+import {
+  HandoffCliUsageError,
+  handoffUsage,
+  runHandoffCommand,
+} from "./handoff-commands.ts";
+import {
+  WorkCliUsageError,
+  runWorkCommand,
+  workUsage,
+} from "./work-commands.ts";
 
 export type CliEnvironment = Readonly<Record<string, string | undefined>>;
 
@@ -115,13 +126,29 @@ export async function runCli(
           json,
           dependencies,
         );
+      case "work":
+        return await runWorkCommand(
+          command,
+          commandArguments.slice(2),
+          json,
+          dependencies,
+        );
+      case "handoff":
+        return await runHandoffCommand(
+          command,
+          commandArguments.slice(2),
+          json,
+          dependencies,
+        );
       default:
         throw new CliUsageError(`Unknown command group '${group ?? ""}'`);
     }
   } catch (error) {
     if (
       error instanceof CliUsageError ||
-      error instanceof MemoryCliUsageError
+      error instanceof MemoryCliUsageError ||
+      error instanceof WorkCliUsageError ||
+      error instanceof HandoffCliUsageError
     ) {
       dependencies.stderr(`Error: ${error.message}\n\n${usage()}`);
       return 2;
@@ -264,19 +291,20 @@ async function runSessionCommand(
   json: boolean,
   dependencies: CliDependencies,
 ): Promise<number> {
-  const ingestion = createSessionIngestion(dependencies.environment);
-
   switch (command) {
     case "import": {
       const options = parseSessionImportOptions(argumentsAfterCommand);
 
-      if (options.source !== "codex") {
+      if (options.source !== "codex" && options.source !== "claude-code") {
         throw new CliUsageError(
           `Unsupported session source '${options.source}'`,
         );
       }
 
-      const report = await ingestion.import(options.project, options.file);
+      const report = await createSessionIngestion(
+        dependencies.environment,
+        options.source,
+      ).import(options.project, options.file);
       dependencies.stdout(formatSessionImport(report, json));
       return 0;
     }
@@ -291,7 +319,10 @@ async function runSessionCommand(
         throw new CliUsageError("session inspect accepts only a session id");
       }
 
-      const session = await ingestion.inspect(sessionId);
+      const session = await createSessionIngestion(
+        dependencies.environment,
+        "codex",
+      ).inspect(sessionId);
       dependencies.stdout(formatSession(session, json));
       return 0;
     }
@@ -312,7 +343,10 @@ function createRegistry(environment: CliEnvironment): ProjectRegistry {
   });
 }
 
-function createSessionIngestion(environment: CliEnvironment): SessionIngestion {
+function createSessionIngestion(
+  environment: CliEnvironment,
+  source: "codex" | "claude-code",
+): SessionIngestion {
   const workspaceHome =
     environment.AI_WORKSPACE_HOME ?? join(homedir(), ".ai-workspace");
   const projectStore = new JsonProjectRegistryStore(
@@ -320,7 +354,10 @@ function createSessionIngestion(environment: CliEnvironment): SessionIngestion {
   );
 
   return new SessionIngestion({
-    sourceAdapter: new CodexSessionSourceAdapter(),
+    sourceAdapter:
+      source === "codex"
+        ? new CodexSessionSourceAdapter()
+        : new ClaudeCodeSessionSourceAdapter(),
     screen: new HighConfidenceRestrictedDataScreen(),
     artifactStore: new FileArtifactStore(workspaceHome),
     sessionStore: new JsonSessionStore(workspaceHome),
@@ -705,6 +742,9 @@ function usage(group?: string, command?: string): string {
     return memoryUsage(command);
   }
 
+  if (group === "work") return workUsage(command);
+  if (group === "handoff") return handoffUsage(command);
+
   if (topic === "history search") {
     return `Search imported historical events
 
@@ -748,16 +788,17 @@ Content is bounded, terminal-safe, visibly UNTRUSTED, and never executed.
   }
 
   if (topic === "session import") {
-    return `Import a controlled Codex JSONL session
+    return `Import a controlled synthetic JSONL session
 
 Usage:
-  ai-workspace session import --project <project-id> --source codex --file <path> [--json]
+  ai-workspace session import --project <project-id> --source <codex|claude-code> --file <path> [--json]
 
 First try:
   npm run cli -- session import --project <project-id> --source codex --file integrations/codex/test/fixtures/session.jsonl
 
 The file must exist and match the supported schema. Run project list to find a
 project ID. Private or production transcripts are not yet supported safely.
+Claude Code support is pre-release, narrow, synthetic-only, and never discovers live provider state.
 `;
   }
 
@@ -784,6 +825,8 @@ Usage:
   ai-workspace history show <event-id> --project <project-id> [--json]
   ai-workspace artifact show <artifact-id> [--json]
   ai-workspace memory add|list|show|verify|supersede|invalidate ... [--json]
+  ai-workspace work create|list|show|activate|block|complete|reopen ... [--json]
+  ai-workspace handoff create|show|validate ... [--json]
   ai-workspace help
 
 Contextual help:

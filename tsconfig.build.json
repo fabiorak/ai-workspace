@@ -11,6 +11,7 @@
     { "path": "./integrations/claude-code/tsconfig.build.json" },
     { "path": "./integrations/git/tsconfig.build.json" },
     { "path": "./integrations/local-active-memory/tsconfig.build.json" },
+    { "path": "./integrations/local-handoffs/tsconfig.build.json" },
     { "path": "./integrations/local-work-items/tsconfig.build.json" },
     { "path": "./integrations/local-project-registry/tsconfig.build.json" },
     { "path": "./integrations/local-session-ingestion/tsconfig.build.json" },
