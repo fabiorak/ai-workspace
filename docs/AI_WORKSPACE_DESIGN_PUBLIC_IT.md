@@ -109,7 +109,19 @@ Le informazioni persistenti devono avere:
 
 Anonimizzazione, controllo dei dati e audit non devono essere funzionalità aggiunte successivamente, ma parte dell'architettura di base.
 
-### 2.6 Open source e componibilità
+### 2.6 GUI-first e auto-esplicativa
+
+L'interfaccia grafica è la superficie primaria per onboarding e uso quotidiano.
+L'utente deve poter diventare operativo tramite pulsanti documentati,
+spiegazioni inline, esempi, avanzamento, empty state e recovery azionabili,
+senza dover prima leggere un manuale o memorizzare comandi CLI.
+
+La CLI resta disponibile per automazione, diagnostica, test e workflow
+avanzati. La documentazione offre approfondimento ma non sostituisce la
+scopribilità nel prodotto. Ogni nuova capability user-facing richiede un piano
+di consegna GUI o un'eccezione temporanea esplicita.
+
+### 2.7 Open source e componibilità
 
 La piattaforma deve preferire:
 

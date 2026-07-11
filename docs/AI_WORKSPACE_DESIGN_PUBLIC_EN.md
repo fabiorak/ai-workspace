@@ -104,7 +104,19 @@ Persistent knowledge should include:
 
 Anonymization, policy enforcement, auditability, and data inspection must be architectural concerns, not optional add-ons.
 
-### 2.6 Open formats and composability
+### 2.6 GUI-first and self-guiding
+
+The graphical interface is the primary surface for routine onboarding and
+daily use. Users should be able to become productive through documented
+buttons, inline explanations, examples, progress, empty states, and actionable
+recovery without reading a manual first or memorizing CLI commands.
+
+The CLI remains available for automation, diagnostics, tests, and advanced
+workflows. Documentation provides depth but cannot substitute for discoverable
+behavior in the product. New user-facing capabilities require a GUI delivery
+plan or an explicit temporary exception.
+
+### 2.7 Open formats and composability
 
 The project should prefer:
 

@@ -53,10 +53,15 @@ does not support it directly must be justified, time-boxed, or deferred.
    product progress must be measured through real user workflows.
 8. **Simple first architecture:** begin as a modular monolith and introduce
    independent services only when their operational boundary is justified.
-9. **Self-guiding interfaces:** CLI, API, and future UI workflows include
-   first-run guidance, contextual help, examples, actionable errors, and clear
-   recovery steps. Documentation supports the interface but is not a
-   prerequisite for discovering the supported workflow.
+9. **GUI-first, self-guiding product:** the GUI is the primary interface for
+   routine onboarding and daily workflows. Buttons and fields explain purpose,
+   effect, prerequisites, trust, progress, and recovery inline. First use must
+   succeed without reading manuals or memorizing CLI commands. The CLI remains
+   supported for automation, diagnostics, tests, and advanced workflows.
+10. **GUI delivery accountability:** every new user-facing capability includes
+    a GUI delivery plan in the same sprint or records an explicit, temporary,
+    reviewed exception. Empty, loading, error, returning, accessibility, and
+    no-manual onboarding states are product acceptance, not documentation work.
 
 ## 4. Planning horizons
 
@@ -415,16 +420,18 @@ must be adjusted using evidence from completed increments.
 | Sprint 5 | E4            | Hand off and evaluate one synthetic cross-agent resume  |
 | Sprint 6 | E4            | Measure and normalize handoff representation overhead   |
 | Sprint 7 | E5            | Preview deterministic effective instruction composition |
+| Sprint 8 | E0, E1-E3     | Complete the first no-manual local GUI journey          |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
 and E10, but validated user needs may change it.
 
 Sprint 6 evidence supported planning Sprint 7 as a narrow E5 boundary slice.
-Sprint 7 now commits to deterministic, provenance-linked effective-instruction
-preview, beginning with an ADR for precedence and security semantics. Agent and
-skill registries, execution, E6 Context Builder, model access, and GUI remain
-outside that sprint.
+Sprint 7 completed deterministic, provenance-linked effective-instruction
+preview. User direction now makes GUI delivery the next product priority ahead
+of deeper E5 expansion. Sprint 8 commits to the first operational GUI journey;
+later GUI parity for memory, Work Items, handoffs, and instructions remains
+explicit priority work.
 
 ## 9. Agile operating model
 
@@ -603,3 +610,10 @@ The next recommendation is an E5 increment for immutable versioned instruction
 source lifecycle and lossless export/re-import. It is not yet a sprint
 commitment and must preserve the explicit provenance and non-execution
 boundary established by ADR-0014.
+
+The next committed increment is [Sprint 8](sprints/SPRINT-008.md). It pauses
+deeper E5 expansion to establish the permanent GUI-first product boundary and
+deliver register → synthetic import → search → source inspection without a
+manual or CLI knowledge. An ADR must select GUI packaging and local security
+before any runtime or framework is added. GUI parity for memory, Work Items,
+handoffs, and instruction preview is the priority follow-up tranche.
