@@ -134,3 +134,14 @@ measurements do not justify migration.
 - published method, thresholds, negative samples, and limitations without
   accepting a schema change;
 - quality gate passes with 22 test files.
+
+### 2026-07-11 — S6-02 exact-byte overhead attribution completed
+
+- added deterministic attribution whose non-overlapping categories sum to the
+  exact stable JSON size;
+- measured 2,583 envelope/structure bytes, 222 content bytes, 984 metadata
+  bytes, 429 unique-provenance bytes, and 3,424 repeated-provenance bytes;
+- found nine source occurrences for one unique canonical source;
+- identified repeated provenance as the largest category at 44.8%;
+- retained exact bytes as the decision method and made no schema change;
+- quality gate remains green with 22 test files.

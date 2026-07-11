@@ -25,6 +25,17 @@ export type HandoffBreakEvenReport = Readonly<{
   firstBreakEven: HandoffSizeMeasurement | null;
   decisionMethod: "EXACT_UTF8_BYTES";
 }>;
+export type HandoffByteAttribution = Readonly<{
+  totalBytes: number;
+  envelopeAndStructureBytes: number;
+  sectionContentBytes: number;
+  sectionMetadataBytes: number;
+  uniqueProvenanceBytes: number;
+  repeatedProvenanceBytes: number;
+  sourceOccurrences: number;
+  uniqueSources: number;
+  decisionMethod: "EXACT_UTF8_BYTES";
+}>;
 export function measureHandoffBreakEven(
   handoff: Handoff,
   baselines: readonly SessionByteBaseline[],
@@ -69,4 +80,48 @@ export function measureHandoffBreakEven(
 }
 function positive(value: number) {
   return Number.isSafeInteger(value) && value > 0;
+}
+
+export function attributeHandoffBytes(
+  handoff: Handoff,
+): HandoffByteAttribution {
+  const sections = Object.entries(handoff.sections);
+  let content = 0,
+    metadata = 0;
+  const occurrences: unknown[] = [];
+  for (const [name, section] of sections) {
+    metadata += compactBytes({ ...section.metadata, sources: undefined });
+    occurrences.push(...section.metadata.sources);
+    if (name === "sourceReferences")
+      occurrences.push(...(section.value as readonly unknown[]));
+    else content += compactBytes(section.value);
+  }
+  const unique = [
+    ...new Map(
+      occurrences.map((source) => [JSON.stringify(source), source]),
+    ).values(),
+  ];
+  const allProvenance = compactBytes(occurrences),
+    uniqueProvenance = compactBytes(unique),
+    repeated = allProvenance - uniqueProvenance,
+    total = new TextEncoder().encode(encodeHandoff(handoff)).byteLength,
+    envelope = total - content - metadata - uniqueProvenance - repeated;
+  if (envelope < 0)
+    throw new HandoffError(
+      "Handoff byte attribution exceeded the exact encoded size.",
+    );
+  return Object.freeze({
+    totalBytes: total,
+    envelopeAndStructureBytes: envelope,
+    sectionContentBytes: content,
+    sectionMetadataBytes: metadata,
+    uniqueProvenanceBytes: uniqueProvenance,
+    repeatedProvenanceBytes: repeated,
+    sourceOccurrences: occurrences.length,
+    uniqueSources: unique.length,
+    decisionMethod: "EXACT_UTF8_BYTES",
+  });
+}
+function compactBytes(value: unknown) {
+  return new TextEncoder().encode(JSON.stringify(value)).byteLength;
 }

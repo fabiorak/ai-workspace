@@ -38,3 +38,24 @@ or provider tokenization.
 The packet still repeats full source links across section metadata. S6-02 will
 attribute those bytes before S6-03 considers a normalized source table. No v2
 format or context-optimization claim is accepted by this experiment.
+
+## S6-02 byte attribution
+
+The same fixed packet is decomposed into non-overlapping semantic categories.
+Compact JSON bytes represent section values and metadata; all source
+occurrences are split into one unique source set plus repeated occurrences.
+The remaining exact bytes are envelope, keys, punctuation, indentation, and
+structural wrappers. The categories sum to the exact 7,642-byte encoding.
+
+| Category                         | Exact bytes | Share |
+| -------------------------------- | ----------: | ----: |
+| Envelope and structure           |       2,583 | 33.8% |
+| Section content                  |         222 |  2.9% |
+| Section metadata without sources |         984 | 12.9% |
+| Unique provenance                |         429 |  5.6% |
+| Repeated provenance              |       3,424 | 44.8% |
+
+The packet contains nine source occurrences representing one unique canonical
+source. Repetition is therefore the largest measured category. This is enough
+evidence for S6-03 to compare normalized source references, but not permission
+to remove source fields, weaken section-level trust, or write schema v2.

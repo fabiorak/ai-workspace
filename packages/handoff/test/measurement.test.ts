@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { TextEncoder } from "node:util";
 import { describe, it } from "node:test";
 import {
+  attributeHandoffBytes,
   HandoffError,
   measureHandoffBreakEven,
   type Handoff,
@@ -85,6 +86,23 @@ describe("measureHandoffBreakEven", () => {
         ]),
       HandoffError,
     );
+  });
+  it("attributes exact bytes and isolates repeated provenance", () => {
+    const report = attributeHandoffBytes(handoff);
+    assert.equal(
+      report.totalBytes,
+      report.envelopeAndStructureBytes +
+        report.sectionContentBytes +
+        report.sectionMetadataBytes +
+        report.uniqueProvenanceBytes +
+        report.repeatedProvenanceBytes,
+    );
+    assert.ok(report.repeatedProvenanceBytes > 0);
+    assert.ok(report.sourceOccurrences > report.uniqueSources);
+    if (process.env.AI_WORKSPACE_DEMO_REPORT === "1")
+      process.stdout.write(
+        `SYNTHETIC_HANDOFF_ATTRIBUTION ${JSON.stringify(report)}\n`,
+      );
   });
 });
 function corpus(): SessionByteBaseline[] {

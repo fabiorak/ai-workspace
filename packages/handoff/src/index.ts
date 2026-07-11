@@ -14,6 +14,8 @@ export {
 export * from "./model.ts";
 export {
   measureHandoffBreakEven,
+  attributeHandoffBytes,
+  type HandoffByteAttribution,
   type HandoffBreakEvenReport,
   type HandoffSizeMeasurement,
   type SessionByteBaseline,
