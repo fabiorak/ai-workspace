@@ -45,6 +45,11 @@ import {
   runWorkCommand,
   workUsage,
 } from "./work-commands.ts";
+import {
+  InstructionCliUsageError,
+  instructionUsage,
+  runInstructionCommand,
+} from "./instruction-commands.ts";
 
 export type CliEnvironment = Readonly<Record<string, string | undefined>>;
 
@@ -140,6 +145,13 @@ export async function runCli(
           json,
           dependencies,
         );
+      case "instructions":
+        return await runInstructionCommand(
+          command,
+          commandArguments.slice(2),
+          json,
+          dependencies,
+        );
       default:
         throw new CliUsageError(`Unknown command group '${group ?? ""}'`);
     }
@@ -148,7 +160,8 @@ export async function runCli(
       error instanceof CliUsageError ||
       error instanceof MemoryCliUsageError ||
       error instanceof WorkCliUsageError ||
-      error instanceof HandoffCliUsageError
+      error instanceof HandoffCliUsageError ||
+      error instanceof InstructionCliUsageError
     ) {
       dependencies.stderr(`Error: ${error.message}\n\n${usage()}`);
       return 2;
@@ -744,6 +757,7 @@ function usage(group?: string, command?: string): string {
 
   if (group === "work") return workUsage(command);
   if (group === "handoff") return handoffUsage(command);
+  if (group === "instructions") return instructionUsage();
 
   if (topic === "history search") {
     return `Search imported historical events
@@ -827,6 +841,7 @@ Usage:
   ai-workspace memory add|list|show|verify|supersede|invalidate ... [--json]
   ai-workspace work create|list|show|activate|block|complete|reopen ... [--json]
   ai-workspace handoff create|preview|show|validate|evaluate ... [--json]
+  ai-workspace instructions preview ... [--json]
   ai-workspace help
 
 Contextual help:
@@ -836,6 +851,7 @@ Contextual help:
   ai-workspace artifact show --help
   ai-workspace memory add --help
   ai-workspace memory list --help
+  ai-workspace instructions preview --help
 
 Environment:
   AI_WORKSPACE_HOME  Local state directory (default: ~/.ai-workspace)

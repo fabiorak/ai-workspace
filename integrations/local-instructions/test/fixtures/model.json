@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "projectId": "synthetic-project",
+  "source": {
+    "id": "model-source",
+    "projectId": "synthetic-project",
+    "scope": "MODEL",
+    "target": "synthetic-model",
+    "trust": "USER_CONFIGURED",
+    "rules": [
+      {
+        "id": "response.format",
+        "kind": "PREFERENCE",
+        "overridable": true,
+        "content": "Use structured Markdown.",
+        "position": 0
+      }
+    ]
+  }
+}

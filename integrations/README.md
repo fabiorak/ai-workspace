@@ -13,6 +13,9 @@ Implemented adapters:
 - `local-handoffs/` reads immutable schema-v1 handoffs, writes normalized
   schema-v2 handoffs as scoped JSON files, and records immutable deterministic
   evaluations with exclusive writes;
+- `local-instructions/` reads only explicitly selected structured synthetic
+  bundles, derives SHA-256 provenance from exact bytes, and performs no
+  discovery, persistence, or execution;
 - `local-project-registry/` persists the Project Registry in a local,
   schema-versioned JSON file;
 - `local-session-ingestion/` persists canonical sessions and artifacts and

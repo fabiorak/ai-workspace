@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "projectId": "synthetic-project",
+  "source": {
+    "id": "agent-source",
+    "projectId": "synthetic-project",
+    "scope": "AGENT",
+    "target": "synthetic-agent",
+    "trust": "USER_CONFIGURED",
+    "rules": [
+      {
+        "id": "response.detail",
+        "kind": "PREFERENCE",
+        "overridable": true,
+        "content": "Explain every synthetic decision.",
+        "position": 0
+      }
+    ]
+  }
+}

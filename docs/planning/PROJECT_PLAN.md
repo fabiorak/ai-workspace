@@ -593,7 +593,13 @@ ADR-0013, retained permanent v1 reads, enabled deterministic lossless v2
 writes, and exposed exact pre-creation size preview. The fixed packet fell from
 7,642 to 3,551 bytes, while small negative corpus samples remained visible.
 
-The next increment is [Sprint 7](sprints/SPRINT-007.md), a narrow E5 boundary
-slice for deterministic effective-instruction inspection. It begins with an
-ADR and controlled synthetic bundles; it does not start registries, E6 Context
-Builder, agent execution, model access, or GUI scope.
+[Sprint 7](sprints/SPRINT-007.md) completed the first E5 boundary slice with
+provider-neutral structured rules, deterministic constraint/preference
+composition, exact-byte source provenance, controlled explicit local bundles,
+and read-only effective-instruction preview. It introduced no discovery,
+registry, execution, runtime permission, E6 Context Builder, model, or GUI.
+
+The next recommendation is an E5 increment for immutable versioned instruction
+source lifecycle and lossless export/re-import. It is not yet a sprint
+commitment and must preserve the explicit provenance and non-execution
+boundary established by ADR-0014.

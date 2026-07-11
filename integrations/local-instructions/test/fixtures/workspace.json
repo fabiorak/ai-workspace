@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "projectId": "synthetic-project",
+  "source": {
+    "id": "workspace-source",
+    "projectId": "synthetic-project",
+    "scope": "WORKSPACE",
+    "target": null,
+    "trust": "USER_CONFIGURED",
+    "rules": [
+      {
+        "id": "response.detail",
+        "kind": "PREFERENCE",
+        "overridable": true,
+        "content": "Use concise explanations.",
+        "position": 0
+      }
+    ]
+  }
+}

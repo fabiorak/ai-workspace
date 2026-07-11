@@ -197,6 +197,19 @@ prospective schema-v2 bytes without creating an immutable file. Add
 `--baseline-session <session-id>` only when comparing against a named canonical
 full-session source; token values remain labeled estimates.
 
+Preview explicitly selected synthetic instruction bundles before any agent
+execution:
+
+```bash
+npm run cli -- instructions preview --project <project-id> \
+  --bundle <synthetic-bundle.json> [--model <id>] [--agent <id>] [--task <id>]
+```
+
+The output shows active, overridden, rejected, and excluded rules with source
+digests and reasons. It is read-only and does not treat prompt precedence as
+runtime permission enforcement. See the
+[Effective instruction guide](docs/user-guide/effective-instructions.md).
+
 Memory remains visibly `USER_CURATED`, while linked historical evidence stays
 `UNTRUSTED`. Verification, supersession, and invalidation are additive and
 source-linked; no command executes evidence or invokes an agent. Sensitive

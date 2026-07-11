@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "projectId": "synthetic-project",
+  "source": {
+    "id": "task-source",
+    "projectId": "synthetic-project",
+    "scope": "TASK",
+    "target": "synthetic-task",
+    "trust": "USER_CONFIGURED",
+    "rules": [
+      {
+        "id": "task.output",
+        "kind": "PREFERENCE",
+        "overridable": true,
+        "content": "End with a synthetic verification result.",
+        "position": 0
+      }
+    ]
+  }
+}

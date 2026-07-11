@@ -2,7 +2,7 @@
 
 **Primary epic:** E5 — Instruction, Agent, and Skill Management  
 **Milestone:** M4 — Controlled context beta, first boundary increment  
-**Status:** planned  
+**Status:** completed
 **Cadence:** two-week timebox  
 **Dependency:** Sprint 6 completed
 
@@ -190,5 +190,106 @@ that decision.
 
 ## Execution log
 
-Append dated implementation evidence here. Add sprint review and retrospective
-only after the committed behavior and all final gates pass.
+### 2026-07-11 — S7-01 composition boundary accepted
+
+- accepted ADR-0014 after comparing opaque concatenation, provider-native
+  canonical files, and structured provider-neutral rules;
+- fixed explicit JSON bundles, source digests, scope ordering, preference
+  precedence, constraint rejection, equal-scope ambiguity, and kind conflicts;
+- separated configured prompt content from enforceable runtime policy.
+
+### 2026-07-11 — S7-02 provider-neutral contracts completed
+
+- implemented bounded sources and rules for all six accepted scopes;
+- retained project, target, source ID, SHA-256 digest, trust, position, kind,
+  overridability, and content;
+- rejected malformed schema, targets, semantics, duplicates, bounds, and
+  cross-project sources; the gate passed with 24 test files.
+
+### 2026-07-11 — S7-03 deterministic composition completed
+
+- emitted active, overridden, rejected, and excluded rules with reasons and
+  superseding identities;
+- applied precedence only to preferences and kept constraint replacement
+  visible as rejected;
+- proved fixed bytes under source and rule permutations and failed closed on
+  equal-scope ambiguity and kind conflict; the gate passed with 25 test files.
+
+### 2026-07-11 — S7-04 controlled local bundles completed
+
+- added an explicit one-source-per-file JSON adapter with no discovery or
+  persistence;
+- derived source digests from exact bytes and supported reviewed expected
+  digest checks;
+- rejected changed, unreadable, malformed, extra-field, cross-project, and
+  oversized files while preserving source bytes; the gate passed with 26 test
+  files.
+
+### 2026-07-11 — S7-05 guided preview completed
+
+- exposed `instructions preview` with explicit project, repeated bundle, and
+  optional model, agent, task, and expected-digest selection;
+- added stable JSON and terminal-safe human output with source, trust, status,
+  reason, superseding rule, and non-enforcement warning;
+- proved no instruction persistence or execution; the gate passed with 27 test
+  files.
+
+### 2026-07-11 — S7-06 synthetic workflow completed
+
+- authored six public-safe fixtures spanning every scope and both rule kinds;
+- proved deterministic composition across reversed file order, allowed
+  preference override, forbidden constraint override, unchanged exact bytes,
+  and source allowlisting;
+- retained historical evidence and active memory outside instruction input;
+- completed the quality gate with 28 test files.
+
+## Sprint review
+
+Sprint 7 delivered the first E5 vertical boundary: a user can explicitly select
+synthetic structured instruction sources and inspect the deterministic
+effective rule set before any agent execution exists. The output explains
+active preferences, lower-scope overrides, rejected constraint replacement,
+and excluded targeted sources while retaining exact-byte source digests.
+
+The implementation is provider-neutral. Provider, IDE, MCP, home-directory,
+and recursive repository discovery were not introduced. The local adapter
+accepts a strict JSON schema because it uses the existing runtime and makes the
+contract testable without choosing Markdown/YAML authoring or adding a parser.
+No instruction, agent, model, tool, historical event, or active-memory item is
+executed or auto-promoted.
+
+The six-scope fixture proves composition semantics, not behavioral compliance.
+`USER_CONFIGURED` identifies explicit selection and does not mean trusted,
+verified, safe, or enforceable. Filesystem, tool, network, privacy, deployment,
+and destructive-action controls still require separate runtime policy
+boundaries.
+
+## Retrospective
+
+What worked:
+
+- deciding source identity and conflicts before implementation prevented input
+  order from becoming accidental precedence;
+- computing digests in the adapter avoided trusting self-declared provenance;
+- separating composition from local reads made deterministic domain tests
+  independent of filesystem behavior;
+- running the full quality gate after every backlog tranche exposed workspace
+  wiring immediately and kept the final integration incremental.
+
+What changed during implementation:
+
+- the controlled file contract became one source per bundle so each digest
+  unambiguously covers the complete selected bytes;
+- expected digests became optional repeated CLI inputs for reviewed change
+  detection;
+- targeted nonmatches remain visible as excluded rules instead of disappearing
+  from the explanation.
+
+Next-increment recommendation:
+
+- plan the next E5 slice around immutable versioned instruction-source
+  lifecycle and lossless export/re-import before agent or skill registries;
+- evaluate native Markdown compatibility only through explicit adapters and
+  synthetic fixtures after its parsing and provenance contract is decided;
+- keep execution, runtime permissions, E6 Context Builder, model access, and
+  GUI out of scope until separately planned.

@@ -42,5 +42,18 @@ scope, and source links retain canonical evidence identity without copying
 payloads. ADR-0009 records the storage, locking, reconstruction, and migration
 rules.
 
+Effective instruction composition is also provider-neutral and read-only. The
+domain accepts bounded structured sources across global, workspace, project,
+model, agent, and task scopes. Preferences use explicit deterministic
+precedence; constraints cannot be silently replaced; every decision retains a
+source ID and exact-byte SHA-256 digest. The local adapter reads only explicitly
+selected synthetic JSON bundles and neither discovers nor persists
+instructions. ADR-0014 records the composition and non-enforcement boundary.
+
+Instruction text and precedence are not runtime permission enforcement. Agent,
+model, tool, filesystem, network, privacy, deployment, and destructive-action
+controls remain outside this slice and require deterministic capability
+boundaries before execution is introduced.
+
 See the full public design documents in the parent `docs/` directory. Material
 decisions should be captured as ADRs before implementation locks them in.

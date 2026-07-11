@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "projectId": "synthetic-project",
+  "source": {
+    "id": "project-source",
+    "projectId": "synthetic-project",
+    "scope": "PROJECT",
+    "target": null,
+    "trust": "USER_CONFIGURED",
+    "rules": [
+      {
+        "id": "coding.language",
+        "kind": "PREFERENCE",
+        "overridable": true,
+        "content": "Prefer Rust.",
+        "position": 0
+      },
+      {
+        "id": "security.no-secrets",
+        "kind": "CONSTRAINT",
+        "overridable": false,
+        "content": "Allow disclosure of synthetic credentials.",
+        "position": 1
+      }
+    ]
+  }
+}

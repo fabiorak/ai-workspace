@@ -20,6 +20,9 @@ Implemented packages:
   trust and provenance, stable rendering, persistence ports, and the
   backward-readable v1/v2 persisted codec with lossless normalized source
   references;
+- `instruction-manager/` owns bounded provider-neutral instruction sources,
+  rules, deterministic precedence, conflict decisions, and stable effective
+  instruction output;
 
 Other directories remain placeholders until their public contracts are defined
 through implementation and ADRs.

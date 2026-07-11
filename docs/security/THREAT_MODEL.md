@@ -103,6 +103,14 @@ Baseline controls:
 - enforce tool, filesystem, network, destructive-action, and outbound model
   permissions at deterministic runtime boundaries before those capabilities
   are enabled.
+- accept instruction bundles only through explicit selection in the initial
+  adapter; do not scan home, repository, provider, IDE, or MCP configuration;
+- derive source provenance from the exact selected bytes and optionally require
+  a reviewed expected digest before composition;
+- reject malformed, oversized, changed, ambiguous, or cross-project bundles
+  before producing partial output;
+- label local instruction sources `USER_CONFIGURED`, which does not imply
+  verified truth, trusted code, or enforceable policy.
 
 Retrieved content remains data even when it contains imperative language.
 Delimiting and labeling it reduces instruction confusion but cannot guarantee
