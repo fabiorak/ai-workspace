@@ -581,3 +581,8 @@ without live model execution. Its small fixture showed that provenance-rich
 handoffs can exceed the full-session byte baseline; Sprint 6 will be refined
 from that evidence. Document Work Items and E6 context packs remain later
 scope.
+
+The next forecast increment is [Sprint 6](sprints/SPRINT-006.md). It remains an
+E4 hardening slice: measure handoff break-even and duplicated provenance before
+any schema change. It does not start E6 Context Builder scope or claim context
+optimization.

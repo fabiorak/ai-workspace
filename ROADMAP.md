@@ -8,6 +8,9 @@ M3 proves a controlled synthetic cross-agent handoff with explicit Work Items,
 section-level trust, bounded Git state, and deterministic evaluation. The tiny
 fixture produced no context saving; Sprint 6 will be refined from this evidence
 before any E6 optimization claim. Detailed results remain in sprint records.
+The next forecast increment is [Sprint 6](docs/planning/sprints/SPRINT-006.md),
+an E4 hardening experiment that measures break-even and structural provenance
+overhead before considering a backward-compatible representation change.
 
 ## 1. Project Memory
 
