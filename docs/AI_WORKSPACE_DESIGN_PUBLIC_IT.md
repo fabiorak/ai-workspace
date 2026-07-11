@@ -2,10 +2,17 @@
 
 ## Documento di progettazione
 
-**Stato:** bozza iniziale  
+**Stato:** visione di prodotto in evoluzione  
 **Licenza:** Apache License 2.0  
 **Nota:** gli esempi usano nomi e identificativi fittizi.  
 **Obiettivo:** realizzare una piattaforma open source, local-first, per coordinare agenti AI e modelli LLM, condividere il contesto tra strumenti diversi, ridurre il consumo di token, ricercare conoscenza storica e proteggere i dati sensibili.
+
+Questo documento descrive la direzione di lungo periodo, non lo stato corrente
+del prodotto né un impegno a implementare ogni componente citato. Le decisioni
+architetturali accettate sono negli ADR, lo stato implementato è documentato
+nell'architettura e nei piani di sprint, e la roadmap operativa corrente è in
+[`ROADMAP.md`](../ROADMAP.md). Tecnologie, servizi e interfacce qui nominate
+restano candidati finché un ADR evidence-led non li seleziona.
 
 ---
 
@@ -182,7 +189,9 @@ Devono poter essere trasformate in:
 
 ### 3.5 Protezione dei dati sensibili
 
-Ogni input deve poter attraversare una pipeline di anonimizzazione reversibile prima di essere inviato a un modello esterno.
+Ogni input destinato a un modello esterno deve poter attraversare una pipeline
+di pseudonimizzazione reversibile best-effort e controlli indipendenti di
+policy e secret detection.
 
 ### 3.6 Riutilizzo degli strumenti
 
@@ -222,7 +231,7 @@ Progetti, conversazioni, file, log, script, commit
             +------------+------------+
             |                         |
             v                         v
-       OpenSearch                Memory Store
+   Historical Search            Memory Store
    ricerca di qualsiasi      informazioni consolidate
       evidenza storica          e attualmente valide
             |                         |
@@ -237,7 +246,9 @@ Progetti, conversazioni, file, log, script, commit
                     AI Agent
 ```
 
-OpenSearch conserva ciò che potrebbe tornare utile.
+Il backend di ricerca storica conserva e rende recuperabile ciò che potrebbe
+tornare utile. OpenSearch è un possibile adapter futuro, non una dipendenza
+accettata per il Core MVP.
 
 Il Memory Store conserva ciò che è considerato attivo, consolidato e rilevante.
 
@@ -428,9 +439,12 @@ decision B SUPERSEDES decision A
 
 ---
 
-## 8. Ricerca globale con OpenSearch
+## 8. Ricerca storica globale
 
-OpenSearch deve rappresentare l'archivio storico ricercabile.
+La ricerca storica deve essere esposta attraverso una porta sostituibile. Il
+primo adapter implementato esegue una scansione letterale bounded degli eventi
+canonici validati; un indice locale leggero o OpenSearch potranno essere scelti
+in seguito tramite ADR, sulla base di corpus, prestazioni e costi operativi.
 
 Il suo scopo non è diventare la memoria attiva dell'agente, ma consentire di recuperare qualsiasi evidenza precedente.
 
@@ -514,9 +528,9 @@ handoff
 task
 ```
 
-### 8.4 Ricerca ibrida
+### 8.4 Evoluzione del ranking
 
-Il motore deve combinare:
+La visione di lungo periodo può combinare:
 
 - ricerca full-text;
 - phrase matching;
@@ -540,6 +554,11 @@ score =
 ```
 
 La recenza non deve prevalere automaticamente su una soluzione vecchia ma verificata.
+
+Questa formula è illustrativa, non un contratto di implementazione. Il ranking
+iniziale deve partire da ricerca lessicale, filtri obbligatori e al massimo un
+boost motivato. Segnali ulteriori richiedono un golden set versionato di query
+e risultati attesi, con misure di qualità prima e dopo ogni modifica.
 
 ### 8.5 Filtri di ricerca
 
@@ -807,7 +826,14 @@ Il sistema deve scegliere dinamicamente tra:
 
 ---
 
-## 13. Pipeline di anonimizzazione
+## 13. Pipeline di pseudonimizzazione reversibile
+
+La pseudonimizzazione è una mitigazione best-effort, non una garanzia di
+anonimato o di assenza di segreti. Entity detection e recognizer possono
+produrre falsi negativi; un modello può alterare i placeholder; rinominare
+identificatori nel codice può modificarne il significato. Per dati sensibili
+sono quindi necessari ispezione umana, policy di uscita e secret detection
+indipendenti dalla trasformazione del testo.
 
 ```text
 input
@@ -1235,7 +1261,11 @@ task
 
 L'ordine di precedenza si applica solo alle regole sovrascrivibili.
 
-I vincoli non sovrascrivibili devono restare sempre attivi.
+I vincoli non sovrascrivibili devono restare sempre attivi nella composizione,
+ma la loro presenza nel prompt non costituisce enforcement di sicurezza.
+Permessi su tool, filesystem, rete, azioni distruttive e trasferimenti verso
+modelli esterni devono essere applicati da boundary deterministici. Nel prompt
+possono essere espresse preferenze e istruzioni difensive, non garanzie.
 
 ### 16.5 Prompt Composer
 
@@ -1884,13 +1914,19 @@ ADR-018 Context policy bound to agent and skill
 
 ---
 
-## 27. Roadmap aggiornata
+## 27. Orizzonte di prodotto
+
+Questa sequenza esprime dipendenze concettuali di lungo periodo e non sostituisce
+la roadmap operativa in `ROADMAP.md`. Il Core MVP alpha resta software-only:
+Project Registry, ingestion controllata, ricerca storica bounded, active memory
+curata, Work Item e handoff verificabili. Backend indicizzati, UI, model access,
+Context Builder e orchestrazione richiedono vertical slice e ADR dedicati.
 
 ### MVP 1 — Project Memory
 
 - scansione repository;
 - session acquisition;
-- OpenSearch;
+- backend di ricerca sostituibile;
 - ricerca globale;
 - AGENTS.md;
 - HANDOFF.md;
@@ -3076,6 +3112,12 @@ handoff_success_rate
 context_precision
 ```
 
+Le misure devono distinguere valori esatti, valori osservati dalle API dei
+provider e stime. Finché non esistono invocazioni reali, gli exact UTF-8 bytes
+sono la baseline primaria riproducibile e ogni conversione in token resta
+esplicitamente stimata. Claim comparativi richiedono una baseline nominata,
+fixture riproducibili e risultati negativi pubblicati.
+
 ### 46.1 Time-to-resume
 
 Tempo tra:
@@ -3177,9 +3219,14 @@ models:
 
 ---
 
-## 49. Persistenza
+## 49. Candidati di persistenza
 
-### 49.1 PostgreSQL
+Le sezioni seguenti descrivono opzioni per incrementi futuri, non dipendenze
+del Core MVP. La baseline accettata usa file locali schema-versionati dietro
+porte sostituibili. Una nuova tecnologia di persistenza richiede un bisogno
+verticale, misure operative e un ADR.
+
+### 49.1 PostgreSQL candidato
 
 Tabelle indicative:
 
@@ -3204,7 +3251,7 @@ model_policies
 artifacts
 ```
 
-### 49.2 OpenSearch
+### 49.2 OpenSearch candidato
 
 - ricerca full-text;
 - ricerca ibrida;
@@ -3254,7 +3301,7 @@ Possibile stack:
 - applicazione web locale;
 - eventuale wrapper Tauri.
 
-### Servizi
+### Servizi candidati
 
 - PostgreSQL;
 - OpenSearch;
@@ -3262,6 +3309,11 @@ Possibile stack:
 - code graph;
 - model gateway;
 - daemon locale.
+
+La presenza in questo elenco non autorizza l'introduzione di runtime, database,
+listener, framework o servizi. Il default resta un modular monolith locale;
+ogni componente viene selezionato separatamente quando un caso d'uso misurato
+lo richiede.
 
 ### Deploy
 
@@ -3340,68 +3392,18 @@ CERCA
 
 ---
 
-## 53. Roadmap originale
+## 53. Evoluzione della roadmap
 
-### MVP 1 — Project Memory
+La roadmap originale è stata consolidata nell'orizzonte di prodotto della
+sezione 27 e nella roadmap operativa versionata del repository. La precedente
+numerazione parallela non è più normativa, perché rendeva ambiguo l'ordine tra
+Context Builder, privacy, tool e orchestrazione.
 
-- scansione delle directory;
-- registro dei repository;
-- rilevamento Git;
-- acquisizione sessioni;
-- OpenSearch;
-- ricerca globale;
-- AGENTS.md;
-- HANDOFF.md;
-- session summary;
-- decision log;
-- UI minima;
-- MCP di ricerca.
-
-Obiettivo:
-
-> recuperare un lavoro precedente e riprenderlo con un agente diverso.
-
-### MVP 2 — Context Optimization
-
-- Context Builder;
-- token budget;
-- progressive disclosure;
-- deduplicazione;
-- compressione;
-- code graph;
-- artifact store;
-- metriche.
-
-### MVP 3 — Privacy Proxy
-
-- anonimizzazione;
-- recognizer personalizzati;
-- mapping reversibile;
-- cifratura;
-- privacy inspector;
-- policy per modello.
-
-### MVP 4 — Tool Registry
-
-- catalogo script;
-- manifest;
-- ricerca;
-- esecuzione;
-- sandbox;
-- recipe;
-- test;
-- suggerimenti automatici.
-
-### MVP 5 — Multi-agent Orchestration
-
-- planner;
-- implementer;
-- reviewer;
-- adapter agenti;
-- worktree;
-- routing;
-- fallback;
-- handoff automatici.
+Le aree future restano memoria e ricerca storica; istruzioni, agenti e skill;
+Context Builder e ottimizzazione misurata; privacy gateway; tool registry con
+enforcement; workflow documentali; orchestrazione multi-agent; e distribuzione
+comunitaria. Quest'ultima resta una direzione senza scadenza finché non esiste
+evidenza d'uso sufficiente a giustificare firma, review e trust dei pacchetti.
 
 ---
 

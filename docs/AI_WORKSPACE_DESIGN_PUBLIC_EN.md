@@ -2,9 +2,16 @@
 
 ## Design Document
 
-**Status:** initial draft  
+**Status:** evolving product vision  
 **License:** Apache License 2.0  
 **Note:** all examples use fictional names and identifiers.
+
+This document describes the long-term direction, not current product state or
+a commitment to implement every component named here. Accepted architecture
+decisions live in ADRs, implemented behavior is recorded in architecture and
+sprint documents, and the current operational plan is [`ROADMAP.md`](../ROADMAP.md).
+Technologies, services, and interfaces remain candidates until selected by an
+evidence-led ADR.
 
 ---
 
@@ -31,7 +38,7 @@ The platform is not intended to be another coding agent. It is a coordination la
 - agents, models, skills, and tools;
 - active memory and historical knowledge;
 - context construction;
-- privacy and reversible anonymization;
+- privacy and reversible, best-effort pseudonymization;
 - global search;
 - handoffs;
 - reusable automation;
@@ -179,7 +186,9 @@ It should be converted into durable objects such as:
 
 ### 3.5 Sensitive data protection
 
-Inputs should optionally pass through a reversible anonymization pipeline before being sent to an external model.
+Inputs intended for external models should be able to pass through reversible,
+best-effort pseudonymization plus independent policy and secret-detection
+controls.
 
 ### 3.6 Reusable automation
 
@@ -411,9 +420,12 @@ decision B SUPERSEDES decision A
 
 ---
 
-## 7. Global Search with OpenSearch
+## 7. Global Historical Search
 
-OpenSearch is the historical retrieval layer.
+Historical retrieval is exposed through a replaceable port. The first
+implemented adapter performs a bounded literal scan of validated canonical
+events. A lightweight local index or OpenSearch may be selected later through
+an ADR based on corpus measurements, performance, and operational cost.
 
 Its purpose is not to become active agent memory, but to make all previous evidence searchable.
 
@@ -491,9 +503,9 @@ requirement
 generated_document
 ```
 
-### 7.4 Hybrid search
+### 7.4 Ranking evolution
 
-Search should combine:
+The long-term design may combine:
 
 - BM25/full-text;
 - phrase matching;
@@ -517,6 +529,11 @@ score =
 ```
 
 Recency must not automatically outrank an older but verified solution.
+
+The formula is illustrative, not an implementation contract. Initial ranking
+should start with lexical retrieval, mandatory filters, and at most one
+evidence-backed boost. Additional signals require a versioned golden query set
+with expected results and before/after quality measurements.
 
 ### 7.5 Search filters
 
@@ -750,7 +767,13 @@ The retrieval engine should choose among:
 
 ---
 
-## 12. Reversible Anonymization
+## 12. Reversible Best-effort Pseudonymization
+
+Pseudonymization is a mitigation, not a guarantee of anonymity or secret
+removal. Entity detection can miss sensitive values, models can alter
+placeholders, and renaming identifiers can change code semantics. Sensitive
+workflows therefore also require human inspection, outbound data policy, and
+secret detection independent of text transformation.
 
 ### 12.1 Pipeline
 
@@ -1128,6 +1151,12 @@ rules:
     overridable: true
     content: Prefer TypeScript.
 ```
+
+Precedence prevents lower-level configuration from replacing a constraint; it
+does not make prompt text a security boundary. Tool, filesystem, network,
+destructive-action, and external-model permissions must be enforced by
+deterministic runtime boundaries. Prompts may carry preferences and defensive
+instructions, but cannot provide those guarantees.
 
 ### 15.4 Precedence
 
@@ -2397,7 +2426,7 @@ Store:
 - local web application;
 - optional Tauri wrapper.
 
-### Services
+### Candidate services
 
 - PostgreSQL;
 - OpenSearch;
@@ -2406,6 +2435,11 @@ Store:
 - document graph service;
 - model gateway;
 - local daemon.
+
+None of these services is required by the Core MVP merely because it appears
+in this vision. The accepted baseline is a modular monolith with local files
+and replaceable ports; each runtime, database, listener, framework, or external
+service requires a vertical need and an ADR.
 
 ### Deployment
 
@@ -2429,7 +2463,7 @@ Store:
 | General memory layer | Mem0 / OpenMemory |
 | Tool protocol | MCP |
 | Tracing | OpenTelemetry / Langfuse |
-| Search | OpenSearch |
+| Search | bounded local scan / lightweight local index / OpenSearch |
 | Vector search | OpenSearch / pgvector |
 | Local models | Ollama / llama.cpp |
 
@@ -2549,12 +2583,18 @@ ADR-026 Unified Work Item for code and documents
 
 ## 41. Roadmap
 
+This is a long-term product horizon, not the operational sprint plan in
+`ROADMAP.md`. The Core MVP alpha remains software-only: Project Registry,
+controlled ingestion, bounded historical search, curated active memory,
+Work Items, and verifiable handoffs. Indexed backends, UI, model access,
+Context Builder, and orchestration require dedicated vertical slices and ADRs.
+
 ### MVP 1 — Project Memory and Search
 
 - repository discovery;
 - Git detection;
 - session acquisition;
-- OpenSearch;
+- replaceable historical-search backend;
 - global search;
 - `AGENTS.md`;
 - `HANDOFF.md`;
@@ -2752,6 +2792,11 @@ Define:
 
 ## 44. Open Questions
 
+Open questions become ADRs or time-boxed spikes when they enter the active
+roadmap. Session ingestion, handoff validation, and bounded measurement already
+have implemented first answers; backend search, UI packaging, sandboxing, and
+model access remain deliberately undecided.
+
 1. How can sessions be captured reliably from different agents?
 2. Which agents expose hooks or reusable transcripts?
 3. Should Headroom be the primary proxy or an optional adapter?
@@ -2775,6 +2820,11 @@ Define:
 ---
 
 ## 45. MVP Success Criteria
+
+These criteria describe the broader first useful product horizon, not the
+current Core MVP alpha acceptance boundary. The alpha proves the software-only
+continuity path first; context packs, UI, a second provider, document workflows,
+and measured provider-token savings are later increments.
 
 The first useful release should allow users to:
 

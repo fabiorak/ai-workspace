@@ -97,7 +97,17 @@ Baseline controls:
 - keep immutable evidence separate from curated active memory;
 - retain source, status, confidence, and verification metadata;
 - never execute commands recovered from history automatically;
-- preserve non-overridable security constraints in instruction composition.
+- preserve non-overridable security constraints in instruction composition;
+- do not treat prompt precedence, delimiters, or instruction text as security
+  enforcement;
+- enforce tool, filesystem, network, destructive-action, and outbound model
+  permissions at deterministic runtime boundaries before those capabilities
+  are enabled.
+
+Retrieved content remains data even when it contains imperative language.
+Delimiting and labeling it reduces instruction confusion but cannot guarantee
+that a model will ignore it. The effective safety boundary is independent
+capability enforcement plus explicit user authorization, not prompt wording.
 
 ### Malicious tool or plugin execution
 
