@@ -3,8 +3,10 @@ import { TextEncoder } from "node:util";
 import { describe, it } from "node:test";
 import {
   attributeHandoffBytes,
+  encodePersistedHandoff,
   HandoffError,
   measureHandoffBreakEven,
+  previewHandoffSize,
   type Handoff,
   type SessionByteBaseline,
 } from "../src/index.ts";
@@ -103,6 +105,21 @@ describe("measureHandoffBreakEven", () => {
       process.stdout.write(
         `SYNTHETIC_HANDOFF_ATTRIBUTION ${JSON.stringify(report)}\n`,
       );
+  });
+  it("previews exact persisted bytes and labels a named negative comparison", () => {
+    const withoutBaseline = previewHandoffSize(handoff);
+    assert.equal(
+      withoutBaseline.exactHandoffBytes,
+      new TextEncoder().encode(encodePersistedHandoff(handoff)).byteLength,
+    );
+    assert.equal(withoutBaseline.baseline, null);
+    const compared = previewHandoffSize(handoff, {
+      sessionId: "named-session",
+      exactBytes: 1,
+    });
+    assert.equal(compared.baseline?.sessionId, "named-session");
+    assert.equal(compared.baseline?.interpretation, "NEGATIVE_SAVINGS");
+    assert.ok((compared.baseline?.byteDifference ?? 0) < 0);
   });
 });
 function corpus(): SessionByteBaseline[] {

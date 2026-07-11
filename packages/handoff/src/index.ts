@@ -18,6 +18,7 @@ export {
 export * from "./model.ts";
 export {
   measureHandoffBreakEven,
+  previewHandoffSize,
   attributeHandoffBytes,
   type HandoffByteAttribution,
   type HandoffBreakEvenReport,

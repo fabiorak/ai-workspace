@@ -27,6 +27,33 @@ branch, HEAD, dirty state, and bounded changed path names; never patches, file
 contents, remote URLs, or credentials. Creation does not execute an agent or
 mutate evidence, memory, repository files, or older handoffs.
 
+Preview the exact prospective persisted size before immutable creation with
+the same creation options:
+
+```bash
+npm run cli -- handoff preview --project <project-id> \
+  --work-item <work-item-id> --memory <active-memory-id> \
+  --next-action-stdin --source-event <event-id>
+```
+
+The preview performs the same bounded repository capture and validation but
+does not persist a handoff. It reports exact UTF-8 bytes for the schema-v2 JSON
+that would be written. Token counts are secondary estimates labeled
+`CEIL_UTF8_BYTES_DIVIDED_BY_4`. Repository state, generated ID, and clock are
+prospective, so rerun preview if state changes before creation.
+
+A full-session comparison appears only when its canonical session is named:
+
+```bash
+npm run cli -- handoff preview --project <project-id> \
+  --work-item <work-item-id> --next-action-stdin \
+  --source-event <event-id> --baseline-session <session-id>
+```
+
+The result identifies the session and labels the comparison `SAVINGS`,
+`NEGATIVE_SAVINGS`, or `EQUAL_SIZE`. Preview never removes selected memory,
+sources, failures, tests, or section trust metadata to improve the result.
+
 ```bash
 npm run cli -- handoff show <handoff-id> --project <project-id> \
   --work-item <work-item-id>

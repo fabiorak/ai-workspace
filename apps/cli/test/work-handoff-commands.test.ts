@@ -22,6 +22,7 @@ describe("Work Item and handoff CLI workflow", () => {
     repository: string,
     projectId: string,
     eventId: string,
+    sourceSessionId: string,
     memoryId: string,
     workId: string,
     handoffId: string;
@@ -63,8 +64,9 @@ describe("Work Item and handoff CLI workflow", () => {
           "--json",
         ])
       ).stdout,
-    ) as { session: { events: { id: string }[] } };
+    ) as { session: { id: string; events: { id: string }[] } };
     eventId = imported.session.events[0]!.id;
+    sourceSessionId = imported.session.id;
     memoryId = (
       JSON.parse(
         (
@@ -84,6 +86,84 @@ describe("Work Item and handoff CLI workflow", () => {
         ).stdout,
       ) as { id: string }
     ).id;
+  });
+  it("previews exact persisted bytes without creating a handoff", async () => {
+    const previewWorkId = (
+      JSON.parse(
+        (
+          await ok(
+            [
+              "work",
+              "create",
+              "--project",
+              projectId,
+              "--objective-stdin",
+              "--source-event",
+              eventId,
+              "--json",
+            ],
+            "Synthetic preview objective\n",
+          )
+        ).stdout,
+      ) as { id: string }
+    ).id;
+    const withoutBaseline = JSON.parse(
+      (
+        await ok(
+          [
+            "handoff",
+            "preview",
+            "--project",
+            projectId,
+            "--work-item",
+            previewWorkId,
+            "--memory",
+            memoryId,
+            "--next-action-stdin",
+            "--source-event",
+            eventId,
+            "--json",
+          ],
+          "Inspect the synthetic fixture\n",
+        )
+      ).stdout,
+    ) as { exactHandoffBytes: number; baseline: unknown };
+    assert.ok(withoutBaseline.exactHandoffBytes > 0);
+    assert.equal(withoutBaseline.baseline, null);
+    const named = JSON.parse(
+      (
+        await ok(
+          [
+            "handoff",
+            "preview",
+            "--project",
+            projectId,
+            "--work-item",
+            previewWorkId,
+            "--memory",
+            memoryId,
+            "--next-action-stdin",
+            "--source-event",
+            eventId,
+            "--baseline-session",
+            sourceSessionId,
+            "--json",
+          ],
+          "Inspect the synthetic fixture\n",
+        )
+      ).stdout,
+    ) as {
+      baseline: {
+        sessionId: string;
+        byteDifference: number;
+        interpretation: string;
+      };
+      tokenEstimate: { method: string };
+    };
+    assert.equal(named.baseline.sessionId, sourceSessionId);
+    assert.equal(typeof named.baseline.byteDifference, "number");
+    assert.match(named.baseline.interpretation, /SAVINGS|EQUAL_SIZE/u);
+    assert.equal(named.tokenEstimate.method, "CEIL_UTF8_BYTES_DIVIDED_BY_4");
   });
   after(async () => rm(root, { recursive: true, force: true }));
   it("guides explicit Work Item lifecycle with stdin", async () => {

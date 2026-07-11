@@ -192,6 +192,11 @@ npm run cli -- handoff create --project <project-id> \
   --work-item <work-item-id> --next-action-stdin --source-event <event-id>
 ```
 
+Use `handoff preview` with the same creation options to inspect the exact
+prospective schema-v2 bytes without creating an immutable file. Add
+`--baseline-session <session-id>` only when comparing against a named canonical
+full-session source; token values remain labeled estimates.
+
 Memory remains visibly `USER_CURATED`, while linked historical evidence stays
 `UNTRUSTED`. Verification, supersession, and invalidation are additive and
 source-linked; no command executes evidence or invokes an agent. Sensitive

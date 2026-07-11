@@ -84,3 +84,23 @@ export type RepositoryValidation = Readonly<{
   current: RepositorySnapshot;
   recovery: string | null;
 }>;
+
+export type HandoffSizePreview = Readonly<{
+  schemaVersion: 1;
+  handoff: Handoff;
+  exactHandoffBytes: number;
+  decisionMethod: "EXACT_UTF8_BYTES";
+  tokenEstimate: Readonly<{
+    handoffTokens: number;
+    method: "CEIL_UTF8_BYTES_DIVIDED_BY_4";
+  }>;
+  baseline: Readonly<{
+    kind: "FULL_SESSION";
+    sessionId: string;
+    exactBytes: number;
+    byteDifference: number;
+    reductionPercent: number;
+    estimatedTokens: number;
+    interpretation: "SAVINGS" | "NEGATIVE_SAVINGS" | "EQUAL_SIZE";
+  }> | null;
+}>;

@@ -826,7 +826,7 @@ Usage:
   ai-workspace artifact show <artifact-id> [--json]
   ai-workspace memory add|list|show|verify|supersede|invalidate ... [--json]
   ai-workspace work create|list|show|activate|block|complete|reopen ... [--json]
-  ai-workspace handoff create|show|validate ... [--json]
+  ai-workspace handoff create|preview|show|validate|evaluate ... [--json]
   ai-workspace help
 
 Contextual help:

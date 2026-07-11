@@ -63,6 +63,12 @@ export class Handoffs {
     this.#deps = dependencies;
   }
   public async create(input: CreateHandoffInput): Promise<Handoff> {
+    return this.#deps.store.create(await this.#build(input));
+  }
+  public async preview(input: CreateHandoffInput): Promise<Handoff> {
+    return this.#build(input);
+  }
+  async #build(input: CreateHandoffInput): Promise<Handoff> {
     const projectId = required(input.projectId, "Project ID"),
       workItemId = required(input.workItemId, "Work Item ID"),
       nextAction = bounded(input.nextAction, "Next action", MAX_TEXT);
@@ -181,7 +187,7 @@ export class Handoffs {
         ),
       }),
     });
-    return this.#deps.store.create(handoff);
+    return handoff;
   }
   public async show(
     projectIdValue: string,

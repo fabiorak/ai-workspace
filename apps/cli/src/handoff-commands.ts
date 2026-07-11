@@ -4,6 +4,8 @@ import { join } from "node:path";
 import {
   HandoffEvaluator,
   Handoffs,
+  previewHandoffSize,
+  type CreateHandoffInput,
   type HandoffEvaluation,
   renderHandoff,
   type RepositoryValidation,
@@ -42,44 +44,34 @@ export async function runHandoffCommand(
   const handoffs = createHandoffs(deps.environment);
   switch (command) {
     case "create": {
-      const options = parse(
-        args,
-        [
-          "--project",
-          "--work-item",
-          "--memory",
-          "--next-action",
-          "--source-event",
-          "--relevant-file",
-          "--predecessor",
-          "--test-command",
-          "--test-outcome",
-          "--test-observed-at",
-        ],
-        ["--next-action-stdin"],
-      );
-      const testState = testObservation(options);
-      const value = await handoffs.create({
-        projectId: one(options, "--project"),
-        workItemId: one(options, "--work-item"),
-        memoryIds: many(options, "--memory"),
-        nextAction: await inlineOrStdin(
-          options,
-          "--next-action",
-          "--next-action-stdin",
-          deps,
-        ),
-        sourceEventIds: requiredMany(options, "--source-event"),
-        relevantFiles: many(options, "--relevant-file"),
-        ...(options.has("--predecessor")
-          ? { predecessorId: one(options, "--predecessor") }
-          : {}),
-        ...(testState === undefined ? {} : { testState: [testState] }),
-      });
+      const value = await handoffs.create(await creationInput(args, deps));
       deps.stdout(
         json
           ? `${JSON.stringify(value, null, 2)}\n`
           : `Created immutable handoff. Included: objective, repository metadata, ${value.sections.selectedMemory.value.length} selected memory item(s), ${value.sections.knownFailures.value.length} known failure(s), ${value.sections.testState.value.length} test observation(s), ${value.sections.relevantFiles.value.length} relevant file(s), next action, and source references.\nNo agent was executed and no evidence, memory, repository file, or older handoff was mutated.\n\n${renderHandoff(value)}`,
+      );
+      return 0;
+    }
+    case "preview": {
+      const { input, baselineSessionId } = await previewInput(args, deps);
+      const value = await handoffs.preview(input);
+      let baseline: { sessionId: string; exactBytes: number } | undefined;
+      if (baselineSessionId !== undefined) {
+        const session = await new JsonSessionStore(
+          workspaceHome(deps.environment),
+        ).load(baselineSessionId);
+        if (session === null || session.projectId !== input.projectId)
+          throw new HandoffCliUsageError(
+            `Baseline session '${baselineSessionId}' was not found in project '${input.projectId}'.`,
+          );
+        baseline = {
+          sessionId: baselineSessionId,
+          exactBytes: session.latestSourceArtifact.byteLength,
+        };
+      }
+      const report = previewHandoffSize(value, baseline);
+      deps.stdout(
+        json ? `${JSON.stringify(report, null, 2)}\n` : formatPreview(report),
       );
       return 0;
     }
@@ -163,6 +155,64 @@ function workspaceHome(
 ) {
   return environment.AI_WORKSPACE_HOME ?? join(homedir(), ".ai-workspace");
 }
+const CREATION_VALUES = [
+  "--project",
+  "--work-item",
+  "--memory",
+  "--next-action",
+  "--source-event",
+  "--relevant-file",
+  "--predecessor",
+  "--test-command",
+  "--test-outcome",
+  "--test-observed-at",
+] as const;
+async function creationInput(
+  args: readonly string[],
+  deps: HandoffCliDependencies,
+): Promise<CreateHandoffInput> {
+  return inputFromOptions(
+    parse(args, CREATION_VALUES, ["--next-action-stdin"]),
+    deps,
+  );
+}
+async function previewInput(
+  args: readonly string[],
+  deps: HandoffCliDependencies,
+) {
+  const options = parse(
+    args,
+    [...CREATION_VALUES, "--baseline-session"],
+    ["--next-action-stdin"],
+  );
+  return {
+    input: await inputFromOptions(options, deps),
+    baselineSessionId: options.get("--baseline-session")?.[0],
+  };
+}
+async function inputFromOptions(
+  options: Options,
+  deps: HandoffCliDependencies,
+): Promise<CreateHandoffInput> {
+  const testState = testObservation(options);
+  return {
+    projectId: one(options, "--project"),
+    workItemId: one(options, "--work-item"),
+    memoryIds: many(options, "--memory"),
+    nextAction: await inlineOrStdin(
+      options,
+      "--next-action",
+      "--next-action-stdin",
+      deps,
+    ),
+    sourceEventIds: requiredMany(options, "--source-event"),
+    relevantFiles: many(options, "--relevant-file"),
+    ...(options.has("--predecessor")
+      ? { predecessorId: one(options, "--predecessor") }
+      : {}),
+    ...(testState === undefined ? {} : { testState: [testState] }),
+  };
+}
 type Options = Map<string, string[]>;
 function parse(
   args: readonly string[],
@@ -218,6 +268,32 @@ function formatEvaluation(value: HandoffEvaluation) {
     `Limitation: ${value.elapsed.limitation}`,
     "",
   ].join("\n");
+}
+function formatPreview(value: ReturnType<typeof previewHandoffSize>) {
+  const lines = [
+    "Prospective immutable handoff preview (nothing was created)",
+    `Handoff: ${value.exactHandoffBytes} exact UTF-8 bytes`,
+    `Estimated handoff tokens: ${value.tokenEstimate.handoffTokens}`,
+    `Token estimate method: ${value.tokenEstimate.method}`,
+  ];
+  if (value.baseline === null)
+    lines.push(
+      "Comparison: unavailable; name a full session with --baseline-session.",
+    );
+  else
+    lines.push(
+      `Named full-session baseline: ${value.baseline.sessionId}`,
+      `Baseline: ${value.baseline.exactBytes} exact UTF-8 bytes`,
+      `Byte reduction: ${value.baseline.byteDifference} (${value.baseline.reductionPercent}%)`,
+      `Comparison result: ${value.baseline.interpretation}`,
+      `Estimated baseline tokens: ${value.baseline.estimatedTokens}`,
+    );
+  lines.push(
+    "No sections, sources, memory, failures, tests, or trust metadata were dropped.",
+    "Repository state, generated ID, and clock are prospective; rerun preview if state changes before create.",
+    "",
+  );
+  return lines.join("\n");
 }
 function one(options: Options, name: string) {
   const value = options.get(name)?.[0];
@@ -296,10 +372,11 @@ export function handoffUsage(command?: string) {
 
 Usage:
   ai-workspace handoff create --project <id> --work-item <id> [--memory <id>] (--next-action <text>|--next-action-stdin) --source-event <id> [options] [--json]
+  ai-workspace handoff preview --project <id> --work-item <id> [--memory <id>] (--next-action <text>|--next-action-stdin) --source-event <id> [--baseline-session <id>] [options] [--json]
   ai-workspace handoff show <handoff-id> --project <id> --work-item <id> [--json]
   ai-workspace handoff validate <handoff-id> --project <id> --work-item <id> [--json]
   ai-workspace handoff evaluate <handoff-id> --project <id> --work-item <id> --resume-session <id> --expected-event <id> [--json]
 
-Creation captures bounded Git metadata, never file content or patches. It creates an immutable packet and never invokes an agent. Memory selection is explicit and ACTIVE-only.
+Preview performs the same bounded capture and validation without persisting. Comparison is shown only for an explicitly named full-session baseline. Creation captures bounded Git metadata, never file content or patches. It creates an immutable packet and never invokes an agent. Memory selection is explicit and ACTIVE-only.
 `;
 }

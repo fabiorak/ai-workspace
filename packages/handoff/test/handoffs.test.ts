@@ -127,6 +127,12 @@ describe("Handoffs", () => {
     assert.equal(JSON.parse(encodeHandoff(value)).id, "handoff");
     assert.match(renderHandoff(value), /Inspect sources:/u);
   });
+  it("previews the same bounded packet without persisting it", async () => {
+    const { handoffs, store } = fixture();
+    const value = await handoffs.preview(input);
+    assert.equal(value.sections.nextAction.value, input.nextAction);
+    assert.equal(store.item, null);
+  });
   it("rejects non-active selected memory", async () => {
     const { handoffs } = fixture("INVALIDATED");
     await assert.rejects(handoffs.create(input), HandoffError);

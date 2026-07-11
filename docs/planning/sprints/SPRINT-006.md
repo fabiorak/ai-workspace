@@ -172,3 +172,18 @@ measurements do not justify migration.
   cross-scoped persisted data without leaving partial files;
 - added no dependency, migration command, E6 feature, or compactness claim;
   the quality gate passes with 23 test files.
+
+### 2026-07-11 — S6-05 exact size preview completed
+
+- added `handoff preview` with the same bounded inputs, provenance, memory,
+  test, trust, and repository capture rules as immutable creation;
+- measured exact UTF-8 bytes from the schema-v2 persisted codec without
+  calling the handoff store or creating a file;
+- exposed full-session comparison only through an explicitly named canonical
+  `--baseline-session` from the same project;
+- labeled `SAVINGS`, `NEGATIVE_SAVINGS`, and `EQUAL_SIZE`, with token values
+  remaining secondary `ceil(bytes / 4)` estimates;
+- stated that preview IDs, time, and repository observations are prospective
+  and that no content or safety metadata is auto-dropped;
+- added no dependency, target-size behavior, E6 feature, or model call; the
+  quality gate passes with 23 test files.
