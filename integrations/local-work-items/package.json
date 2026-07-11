@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/local-work-items",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Atomic local operation-log storage for Work Items",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/core": "0.0.0"
+  }
+}

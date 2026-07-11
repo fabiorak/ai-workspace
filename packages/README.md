@@ -9,7 +9,8 @@ Implemented packages:
 
 - `active-memory/` owns provider-neutral active-memory vocabulary, lifecycle
   use cases, and persistence and provenance ports;
-- `core/` defines initial Work Item vocabulary and pure validation;
+- `core/` owns bounded Work Item objective state, additive lifecycle use cases,
+  provenance, and optimistic persistence ports;
 - `project-registry/` owns repository models, ports, and registration use
   cases;
 - `session-ingestion/` owns canonical imported-session and event contracts;

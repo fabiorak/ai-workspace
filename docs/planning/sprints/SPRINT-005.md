@@ -326,3 +326,15 @@ Sprint 5 is complete only when:
 - kept objective state separate from project-owned evidence and active memory;
   persistence, lifecycle use cases, source links, and handoff history remain
   S5-03 and later work.
+
+### 2026-07-11 — S5-03 domain lifecycle defined
+
+- accepted ADR-0011 before persistence implementation;
+- added bounded provider-neutral create, show, list, activate, block, complete,
+  and reopen use cases with explicit project and Work Item IDs;
+- required `LOCAL_USER` attribution and canonical same-project source events
+  for creation and every lifecycle transition;
+- made objective state immutable and lifecycle corrections additive;
+- exposed a versioned store boundary so stale concurrent transitions fail;
+- kept active memory, transcript payloads, Git diffs, and handoff bodies outside
+  Work Item state.
