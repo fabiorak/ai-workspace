@@ -414,16 +414,17 @@ must be adjusted using evidence from completed increments.
 | Sprint 4 | E3            | Consolidate active decisions, constraints, and failures |
 | Sprint 5 | E4            | Hand off and evaluate one synthetic cross-agent resume  |
 | Sprint 6 | E4            | Measure and normalize handoff representation overhead   |
-| Sprint 7 | E5 candidate  | Inspect deterministic effective instruction composition |
+| Sprint 7 | E5            | Preview deterministic effective instruction composition |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
 and E10, but validated user needs may change it.
 
-Sprint 6 evidence supports planning Sprint 7 as a narrow E5 boundary slice.
-That recommendation is not yet a Sprint 7 commitment: instruction precedence,
-provenance, permissions, storage, and import/export contracts require explicit
-planning and ADR review before implementation.
+Sprint 6 evidence supported planning Sprint 7 as a narrow E5 boundary slice.
+Sprint 7 now commits to deterministic, provenance-linked effective-instruction
+preview, beginning with an ADR for precedence and security semantics. Agent and
+skill registries, execution, E6 Context Builder, model access, and GUI remain
+outside that sprint.
 
 ## 9. Agile operating model
 
@@ -592,7 +593,7 @@ ADR-0013, retained permanent v1 reads, enabled deterministic lossless v2
 writes, and exposed exact pre-creation size preview. The fixed packet fell from
 7,642 to 3,551 bytes, while small negative corpus samples remained visible.
 
-The next recommendation is to plan a narrow Sprint 7 E5 boundary increment for
-deterministic effective-instruction inspection. No Sprint 7 commitment exists
-yet, and this recommendation does not start E6 Context Builder, agent
-execution, model access, or GUI scope.
+The next increment is [Sprint 7](sprints/SPRINT-007.md), a narrow E5 boundary
+slice for deterministic effective-instruction inspection. It begins with an
+ADR and controlled synthetic bundles; it does not start registries, E6 Context
+Builder, agent execution, model access, or GUI scope.
