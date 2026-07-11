@@ -87,3 +87,44 @@ duplicate references, duplicate or unreferenced table entries, noncanonical
 ordering, oversized tables and references, and persisted scope mismatches.
 Rejected creation leaves no partial file. Exact before/after corpus results
 remain S6-06 work; S6-04 makes no general context or token-saving claim.
+
+## S6-06 before/after result
+
+The unchanged 15-sample corpus was rerun against both stable schema-v1 JSON
+and the schema-v2 persisted codec. The fixed logical handoff is identical in
+both cases; only its persisted provenance representation changes.
+
+| Representation | Exact UTF-8 bytes | Change from v1 |
+| -------------- | ----------------: | -------------: |
+| Schema v1      |             7,642 |              — |
+| Schema v2      |             3,551 |         -4,091 |
+
+Schema v2 is 53.53% smaller for this fixed packet. The reduction is larger
+than the isolated repeated-provenance category because normalization also
+changes the surrounding JSON keys and structure. It does not remove any
+logical source, section value, or trust field.
+
+| Payload | First v1 break-even | First v2 break-even | Smallest sample remains negative |
+| ------: | ------------------: | ------------------: | -------------------------------: |
+|      32 |          32 records |          16 records |                  4 and 8 records |
+|     256 |          16 records |           8 records |                        4 records |
+|   1,024 |           8 records |           4 records |                             none |
+
+At the new first sampled thresholds, v2 is smaller than the named session by
+774, 134, and 438 bytes respectively. These are bounded synthetic results, not
+a production distribution. The smallest 32-byte and 256-byte samples still
+show negative savings, so normalization does not make every handoff smaller
+than every session.
+
+Reproduce the exact report after building with:
+
+```bash
+AI_WORKSPACE_DEMO_REPORT=1 node packages/handoff/test/measurement.test.ts
+```
+
+The contract suite also proves stable v1 reads, lossless v2 expansion,
+deterministic bytes under permuted occurrences, unchanged human source
+navigation and section trust, same-scope v2-to-v1 predecessor linkage,
+cross-scope rejection, corruption and bound failures, terminal sanitization,
+and evaluation through the local v2 store. No real transcript, provider call,
+model grading, context budget, or E6 Context Builder participates.

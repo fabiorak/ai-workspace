@@ -2,7 +2,7 @@
 
 **Primary epic:** E4 — Handoff and Cross-agent Resume hardening  
 **Milestone:** post-M3 evidence increment  
-**Status:** planned  
+**Status:** completed
 **Cadence:** two-week timebox  
 **Dependency:** Sprint 5 and M3 completed
 
@@ -187,3 +187,67 @@ measurements do not justify migration.
   and that no content or safety metadata is auto-dropped;
 - added no dependency, target-size behavior, E6 feature, or model call; the
   quality gate passes with 23 test files.
+
+### 2026-07-11 — S6-06 proportionality experiment closed
+
+- reran the unchanged 15-sample corpus against schema v1 and persisted v2;
+- measured 7,642 bytes for v1 and 3,551 bytes for v2, a 4,091-byte or 53.53%
+  representation reduction for the fixed packet;
+- moved first sampled break-even from 32/16/8 records to 16/8/4 records for
+  payloads of 32/256/1,024 bytes while retaining the negative small samples;
+- proved unchanged logical values, trust, source navigation, evaluation,
+  predecessor scope, terminal sanitization, v1 reads, deterministic encoding,
+  and fail-closed corruption handling;
+- published an exact reproducible report and retained token values only as
+  labeled estimates;
+- closed the experiment without claiming general context optimization,
+  production readiness, or permission to begin E6 implicitly.
+
+## Sprint review
+
+Sprint 6 converted the negative Sprint 5 size result into a bounded,
+reproducible representation experiment. Exact-byte attribution found repeated
+provenance to be 44.8% of the v1 packet. ADR-0013 accepted normalization only
+after that evidence, and the writer remained v1 until backward-read,
+equivalence, navigation, trust, scope, corruption, and immutability contracts
+passed.
+
+The final fixed packet is 3,551 bytes in v2 versus 7,642 bytes in v1. This
+improves every sampled break-even boundary, but sessions with 4 or 8 small
+records can still be smaller than the handoff. The result establishes
+proportional representation overhead for this corpus, not minimum sufficient
+context, agent quality, latency, model cost, or a general workload
+distribution.
+
+Delivered behavior includes permanent v1 reads, deterministic lossless v2
+writes, explicit size preview, named-baseline comparison, visible negative
+savings, and unchanged source inspection. Existing immutable files are never
+migrated in place and no content is auto-dropped to reach a size target.
+
+## Retrospective
+
+What worked:
+
+- measuring exact bytes before choosing v2 kept the ADR evidence-led;
+- separating logical handoffs from persisted codecs preserved downstream
+  rendering and evaluation contracts;
+- an immutable v1 fixture and adversarial reference tests made backward
+  compatibility and fail-closed behavior reviewable;
+- retaining negative corpus samples prevented an inflated optimization claim.
+
+What changed during implementation:
+
+- the v2 writer was enabled only after the contract suite passed;
+- size preview became a separate non-persisting command using the real v2
+  encoder rather than an approximation;
+- comparisons require a named canonical session and classify negative,
+  positive, and equal results explicitly.
+
+Next-increment recommendation:
+
+- plan Sprint 7 as a narrow E5 boundary increment for deterministic,
+  provenance-linked effective-instruction inspection;
+- decide its persisted format and permission vocabulary through ADRs before
+  adding registries or execution behavior;
+- keep E6 Context Builder, budgets, retrieval, model calls, and GUI outside
+  that first E5 slice unless separately planned from evidence.

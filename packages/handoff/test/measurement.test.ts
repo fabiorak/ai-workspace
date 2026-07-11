@@ -3,6 +3,7 @@ import { TextEncoder } from "node:util";
 import { describe, it } from "node:test";
 import {
   attributeHandoffBytes,
+  compareHandoffRepresentations,
   encodePersistedHandoff,
   HandoffError,
   measureHandoffBreakEven,
@@ -120,6 +121,28 @@ describe("measureHandoffBreakEven", () => {
     assert.equal(compared.baseline?.sessionId, "named-session");
     assert.equal(compared.baseline?.interpretation, "NEGATIVE_SAVINGS");
     assert.ok((compared.baseline?.byteDifference ?? 0) < 0);
+  });
+  it("compares v1 and v2 against the unchanged bounded corpus", () => {
+    const report = compareHandoffRepresentations(handoff, corpus());
+    assert.equal(report.decisionMethod, "EXACT_UTF8_BYTES");
+    assert.ok(report.schemaV2Bytes < report.schemaV1Bytes);
+    assert.equal(
+      report.representationByteReduction,
+      report.schemaV1Bytes - report.schemaV2Bytes,
+    );
+    assert.equal(report.measurements.length, 15);
+    assert.equal(
+      report.measurements.every(
+        (value) =>
+          value.schemaV2Difference ===
+          value.fullSessionBytes - report.schemaV2Bytes,
+      ),
+      true,
+    );
+    if (process.env.AI_WORKSPACE_DEMO_REPORT === "1")
+      process.stdout.write(
+        `SYNTHETIC_REPRESENTATION_COMPARISON ${JSON.stringify(report)}\n`,
+      );
   });
 });
 function corpus(): SessionByteBaseline[] {

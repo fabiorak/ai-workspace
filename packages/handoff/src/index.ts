@@ -20,8 +20,10 @@ export {
   measureHandoffBreakEven,
   previewHandoffSize,
   attributeHandoffBytes,
+  compareHandoffRepresentations,
   type HandoffByteAttribution,
   type HandoffBreakEvenReport,
+  type HandoffRepresentationComparison,
   type HandoffSizeMeasurement,
   type SessionByteBaseline,
 } from "./measurement.ts";

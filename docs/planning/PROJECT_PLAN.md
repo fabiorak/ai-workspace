@@ -413,12 +413,17 @@ must be adjusted using evidence from completed increments.
 | Sprint 3 | E2, E3        | Search imported events and open their source artifacts  |
 | Sprint 4 | E3            | Consolidate active decisions, constraints, and failures |
 | Sprint 5 | E4            | Hand off and evaluate one synthetic cross-agent resume  |
-| Sprint 6 | To refine     | Prioritize the next increment from Core MVP evidence    |
-| Sprint 7 | To refine     | Continue the evidence-led post-M3 sequence              |
+| Sprint 6 | E4            | Measure and normalize handoff representation overhead   |
+| Sprint 7 | E5 candidate  | Inspect deterministic effective instruction composition |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
 and E10, but validated user needs may change it.
+
+Sprint 6 evidence supports planning Sprint 7 as a narrow E5 boundary slice.
+That recommendation is not yet a Sprint 7 commitment: instruction precedence,
+provenance, permissions, storage, and import/export contracts require explicit
+planning and ADR review before implementation.
 
 ## 9. Agile operating model
 
@@ -578,11 +583,16 @@ unchanged and imported evidence remains `UNTRUSTED`.
 Items, immutable source-linked handoffs, bounded Git validation, a narrow
 synthetic Claude Code adapter, and deterministic first-action evaluation
 without live model execution. Its small fixture showed that provenance-rich
-handoffs can exceed the full-session byte baseline; Sprint 6 will be refined
-from that evidence. Document Work Items and E6 context packs remain later
-scope.
+handoffs can exceed the full-session byte baseline. Document Work Items and E6
+context packs remain later scope.
 
-The next forecast increment is [Sprint 6](sprints/SPRINT-006.md). It remains an
-E4 hardening slice: measure handoff break-even and duplicated provenance before
-any schema change. It does not start E6 Context Builder scope or claim context
-optimization.
+[Sprint 6](sprints/SPRINT-006.md) completed the evidence-led E4 hardening
+slice. It measured break-even and overhead, accepted normalized provenance via
+ADR-0013, retained permanent v1 reads, enabled deterministic lossless v2
+writes, and exposed exact pre-creation size preview. The fixed packet fell from
+7,642 to 3,551 bytes, while small negative corpus samples remained visible.
+
+The next recommendation is to plan a narrow Sprint 7 E5 boundary increment for
+deterministic effective-instruction inspection. No Sprint 7 commitment exists
+yet, and this recommendation does not start E6 Context Builder, agent
+execution, model access, or GUI scope.

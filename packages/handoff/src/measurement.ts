@@ -38,6 +38,21 @@ export type HandoffByteAttribution = Readonly<{
   uniqueSources: number;
   decisionMethod: "EXACT_UTF8_BYTES";
 }>;
+export type HandoffRepresentationComparison = Readonly<{
+  schemaV1Bytes: number;
+  schemaV2Bytes: number;
+  representationByteReduction: number;
+  representationReductionPercent: number;
+  decisionMethod: "EXACT_UTF8_BYTES";
+  measurements: readonly Readonly<
+    SessionByteBaseline & {
+      schemaV1Difference: number;
+      schemaV2Difference: number;
+      schemaV1IsSmaller: boolean;
+      schemaV2IsSmaller: boolean;
+    }
+  >[];
+}>;
 export function measureHandoffBreakEven(
   handoff: Handoff,
   baselines: readonly SessionByteBaseline[],
@@ -131,6 +146,36 @@ export function previewHandoffSize(
   });
 }
 
+export function compareHandoffRepresentations(
+  handoff: Handoff,
+  baselines: readonly SessionByteBaseline[],
+): HandoffRepresentationComparison {
+  validateBaselines(baselines);
+  const schemaV1Bytes = bytes(encodeHandoff(handoff));
+  const schemaV2Bytes = bytes(encodePersistedHandoff(handoff));
+  const representationByteReduction = schemaV1Bytes - schemaV2Bytes;
+  return Object.freeze({
+    schemaV1Bytes,
+    schemaV2Bytes,
+    representationByteReduction,
+    representationReductionPercent: Number(
+      ((representationByteReduction / schemaV1Bytes) * 100).toFixed(2),
+    ),
+    decisionMethod: "EXACT_UTF8_BYTES",
+    measurements: Object.freeze(
+      baselines.map((baseline) =>
+        Object.freeze({
+          ...baseline,
+          schemaV1Difference: baseline.fullSessionBytes - schemaV1Bytes,
+          schemaV2Difference: baseline.fullSessionBytes - schemaV2Bytes,
+          schemaV1IsSmaller: schemaV1Bytes < baseline.fullSessionBytes,
+          schemaV2IsSmaller: schemaV2Bytes < baseline.fullSessionBytes,
+        }),
+      ),
+    ),
+  });
+}
+
 export function attributeHandoffBytes(
   handoff: Handoff,
 ): HandoffByteAttribution {
@@ -172,5 +217,26 @@ export function attributeHandoffBytes(
   });
 }
 function compactBytes(value: unknown) {
-  return new TextEncoder().encode(JSON.stringify(value)).byteLength;
+  return bytes(JSON.stringify(value));
+}
+function bytes(value: string) {
+  return new TextEncoder().encode(value).byteLength;
+}
+function validateBaselines(baselines: readonly SessionByteBaseline[]) {
+  if (baselines.length < 1 || baselines.length > 100)
+    throw new HandoffError("Provide from 1 to 100 session baselines.");
+  const labels = new Set<string>();
+  for (const baseline of baselines) {
+    if (
+      !baseline.label.trim() ||
+      labels.has(baseline.label) ||
+      !positive(baseline.recordCount) ||
+      !positive(baseline.payloadBytes) ||
+      !positive(baseline.fullSessionBytes)
+    )
+      throw new HandoffError(
+        "Session baselines require unique labels and positive integer record, payload, and exact-byte values.",
+      );
+    labels.add(baseline.label);
+  }
 }
