@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
+  HandoffEvaluator,
   Handoffs,
+  type HandoffEvaluation,
   renderHandoff,
   type RepositoryValidation,
   type TestObservation,
@@ -12,8 +14,12 @@ import {
   JsonActiveMemoryStore,
   LocalMemorySourceEventReader,
 } from "@ai-workspace/local-active-memory";
-import { JsonHandoffStore } from "@ai-workspace/local-handoffs";
+import {
+  JsonHandoffEvaluationStore,
+  JsonHandoffStore,
+} from "@ai-workspace/local-handoffs";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
+import { JsonSessionStore } from "@ai-workspace/local-session-ingestion";
 import { JsonWorkItemStore } from "@ai-workspace/local-work-items";
 
 export type HandoffCliDependencies = Readonly<{
@@ -99,6 +105,34 @@ export async function runHandoffCommand(
       deps.stdout(formatValidation(report, json));
       return report.matches ? 0 : 1;
     }
+    case "evaluate": {
+      const { id, options } = operandWith(args, [
+        "--project",
+        "--work-item",
+        "--resume-session",
+        "--expected-event",
+      ]);
+      const home = workspaceHome(deps.environment);
+      const evaluation = await new HandoffEvaluator({
+        handoffs: new JsonHandoffStore(home),
+        sessions: new JsonSessionStore(home),
+        store: new JsonHandoffEvaluationStore(home),
+        ids: randomUUID,
+        clock: () => new Date(),
+      }).evaluate({
+        projectId: one(options, "--project"),
+        workItemId: one(options, "--work-item"),
+        handoffId: id,
+        resumeSessionId: one(options, "--resume-session"),
+        expectedEventId: one(options, "--expected-event"),
+      });
+      deps.stdout(
+        json
+          ? `${JSON.stringify(evaluation, null, 2)}\n`
+          : formatEvaluation(evaluation),
+      );
+      return evaluation.firstAction.matched ? 0 : 1;
+    }
     default:
       throw new HandoffCliUsageError(
         `Unknown handoff command '${command ?? ""}'.`,
@@ -108,8 +142,7 @@ export async function runHandoffCommand(
 function createHandoffs(
   environment: Readonly<Record<string, string | undefined>>,
 ) {
-  const home =
-      environment.AI_WORKSPACE_HOME ?? join(homedir(), ".ai-workspace"),
+  const home = workspaceHome(environment),
     projectStore = new JsonProjectRegistryStore(join(home, "projects.json"));
   const projects = {
     find: async (id: string) =>
@@ -124,6 +157,11 @@ function createHandoffs(
     ids: randomUUID,
     clock: () => new Date(),
   });
+}
+function workspaceHome(
+  environment: Readonly<Record<string, string | undefined>>,
+) {
+  return environment.AI_WORKSPACE_HOME ?? join(homedir(), ".ai-workspace");
 }
 type Options = Map<string, string[]>;
 function parse(
@@ -153,12 +191,33 @@ function parse(
   return result;
 }
 function operand(args: readonly string[]) {
+  return operandWith(args, ["--project", "--work-item"]);
+}
+function operandWith(args: readonly string[], allowed: readonly string[]) {
   const [id, ...rest] = args;
   if (id === undefined || id.startsWith("--"))
     throw new HandoffCliUsageError(
       "Handoff command requires an explicit handoff ID.",
     );
-  return { id, options: parse(rest, ["--project", "--work-item"], []) };
+  return { id, options: parse(rest, allowed, []) };
+}
+function formatEvaluation(value: HandoffEvaluation) {
+  return [
+    "Handoff resume evaluation",
+    `First action matched: ${value.firstAction.matched ? "yes" : "no"}`,
+    `Expected event: ${value.expectedEventId}`,
+    `Actual first action: ${value.firstAction.actualEventId ?? "(none)"} (${value.firstAction.actualEventType ?? "none"})`,
+    `Method: ${value.firstAction.method}`,
+    `Full-session baseline: ${value.context.fullSessionBytes} exact UTF-8 bytes`,
+    `Handoff input: ${value.context.handoffBytes} exact UTF-8 bytes`,
+    `Byte reduction: ${value.context.byteReduction} (${value.context.reductionPercent}%)`,
+    `Estimated tokens: ${value.context.estimatedFullSessionTokens} -> ${value.context.estimatedHandoffTokens}`,
+    `Token estimate method: ${value.context.tokenEstimateMethod}`,
+    `Elapsed: ${value.elapsed.milliseconds === null ? "not measurable" : `${value.elapsed.milliseconds} ms`}`,
+    `Elapsed method: ${value.elapsed.method}`,
+    `Limitation: ${value.elapsed.limitation}`,
+    "",
+  ].join("\n");
 }
 function one(options: Options, name: string) {
   const value = options.get(name)?.[0];
@@ -239,6 +298,7 @@ Usage:
   ai-workspace handoff create --project <id> --work-item <id> [--memory <id>] (--next-action <text>|--next-action-stdin) --source-event <id> [options] [--json]
   ai-workspace handoff show <handoff-id> --project <id> --work-item <id> [--json]
   ai-workspace handoff validate <handoff-id> --project <id> --work-item <id> [--json]
+  ai-workspace handoff evaluate <handoff-id> --project <id> --work-item <id> --resume-session <id> --expected-event <id> [--json]
 
 Creation captures bounded Git metadata, never file content or patches. It creates an immutable packet and never invokes an agent. Memory selection is explicit and ACTIVE-only.
 `;

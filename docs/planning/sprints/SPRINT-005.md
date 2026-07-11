@@ -2,7 +2,7 @@
 
 **Epic:** E4 — Handoff and Cross-agent Resume  
 **Milestone:** M3 — Core MVP alpha  
-**Status:** planned  
+**Status:** completed
 **Cadence:** two-week timebox  
 **Dependency:** Sprint 4 completed with its committed acceptance criteria
 
@@ -394,3 +394,96 @@ Sprint 5 is complete only when:
 - tested the guided journey from evidence through memory, Work Item activation,
   immutable handoff, inspection, and read-only drift validation;
 - kept model, agent, network, and imported-content execution out of scope.
+
+### 2026-07-11 — S5-08 synthetic resume evaluated and M3 closed
+
+- added deterministic first-action evaluation against a predeclared canonical
+  event, without model grading;
+- persisted immutable evaluation records separately from handoffs;
+- measured exact UTF-8 bytes and labeled token conversion as `ceil(bytes / 4)`;
+- passed install, quality, audit, diff, and fixture-safety gates before marking
+  Sprint 5 and M3 complete.
+
+## Sprint review
+
+Sprint 5 delivered the first controlled E4 vertical slice. An explicit
+software Work Item was created from synthetic Codex evidence, activated, and
+handed to the narrow synthetic Claude Code resume fixture through an immutable,
+provider-neutral packet. No model, live agent, provider installation, network
+runtime, or imported instruction was executed.
+
+The expected first action was declared as the first canonical action event and
+resolved to the fixture's `TOOL_CALL`. Evaluation matched that exact event. The
+method scans in sequence for the first `TOOL_CALL`, `COMMAND_RESULT`,
+`FILE_CHANGE`, or `TEST_RESULT`; it does not infer intent or grade text.
+
+| Measure               |                 Result | Method                                       |
+| --------------------- | ---------------------: | -------------------------------------------- |
+| Correct first action  |                    yes | expected event equals first canonical action |
+| Full-session baseline |            1,325 bytes | exact raw fixture UTF-8 bytes                |
+| Handoff input         |            8,272 bytes | exact stable handoff JSON UTF-8 bytes        |
+| Byte reduction        | -6,947 bytes (-524.3%) | baseline minus handoff                       |
+| Estimated tokens      |            332 → 2,068 | `ceil(UTF-8 bytes / 4)`                      |
+| Fixture interval      |               1,000 ms | session start to expected-event timestamp    |
+
+This deliberately reports a negative context result. The tiny four-record
+fixture is smaller than the provenance-rich packet, so Sprint 5 demonstrates
+continuity, trust separation, and credible measurement—not token savings.
+Compression and break-even optimization belong to E6. The fixture interval is
+deterministic source data, not a productivity or general startup-time claim.
+
+Acceptance evidence:
+
+- independent CLI calls cover registration, Codex import, memory selection,
+  Work Item lifecycle, handoff create/show, Claude import, and evaluation;
+- negative tests cover project isolation, stale Git, invalid lifecycle,
+  corruption, terminal controls, unsupported/restricted Claude input,
+  truncation, changed prefix, and unchanged canonical behavior;
+- packets contain bounded Git metadata but no patch, file content, remote URL,
+  credential, or unrestricted output;
+- every section preserves origin, trust, curation, verification, observation,
+  and sources; imported evidence remains `UNTRUSTED`.
+
+Final verification:
+
+```text
+npm ci --ignore-scripts: pass
+npm run check: pass
+21 test files: pass
+npm audit --audit-level=high: 0 vulnerabilities
+git diff --check: pass
+public path/credential pattern scan: pass
+isolated synthetic CLI demo: pass
+```
+
+M3 exit criteria pass for the controlled Core MVP alpha. This is not broad
+Claude Code compatibility, production readiness, a privacy gateway, agent
+execution, or a claim that handoffs always reduce context.
+
+## Retrospective
+
+What worked:
+
+- freezing the Work Item boundary and provider spike before serialization kept
+  provider fields out of canonical contracts;
+- explicit IDs, stdin, source links, immutable snapshots, and fail-closed local
+  stores made the workflow inspectable across invocations;
+- exact-byte measurement exposed a negative result an oversized baseline could
+  have hidden;
+- separating capture, validation, and evaluation prevented stale refresh and
+  model-based grading.
+
+What changed during implementation:
+
+- multi-block records gained deterministic line/block expansion and
+  adapter-owned sub-position metadata;
+- immutable handoffs received a file-per-snapshot persistence ADR;
+- validation reports successor guidance instead of updating a packet;
+- evaluation records exact bytes and explicitly labeled token estimates.
+
+Next experiments:
+
+- measure representative synthetic session sizes to find the handoff
+  break-even point before E6 optimization;
+- refine Sprint 6 from M3 evidence, prioritizing compact provenance rendering
+  without weakening trust or source navigation.

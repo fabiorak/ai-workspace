@@ -12,6 +12,10 @@ const fixturePath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../../integrations/codex/test/fixtures/session.jsonl",
 );
+const claudeFixturePath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../integrations/claude-code/test/fixtures/synthetic-session.jsonl",
+);
 describe("Work Item and handoff CLI workflow", () => {
   let root: string,
     home: string,
@@ -213,6 +217,66 @@ describe("Work Item and handoff CLI workflow", () => {
     ]);
     assert.equal(missing.exitCode, 1);
     assert.match(missing.stderr, /not found/u);
+  });
+  it("evaluates the predeclared first action with exact-byte baselines", async () => {
+    const imported = JSON.parse(
+      (
+        await ok([
+          "session",
+          "import",
+          "--project",
+          projectId,
+          "--source",
+          "claude-code",
+          "--file",
+          claudeFixturePath,
+          "--json",
+        ])
+      ).stdout,
+    ) as { session: { id: string; events: { id: string; type: string }[] } };
+    const expected = imported.session.events.find(
+      (event) => event.type === "TOOL_CALL",
+    );
+    assert.ok(expected);
+    const evaluated = JSON.parse(
+      (
+        await ok([
+          "handoff",
+          "evaluate",
+          handoffId,
+          "--project",
+          projectId,
+          "--work-item",
+          workId,
+          "--resume-session",
+          imported.session.id,
+          "--expected-event",
+          expected.id,
+          "--json",
+        ])
+      ).stdout,
+    ) as {
+      firstAction: { matched: boolean };
+      context: {
+        fullSessionBytes: number;
+        handoffBytes: number;
+        tokenEstimateMethod: string;
+      };
+      elapsed: { milliseconds: number };
+    };
+    if (process.env.AI_WORKSPACE_DEMO_REPORT === "1") {
+      process.stdout.write(
+        `SYNTHETIC_HANDOFF_EVALUATION ${JSON.stringify(evaluated)}\n`,
+      );
+    }
+    assert.equal(evaluated.firstAction.matched, true);
+    assert.ok(evaluated.context.fullSessionBytes > 0);
+    assert.ok(evaluated.context.handoffBytes > 0);
+    assert.equal(
+      evaluated.context.tokenEstimateMethod,
+      "CEIL_UTF8_BYTES_DIVIDED_BY_4",
+    );
+    assert.equal(evaluated.elapsed.milliseconds, 1000);
   });
   async function ok(args: readonly string[], stdin?: string) {
     const result = await run(args, stdin);

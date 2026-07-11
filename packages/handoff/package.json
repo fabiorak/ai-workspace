@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ai-workspace/active-memory": "0.0.0",
-    "@ai-workspace/core": "0.0.0"
+    "@ai-workspace/core": "0.0.0",
+    "@ai-workspace/session-ingestion": "0.0.0"
   }
 }

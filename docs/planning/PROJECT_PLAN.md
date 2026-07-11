@@ -574,7 +574,10 @@ additive lifecycle history, atomic local persistence, safe active-only
 listing, and guided CLI operations. Canonical sessions and artifacts remain
 unchanged and imported evidence remains `UNTRUSTED`.
 
-The next forecast increment is [Sprint 5](sprints/SPRINT-005.md), an E4 slice
-that attaches immutable, source-linked handoffs to explicit software Work
-Items and validates one synthetic second-provider resume without live model
-execution. Document Work Items and E6 context packs remain later scope.
+[Sprint 5](sprints/SPRINT-005.md) completed M3 with explicit software Work
+Items, immutable source-linked handoffs, bounded Git validation, a narrow
+synthetic Claude Code adapter, and deterministic first-action evaluation
+without live model execution. Its small fixture showed that provenance-rich
+handoffs can exceed the full-session byte baseline; Sprint 6 will be refined
+from that evidence. Document Work Items and E6 context packs remain later
+scope.

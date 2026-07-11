@@ -3,12 +3,11 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 4](docs/planning/sprints/SPRINT-004.md) are complete,
-including searchable canonical history and separately curated active memory.
-The next forecast increment is
-[Sprint 5](docs/planning/sprints/SPRINT-005.md): hand off one explicit software
-Work Item and evaluate a controlled synthetic second-agent resume. Detailed
-commitments and completed evidence remain in the sprint records.
+Sprint 0 through [Sprint 5](docs/planning/sprints/SPRINT-005.md) are complete.
+M3 proves a controlled synthetic cross-agent handoff with explicit Work Items,
+section-level trust, bounded Git state, and deterministic evaluation. The tiny
+fixture produced no context saving; Sprint 6 will be refined from this evidence
+before any E6 optimization claim. Detailed results remain in sprint records.
 
 ## 1. Project Memory
 

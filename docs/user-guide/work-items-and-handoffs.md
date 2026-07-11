@@ -38,6 +38,18 @@ Validation is read-only. Drift directs the user to create a successor rather
 than refreshing the immutable snapshot. Use `--json` for stable machine output.
 Objective and next-action support stdin to stay out of shell history.
 
+Evaluate a predeclared first action after importing the synthetic resume:
+
+```bash
+npm run cli -- handoff evaluate <handoff-id> --project <project-id> \
+  --work-item <work-item-id> --resume-session <session-id> \
+  --expected-event <event-id>
+```
+
+The command compares the expected ID with the first canonical action event. It
+reports exact UTF-8 bytes first; token counts are labeled `ceil(bytes / 4)`
+estimates. Synthetic timestamp intervals are not productivity measurements.
+
 Claude Code import is pre-release, narrow, synthetic-only:
 
 ```bash
