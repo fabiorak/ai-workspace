@@ -59,3 +59,17 @@ The packet contains nine source occurrences representing one unique canonical
 source. Repetition is therefore the largest measured category. This is enough
 evidence for S6-03 to compare normalized source references, but not permission
 to remove source fields, weaken section-level trust, or write schema v2.
+
+## S6-03 representation decision
+
+[ADR-0013](../adr/0013-normalize-handoff-provenance-with-lossless-source-references.md)
+accepts a packet-level source table with lossless section references for a
+future schema v2. The alternatives were continued embedded links and no
+change. Normalization was selected because repeated provenance is the largest
+measured category and can be removed without removing any source field or
+section-level trust metadata.
+
+This decision does not enable v2 writes. S6-04 must first prove stable v1
+backward reads, immutable v1 fixtures, lossless logical equivalence,
+deterministic encoding, source-navigation equivalence, and fail-closed bounds
+and reference validation. Existing v1 files will not be migrated in place.

@@ -145,3 +145,15 @@ measurements do not justify migration.
 - identified repeated provenance as the largest category at 44.8%;
 - retained exact bytes as the decision method and made no schema change;
 - quality gate remains green with 22 test files.
+
+### 2026-07-11 — S6-03 normalized provenance decision completed
+
+- compared embedded v1 links, a packet-level source table, and no change;
+- accepted ADR-0013 because repeated provenance is a measured 44.8% of the
+  fixed packet, while retaining every source field and section trust label;
+- defined deterministic references, fail-closed validation, and lossless
+  source navigation as preconditions for schema v2;
+- required permanent v1 backward reads and prohibited in-place migration of
+  immutable handoffs;
+- left the default writer at v1 until S6-04 contract fixtures and tests pass;
+- added no implementation, dependency, E6 feature, or token-budget claim.
