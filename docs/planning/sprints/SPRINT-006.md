@@ -120,3 +120,17 @@ measurements do not justify migration.
 - claims distinguish E4 representation overhead from later E6 optimization;
 - quality, audit, fixture-safety, and isolated-demo gates pass;
 - review and retrospective are appended without rewriting this commitment.
+
+## Execution log
+
+### 2026-07-11 — S6-01 deterministic break-even corpus completed
+
+- added a bounded exact-byte measurement contract with secondary labeled token
+  estimates;
+- built a 15-sample synthetic corpus over record counts `4/8/16/32/64` and
+  payload sizes `32/256/1024` bytes;
+- measured one fixed schema-v1 packet at 7,642 exact UTF-8 bytes;
+- observed first sampled break-even at 32, 16, and 8 records respectively;
+- published method, thresholds, negative samples, and limitations without
+  accepting a schema change;
+- quality gate passes with 22 test files.

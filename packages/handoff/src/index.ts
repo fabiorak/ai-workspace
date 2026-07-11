@@ -12,3 +12,9 @@ export {
   type HandoffEvaluationStore,
 } from "./evaluation.ts";
 export * from "./model.ts";
+export {
+  measureHandoffBreakEven,
+  type HandoffBreakEvenReport,
+  type HandoffSizeMeasurement,
+  type SessionByteBaseline,
+} from "./measurement.ts";
