@@ -11,6 +11,7 @@ import {
   type HandoffSection,
   type MemorySnapshot,
   type RepositorySnapshot,
+  type RepositoryValidation,
   type SectionMetadata,
   type TestObservation,
 } from "./model.ts";
@@ -36,6 +37,9 @@ export type HandoffDependencies = Readonly<{
       projectId: string,
       id: string,
     ): Promise<CanonicalWorkItemSourceEvent | null>;
+  }>;
+  repository: Readonly<{
+    capture(projectId: string): Promise<RepositorySnapshot>;
   }>;
   ids: () => string;
   clock: () => Date;
@@ -79,7 +83,9 @@ export class Handoffs {
       MAX_PATH,
     );
     const tests = testsChecked(input.testState ?? []);
-    const repository = repositoryChecked(input.repository);
+    const repository = repositoryChecked(
+      await this.#deps.repository.capture(projectId),
+    );
     const createdAt = timestamp(this.#deps.clock(), "Handoff clock");
     const predecessorId =
       input.predecessorId === undefined
@@ -196,6 +202,43 @@ export class Handoffs {
       );
     return value;
   }
+
+  public async validateRepository(
+    projectIdValue: string,
+    workItemIdValue: string,
+    handoffIdValue: string,
+  ): Promise<RepositoryValidation> {
+    const handoff = await this.show(
+      projectIdValue,
+      workItemIdValue,
+      handoffIdValue,
+    );
+    const captured = handoff.sections.repository.value;
+    const current = repositoryChecked(
+      await this.#deps.repository.capture(handoff.projectId),
+    );
+    const differences: RepositoryValidation["differences"][number][] = [];
+    if (captured.branch !== current.branch) differences.push("BRANCH");
+    if (captured.head !== current.head) differences.push("HEAD");
+    if (captured.dirty !== current.dirty) differences.push("DIRTY");
+    if (
+      captured.changedPaths.length !== current.changedPaths.length ||
+      captured.changedPaths.some(
+        (path, index) => path !== current.changedPaths[index],
+      )
+    )
+      differences.push("CHANGED_PATHS");
+    return Object.freeze({
+      matches: differences.length === 0,
+      differences: Object.freeze(differences),
+      captured,
+      current,
+      recovery:
+        differences.length === 0
+          ? null
+          : "Repository state changed after this immutable handoff. Inspect the current project state and create a successor handoff instead of refreshing this snapshot.",
+    });
+  }
   async #memory(
     projectId: string,
     values: readonly string[],
@@ -275,7 +318,8 @@ function section<T>(metadata: SectionMetadata, value: T): HandoffSection<T> {
   return Object.freeze({ metadata, value });
 }
 function repositoryChecked(value: RepositorySnapshot): RepositorySnapshot {
-  const head = bounded(value.head, "Repository HEAD", 256),
+  const head =
+      value.head === null ? null : bounded(value.head, "Repository HEAD", 256),
     branch =
       value.branch === null
         ? null

@@ -353,3 +353,15 @@ Sprint 5 is complete only when:
   source-inspection commands;
 - kept Git capture, local handoff persistence, CLI, and agent execution outside
   this contract slice.
+
+### 2026-07-11 — S5-05 bounded repository resume state connected
+
+- moved repository snapshot capture behind a read-only handoff port scoped to
+  the explicitly registered project;
+- extended the safe Git adapter to capture branch, HEAD, dirty state, and at
+  most 100 deterministically ordered changed paths from porcelain metadata;
+- excluded file contents, patches, remote URLs, credentials, and unrestricted
+  command output from handoff state;
+- added immutable snapshot validation that reports branch, HEAD, dirty, and
+  changed-path drift with successor-handoff recovery guidance;
+- kept validation read-only and never refreshed an existing handoff.

@@ -7,6 +7,7 @@ import { after, before, describe, it } from "node:test";
 import { promisify } from "node:util";
 
 import {
+  GitHandoffRepositoryReader,
   GitRepositoryInspector,
   RepositoryInspectionError,
 } from "../src/index.ts";
@@ -81,6 +82,47 @@ describe("GitRepositoryInspector", () => {
       "https://github.com/example/sample-repository.git",
     );
     assert.equal(inspection.isDirty, false);
+  });
+
+  it("captures only bounded repository resume metadata", async () => {
+    const inspector = new GitRepositoryInspector();
+    await writeFile(
+      join(repositoryPath, "synthetic untracked.txt"),
+      "secret-like content must not be captured\n",
+      "utf8",
+    );
+    const snapshot = await inspector.captureHandoffState(repositoryPath);
+    assert.equal(snapshot.branch, "main");
+    assert.match(snapshot.head ?? "", /^[0-9a-f]{40}$/u);
+    assert.equal(snapshot.dirty, true);
+    assert.deepEqual(snapshot.changedPaths, ["synthetic untracked.txt"]);
+    assert.equal(
+      JSON.stringify(snapshot).includes("secret-like content"),
+      false,
+    );
+    await rm(join(repositoryPath, "synthetic untracked.txt"));
+  });
+
+  it("scopes handoff capture to a registered project", async () => {
+    const reader = new GitHandoffRepositoryReader({
+      find: async (id) =>
+        id === "project"
+          ? {
+              id,
+              canonicalPath: repositoryPath,
+              name: "sample-repository",
+              branch: "main",
+              headCommit: null,
+              remoteUrl: null,
+              isDirty: false,
+              repositoryType: "SOFTWARE",
+              registeredAt: "2026-07-11T00:00:00.000Z",
+              lastInspectedAt: "2026-07-11T00:00:00.000Z",
+            }
+          : null,
+    });
+    assert.equal((await reader.capture("project")).branch, "main");
+    await assert.rejects(reader.capture("foreign"), RepositoryInspectionError);
   });
 
   it("detects dirty state and detached HEAD", async () => {

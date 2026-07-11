@@ -5,8 +5,8 @@ agent-agnostic core and expose capabilities through stable internal contracts.
 
 Implemented adapters:
 
-- `git/` inspects non-bare Git repositories through a constrained process
-  boundary;
+- `git/` inspects non-bare Git repositories and captures bounded handoff resume
+  metadata through a constrained read-only process boundary;
 - `local-active-memory/` resolves project-scoped active-memory provenance from
   schema-validated canonical session events and owns the validated local
   operation-log codec, reducer, and atomic filesystem store;

@@ -265,6 +265,19 @@ Baseline controls:
 - active memory is never executed, sent to a model, or included in a handoff
   automatically.
 
+## Implemented E4 repository snapshot controls
+
+- handoff capture resolves only the canonical path of an explicitly registered
+  project and invokes Git without a shell;
+- snapshots contain branch, HEAD, dirty state, and at most 100 sorted changed
+  path names, but no file content, patch, remote URL, credential, or arbitrary
+  command output;
+- changed path names remain potentially sensitive metadata and are bounded at
+  capture and handoff-contract boundaries;
+- validation is read-only, compares current state with the immutable snapshot,
+  and reports drift with guidance to create a successor handoff;
+- stale state never silently refreshes or mutates an existing handoff.
+
 ## Review triggers
 
 Review and update this model when:

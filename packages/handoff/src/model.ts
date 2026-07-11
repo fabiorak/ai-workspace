@@ -29,7 +29,7 @@ export type HandoffSection<T> = Readonly<{
 }>;
 export type RepositorySnapshot = Readonly<{
   branch: string | null;
-  head: string;
+  head: string | null;
   dirty: boolean;
   changedPaths: readonly string[];
 }>;
@@ -72,8 +72,15 @@ export type CreateHandoffInput = Readonly<{
   memoryIds: readonly string[];
   nextAction: string;
   sourceEventIds: readonly string[];
-  repository: RepositorySnapshot;
   testState?: readonly TestObservation[];
   relevantFiles?: readonly string[];
   predecessorId?: string;
+}>;
+
+export type RepositoryValidation = Readonly<{
+  matches: boolean;
+  differences: readonly ("BRANCH" | "HEAD" | "DIRTY" | "CHANGED_PATHS")[];
+  captured: RepositorySnapshot;
+  current: RepositorySnapshot;
+  recovery: string | null;
 }>;

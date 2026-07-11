@@ -18,6 +18,7 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
+    "@ai-workspace/handoff": "0.0.0",
     "@ai-workspace/project-registry": "0.0.0"
   }
 }

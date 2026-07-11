@@ -7,6 +7,7 @@ import type {
   RepositoryInspection,
   RepositoryInspector,
 } from "@ai-workspace/project-registry";
+import type { RepositorySnapshot } from "@ai-workspace/handoff";
 
 const execFileAsync = promisify(execFile);
 const MAX_OUTPUT_BYTES = 1024 * 1024;
@@ -65,6 +66,62 @@ export class GitRepositoryInspector implements RepositoryInspector {
       isDirty: statusOutput.length > 0,
     });
   }
+
+  public async captureHandoffState(
+    inputPath: string,
+  ): Promise<RepositorySnapshot> {
+    const requestedPath = await canonicalDirectory(inputPath);
+    const root = await runGit(requestedPath, ["rev-parse", "--show-toplevel"]);
+    const canonicalPath = await canonicalDirectory(root);
+    const [branch, head, status] = await Promise.all([
+      runOptionalGit(
+        canonicalPath,
+        ["symbolic-ref", "--quiet", "--short", "HEAD"],
+        [1],
+      ),
+      runOptionalGit(canonicalPath, ["rev-parse", "--verify", "HEAD"], [128]),
+      runGit(canonicalPath, [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=normal",
+      ]),
+    ]);
+    const changedPaths = parseChangedPaths(status);
+    return Object.freeze({
+      branch,
+      head,
+      dirty: changedPaths.length > 0,
+      changedPaths,
+    });
+  }
+}
+
+function parseChangedPaths(output: string): readonly string[] {
+  if (output.length === 0) return Object.freeze([]);
+  const records = output.split("\0");
+  const paths: string[] = [];
+  for (let index = 0; index < records.length; index += 1) {
+    const record = records[index];
+    if (record === undefined || record.length === 0) continue;
+    if (record.length < 4 || record[2] !== " ")
+      throw new RepositoryInspectionError(
+        "Git returned malformed changed-path metadata; check repository integrity and retry.",
+      );
+    paths.push(record.slice(3));
+    if (
+      record[0] === "R" ||
+      record[1] === "R" ||
+      record[0] === "C" ||
+      record[1] === "C"
+    )
+      index += 1;
+    if (paths.length > 100)
+      throw new RepositoryInspectionError(
+        "Repository has more than 100 changed paths. Reduce the working set before creating a handoff.",
+      );
+  }
+  return Object.freeze(paths.sort((left, right) => left.localeCompare(right)));
 }
 
 async function canonicalDirectory(inputPath: string): Promise<string> {

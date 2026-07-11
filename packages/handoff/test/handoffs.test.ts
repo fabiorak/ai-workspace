@@ -87,6 +87,14 @@ function fixture(validity: MemoryItem["validity"] = "ACTIVE") {
             }
           : null,
     },
+    repository: {
+      capture: async () => ({
+        branch: "main",
+        head: "012345",
+        dirty: false,
+        changedPaths: [],
+      }),
+    },
     ids: () => "handoff",
     clock: () => new Date("2026-07-11T11:00:00.000Z"),
   });
@@ -98,12 +106,6 @@ const input = {
   memoryIds: ["memory"],
   nextAction: "Inspect synthetic fixture",
   sourceEventIds: ["event"],
-  repository: {
-    branch: "main",
-    head: "012345",
-    dirty: false,
-    changedPaths: [],
-  },
   relevantFiles: ["fixtures/example.txt"],
   testState: [
     {
@@ -151,5 +153,39 @@ describe("Handoffs", () => {
       nextAction: "Inspect\u001b[31m fixture",
     });
     assert.equal(renderHandoff(value).includes("\u001b"), false);
+  });
+  it("reports repository drift without mutating the snapshot", async () => {
+    const { handoffs, store } = fixture();
+    const value = await handoffs.create(input);
+    const originalCapture = value.sections.repository.value;
+    const drifting = new Handoffs({
+      store,
+      workItems: { find: async () => null },
+      memory: { find: async () => null },
+      sourceEvents: { find: async () => null },
+      repository: {
+        capture: async () => ({
+          branch: "other",
+          head: "999",
+          dirty: true,
+          changedPaths: ["changed.txt"],
+        }),
+      },
+      ids: () => "unused",
+      clock: () => new Date(),
+    });
+    const report = await drifting.validateRepository(
+      "project",
+      "work",
+      "handoff",
+    );
+    assert.equal(report.matches, false);
+    assert.deepEqual(report.differences, [
+      "BRANCH",
+      "HEAD",
+      "DIRTY",
+      "CHANGED_PATHS",
+    ]);
+    assert.equal(value.sections.repository.value, originalCapture);
   });
 });
