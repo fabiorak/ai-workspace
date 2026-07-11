@@ -365,3 +365,17 @@ Sprint 5 is complete only when:
 - added immutable snapshot validation that reports branch, HEAD, dirty, and
   changed-path drift with successor-handoff recovery guidance;
 - kept validation read-only and never refreshed an existing handoff.
+
+### 2026-07-11 — S5-06 controlled Claude Code adapter implemented
+
+- implemented only the authored synthetic JSONL subset accepted by S5-02;
+- froze line-order then block-order expansion with contiguous canonical
+  positions and adapter-owned `recordUuid`/`blockIndex` payload metadata;
+- retained exact source and physical-record bytes and canonical `UNTRUSTED`
+  event semantics without changing the provider-neutral vocabulary;
+- rejected malformed UTF-8/JSON, CRLF, unsupported records or blocks,
+  inconsistent sessions, invalid correlation, timestamps, and bounds without
+  partial adapter output or content-bearing errors;
+- proved repeat import idempotency plus truncated and changed-prefix rejection;
+- kept support explicitly narrow, synthetic-only, offline, and free of live
+  provider discovery or execution.

@@ -18,5 +18,6 @@ Implemented adapters:
   deterministic reduction, owner-token locking, and atomic replacement;
 
 `claude-code/` remains an implementation scaffold. Its authored-from-scratch
-fixture supports the offline Sprint 5 provider-boundary spike; no Claude Code
-adapter or CLI support is implemented yet.
+fixture now drives a narrow synthetic-only adapter for the reviewed Sprint 5
+subset. No live discovery, broad format compatibility, or CLI support is
+implemented.

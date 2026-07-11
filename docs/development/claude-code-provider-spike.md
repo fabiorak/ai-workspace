@@ -124,3 +124,18 @@ support, or public handoff format is delivered by this spike.
 - keep errors content-free and label help as narrow, synthetic-only support;
 - prove Codex imports and existing canonical storage are byte-for-byte
   unchanged.
+
+## Accepted deterministic expansion rule
+
+S5-06 assigns canonical positions by scanning physical LF-delimited records in
+file order and then supported content blocks in array order. Positions remain
+contiguous across the expanded event stream. Every event expanded from one
+record retains that record's exact UTF-8 bytes (excluding the LF delimiter),
+while its untrusted JSON payload includes adapter-owned `recordUuid` and
+`blockIndex` correlation. A string user message uses `blockIndex: null`.
+
+Appending physical records cannot renumber an accepted prefix. Changing any
+previously imported physical record changes every expanded event's record hash
+for that line and is rejected by existing prefix validation. CRLF is outside
+the narrow synthetic subset and fails closed so exact line-byte semantics are
+unambiguous.
