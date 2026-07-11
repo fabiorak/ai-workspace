@@ -11,6 +11,7 @@
       "@ai-workspace/historical-search": [
         "./packages/historical-search/src/index.ts"
       ],
+      "@ai-workspace/handoff": ["./packages/handoff/src/index.ts"],
       "@ai-workspace/local-session-ingestion": [
         "./integrations/local-session-ingestion/src/index.ts"
       ],

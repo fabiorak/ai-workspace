@@ -1,0 +1,24 @@
+{
+  "name": "@ai-workspace/handoff",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Provider-neutral immutable handoff contracts and use cases",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/active-memory": "0.0.0",
+    "@ai-workspace/core": "0.0.0"
+  }
+}

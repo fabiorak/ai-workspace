@@ -338,3 +338,18 @@ Sprint 5 is complete only when:
 - exposed a versioned store boundary so stale concurrent transitions fail;
 - kept active memory, transcript payloads, Git diffs, and handoff bodies outside
   Work Item state.
+
+### 2026-07-11 — S5-04 neutral handoff contract defined
+
+- added immutable schema-versioned handoffs scoped to one explicit project and
+  Work Item, with optional predecessor links and local-user attribution;
+- defined objective, repository snapshot, selected memory, known failures,
+  test state, relevant files, next action, and source-reference sections;
+- attached origin, trust, curation, verification, observation mode, and source
+  links to every section without promoting imported evidence;
+- required explicit active-memory selection and rejected terminal or
+  cross-project items;
+- added bounded stable JSON and terminal-safe human rendering with copyable
+  source-inspection commands;
+- kept Git capture, local handoff persistence, CLI, and agent execution outside
+  this contract slice.

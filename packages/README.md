@@ -16,6 +16,8 @@ Implemented packages:
 - `session-ingestion/` owns canonical imported-session and event contracts;
 - `historical-search/` owns read-only historical evidence search contracts and
   use cases.
+- `handoff/` owns immutable provider-neutral handoff snapshots, section-level
+  trust and provenance, stable rendering, and persistence ports;
 
 Other directories remain placeholders until their public contracts are defined
 through implementation and ADRs.
