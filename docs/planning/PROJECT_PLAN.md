@@ -423,6 +423,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 8  | E0, E1-E3     | Complete the first no-manual local GUI journey          |
 | Sprint 9  | E0, E3        | Curate verifiable active memory through the local GUI   |
 | Sprint 10 | E0, E4        | Manage Work Items and handoffs through a GUI cockpit    |
+| Sprint 11 | E0, E5        | Localize the GUI and preview effective instructions     |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -435,7 +436,9 @@ deeper E5 expansion. Sprint 8 completed the first operational GUI journey and
 Sprint 9 completed active-memory GUI parity. Sprint 10 commits the next
 bounded GUI parity slice: complete Work Item lifecycle plus transparent
 handoff preview, immutable creation, inspection, drift validation, and
-successors. Instruction preview remains explicit follow-up priority work.
+successors. Sprint 11 is the next committed increment: complete English and
+Italian GUI parity plus read-only effective-instruction preview. Localization
+remains presentation-only and does not translate persisted or source data.
 
 ## 9. Agile operating model
 
@@ -622,10 +625,11 @@ keyboard and label baselines, narrow viewport behavior, and corrupt artifacts.
 bounded journey. Users explicitly select historical evidence, create
 `USER_CURATED` decisions, constraints, or failures, browse active and terminal
 state, inspect provenance, and verify, supersede, or invalidate additively.
-The next committed increment is [Sprint 10](sprints/SPRINT-010.md). It delivers
-Work Item and handoff GUI parity as one continuity cockpit: lifecycle,
-transparent preview, immutable creation, section-level inspection, read-only
-Git drift validation, and successor guidance. `handoff evaluate`, agent/model
-execution, Context Builder, document Work Items, and automatic selection remain
-outside the slice. Effective-instruction GUI preview remains the leading
-follow-up recommendation.
+[Sprint 10](sprints/SPRINT-010.md) completed Work Item and handoff GUI parity as
+one continuity cockpit: lifecycle, transparent preview, immutable creation,
+section-level inspection, read-only Git drift validation, and successor
+guidance. The next committed increment is [Sprint 11](sprints/SPRINT-011.md):
+complete English/Italian GUI localization plus read-only effective-instruction
+preview. `handoff evaluate`, agent/model execution, Context Builder, document
+Work Items, instruction authoring/enforcement, and automatic translation remain
+outside the slice.
