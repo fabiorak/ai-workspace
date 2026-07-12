@@ -130,10 +130,53 @@ describe("GUI application facade", () => {
       });
       assert.equal(successor.predecessorId, created.id);
     }));
+
+  it("previews explicit effective instructions without persistence or execution", async () =>
+    withFixture(async ({ app, repository, root }) => {
+      const project = await app.registerProject(repository);
+      const bundlePath = join(root, "project-instructions.json");
+      await writeFile(
+        bundlePath,
+        JSON.stringify({
+          schemaVersion: 1,
+          projectId: project.id,
+          source: {
+            id: "synthetic-project-rules",
+            projectId: project.id,
+            scope: "PROJECT",
+            target: null,
+            trust: "USER_CONFIGURED",
+            rules: [
+              {
+                id: "coding.language",
+                kind: "PREFERENCE",
+                overridable: true,
+                content: "Prefer TypeScript.",
+                position: 0,
+              },
+            ],
+          },
+        }),
+      );
+      const preview = await app.previewInstructions({
+        projectId: project.id,
+        bundles: [{ path: bundlePath }],
+      });
+      assert.equal(
+        preview.enforcement,
+        "DESCRIPTIVE_INSTRUCTIONS_NOT_RUNTIME_POLICY",
+      );
+      assert.equal(preview.rules[0]!.status, "ACTIVE");
+      assert.equal(preview.rules[0]!.sourceTrust, "USER_CONFIGURED");
+    }));
 });
 
 async function withFixture(
-  run: (value: { app: GuiApplication; repository: string }) => Promise<void>,
+  run: (value: {
+    app: GuiApplication;
+    repository: string;
+    root: string;
+  }) => Promise<void>,
 ) {
   const root = await mkdtemp(join(tmpdir(), "ai-workspace-gui-app-"));
   const home = join(root, "home");
@@ -162,6 +205,7 @@ async function withFixture(
     await run({
       app: new GuiApplication({ workspaceHome: home, sampleSessionPath }),
       repository,
+      root,
     });
   } finally {
     await rm(root, { recursive: true, force: true });

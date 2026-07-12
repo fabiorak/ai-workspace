@@ -133,6 +133,13 @@ browser once. Keep the terminal process running while using the GUI and press
 Ctrl+C to stop it. The host binds only to `127.0.0.1`, chooses an ephemeral port,
 does not open a browser automatically, and serves no remote assets.
 
+The header language control offers **English** and **Italiano** before project
+onboarding. The choice is stored only in browser-local presentation state;
+supported browser language is used when no choice exists, with English as the
+deterministic fallback. Switching language does not reload the page, clear
+forms, or change persisted workspace data. Imported and user-authored content
+is never translated.
+
 Local state defaults to `~/.ai-workspace`. To run an isolated evaluation
 without touching normal state, choose a private temporary directory before
 starting:
@@ -151,6 +158,9 @@ The visible journey is:
 6. preview all bounded handoff sections and exact persisted bytes;
 7. create and inspect the immutable handoff, validate Git drift, and prepare a
    successor when state changes.
+8. explicitly select reviewed synthetic instruction-bundle paths and preview
+   effective instructions, provenance, precedence, exclusions, and conflicts
+   without persistence, enforcement, or execution.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -176,6 +186,12 @@ Sprint 10 adds the continuity cockpit: complete Work Item lifecycle plus
 transparent handoff preview, immutable creation, history inspection, read-only
 Git drift validation, and explicit successor guidance. Preview never writes a
 handoff file, and no cockpit action executes or contacts an agent.
+
+Sprint 11 adds an extensible typed localization boundary with complete English
+and Italian catalogs, deterministic fallback, validated interpolation, and no
+translation service. It also brings effective-instruction composition into the
+GUI as an explicit read-only preview. Stable enums, IDs, paths, commands,
+hashes, evidence, and persisted content remain unchanged.
 
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,

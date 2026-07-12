@@ -4,7 +4,7 @@
 
 **Milestone:** local GUI alpha, bilingual inspection surface
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 
@@ -210,13 +210,13 @@ Sprint 10 complete
 
 | Risk                                      | Mitigation                                                                  |
 | ----------------------------------------- | --------------------------------------------------------------------------- |
-| Catalogs drift or silently fall back      | Typed exact-key parity and missing/unused-key tests                          |
+| Catalogs drift or silently fall back      | Typed exact-key parity and missing/unused-key tests                         |
 | Translation changes domain meaning        | Fixed glossary; stable enums/source values are never translated             |
 | Locale switch loses unfinished work       | Browser-side rerender contract preserves selections and form values         |
-| Italian text breaks compact layouts       | Long-label, narrow-viewport, focus, and screen-reader acceptance             |
-| Server errors become locale-dependent     | Stable API errors; presentation-owned localized guidance                     |
-| Localization introduces injection         | Parameter validation and inert DOM text rendering only                       |
-| Preview is mistaken for enforcement       | Persistent localized non-execution warning at the point of use               |
+| Italian text breaks compact layouts       | Long-label, narrow-viewport, focus, and screen-reader acceptance            |
+| Server errors become locale-dependent     | Stable API errors; presentation-owned localized guidance                    |
+| Localization introduces injection         | Parameter validation and inert DOM text rendering only                      |
+| Preview is mistaken for enforcement       | Persistent localized non-execution warning at the point of use              |
 | Scope expands into instruction management | Read-only existing composer boundary; authoring and execution stay excluded |
 
 ## Planning decisions
@@ -235,12 +235,37 @@ Sprint 10 complete
 
 ## Execution log
 
-Not started.
+### 2026-07-12
+
+- S11-01 and S11-02 added typed exact-parity English/Italian catalogs,
+  deterministic explicit/browser/English locale resolution, validated inert
+  interpolation, browser-local preference, and unsupported-locale fallback.
+- S11-03 localized the guided surface and dynamic lifecycle controls without
+  translating stable domain values or user/source content. Locale switching
+  rerenders in place and preserves form and selection state.
+- S11-04 wired the strict local bundle reader and provider-neutral instruction
+  composer through the GUI facade without CLI imports.
+- S11-05 added explicit bundle paths and optional model/agent/task context,
+  rendering effective rules, provenance, status, reasons, digests, conflicts,
+  and non-enforcement inertly.
+- S11-06 acceptance covers catalog parity, fallback, interpolation safety,
+  authenticated HTTP preview, registered-project scope, and the existing
+  loopback/CSRF/inert-rendering boundary.
+- The progressive quality gate passed format, lint, typecheck, build, and 138
+  tests before documentation closure.
 
 ## Sprint review
 
-Pending implementation and final verification.
+The GUI now offers an extensible localization boundary with complete English
+and Italian catalogs and presents deterministic instruction composition without
+CLI knowledge. Language remains presentation state; instruction preview remains
+derived read-only data and never becomes runtime permission or execution.
 
 ## Retrospective
 
-Pending implementation and final verification.
+- Keeping stable domain/source values outside translation prevents locale from
+  changing provenance, persistence, or automation contracts.
+- Reusing the strict reader/composer kept GUI parity small and exposed no new
+  instruction-management authority.
+- Next recommendation: observe the bilingual journey with users before adding
+  another locale or deeper Context Builder capability.

@@ -74,6 +74,14 @@ rebinding, CSRF, framing, XSS, and data-exfiltration risks. Non-loopback access,
 remote assets, persistent daemon operation, and production packaging remain
 forbidden without a new architecture and threat review.
 
+Localization adds no network, remote assets, translation provider, or
+server-side preference. Only a supported locale code is stored in browser-local
+state; evidence and user-authored content are never translated. Catalog
+interpolation validates parameters and dynamic values remain inert DOM text.
+Effective-instruction GUI preview accepts only explicit local paths through the
+existing bounded fail-closed reader and does not persist, enforce, or execute
+instruction text.
+
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
 inside the selected project before persistence; missing and foreign sources

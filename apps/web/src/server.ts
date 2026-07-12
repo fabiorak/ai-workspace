@@ -266,6 +266,47 @@ export async function startGuiServer(
             await application.registerProject(body.path),
           );
         }
+        const instructionPreview =
+          /^\/api\/projects\/([^/]+)\/instructions\/preview$/u.exec(
+            url.pathname,
+          );
+        if (instructionPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !Array.isArray(body.bundles) ||
+            body.bundles.length < 1 ||
+            !body.bundles.every(
+              (bundle) =>
+                record(bundle) &&
+                typeof bundle.path === "string" &&
+                (bundle.expectedDigest === undefined ||
+                  typeof bundle.expectedDigest === "string"),
+            ) ||
+            !optionalString(body.model) ||
+            !optionalString(body.agent) ||
+            !optionalString(body.task)
+          )
+            return reject(
+              response,
+              400,
+              "Select at least one explicit reviewed instruction bundle and valid optional targets.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewInstructions({
+              projectId: decodeURIComponent(instructionPreview[1]!),
+              bundles: body.bundles as readonly {
+                path: string;
+                expectedDigest?: string;
+              }[],
+              ...(body.model === undefined ? {} : { model: body.model }),
+              ...(body.agent === undefined ? {} : { agent: body.agent }),
+              ...(body.task === undefined ? {} : { task: body.task }),
+            }),
+          );
+        }
         const createWork = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
           url.pathname,
         );
@@ -575,6 +616,9 @@ function optionalStringArray(value: unknown): value is string[] | undefined {
     value === undefined ||
     (Array.isArray(value) && value.every((item) => typeof item === "string"))
   );
+}
+function optionalString(value: unknown): value is string | undefined {
+  return value === undefined || typeof value === "string";
 }
 function optionalEnum(
   value: string | null,

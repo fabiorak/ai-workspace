@@ -10,7 +10,8 @@ export type GuiJourneyStep =
   | "WORK_ITEMS"
   | "WORK_DETAIL"
   | "HANDOFF_BUILDER"
-  | "HANDOFF_DETAIL";
+  | "HANDOFF_DETAIL"
+  | "INSTRUCTIONS";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -255,6 +256,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: false,
       }),
     ),
+    screen(
+      "INSTRUCTIONS",
+      "Effective instructions",
+      "Inspect deterministic source-linked instruction composition without execution.",
+      action({
+        id: "preview-instructions",
+        label: "Preview instructions read-only",
+        description:
+          "Compose explicitly selected reviewed bundles for the selected project context.",
+        effect:
+          "Shows precedence, exclusions, conflicts, provenance, and non-enforcement without persistence.",
+        prerequisites:
+          "Select a registered project and at least one reviewed synthetic instruction bundle.",
+        mutates: false,
+      }),
+    ),
   ],
 );
 
@@ -327,9 +344,9 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 12)
+  if (steps.size !== 13)
     throw new Error(
-      "The first GUI journey must cover all six committed steps.",
+      "The GUI journey must cover every committed screen exactly once.",
     );
   return true;
 }

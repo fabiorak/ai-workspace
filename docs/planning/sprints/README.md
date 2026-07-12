@@ -15,4 +15,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 8 — Make the First Project Journey GUI-first](SPRINT-008.md) — completed
 - [Sprint 9 — Curate Verifiable Active Memory in the GUI](SPRINT-009.md) — completed
 - [Sprint 10 — Manage Work Items and Handoffs in the GUI](SPRINT-010.md) — completed
-- [Sprint 11 — Localize the GUI and Preview Effective Instructions](SPRINT-011.md) — planned
+- [Sprint 11 — Localize the GUI and Preview Effective Instructions](SPRINT-011.md) — completed

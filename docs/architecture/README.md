@@ -28,6 +28,14 @@ same-project provenance, active-only listing, optimistic versions, terminal
 transitions, and additive verification/supersession/invalidation remain owned
 by `packages/active-memory` and the atomic local adapter.
 
+GUI localization is a dependency-free presentation boundary in `apps/web`.
+Typed English and Italian catalogs have exact key parity; locale resolution is
+explicit browser-local preference, supported browser language, then English.
+Locale never enters domain persistence or API contracts. Effective-instruction
+preview reuses the provider-neutral composer and strict local bundle reader
+through the typed facade; HTTP and presentation remain read-only and do not
+enforce or execute instruction content.
+
 The implemented local persistence baseline now consists of:
 
 - a schema-versioned atomic JSON Project Registry;

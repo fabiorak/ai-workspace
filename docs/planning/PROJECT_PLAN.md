@@ -433,12 +433,13 @@ Sprint 6 evidence supported planning Sprint 7 as a narrow E5 boundary slice.
 Sprint 7 completed deterministic, provenance-linked effective-instruction
 preview. User direction made GUI delivery the next product priority ahead of
 deeper E5 expansion. Sprint 8 completed the first operational GUI journey and
-Sprint 9 completed active-memory GUI parity. Sprint 10 commits the next
+Sprint 9 completed active-memory GUI parity. Sprint 10 completed the next
 bounded GUI parity slice: complete Work Item lifecycle plus transparent
 handoff preview, immutable creation, inspection, drift validation, and
-successors. Sprint 11 is the next committed increment: complete English and
-Italian GUI parity plus read-only effective-instruction preview. Localization
-remains presentation-only and does not translate persisted or source data.
+successors. Sprint 11 completed English and Italian GUI parity plus read-only
+effective-instruction preview. Localization remains presentation-only and does
+not translate persisted or source data. The next increment should follow
+observed bilingual usability evidence before another locale or E6 scope.
 
 ## 9. Agile operating model
 
@@ -628,8 +629,8 @@ state, inspect provenance, and verify, supersede, or invalidate additively.
 [Sprint 10](sprints/SPRINT-010.md) completed Work Item and handoff GUI parity as
 one continuity cockpit: lifecycle, transparent preview, immutable creation,
 section-level inspection, read-only Git drift validation, and successor
-guidance. The next committed increment is [Sprint 11](sprints/SPRINT-011.md):
-complete English/Italian GUI localization plus read-only effective-instruction
-preview. `handoff evaluate`, agent/model execution, Context Builder, document
+guidance. [Sprint 11](sprints/SPRINT-011.md) completed English/Italian GUI
+localization plus read-only effective-instruction preview. `handoff evaluate`,
+agent/model execution, Context Builder, document
 Work Items, instruction authoring/enforcement, and automatic translation remain
 outside the slice.

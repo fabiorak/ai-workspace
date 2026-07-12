@@ -16,6 +16,11 @@ Open the one-time `127.0.0.1` URL printed in the terminal. Keep that terminal
 open; press Ctrl+C to stop the foreground host. Set `AI_WORKSPACE_HOME` before
 starting only when an isolated local state directory is needed.
 
+Choose **English** or **Italiano** in the header at any time. The preference is
+stored only in the local browser, falls back to English for unsupported values,
+and does not clear entered values or mutate workspace state. Imported evidence,
+identifiers, and user-authored content remain in their original language.
+
 ## Guided journey
 
 1. Enter an existing local Git repository directory and select **Register this
@@ -34,6 +39,12 @@ starting only when an isolated local state directory is needed.
 6. Browse active memory or explicitly filter terminal items. From lifecycle
    detail, select current evidence and verify once, supersede with a fresh
    unassessed replacement, or invalidate with a reason.
+7. Create and transition an explicit Work Item, then preview and create an
+   immutable handoff only after reviewing all eight inert sections.
+8. In **Preview effective instructions**, enter reviewed synthetic schema-v1
+   bundle paths and optional model, agent, or task targets. The result shows
+   stable source digests, trust, precedence, exclusions, conflicts, and reasons.
+   Nothing is persisted, enforced, or executed.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -46,5 +57,6 @@ assets, a one-time bootstrap URL, session and CSRF tokens, restrictive browser
 headers, and bounded request bodies. Do not use real, private, or production
 transcripts: only the reviewed bundled synthetic sample is supported.
 
-Work Items, handoffs, and effective-instruction preview remain available
-through the secondary CLI and are the next priority for GUI parity.
+The GUI does not discover, author, edit, enforce, or execute instructions.
+Agents, models, tools, translation services, and external network requests
+remain inactive.

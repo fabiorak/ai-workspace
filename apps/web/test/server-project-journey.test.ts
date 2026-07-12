@@ -86,7 +86,7 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Skip to the guided workflow/u);
     assert.match(html, /aria-live="polite"/u);
     assert.match(html, /Register this project/u);
-    assert.match(html, /GUI parity next/u);
+    assert.match(html, /English\/Italian GUI/u);
     assert.match(html, /label for="search-query"/u);
     assert.match(html, /Create source-linked memory/u);
     assert.match(html, /USER_CURATED does not mean trusted/u);
@@ -96,6 +96,9 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /explicit empty selection/u);
     assert.match(html, /id="handoff-preview-content"/u);
     assert.match(html, /Validate current Git state/u);
+    assert.match(html, /Language \/ Lingua/u);
+    assert.match(html, /Preview effective instructions/u);
+    assert.match(html, /No translation service is used/u);
     assert.match(html, /role="alert"/u);
     assert.equal(/https?:\/\/(?!127\.0\.0\.1)/u.test(html), false);
     const script = await (
@@ -107,6 +110,8 @@ describe("GUI server project onboarding", () => {
     assert.match(script, /\.textContent = value/u);
     assert.match(script, /selectedHandoffMemoryIds/u);
     assert.match(script, /Review all eight inert sections below/u);
+    assert.match(script, /aiw-locale/u);
+    assert.match(script, /\/instructions\/preview/u);
     assert.equal(script.includes("innerHTML"), false);
     assert.match(style, /max-width: 38rem/u);
     assert.match(style, /prefers-reduced-motion/u);
@@ -476,6 +481,60 @@ describe("GUI server project onboarding", () => {
       )
     ).json()) as { predecessorId: string };
     assert.equal(successor.predecessorId, created.id);
+  });
+
+  it("previews explicit instructions read-only through the authenticated GUI", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    const bundlePath = join(root, "gui-instructions.json");
+    await writeFile(
+      bundlePath,
+      JSON.stringify({
+        schemaVersion: 1,
+        projectId,
+        source: {
+          id: "gui-project-rules",
+          projectId,
+          scope: "PROJECT",
+          target: null,
+          trust: "USER_CONFIGURED",
+          rules: [
+            {
+              id: "testing.required",
+              kind: "CONSTRAINT",
+              overridable: false,
+              content: "Keep the synthetic journey tested.",
+              position: 0,
+            },
+          ],
+        },
+      }),
+    );
+    const response = await api(
+      `/api/projects/${projectId}/instructions/preview`,
+      {
+        method: "POST",
+        body: JSON.stringify({ bundles: [{ path: bundlePath }] }),
+      },
+    );
+    assert.equal(response.status, 200);
+    const preview = (await response.json()) as {
+      enforcement: string;
+      rules: { status: string; sourceTrust: string; content: string }[];
+    };
+    assert.equal(
+      preview.enforcement,
+      "DESCRIPTIVE_INSTRUCTIONS_NOT_RUNTIME_POLICY",
+    );
+    assert.deepEqual(
+      [preview.rules[0]!.status, preview.rules[0]!.sourceTrust],
+      ["ACTIVE", "USER_CONFIGURED"],
+    );
+    assert.equal(
+      preview.rules[0]!.content,
+      "Keep the synthetic journey tested.",
+    );
   });
 
   it("rejects oversized bodies and undeclared methods without leaking input", async () => {

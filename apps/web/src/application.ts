@@ -25,6 +25,14 @@ import {
   HistoricalSearch,
   type HistoricalSearchQuery,
 } from "@ai-workspace/historical-search";
+import {
+  composeInstructions,
+  type EffectiveInstructions,
+} from "@ai-workspace/instruction-manager";
+import {
+  LocalInstructionBundleReader,
+  type LocalInstructionBundleInput,
+} from "@ai-workspace/local-instructions";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
 import {
   JsonActiveMemoryStore,
@@ -116,6 +124,13 @@ export type GuiMemoryPage = Readonly<{
   items: readonly MemoryItem[];
   nextCursor: string | null;
 }>;
+export type GuiInstructionPreviewInput = Readonly<{
+  projectId: string;
+  bundles: readonly LocalInstructionBundleInput[];
+  model?: string;
+  agent?: string;
+  task?: string;
+}>;
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -137,6 +152,9 @@ export class GuiApplication {
   readonly #memory: ActiveMemory;
   readonly #workItems: WorkItems;
   readonly #handoffs: Handoffs;
+  readonly #previewInstructions: (
+    input: GuiInstructionPreviewInput,
+  ) => Promise<EffectiveInstructions>;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -205,6 +223,23 @@ export class GuiApplication {
       ids: randomUUID,
       clock: () => new Date(),
     });
+    const instructionReader = new LocalInstructionBundleReader();
+    this.#previewInstructions = async (input) => {
+      if (!(await projects.exists(input.projectId)))
+        throw new Error(
+          "The instruction preview project is not registered locally.",
+        );
+      const bundle = await instructionReader.read(
+        input.projectId,
+        input.bundles,
+      );
+      return composeInstructions(bundle, {
+        projectId: input.projectId,
+        ...(input.model === undefined ? {} : { model: input.model }),
+        ...(input.agent === undefined ? {} : { agent: input.agent }),
+        ...(input.task === undefined ? {} : { task: input.task }),
+      });
+    };
     this.#sampleSessionPath = dependencies.sampleSessionPath;
   }
 
@@ -443,6 +478,15 @@ export class GuiApplication {
     return this.#run(
       () => this.#handoffs.validateRepository(projectId, workItemId, handoffId),
       "Inspect current Git state and create a successor if the immutable snapshot drifted.",
+    );
+  }
+
+  public async previewInstructions(
+    input: GuiInstructionPreviewInput,
+  ): Promise<EffectiveInstructions> {
+    return this.#run(
+      () => this.#previewInstructions(input),
+      "Keep the selected project and explicit reviewed bundle paths, correct the highlighted context, and preview again.",
     );
   }
 
