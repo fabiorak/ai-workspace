@@ -114,6 +114,9 @@ describe("GUI server project onboarding", () => {
     assert.match(script, /aiw-locale/u);
     assert.match(script, /\{count\} progetti sono registrati localmente/u);
     assert.match(script, /La registrazione salva localmente metadati Git/u);
+    assert.match(script, /Pronto a importare l'esempio fittizio/u);
+    assert.match(script, /Nessuna memoria corrispondente/u);
+    assert.match(script, /Nessun Work Item/u);
     assert.match(script, /\/instructions\/preview/u);
     assert.equal(script.includes("innerHTML"), false);
     assert.match(style, /max-width: 38rem/u);

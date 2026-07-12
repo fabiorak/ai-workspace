@@ -178,6 +178,18 @@ const EN = {
     "Agents, models, tools, external network, handoff evaluation, instruction enforcement, and instruction execution.",
   footer:
     "CLI is optional for automation and diagnostics. This journey does not require command knowledge or a manual.",
+  readyImport: "Ready to import the fictional sample into {name}.",
+  noMatchingMemory:
+    "No matching memory. Curate an event or choose another validity filter.",
+  noWorkItems:
+    "No Work Items. Select evidence and create an explicit objective.",
+  loadingMemory: "Loading bounded project memory…",
+  showingMemory: "Showing {count} memory item(s).",
+  moreMemory: "More items are available.",
+  memoryAttention: "Memory needs attention.",
+  showingWork: "Showing {count} Work Item(s).",
+  returningImport:
+    "A project is selected. You can import or re-import the safe sample.",
 } as const;
 
 export type GuiMessageKey = keyof typeof EN;
@@ -287,7 +299,7 @@ const IT = {
   projectRegistered: "1 progetto è registrato localmente.",
   importIntro:
     "Questo importatore pre-release accetta la fixture Codex fittizia inclusa. Non usare ancora trascrizioni private o di produzione.",
-  trust: "Trust:",
+  trust: "Attendibilità:",
   importTrustBody:
     "gli eventi importati restano evidenza storica UNTRUSTED e inerte. Nulla viene eseguito o inviato in rete.",
   importEffect:
@@ -362,6 +374,18 @@ const IT = {
     "Agenti, modelli, strumenti, rete esterna, valutazione handoff, enforcement ed esecuzione delle istruzioni.",
   footer:
     "La CLI è facoltativa per automazione e diagnostica. Questo percorso non richiede comandi o un manuale.",
+  readyImport: "Pronto a importare l'esempio fittizio in {name}.",
+  noMatchingMemory:
+    "Nessuna memoria corrispondente. Cura un evento o scegli un altro filtro di validità.",
+  noWorkItems:
+    "Nessun Work Item. Seleziona un'evidenza e crea un obiettivo esplicito.",
+  loadingMemory: "Caricamento della memoria bounded del progetto…",
+  showingMemory: "Visualizzati {count} elementi di memoria.",
+  moreMemory: "Sono disponibili altri elementi.",
+  memoryAttention: "La memoria richiede attenzione.",
+  showingWork: "Visualizzati {count} Work Item.",
+  returningImport:
+    "È selezionato un progetto. Puoi importare o reimportare l'esempio sicuro.",
 } as const satisfies Catalog;
 
 export const GUI_CATALOGS: Readonly<Record<GuiLocale, Catalog>> = Object.freeze(

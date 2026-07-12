@@ -259,6 +259,10 @@ Sprint 10 complete
   catalogued the full static journey and onboarding dynamics, added regression
   coverage for Italian copy/interpolation, and passed the full suite with 142
   tests.
+- A second browser review exposed split rich-text nodes and post-render status
+  strings that still bypassed localization. The follow-up wrapped split copy in
+  explicit catalog spans and replaced dynamic import, memory, and Work Item
+  states with parameterized messages; the 142-test gate remained green.
 
 ## Sprint review
 

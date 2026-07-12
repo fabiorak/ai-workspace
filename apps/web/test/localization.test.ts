@@ -54,5 +54,12 @@ describe("GUI localization contract", () => {
     assert.match(GUI_CATALOGS.it.projectDirectoryHelp, /registrazione/u);
     assert.match(GUI_CATALOGS.it.projectEffect, /Effetto/u);
     assert.equal(GUI_CATALOGS.it.progressSource, "4. Esamina sorgente");
+    assert.equal(GUI_CATALOGS.it.trust, "Attendibilità:");
+    assert.equal(
+      guiMessage("it", "readyImport", { name: "ai-workspace" }),
+      "Pronto a importare l'esempio fittizio in ai-workspace.",
+    );
+    assert.match(GUI_CATALOGS.it.noMatchingMemory, /Nessuna memoria/u);
+    assert.match(GUI_CATALOGS.it.noWorkItems, /Nessun Work Item/u);
   });
 });
