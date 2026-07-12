@@ -15,6 +15,46 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "paths": {
+      "@ai-workspace/active-memory": ["./packages/active-memory/src/index.ts"],
+      "@ai-workspace/core": ["./packages/core/src/index.ts"],
+      "@ai-workspace/codex-adapter": ["./integrations/codex/src/index.ts"],
+      "@ai-workspace/claude-code-adapter": [
+        "./integrations/claude-code/src/index.ts"
+      ],
+      "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],
+      "@ai-workspace/historical-search": [
+        "./packages/historical-search/src/index.ts"
+      ],
+      "@ai-workspace/handoff": ["./packages/handoff/src/index.ts"],
+      "@ai-workspace/instruction-manager": [
+        "./packages/instruction-manager/src/index.ts"
+      ],
+      "@ai-workspace/local-session-ingestion": [
+        "./integrations/local-session-ingestion/src/index.ts"
+      ],
+      "@ai-workspace/local-project-registry": [
+        "./integrations/local-project-registry/src/index.ts"
+      ],
+      "@ai-workspace/local-active-memory": [
+        "./integrations/local-active-memory/src/index.ts"
+      ],
+      "@ai-workspace/local-handoffs": [
+        "./integrations/local-handoffs/src/index.ts"
+      ],
+      "@ai-workspace/local-instructions": [
+        "./integrations/local-instructions/src/index.ts"
+      ],
+      "@ai-workspace/local-work-items": [
+        "./integrations/local-work-items/src/index.ts"
+      ],
+      "@ai-workspace/project-registry": [
+        "./packages/project-registry/src/index.ts"
+      ],
+      "@ai-workspace/session-ingestion": [
+        "./packages/session-ingestion/src/index.ts"
+      ]
+    },
     "rewriteRelativeImportExtensions": true,
     "skipLibCheck": true,
     "sourceMap": true,
