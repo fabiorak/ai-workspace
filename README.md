@@ -115,14 +115,49 @@ decisions rather than assumed by this initial scaffold.
 
 ## Current capabilities
 
-Sprint 8 adds the primary self-guiding local GUI journey. Build it, start the
-foreground loopback host, and open the one-time URL printed in the terminal:
+### Start the local GUI
+
+The pre-release GUI requires Node.js 24 and npm 11. From the repository root,
+install the locked dependencies, build every workspace, and start the
+foreground loopback host:
 
 ```bash
-npm ci
+npm ci --ignore-scripts
 npm run build
 npm run gui
 ```
+
+The terminal prints a one-time URL similar to
+`http://127.0.0.1:<port>/bootstrap/<token>`. Open that complete URL in a local
+browser once. Keep the terminal process running while using the GUI and press
+Ctrl+C to stop it. The host binds only to `127.0.0.1`, chooses an ephemeral port,
+does not open a browser automatically, and serves no remote assets.
+
+Local state defaults to `~/.ai-workspace`. To run an isolated evaluation
+without touching normal state, choose a private temporary directory before
+starting:
+
+```bash
+AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
+```
+
+The visible journey is:
+
+1. register and select an existing local Git repository;
+2. import the bundled fictional session—never a private transcript;
+3. search and inspect `UNTRUSTED` canonical evidence and its verified source;
+4. curate source-linked active memory and manage its additive lifecycle;
+5. create and transition an explicit software Work Item;
+6. preview all bounded handoff sections and exact persisted bytes;
+7. create and inspect the immutable handoff, validate Git drift, and prepare a
+   successor when state changes.
+
+If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
+a new one. If startup reports missing `dist` files, run `npm run build` again.
+Repository paths must identify accessible Git worktrees. Corrupt local state
+fails closed with recovery guidance; move it aside only after preserving it for
+diagnosis. The alpha does not provide remote access, private transcript import,
+agent/model/tool execution, handoff evaluation, or instruction execution.
 
 The GUI guides project registration, safe synthetic import, literal evidence
 search, canonical event inspection, and integrity-verified source opening. It
@@ -136,6 +171,11 @@ From an inspected canonical event, users can explicitly create a source-linked
 decision, constraint, or failure; browse active or terminal items; inspect
 provenance; and verify, supersede, or invalidate additively. `USER_CURATED`
 never promotes the linked `UNTRUSTED` evidence to trusted or executable data.
+
+Sprint 10 adds the continuity cockpit: complete Work Item lifecycle plus
+transparent handoff preview, immutable creation, history inspection, read-only
+Git drift validation, and explicit successor guidance. Preview never writes a
+handoff file, and no cockpit action executes or contacts an agent.
 
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,

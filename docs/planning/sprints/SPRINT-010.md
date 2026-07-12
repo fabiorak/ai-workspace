@@ -4,7 +4,7 @@
 
 **Milestone:** local GUI alpha, continuity cockpit
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 
@@ -224,5 +224,50 @@ Sprint 9 complete
 
 ## Execution log
 
-Append dated implementation evidence, review, and retrospective only after the
-complete committed journey and final gates pass.
+### 2026-07-12
+
+- S10-01 extended the GUI contract to twelve guided steps covering Work Item
+  and handoff creation, lifecycle, preview, inspection, and validation.
+- S10-02 wired `WorkItems`, atomic local persistence, canonical provenance, and
+  registered-project scope through the in-process facade without CLI imports.
+- S10-03 added deterministic project/Work-Item-scoped handoff history. The
+  local adapter scans at most 1,000 schema-validated immutable packets and
+  fails closed on malformed state without changing v1/v2 persistence.
+- S10-04 delivered explicit PROPOSED creation and valid activate/block/complete/
+  reopen controls with additive attribution and source requirements.
+- S10-05 and S10-06 delivered a bounded builder, non-persisting exact-byte
+  preview, immutable create/list/show, read-only Git drift validation, and
+  predecessor-guided successors.
+- S10-07 acceptance covers domain, adapter, facade, authenticated HTTP, inert
+  presentation, preview non-persistence, successor scope, labels, focus,
+  narrow viewport, and the pre-existing browser security boundary.
+- The progressive gate passed format, lint, typecheck, build, and 133 tests. A
+  composite build also passed with core, handoff, local handoffs, local Work
+  Items, web, and CLI `dist/` directories temporarily absent.
+
+## Sprint review
+
+The local GUI now completes continuity preparation without CLI knowledge: a
+user can create and transition explicit objective state, preview every bounded
+handoff section and its exact stored size, persist only after review, inspect
+immutable history, compare current Git state, and prepare a successor. Domain
+rules remain provider-neutral; the GUI neither reconstructs lifecycle rules nor
+executes an agent.
+
+The slice intentionally leaves the experimental `handoff evaluate` harness and
+effective-instruction preview in the CLI. The alpha builder exposes explicit
+ACTIVE-memory checkboxes, next action, relevant paths, and one bounded test
+observation. The reviewed preview renders all eight inert sections before
+persistence; richer repeated-row test controls remain presentation refinement
+rather than a persistence change.
+
+## Retrospective
+
+- Shipping Work Item and handoff together produced one meaningful continuity
+  outcome and reused the aggregate boundary accepted in Sprint 5.
+- A minimal list port was sufficient; no new ADR, schema, runtime, or database
+  was necessary.
+- Clean-build verification must remain a permanent final gate because ignored
+  TypeScript outputs previously hid CI failures.
+- Next recommendation: GUI parity for read-only effective-instruction preview,
+  followed by an observed usability pass before adding more cockpit density.

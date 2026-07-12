@@ -15,6 +15,12 @@ class Store implements HandoffStore {
     this.item = value;
     return value;
   }
+  async list(projectId: string, workItemId: string) {
+    return this.item?.projectId === projectId &&
+      this.item.workItemId === workItemId
+      ? [this.item]
+      : [];
+  }
   async find(projectId: string, workItemId: string, id: string) {
     return this.item?.projectId === projectId &&
       this.item.workItemId === workItemId &&
@@ -159,6 +165,12 @@ describe("Handoffs", () => {
       nextAction: "Inspect\u001b[31m fixture",
     });
     assert.equal(renderHandoff(value).includes("\u001b"), false);
+  });
+  it("lists deterministic handoff history inside explicit scope", async () => {
+    const { handoffs } = fixture();
+    const value = await handoffs.create(input);
+    assert.deepEqual(await handoffs.list("project", "work"), [value]);
+    assert.deepEqual(await handoffs.list("project", "other"), []);
   });
   it("reports repository drift without mutating the snapshot", async () => {
     const { handoffs, store } = fixture();

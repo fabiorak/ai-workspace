@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { chmod, mkdir, open, readFile, rm } from "node:fs/promises";
+import { chmod, mkdir, open, readFile, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import {
   decodePersistedHandoff,
@@ -40,6 +40,45 @@ export class JsonHandoffStore implements HandoffStore {
         { cause: error },
       );
     }
+  }
+  public async list(
+    projectId: string,
+    workItemId: string,
+  ): Promise<readonly Handoff[]> {
+    let names: string[];
+    try {
+      names = await readdir(this.#directory);
+    } catch (error) {
+      if (isNodeError(error) && error.code === "ENOENT")
+        return Object.freeze([]);
+      throw new HandoffError(
+        "Cannot list local handoffs. Check workspace permissions and retry.",
+        { cause: error },
+      );
+    }
+    const candidates = names
+      .filter((name) => /^handoff_[a-f0-9]{64}\.json$/u.test(name))
+      .sort();
+    if (candidates.length > 1_000)
+      throw new HandoffError(
+        "More than 1,000 local handoffs require an indexed history adapter before listing.",
+      );
+    const result: Handoff[] = [];
+    for (const name of candidates) {
+      let value: unknown;
+      try {
+        value = JSON.parse(await readFile(join(this.#directory, name), "utf8"));
+      } catch (error) {
+        throw new HandoffError(
+          "Cannot read local handoff history. Move corrupt state aside and retry.",
+          { cause: error },
+        );
+      }
+      const handoff = decodePersistedHandoff(value);
+      if (handoff.projectId === projectId && handoff.workItemId === workItemId)
+        result.push(handoff);
+    }
+    return Object.freeze(result);
   }
   public async find(
     projectId: string,

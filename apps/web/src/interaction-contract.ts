@@ -6,7 +6,11 @@ export type GuiJourneyStep =
   | "EVENT"
   | "ARTIFACT"
   | "MEMORY"
-  | "MEMORY_DETAIL";
+  | "MEMORY_DETAIL"
+  | "WORK_ITEMS"
+  | "WORK_DETAIL"
+  | "HANDOFF_BUILDER"
+  | "HANDOFF_DETAIL";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -187,6 +191,70 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: true,
       }),
     ),
+    screen(
+      "WORK_ITEMS",
+      "Work Items",
+      "Create an explicit software objective from selected canonical evidence.",
+      action({
+        id: "create-work-item",
+        label: "Create proposed Work Item",
+        description:
+          "Create one USER_CURATED objective in the selected project.",
+        effect:
+          "Creates PROPOSED additive objective state without inferring a current task.",
+        prerequisites:
+          "Select a project, canonical evidence, and enter a bounded objective.",
+        mutates: true,
+      }),
+    ),
+    screen(
+      "WORK_DETAIL",
+      "Work Item lifecycle",
+      "Inspect objective provenance and apply only valid additive transitions.",
+      action({
+        id: "transition-work-item",
+        label: "Record Work Item transition",
+        description:
+          "Activate, block, complete, or reopen with current evidence.",
+        effect:
+          "Appends attribution and provenance without editing objective history.",
+        prerequisites:
+          "Choose a valid visible action and same-project canonical evidence.",
+        mutates: true,
+      }),
+    ),
+    screen(
+      "HANDOFF_BUILDER",
+      "Build handoff",
+      "Preview every bounded section and exact persisted size before creation.",
+      action({
+        id: "preview-handoff",
+        label: "Preview immutable handoff",
+        description:
+          "Validate selections and capture bounded Git state without writing a file.",
+        effect:
+          "Shows deterministic packet sections and exact bytes; persistence remains unchanged.",
+        prerequisites:
+          "Use an ACTIVE Work Item, next action, source evidence, and explicit memory selection.",
+        mutates: false,
+      }),
+    ),
+    screen(
+      "HANDOFF_DETAIL",
+      "Immutable handoff",
+      "Inspect section-level trust, source links, repository drift, and successor recovery.",
+      action({
+        id: "validate-handoff",
+        label: "Validate current Git state",
+        description:
+          "Compare current bounded repository metadata with the immutable snapshot.",
+        effect:
+          "Reads Git state only and never refreshes or replaces the saved handoff.",
+        prerequisites:
+          "Choose a persisted handoff for this project and Work Item.",
+        mutates: false,
+      }),
+    ),
   ],
 );
 
@@ -259,7 +327,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 8)
+  if (steps.size !== 12)
     throw new Error(
       "The first GUI journey must cover all six committed steps.",
     );

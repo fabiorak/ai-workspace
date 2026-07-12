@@ -84,6 +84,52 @@ describe("GUI application facade", () => {
         [],
       );
     }));
+
+  it("manages Work Item lifecycle and immutable handoff continuity", async () =>
+    withFixture(async ({ app, repository }) => {
+      const project = await app.registerProject(repository);
+      await app.importSample(project.id);
+      const eventId = (
+        await app.search({ projectId: project.id, text: "test" })
+      ).results[0]!.eventId;
+      const work = await app.createWorkItem({
+        projectId: project.id,
+        objective: "Preserve the synthetic greeting behavior.",
+        sourceEventIds: [eventId],
+      });
+      assert.equal(work.status, "PROPOSED");
+      const active = await app.transitionWorkItem("activate", {
+        projectId: project.id,
+        workItemId: work.id,
+        sourceEventIds: [eventId],
+      });
+      const input = {
+        projectId: project.id,
+        workItemId: active.id,
+        nextAction: "Inspect the synthetic test result.",
+        sourceEventIds: [eventId],
+        memoryIds: [],
+        relevantFiles: ["README.md"],
+      };
+      const preview = await app.previewHandoff(input);
+      assert.ok(preview.measurement.exactHandoffBytes > 0);
+      assert.deepEqual(await app.listHandoffs(project.id, active.id), []);
+      const created = await app.createHandoff(input);
+      assert.equal(
+        (await app.listHandoffs(project.id, active.id))[0]!.id,
+        created.id,
+      );
+      assert.equal(
+        (await app.validateHandoff(project.id, active.id, created.id)).matches,
+        true,
+      );
+      const successor = await app.createHandoff({
+        ...input,
+        predecessorId: created.id,
+        nextAction: "Continue the synthetic review.",
+      });
+      assert.equal(successor.predecessorId, created.id);
+    }));
 });
 
 async function withFixture(

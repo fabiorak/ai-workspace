@@ -40,7 +40,7 @@ export type HandoffEvaluationStore = Readonly<{
   create(evaluation: HandoffEvaluation): Promise<HandoffEvaluation>;
 }>;
 export type HandoffEvaluationDependencies = Readonly<{
-  handoffs: HandoffStore;
+  handoffs: Pick<HandoffStore, "find" | "create">;
   sessions: Readonly<{ load(id: string): Promise<ImportedSession | null> }>;
   store: HandoffEvaluationStore;
   ids: () => string;

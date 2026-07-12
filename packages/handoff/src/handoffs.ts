@@ -17,6 +17,7 @@ import {
 } from "./model.ts";
 
 export type HandoffStore = Readonly<{
+  list(projectId: string, workItemId: string): Promise<readonly Handoff[]>;
   create(handoff: Handoff): Promise<Handoff>;
   find(
     projectId: string,
@@ -64,6 +65,24 @@ export class Handoffs {
   }
   public async create(input: CreateHandoffInput): Promise<Handoff> {
     return this.#deps.store.create(await this.#build(input));
+  }
+  public async list(
+    projectIdValue: string,
+    workItemIdValue: string,
+  ): Promise<readonly Handoff[]> {
+    const projectId = required(projectIdValue, "Project ID");
+    const workItemId = required(workItemIdValue, "Work Item ID");
+    return Object.freeze(
+      [...(await this.#deps.store.list(projectId, workItemId))]
+        .filter(
+          (value) =>
+            value.projectId === projectId && value.workItemId === workItemId,
+        )
+        .sort(
+          (a, b) =>
+            b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id),
+        ),
+    );
   }
   public async preview(input: CreateHandoffInput): Promise<Handoff> {
     return this.#build(input);

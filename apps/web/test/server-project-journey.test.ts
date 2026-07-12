@@ -90,6 +90,12 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /label for="search-query"/u);
     assert.match(html, /Create source-linked memory/u);
     assert.match(html, /USER_CURATED does not mean trusted/u);
+    assert.match(html, /Create proposed Work Item/u);
+    assert.match(html, /Preview immutable handoff/u);
+    assert.match(html, /Active memory to include/u);
+    assert.match(html, /explicit empty selection/u);
+    assert.match(html, /id="handoff-preview-content"/u);
+    assert.match(html, /Validate current Git state/u);
     assert.match(html, /role="alert"/u);
     assert.equal(/https?:\/\/(?!127\.0\.0\.1)/u.test(html), false);
     const script = await (
@@ -99,6 +105,8 @@ describe("GUI server project onboarding", () => {
       await fetch(`${server.origin}/app.css`, { headers: { Cookie: cookie } })
     ).text();
     assert.match(script, /\.textContent = value/u);
+    assert.match(script, /selectedHandoffMemoryIds/u);
+    assert.match(script, /Review all eight inert sections below/u);
     assert.equal(script.includes("innerHTML"), false);
     assert.match(style, /max-width: 38rem/u);
     assert.match(style, /prefers-reduced-motion/u);
@@ -395,6 +403,79 @@ describe("GUI server project onboarding", () => {
     );
     assert.equal(response.status, 400);
     assert.equal((await response.text()).includes("Must fail"), false);
+  });
+
+  it("completes Work Item and immutable handoff continuity over HTTP", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    const search = (await (
+      await api(`/api/projects/${projectId}/search?q=test&limit=1`)
+    ).json()) as { results: { eventId: string }[] };
+    const sourceEventIds = [search.results[0]!.eventId];
+    const work = (await (
+      await api(`/api/projects/${projectId}/work-items`, {
+        method: "POST",
+        body: JSON.stringify({
+          objective: "Preserve synthetic continuity.",
+          sourceEventIds,
+        }),
+      })
+    ).json()) as { id: string; status: string };
+    assert.equal(work.status, "PROPOSED");
+    const active = await api(
+      `/api/projects/${projectId}/work-items/${work.id}/activate`,
+      { method: "POST", body: JSON.stringify({ sourceEventIds }) },
+    );
+    assert.equal(
+      ((await active.json()) as { status: string }).status,
+      "ACTIVE",
+    );
+    const input = {
+      nextAction: "Inspect the synthetic test result.",
+      sourceEventIds,
+      memoryIds: [],
+      relevantFiles: ["README.md"],
+    };
+    const preview = (await (
+      await api(
+        `/api/projects/${projectId}/work-items/${work.id}/handoffs/preview`,
+        { method: "POST", body: JSON.stringify(input) },
+      )
+    ).json()) as {
+      handoff: { id: string };
+      measurement: { exactHandoffBytes: number };
+    };
+    assert.ok(preview.measurement.exactHandoffBytes > 0);
+    assert.deepEqual(
+      await (
+        await api(`/api/projects/${projectId}/work-items/${work.id}/handoffs`)
+      ).json(),
+      [],
+    );
+    const created = (await (
+      await api(
+        `/api/projects/${projectId}/work-items/${work.id}/handoffs/create`,
+        { method: "POST", body: JSON.stringify(input) },
+      )
+    ).json()) as { id: string; predecessorId: string | null };
+    assert.notEqual(created.id, preview.handoff.id);
+    const validation = (await (
+      await api(
+        `/api/projects/${projectId}/work-items/${work.id}/handoffs/${created.id}/validate`,
+      )
+    ).json()) as { matches: boolean };
+    assert.equal(validation.matches, true);
+    const successor = (await (
+      await api(
+        `/api/projects/${projectId}/work-items/${work.id}/handoffs/create`,
+        {
+          method: "POST",
+          body: JSON.stringify({ ...input, predecessorId: created.id }),
+        },
+      )
+    ).json()) as { predecessorId: string };
+    assert.equal(successor.predecessorId, created.id);
   });
 
   it("rejects oversized bodies and undeclared methods without leaking input", async () => {

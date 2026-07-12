@@ -47,6 +47,11 @@ describe("JsonHandoffStore", () => {
         (await store.find("project", "work", "handoff"))?.id,
         "handoff",
       );
+      assert.deepEqual(
+        (await store.list("project", "work")).map((value) => value.id),
+        ["handoff"],
+      );
+      assert.deepEqual(await store.list("project", "other-work"), []);
       await assert.rejects(store.create(packet), HandoffError);
     }));
   it("fails closed for corrupt packets", async () =>

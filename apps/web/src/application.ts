@@ -9,7 +9,18 @@ import {
   type VerifyMemoryInput,
 } from "@ai-workspace/active-memory";
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
-import { GitRepositoryInspector } from "@ai-workspace/git-adapter";
+import { WorkItems, type WorkItem } from "@ai-workspace/core";
+import {
+  GitHandoffRepositoryReader,
+  GitRepositoryInspector,
+} from "@ai-workspace/git-adapter";
+import {
+  Handoffs,
+  previewHandoffSize,
+  type CreateHandoffInput,
+  type Handoff,
+  type RepositoryValidation,
+} from "@ai-workspace/handoff";
 import {
   HistoricalSearch,
   type HistoricalSearchQuery,
@@ -19,12 +30,14 @@ import {
   JsonActiveMemoryStore,
   LocalMemorySourceEventReader,
 } from "@ai-workspace/local-active-memory";
+import { JsonHandoffStore } from "@ai-workspace/local-handoffs";
 import {
   FileArtifactStore,
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
   LocalHistoricalEventReader,
 } from "@ai-workspace/local-session-ingestion";
+import { JsonWorkItemStore } from "@ai-workspace/local-work-items";
 import {
   ProjectRegistry,
   type RegisteredProject,
@@ -122,6 +135,8 @@ export class GuiApplication {
   readonly #ingestion: SessionIngestion;
   readonly #history: HistoricalSearch;
   readonly #memory: ActiveMemory;
+  readonly #workItems: WorkItems;
+  readonly #handoffs: Handoffs;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -136,6 +151,12 @@ export class GuiApplication {
     const projects = {
       exists: async (projectId: string) =>
         (await projectStore.load()).some((project) => project.id === projectId),
+    };
+    const projectReader = {
+      find: async (projectId: string) =>
+        (await projectStore.load()).find(
+          (project) => project.id === projectId,
+        ) ?? null,
     };
     this.#registry = new ProjectRegistry({
       inspector: new GitRepositoryInspector(),
@@ -160,6 +181,27 @@ export class GuiApplication {
         dependencies.workspaceHome,
       ),
       projects,
+      ids: randomUUID,
+      clock: () => new Date(),
+    });
+    const workItemStore = new JsonWorkItemStore(dependencies.workspaceHome);
+    this.#workItems = new WorkItems({
+      store: workItemStore,
+      projects,
+      sourceEvents: new LocalMemorySourceEventReader(
+        dependencies.workspaceHome,
+      ),
+      ids: randomUUID,
+      clock: () => new Date(),
+    });
+    this.#handoffs = new Handoffs({
+      store: new JsonHandoffStore(dependencies.workspaceHome),
+      workItems: workItemStore,
+      memory: new JsonActiveMemoryStore(dependencies.workspaceHome),
+      sourceEvents: new LocalMemorySourceEventReader(
+        dependencies.workspaceHome,
+      ),
+      repository: new GitHandoffRepositoryReader(projectReader),
       ids: randomUUID,
       clock: () => new Date(),
     });
@@ -333,6 +375,74 @@ export class GuiApplication {
     return this.#run(
       () => this.#memory.invalidate(input),
       "Keep the reason, select current canonical evidence, and retry.",
+    );
+  }
+  public async listWorkItems(projectId: string): Promise<readonly WorkItem[]> {
+    return this.#run(
+      () => this.#workItems.list(projectId),
+      "Keep the selected project and retry loading Work Items.",
+    );
+  }
+  public async showWorkItem(projectId: string, workItemId: string) {
+    return this.#run(
+      () => this.#workItems.show(projectId, workItemId),
+      "Return to this project's Work Item list and retry.",
+    );
+  }
+  public async createWorkItem(input: Parameters<WorkItems["create"]>[0]) {
+    return this.#run(
+      () => this.#workItems.create(input),
+      "Keep the objective, select same-project canonical evidence, and retry.",
+    );
+  }
+  public async transitionWorkItem(
+    action: "activate" | "block" | "complete" | "reopen",
+    input: Parameters<WorkItems["activate"]>[0],
+  ) {
+    return this.#run(
+      () => this.#workItems[action](input),
+      "Reload the Work Item, select current evidence, and choose a valid lifecycle action.",
+    );
+  }
+  public async listHandoffs(projectId: string, workItemId: string) {
+    return this.#run(
+      () => this.#handoffs.list(projectId, workItemId),
+      "Reload handoff history for this Work Item and retry.",
+    );
+  }
+  public async previewHandoff(input: CreateHandoffInput) {
+    return this.#run(async () => {
+      const handoff = await this.#handoffs.preview(input);
+      return Object.freeze({
+        handoff,
+        measurement: previewHandoffSize(handoff),
+      });
+    }, "Keep the builder values, correct the highlighted selection, and preview again.");
+  }
+  public async createHandoff(input: CreateHandoffInput): Promise<Handoff> {
+    return this.#run(
+      () => this.#handoffs.create(input),
+      "Keep the reviewed builder values and create a new immutable handoff.",
+    );
+  }
+  public async showHandoff(
+    projectId: string,
+    workItemId: string,
+    handoffId: string,
+  ) {
+    return this.#run(
+      () => this.#handoffs.show(projectId, workItemId, handoffId),
+      "Return to this Work Item's handoff history and retry.",
+    );
+  }
+  public async validateHandoff(
+    projectId: string,
+    workItemId: string,
+    handoffId: string,
+  ): Promise<RepositoryValidation> {
+    return this.#run(
+      () => this.#handoffs.validateRepository(projectId, workItemId, handoffId),
+      "Inspect current Git state and create a successor if the immutable snapshot drifted.",
     );
   }
 

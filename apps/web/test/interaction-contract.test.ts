@@ -19,6 +19,10 @@ describe("GUI interaction contract", () => {
         "ARTIFACT",
         "MEMORY",
         "MEMORY_DETAIL",
+        "WORK_ITEMS",
+        "WORK_DETAIL",
+        "HANDOFF_BUILDER",
+        "HANDOFF_DETAIL",
       ],
     );
     assert.equal(

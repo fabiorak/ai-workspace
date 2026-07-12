@@ -86,6 +86,67 @@ export async function startGuiServer(
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
       if (request.method === "GET") {
+        const workList = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
+          url.pathname,
+        );
+        if (workList !== null)
+          return json(
+            response,
+            200,
+            await application.listWorkItems(decodeURIComponent(workList[1]!)),
+          );
+        const handoffList =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs$/u.exec(
+            url.pathname,
+          );
+        if (handoffList !== null)
+          return json(
+            response,
+            200,
+            await application.listHandoffs(
+              decodeURIComponent(handoffList[1]!),
+              decodeURIComponent(handoffList[2]!),
+            ),
+          );
+        const validation =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/validate$/u.exec(
+            url.pathname,
+          );
+        if (validation !== null)
+          return json(
+            response,
+            200,
+            await application.validateHandoff(
+              decodeURIComponent(validation[1]!),
+              decodeURIComponent(validation[2]!),
+              decodeURIComponent(validation[3]!),
+            ),
+          );
+        const handoffItem =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)$/u.exec(
+            url.pathname,
+          );
+        if (handoffItem !== null)
+          return json(
+            response,
+            200,
+            await application.showHandoff(
+              decodeURIComponent(handoffItem[1]!),
+              decodeURIComponent(handoffItem[2]!),
+              decodeURIComponent(handoffItem[3]!),
+            ),
+          );
+        const workItem =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)$/u.exec(url.pathname);
+        if (workItem !== null)
+          return json(
+            response,
+            200,
+            await application.showWorkItem(
+              decodeURIComponent(workItem[1]!),
+              decodeURIComponent(workItem[2]!),
+            ),
+          );
         const memoryList = /^\/api\/projects\/([^/]+)\/memory$/u.exec(
           url.pathname,
         );
@@ -203,6 +264,95 @@ export async function startGuiServer(
             response,
             201,
             await application.registerProject(body.path),
+          );
+        }
+        const createWork = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
+          url.pathname,
+        );
+        if (createWork !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.objective !== "string" ||
+            !stringArray(body.sourceEventIds)
+          )
+            return reject(
+              response,
+              400,
+              "Enter an objective and select canonical source evidence.",
+            );
+          return json(
+            response,
+            201,
+            await application.createWorkItem({
+              projectId: decodeURIComponent(createWork[1]!),
+              objective: body.objective,
+              sourceEventIds: body.sourceEventIds,
+            }),
+          );
+        }
+        const workTransition =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/(activate|block|complete|reopen)$/u.exec(
+            url.pathname,
+          );
+        if (workTransition !== null) {
+          const body = await readJson(request);
+          if (!record(body) || !stringArray(body.sourceEventIds))
+            return reject(
+              response,
+              400,
+              "Select canonical transition evidence.",
+            );
+          return json(
+            response,
+            200,
+            await application.transitionWorkItem(
+              workTransition[3] as "activate" | "block" | "complete" | "reopen",
+              {
+                projectId: decodeURIComponent(workTransition[1]!),
+                workItemId: decodeURIComponent(workTransition[2]!),
+                sourceEventIds: body.sourceEventIds,
+              },
+            ),
+          );
+        }
+        const handoffMutation =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/(preview|create)$/u.exec(
+            url.pathname,
+          );
+        if (handoffMutation !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.nextAction !== "string" ||
+            !stringArray(body.sourceEventIds) ||
+            !optionalStringArray(body.memoryIds) ||
+            !optionalStringArray(body.relevantFiles) ||
+            (body.predecessorId !== undefined &&
+              typeof body.predecessorId !== "string")
+          )
+            return reject(
+              response,
+              400,
+              "Review the bounded handoff builder fields.",
+            );
+          const input = {
+            projectId: decodeURIComponent(handoffMutation[1]!),
+            workItemId: decodeURIComponent(handoffMutation[2]!),
+            nextAction: body.nextAction,
+            sourceEventIds: body.sourceEventIds,
+            memoryIds: body.memoryIds ?? [],
+            relevantFiles: body.relevantFiles ?? [],
+            ...(body.predecessorId === undefined
+              ? {}
+              : { predecessorId: body.predecessorId }),
+          };
+          return json(
+            response,
+            handoffMutation[3] === "create" ? 201 : 200,
+            handoffMutation[3] === "create"
+              ? await application.createHandoff(input)
+              : await application.previewHandoff(input),
           );
         }
         const addMemory = /^\/api\/projects\/([^/]+)\/memory$/u.exec(
@@ -418,6 +568,12 @@ function stringArray(value: unknown): value is string[] {
     Array.isArray(value) &&
     value.length > 0 &&
     value.every((item) => typeof item === "string")
+  );
+}
+function optionalStringArray(value: unknown): value is string[] | undefined {
+  return (
+    value === undefined ||
+    (Array.isArray(value) && value.every((item) => typeof item === "string"))
   );
 }
 function optionalEnum(
