@@ -10,7 +10,11 @@ first GUI-first local journeys. The foreground loopback GUI guides project
 registration, synthetic import, evidence search, integrity-verified source
 inspection, and complete source-linked active-memory lifecycle without CLI
 knowledge. Work Item/handoff and effective-instruction GUI parity remain the
-leading product recommendations; no later sprint is committed yet.
+leading product recommendations. [Sprint 10](docs/planning/sprints/SPRINT-010.md)
+is now planned as a bounded continuity cockpit for complete Work Item lifecycle,
+transparent handoff preview and immutable creation, section-level inspection,
+read-only Git drift validation, and successor guidance. Execution, Context
+Builder, and the experimental handoff evaluator remain out of scope.
 
 ## 1. Project Memory
 
