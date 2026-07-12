@@ -4,6 +4,7 @@
     { "path": "./apps/web/tsconfig.build.json" },
     { "path": "./packages/active-memory/tsconfig.build.json" },
     { "path": "./packages/core/tsconfig.build.json" },
+    { "path": "./packages/context-builder/tsconfig.build.json" },
     { "path": "./packages/historical-search/tsconfig.build.json" },
     { "path": "./packages/handoff/tsconfig.build.json" },
     { "path": "./packages/instruction-manager/tsconfig.build.json" },

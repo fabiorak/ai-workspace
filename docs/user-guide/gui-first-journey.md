@@ -45,6 +45,11 @@ identifiers, and user-authored content remain in their original language.
    bundle paths and optional model, agent, or task targets. The result shows
    stable source digests, trust, precedence, exclusions, conflicts, and reasons.
    Nothing is persisted, enforced, or executed.
+9. Inspect a persisted handoff to reveal **Preview a bounded Context Pack**.
+   Enter positive continuity and instruction budgets in exact UTF-8 bytes and
+   optionally repeat reviewed instruction bundle paths. Items are included only
+   when they fit wholly; omissions show `BUDGET_EXCEEDED`. The token figure is
+   only `ceil(exact included bytes / 4)`.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -60,3 +65,6 @@ transcripts: only the reviewed bundled synthetic sample is supported.
 The GUI does not discover, author, edit, enforce, or execute instructions.
 Agents, models, tools, translation services, and external network requests
 remain inactive.
+
+Context Pack preview does not search history, read repository files, truncate
+content, choose sources automatically, persist a pack, or send a prompt.

@@ -4,7 +4,7 @@
 
 **Milestone:** M4 controlled context beta, first read-only slice
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 
@@ -177,12 +177,35 @@ Sprint 11 complete
 
 ## Execution log
 
-Not started.
+### 2026-07-12
+
+- S12-01 froze schema-v1 preview, exact-byte budget, atomic inclusion, explicit
+  omission, provenance, and labeled token-estimate contracts.
+- S12-02 added dependency-free `@ai-workspace/context-builder`; fixed inputs
+  produce deterministic previews and the builder performs no I/O.
+- S12-03 resolves only an explicit persisted handoff and optional strict local
+  instruction bundles through the existing facade and authenticated HTTP
+  boundary.
+- S12-04 added the fourteenth bilingual GUI screen with explicit continuity
+  and instruction budgets, inert included/omitted detail, and persistent
+  non-execution language.
+- S12-05 covers determinism, UTF-8 accounting, budget edges, whole-item
+  omissions, scope mismatch, facade resolution, HTTP preview, localization
+  parity, and preview non-persistence.
+- The progressive gate passed format, lint, typecheck, build, and 141 tests
+  before documentation closure.
 
 ## Sprint review
 
-Pending implementation and verification.
+The first E6 slice turns already reviewed continuity and instruction state into
+an inspectable budgeted preview without introducing retrieval or execution.
+Users can see exactly which atomic items fit, why others are omitted, their
+source identity, exact included bytes, and a clearly labeled token estimate.
 
 ## Retrospective
 
-Pending implementation and verification.
+- Starting from immutable handoffs avoided a premature retrieval policy while
+  still proving deterministic budget semantics.
+- Whole-item omission is easier to explain and safer than substring truncation.
+- Next recommendation: measure real synthetic pack distributions before adding
+  deduplication, progressive disclosure, or targeted retrieval.

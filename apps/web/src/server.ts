@@ -307,6 +307,52 @@ export async function startGuiServer(
             }),
           );
         }
+        const contextPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/context\/preview$/u.exec(
+            url.pathname,
+          );
+        if (contextPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !Array.isArray(body.bundles) ||
+            !body.bundles.every(
+              (bundle) =>
+                record(bundle) &&
+                typeof bundle.path === "string" &&
+                (bundle.expectedDigest === undefined ||
+                  typeof bundle.expectedDigest === "string"),
+            ) ||
+            !optionalString(body.model) ||
+            !optionalString(body.agent) ||
+            !optionalString(body.task) ||
+            typeof body.continuityBudget !== "number" ||
+            typeof body.instructionBudget !== "number"
+          )
+            return reject(
+              response,
+              400,
+              "Select an explicit handoff and enter documented exact-byte budgets.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewContext({
+              projectId: decodeURIComponent(contextPreview[1]!),
+              workItemId: decodeURIComponent(contextPreview[2]!),
+              handoffId: decodeURIComponent(contextPreview[3]!),
+              bundles: body.bundles as readonly {
+                path: string;
+                expectedDigest?: string;
+              }[],
+              continuityBudget: body.continuityBudget,
+              instructionBudget: body.instructionBudget,
+              ...(body.model === undefined ? {} : { model: body.model }),
+              ...(body.agent === undefined ? {} : { agent: body.agent }),
+              ...(body.task === undefined ? {} : { task: body.task }),
+            }),
+          );
+        }
         const createWork = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
           url.pathname,
         );

@@ -36,6 +36,12 @@ preview reuses the provider-neutral composer and strict local bundle reader
 through the typed facade; HTTP and presentation remain read-only and do not
 enforce or execute instruction content.
 
+The first E6 slice is `packages/context-builder`, a provider-neutral in-memory
+builder. It maps the eight sections of one validated immutable handoff and
+optional effective instruction rules into two deterministic categories. Exact
+UTF-8 byte budgets include or omit whole items with source identity and reason.
+The builder performs no I/O, retrieval, persistence, delivery, or execution.
+
 The implemented local persistence baseline now consists of:
 
 - a schema-versioned atomic JSON Project Registry;

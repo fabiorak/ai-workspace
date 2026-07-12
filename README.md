@@ -161,6 +161,9 @@ The visible journey is:
 8. explicitly select reviewed synthetic instruction-bundle paths and preview
    effective instructions, provenance, precedence, exclusions, and conflicts
    without persistence, enforcement, or execution.
+9. inspect an immutable handoff, enter exact UTF-8 byte budgets, and preview a
+   deterministic Context Pack whose included and omitted whole items retain
+   source identity. The token count is labeled as an estimate only.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -192,6 +195,12 @@ and Italian catalogs, deterministic fallback, validated interpolation, and no
 translation service. It also brings effective-instruction composition into the
 GUI as an explicit read-only preview. Stable enums, IDs, paths, commands,
 hashes, evidence, and persisted content remain unchanged.
+
+Sprint 12 adds the first read-only E6 slice. Context Pack preview combines one
+explicitly inspected immutable handoff with optional reviewed effective
+instructions, enforces separate exact-byte budgets, and reports whole-item
+omissions. It performs no retrieval, truncation, persistence, delivery, model
+call, or execution.
 
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,

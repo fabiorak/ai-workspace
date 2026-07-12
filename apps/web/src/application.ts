@@ -11,6 +11,10 @@ import {
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
 import { WorkItems, type WorkItem } from "@ai-workspace/core";
 import {
+  buildContextPack,
+  type ContextPackPreview,
+} from "@ai-workspace/context-builder";
+import {
   GitHandoffRepositoryReader,
   GitRepositoryInspector,
 } from "@ai-workspace/git-adapter";
@@ -130,6 +134,17 @@ export type GuiInstructionPreviewInput = Readonly<{
   model?: string;
   agent?: string;
   task?: string;
+}>;
+export type GuiContextPreviewInput = Readonly<{
+  projectId: string;
+  workItemId: string;
+  handoffId: string;
+  bundles: readonly LocalInstructionBundleInput[];
+  model?: string;
+  agent?: string;
+  task?: string;
+  continuityBudget: number;
+  instructionBudget: number;
 }>;
 
 export class GuiApplicationError extends Error {
@@ -488,6 +503,30 @@ export class GuiApplication {
       () => this.#previewInstructions(input),
       "Keep the selected project and explicit reviewed bundle paths, correct the highlighted context, and preview again.",
     );
+  }
+
+  public async previewContext(
+    input: GuiContextPreviewInput,
+  ): Promise<ContextPackPreview> {
+    return this.#run(async () => {
+      const handoff = await this.#handoffs.show(
+        input.projectId,
+        input.workItemId,
+        input.handoffId,
+      );
+      const instructions =
+        input.bundles.length === 0
+          ? undefined
+          : await this.#previewInstructions(input);
+      return buildContextPack({
+        handoff,
+        ...(instructions === undefined ? {} : { instructions }),
+        budgets: {
+          CONTINUITY: input.continuityBudget,
+          INSTRUCTIONS: input.instructionBudget,
+        },
+      });
+    }, "Keep the explicit handoff, bundle paths, and byte budgets; correct the highlighted value and preview again.");
   }
 
   async #run<T>(operation: () => Promise<T>, recovery: string): Promise<T> {

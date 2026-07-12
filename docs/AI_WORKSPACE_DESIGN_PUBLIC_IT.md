@@ -1934,9 +1934,11 @@ Project Registry, ingestion controllata, ricerca storica bounded, active memory
 curata, Work Item e handoff verificabili. La GUI foreground loopback
 implementata copre ora il primo journey progetto/ricerca/source e il lifecycle
 completo dell'active memory source-linked; ADR-0015 ne registra il boundary
-browser locale. Parità GUI più ampia, backend indicizzati, model access,
-Context Builder e orchestrazione richiedono ancora vertical slice e ADR
-dedicati.
+browser locale. La GUI copre ora anche Work Item, handoff, localizzazione
+inglese/italiano, anteprima delle effective instruction e una prima anteprima
+Context Pack read-only con budget exact-byte e input espliciti. Backend
+indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
+richiedono ancora vertical slice e ADR dedicati.
 
 ### MVP 1 — Project Memory
 

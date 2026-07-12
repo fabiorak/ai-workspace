@@ -11,7 +11,8 @@ export type GuiJourneyStep =
   | "WORK_DETAIL"
   | "HANDOFF_BUILDER"
   | "HANDOFF_DETAIL"
-  | "INSTRUCTIONS";
+  | "INSTRUCTIONS"
+  | "CONTEXT_PACK";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -272,6 +273,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: false,
       }),
     ),
+    screen(
+      "CONTEXT_PACK",
+      "Bounded Context Pack",
+      "Preview explicit continuity and instruction material within exact-byte budgets.",
+      action({
+        id: "preview-context-pack",
+        label: "Preview Context Pack read-only",
+        description:
+          "Build one deterministic preview from an explicit immutable handoff and optional reviewed instructions.",
+        effect:
+          "Includes or omits whole source-linked items without persistence, delivery, enforcement, or execution.",
+        prerequisites:
+          "Inspect a persisted handoff and enter positive continuity and instruction byte budgets.",
+        mutates: false,
+      }),
+    ),
   ],
 );
 
@@ -344,7 +361,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 13)
+  if (steps.size !== 14)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

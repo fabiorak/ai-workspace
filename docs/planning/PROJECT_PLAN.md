@@ -441,6 +441,11 @@ successors. Sprint 11 completed English and Italian GUI parity plus read-only
 effective-instruction preview. Localization remains presentation-only and does
 not translate persisted or source data. The next increment should follow
 observed bilingual usability evidence before another locale or E6 scope.
+Sprint 12 then delivered the first E6 boundary: deterministic read-only Context
+Pack preview from an explicit immutable handoff and optional effective
+instructions with exact-byte category budgets and whole-item omissions. M4 is
+not complete; retrieval, agent profiles, context policies, and execution remain
+future work.
 
 ## 9. Agile operating model
 

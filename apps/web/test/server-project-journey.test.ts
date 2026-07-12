@@ -98,6 +98,7 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Validate current Git state/u);
     assert.match(html, /Language \/ Lingua/u);
     assert.match(html, /Preview effective instructions/u);
+    assert.match(html, /Preview a bounded Context Pack/u);
     assert.match(html, /No translation service is used/u);
     assert.match(html, /role="alert"/u);
     assert.equal(/https?:\/\/(?!127\.0\.0\.1)/u.test(html), false);
@@ -465,6 +466,22 @@ describe("GUI server project onboarding", () => {
       )
     ).json()) as { id: string; predecessorId: string | null };
     assert.notEqual(created.id, preview.handoff.id);
+    const context = await api(
+      `/api/projects/${projectId}/work-items/${work.id}/handoffs/${created.id}/context/preview`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          bundles: [],
+          continuityBudget: 100_000,
+          instructionBudget: 1,
+        }),
+      },
+    );
+    assert.equal(context.status, 200);
+    assert.equal(
+      ((await context.json()) as { effect: string }).effect,
+      "READ_ONLY_NOT_PERSISTED_OR_EXECUTED",
+    );
     const validation = (await (
       await api(
         `/api/projects/${projectId}/work-items/${work.id}/handoffs/${created.id}/validate`,

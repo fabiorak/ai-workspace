@@ -24,6 +24,7 @@ describe("GUI interaction contract", () => {
         "HANDOFF_BUILDER",
         "HANDOFF_DETAIL",
         "INSTRUCTIONS",
+        "CONTEXT_PACK",
       ],
     );
     assert.equal(

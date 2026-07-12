@@ -115,6 +115,16 @@ describe("GUI application facade", () => {
       assert.ok(preview.measurement.exactHandoffBytes > 0);
       assert.deepEqual(await app.listHandoffs(project.id, active.id), []);
       const created = await app.createHandoff(input);
+      const context = await app.previewContext({
+        projectId: project.id,
+        workItemId: active.id,
+        handoffId: created.id,
+        bundles: [],
+        continuityBudget: 100_000,
+        instructionBudget: 1,
+      });
+      assert.equal(context.effect, "READ_ONLY_NOT_PERSISTED_OR_EXECUTED");
+      assert.ok(context.included.length > 0);
       assert.equal(
         (await app.listHandoffs(project.id, active.id))[0]!.id,
         created.id,

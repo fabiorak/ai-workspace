@@ -23,6 +23,7 @@ const EN = {
   handoff: "Build a transparent handoff",
   handoffDetail: "Immutable handoff",
   instructions: "Preview effective instructions",
+  context: "Preview a bounded Context Pack",
   capabilities: "Product capability map",
   register: "Register this project",
   selectProject: "Select {name}",
@@ -54,6 +55,7 @@ const EN = {
   successor: "Prepare successor",
   backHandoff: "Return to handoff builder",
   previewInstructions: "Preview instructions read-only",
+  previewContext: "Preview Context Pack read-only",
   noExecution:
     "Configured instruction text and precedence are descriptive. The GUI does not enforce or execute them.",
   bundlePaths: "Reviewed instruction bundle paths, one per line",
@@ -72,6 +74,15 @@ const EN = {
     "Read-only preview: nothing is persisted or executed. USER_CONFIGURED does not mean runtime permission.",
   previewReady:
     "Effective instruction preview ready. Nothing was persisted or executed.",
+  contextWarning:
+    "Context preview uses exact UTF-8 byte budgets. It does not persist, send, enforce, or execute anything.",
+  continuityBudget: "Continuity budget (exact UTF-8 bytes)",
+  instructionBudget: "Instruction budget (exact UTF-8 bytes)",
+  contextBundles: "Optional reviewed instruction bundle paths, one per line",
+  contextEmpty:
+    "Inspect an immutable handoff, then enter explicit budgets to preview its Context Pack.",
+  contextReady:
+    "Context Pack preview ready. Review included and omitted atomic items below.",
   fallback: "Unsupported language values safely fall back to English.",
 } as const;
 
@@ -100,6 +111,7 @@ const IT = {
   handoff: "Crea un handoff trasparente",
   handoffDetail: "Handoff immutabile",
   instructions: "Anteprima delle istruzioni effettive",
+  context: "Anteprima di un Context Pack bounded",
   capabilities: "Mappa delle funzionalità del prodotto",
   register: "Registra questo progetto",
   selectProject: "Seleziona {name}",
@@ -131,6 +143,7 @@ const IT = {
   successor: "Prepara successore",
   backHandoff: "Torna al builder handoff",
   previewInstructions: "Anteprima istruzioni in sola lettura",
+  previewContext: "Anteprima Context Pack in sola lettura",
   noExecution:
     "Testo e precedenza delle istruzioni configurate sono descrittivi. La GUI non li applica né li esegue.",
   bundlePaths: "Percorsi dei bundle revisionati, uno per riga",
@@ -150,6 +163,16 @@ const IT = {
     "Anteprima in sola lettura: nulla viene persistito o eseguito. USER_CONFIGURED non indica un permesso runtime.",
   previewReady:
     "Anteprima delle istruzioni effettive pronta. Nulla è stato persistito o eseguito.",
+  contextWarning:
+    "L'anteprima del contesto usa budget in byte UTF-8 esatti. Non persiste, invia, applica o esegue nulla.",
+  continuityBudget: "Budget continuità (byte UTF-8 esatti)",
+  instructionBudget: "Budget istruzioni (byte UTF-8 esatti)",
+  contextBundles:
+    "Percorsi bundle di istruzioni revisionati facoltativi, uno per riga",
+  contextEmpty:
+    "Esamina un handoff immutabile, poi inserisci budget espliciti per l'anteprima del Context Pack.",
+  contextReady:
+    "Anteprima Context Pack pronta. Esamina gli elementi atomici inclusi e omessi qui sotto.",
   fallback: "I valori lingua non supportati usano in sicurezza l'inglese.",
 } as const satisfies Catalog;
 

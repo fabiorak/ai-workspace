@@ -82,6 +82,12 @@ Effective-instruction GUI preview accepts only explicit local paths through the
 existing bounded fail-closed reader and does not persist, enforce, or execute
 instruction text.
 
+Context Pack preview accepts only project/Work-Item-scoped persisted handoff
+identity plus optional explicit instruction bundle paths and bounded numeric
+budgets. The browser cannot submit a handoff body or request an inferred latest
+packet. Whole-item omission prevents semantic substring truncation; the result
+remains inert, in memory, and unavailable to any model or execution gateway.
+
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
 inside the selected project before persistence; missing and foreign sources
