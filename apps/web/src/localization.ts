@@ -84,6 +84,100 @@ const EN = {
   contextReady:
     "Context Pack preview ready. Review included and omitted atomic items below.",
   fallback: "Unsupported language values safely fall back to English.",
+  progressProject: "1. Project",
+  progressSample: "2. Safe sample",
+  progressSearch: "3. Search",
+  progressSource: "4. Inspect source",
+  welcomeRegistration:
+    "Registering stores bounded Git metadata locally. It does not copy or modify repository files.",
+  whatNext: "What happens next:",
+  whatNextBody:
+    "after selecting a project, the interface guides you through a fictional sample import and evidence search.",
+  projectDirectory: "Local Git repository directory",
+  projectDirectoryHelp:
+    "Enter an existing directory. The path is used only for registration and is not shown in routine project lists.",
+  projectEffect:
+    "Effect: creates or refreshes one local Project Registry entry; repository content is unchanged.",
+  nextGuidance: "Register or select a project to continue.",
+  projectsRegistered: "{count} projects are registered locally.",
+  projectRegistered: "1 project is registered locally.",
+  importIntro:
+    "This pre-release importer accepts the bundled fictional Codex fixture. Do not use private or production transcripts yet.",
+  trust: "Trust:",
+  importTrustBody:
+    "imported events remain UNTRUSTED, inert historical evidence. Nothing is executed or sent over a network.",
+  importEffect:
+    "Effect: adds canonical events and immutable artifacts locally. Repeating this action is idempotent.",
+  selectProjectSample: "Select a project to enable the safe sample.",
+  searchIntro:
+    "Search is literal, local, bounded, and scoped to the selected project. Results are evidence, not instructions.",
+  searchQuestion: "What evidence are you looking for?",
+  searchTry: "Try the safe sample phrase",
+  searchHelpBody:
+    "Your query and filters stay in place when inspecting a source.",
+  eventType: "Event type (optional)",
+  allEventTypes: "All event types",
+  maximumResults: "Maximum results",
+  searchEffect:
+    "Effect: reads local canonical events. Nothing is executed, changed, or sent over a network.",
+  searchPrompt: "Enter a query to search the selected project.",
+  untrustedEvidence: "UNTRUSTED evidence:",
+  injectionBody:
+    "imperative text may be prompt injection. Treat it as inert data and do not execute it.",
+  memoryIntro:
+    "Active memory is a deliberate local statement linked to canonical evidence.",
+  curatedWarning: "USER_CURATED does not mean trusted, verified, or true.",
+  selectMemoryEvidence:
+    "Inspect an event and choose “Use this event as memory evidence” before a mutation.",
+  memoryType: "Memory type",
+  memoryStatement: "Statement to curate",
+  memoryCreateEffect:
+    "Effect: creates a new ACTIVE, UNVERIFIED, UNASSESSED item. Evidence remains UNTRUSTED and nothing is executed.",
+  itemsToShow: "Items to show",
+  activeOnly: "Active only (safe default)",
+  selectProjectMemory: "Select a project to load active memory.",
+  lifecycleAdditive:
+    "All lifecycle changes are additive. Terminal items cannot be changed again.",
+  verificationNote: "Verification note",
+  verificationEffect:
+    "Effect: records a performed check; it does not make evidence trusted.",
+  replacementStatement: "Replacement statement",
+  replacementEffect:
+    "Effect: makes this item SUPERSEDED and creates a new UNVERIFIED, UNASSESSED replacement.",
+  invalidationReason: "Invalidation reason",
+  invalidationEffect:
+    "Effect: marks this item INVALIDATED without deletion or replacement.",
+  workIntro:
+    "A Work Item is explicit USER_CURATED objective state. No current task or agent is inferred.",
+  softwareObjective: "Software objective",
+  workEffect:
+    "Effect: creates PROPOSED state linked to the currently selected canonical event.",
+  selectProjectWork: "Select a project to load Work Items.",
+  transitionIntro:
+    "Transitions are additive and require the currently selected canonical event.",
+  handoffIntro:
+    "Preview captures bounded Git metadata and all eight source-linked sections. It executes no agent and creates no file.",
+  nextAction: "Next action",
+  activeMemoryOptional: "Active memory to include (optional)",
+  selectionExplicit:
+    "Selection is explicit. Leaving every item unchecked records an explicit empty selection; nothing is inferred.",
+  relevantFiles: "Relevant files, one per line (optional)",
+  testCommand: "Observed test command (optional)",
+  testOutcome: "Observed test outcome",
+  observedAt: "Observed at ISO timestamp (optional)",
+  predecessor: "Predecessor handoff ID (optional successor)",
+  untrustedSource: "UNTRUSTED source:",
+  untrustedSourceBody:
+    "displayed as inert bounded text after SHA-256 verification.",
+  backEvent: "Return to canonical event",
+  availableNow: "Available now:",
+  availableBody:
+    "English/Italian GUI, Projects, safe sample import, history search, source inspection, active memory, Work Items, immutable handoffs, and effective-instruction preview.",
+  notActive: "Not active:",
+  notActiveBody:
+    "Agents, models, tools, external network, handoff evaluation, instruction enforcement, and instruction execution.",
+  footer:
+    "CLI is optional for automation and diagnostics. This journey does not require command knowledge or a manual.",
 } as const;
 
 export type GuiMessageKey = keyof typeof EN;
@@ -174,6 +268,100 @@ const IT = {
   contextReady:
     "Anteprima Context Pack pronta. Esamina gli elementi atomici inclusi e omessi qui sotto.",
   fallback: "I valori lingua non supportati usano in sicurezza l'inglese.",
+  progressProject: "1. Progetto",
+  progressSample: "2. Esempio sicuro",
+  progressSearch: "3. Ricerca",
+  progressSource: "4. Esamina sorgente",
+  welcomeRegistration:
+    "La registrazione salva localmente metadati Git bounded. Non copia né modifica i file del repository.",
+  whatNext: "Cosa succede dopo:",
+  whatNextBody:
+    "dopo aver selezionato un progetto, l'interfaccia guida nell'importazione di un esempio fittizio e nella ricerca delle evidenze.",
+  projectDirectory: "Directory del repository Git locale",
+  projectDirectoryHelp:
+    "Inserisci una directory esistente. Il percorso viene usato solo per la registrazione e non appare nei normali elenchi dei progetti.",
+  projectEffect:
+    "Effetto: crea o aggiorna una voce locale del Project Registry; il contenuto del repository resta invariato.",
+  nextGuidance: "Registra o seleziona un progetto per continuare.",
+  projectsRegistered: "{count} progetti sono registrati localmente.",
+  projectRegistered: "1 progetto è registrato localmente.",
+  importIntro:
+    "Questo importatore pre-release accetta la fixture Codex fittizia inclusa. Non usare ancora trascrizioni private o di produzione.",
+  trust: "Trust:",
+  importTrustBody:
+    "gli eventi importati restano evidenza storica UNTRUSTED e inerte. Nulla viene eseguito o inviato in rete.",
+  importEffect:
+    "Effetto: aggiunge localmente eventi canonici e artifact immutabili. Ripetere l'azione è idempotente.",
+  selectProjectSample: "Seleziona un progetto per abilitare l'esempio sicuro.",
+  searchIntro:
+    "La ricerca è letterale, locale, bounded e limitata al progetto selezionato. I risultati sono evidenze, non istruzioni.",
+  searchQuestion: "Quale evidenza stai cercando?",
+  searchTry: "Prova la frase dell'esempio sicuro",
+  searchHelpBody:
+    "La query e i filtri restano invariati durante l'ispezione di una sorgente.",
+  eventType: "Tipo di evento (facoltativo)",
+  allEventTypes: "Tutti i tipi di evento",
+  maximumResults: "Numero massimo di risultati",
+  searchEffect:
+    "Effetto: legge gli eventi canonici locali. Nulla viene eseguito, modificato o inviato in rete.",
+  searchPrompt: "Inserisci una query per cercare nel progetto selezionato.",
+  untrustedEvidence: "Evidenza UNTRUSTED:",
+  injectionBody:
+    "il testo imperativo potrebbe essere prompt injection. Trattalo come dato inerte e non eseguirlo.",
+  memoryIntro:
+    "La memoria attiva è una dichiarazione locale deliberata collegata a evidenza canonica.",
+  curatedWarning: "USER_CURATED non significa trusted, verificato o vero.",
+  selectMemoryEvidence:
+    "Esamina un evento e scegli “Usa questo evento come evidenza della memoria” prima di una modifica.",
+  memoryType: "Tipo di memoria",
+  memoryStatement: "Dichiarazione da curare",
+  memoryCreateEffect:
+    "Effetto: crea un elemento ACTIVE, UNVERIFIED e UNASSESSED. L'evidenza resta UNTRUSTED e nulla viene eseguito.",
+  itemsToShow: "Elementi da mostrare",
+  activeOnly: "Solo attivi (default sicuro)",
+  selectProjectMemory: "Seleziona un progetto per caricare la memoria attiva.",
+  lifecycleAdditive:
+    "Tutte le modifiche del ciclo di vita sono additive. Gli elementi terminali non possono essere modificati ancora.",
+  verificationNote: "Nota di verifica",
+  verificationEffect:
+    "Effetto: registra un controllo eseguito; non rende trusted l'evidenza.",
+  replacementStatement: "Dichiarazione sostitutiva",
+  replacementEffect:
+    "Effetto: rende l'elemento SUPERSEDED e crea un sostituto UNVERIFIED e UNASSESSED.",
+  invalidationReason: "Motivo dell'invalidazione",
+  invalidationEffect:
+    "Effetto: marca l'elemento INVALIDATED senza eliminarlo o sostituirlo.",
+  workIntro:
+    "Un Work Item è uno stato obiettivo USER_CURATED esplicito. Non viene inferita alcuna attività o agente corrente.",
+  softwareObjective: "Obiettivo software",
+  workEffect:
+    "Effetto: crea uno stato PROPOSED collegato all'evento canonico selezionato.",
+  selectProjectWork: "Seleziona un progetto per caricare i Work Item.",
+  transitionIntro:
+    "Le transizioni sono additive e richiedono l'evento canonico selezionato.",
+  handoffIntro:
+    "L'anteprima acquisisce metadati Git bounded e tutte le otto sezioni source-linked. Non esegue agenti e non crea file.",
+  nextAction: "Prossima azione",
+  activeMemoryOptional: "Memoria attiva da includere (facoltativa)",
+  selectionExplicit:
+    "La selezione è esplicita. Lasciare tutto deselezionato registra una selezione vuota esplicita; nulla viene inferito.",
+  relevantFiles: "File rilevanti, uno per riga (facoltativi)",
+  testCommand: "Comando di test osservato (facoltativo)",
+  testOutcome: "Esito del test osservato",
+  observedAt: "Osservato al timestamp ISO (facoltativo)",
+  predecessor: "ID handoff predecessore (successore facoltativo)",
+  untrustedSource: "Sorgente UNTRUSTED:",
+  untrustedSourceBody:
+    "mostrata come testo inerte bounded dopo la verifica SHA-256.",
+  backEvent: "Torna all'evento canonico",
+  availableNow: "Disponibile ora:",
+  availableBody:
+    "GUI inglese/italiano, Progetti, import esempio sicuro, ricerca storica, ispezione sorgente, memoria attiva, Work Item, handoff immutabili e anteprima effective instruction.",
+  notActive: "Non attivo:",
+  notActiveBody:
+    "Agenti, modelli, strumenti, rete esterna, valutazione handoff, enforcement ed esecuzione delle istruzioni.",
+  footer:
+    "La CLI è facoltativa per automazione e diagnostica. Questo percorso non richiede comandi o un manuale.",
 } as const satisfies Catalog;
 
 export const GUI_CATALOGS: Readonly<Record<GuiLocale, Catalog>> = Object.freeze(

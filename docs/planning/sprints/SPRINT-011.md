@@ -253,6 +253,12 @@ Sprint 10 complete
   loopback/CSRF/inert-rendering boundary.
 - The progressive quality gate passed format, lint, typecheck, build, and 138
   tests before documentation closure.
+- A post-sprint browser review found that catalog parity did not imply complete
+  visible-copy coverage: headings changed language while uncatalogued onboarding
+  help and dynamic project counts remained English. The corrective follow-up
+  catalogued the full static journey and onboarding dynamics, added regression
+  coverage for Italian copy/interpolation, and passed the full suite with 142
+  tests.
 
 ## Sprint review
 

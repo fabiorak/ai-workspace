@@ -15,29 +15,29 @@ export function shellHtml(csrfToken: string) {
 <body>
   <a class="skip-link" href="#main" data-i18n="skip">Skip to the guided workflow</a>
   <header><p class="eyebrow" data-i18n="headerTagline">Local-first control plane</p><h1>AI Workspace</h1><p data-i18n="headerPrivacy">Your project data stays on this computer. This guided alpha makes no external requests.</p><label for="gui-language" data-i18n="language">Language / Lingua</label><select id="gui-language"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></header>
-  <nav aria-label="Journey progress"><ol class="progress"><li aria-current="step">1. Project</li><li>2. Safe sample</li><li>3. Search</li><li>4. Inspect source</li></ol></nav>
+  <nav aria-label="Journey progress"><ol class="progress"><li aria-current="step" data-i18n="progressProject">1. Project</li><li data-i18n="progressSample">2. Safe sample</li><li data-i18n="progressSearch">3. Search</li><li data-i18n="progressSource">4. Inspect source</li></ol></nav>
   <main id="main" tabindex="-1">
     <section aria-labelledby="welcome-heading" id="welcome">
       <h2 id="welcome-heading" tabindex="-1" data-i18n="welcome">Start with one local project</h2>
-      <p>Registering stores bounded Git metadata locally. It does not copy or modify repository files.</p>
-      <p class="notice"><strong>What happens next:</strong> after selecting a project, the interface guides you through a fictional sample import and evidence search.</p>
+      <p data-i18n="welcomeRegistration">Registering stores bounded Git metadata locally. It does not copy or modify repository files.</p>
+      <p class="notice"><strong data-i18n="whatNext">What happens next:</strong> <span data-i18n="whatNextBody">after selecting a project, the interface guides you through a fictional sample import and evidence search.</span></p>
     </section>
     <section aria-labelledby="projects-heading" id="projects">
       <h2 id="projects-heading" tabindex="-1" data-i18n="projects">Projects</h2>
       <div id="project-status" role="status" aria-live="polite">Loading local projects…</div>
       <form id="register-project-form">
-        <label for="project-path">Local Git repository directory</label>
-        <p id="project-path-help" class="help">Enter an existing directory. The path is used only for registration and is not shown in routine project lists.</p>
+        <label for="project-path" data-i18n="projectDirectory">Local Git repository directory</label>
+        <p id="project-path-help" class="help" data-i18n="projectDirectoryHelp">Enter an existing directory. The path is used only for registration and is not shown in routine project lists.</p>
         <input id="project-path" name="path" required aria-describedby="project-path-help project-error" autocomplete="off" spellcheck="false">
         <button type="submit" data-i18n="register">Register this project</button>
-        <p id="project-effect" class="effect">Effect: creates or refreshes one local Project Registry entry; repository content is unchanged.</p>
+        <p id="project-effect" class="effect" data-i18n="projectEffect">Effect: creates or refreshes one local Project Registry entry; repository content is unchanged.</p>
         <p id="project-error" class="error" role="alert"></p>
       </form>
       <div id="project-list" aria-label="Registered projects"></div>
     </section>
     <section aria-labelledby="next-heading" id="next-step" tabindex="-1">
       <h2 id="next-heading" data-i18n="next">Next recommended action</h2>
-      <p id="next-guidance">Register or select a project to continue.</p>
+      <p id="next-guidance" data-i18n="nextGuidance">Register or select a project to continue.</p>
     </section>
     <section aria-labelledby="import-heading" id="import" hidden>
       <h2 id="import-heading" tabindex="-1" data-i18n="import">Import safe sample evidence</h2>
@@ -240,7 +240,7 @@ export const APP_JS = `
   const renderProjects = (projects) => {
     list.replaceChildren();
     if (projects.length === 0) { text(status, "No projects yet. Enter a local Git repository directory below."); return; }
-    text(status, projects.length + (projects.length === 1 ? " project is" : " projects are") + " registered locally.");
+    text(status, projects.length === 1 ? message("projectRegistered") : message("projectsRegistered", { count: String(projects.length) }));
     for (const project of projects) {
       const article = document.createElement("article"); article.className = "project-card";
       const heading = document.createElement("h3"); text(heading, project.name); article.append(heading);

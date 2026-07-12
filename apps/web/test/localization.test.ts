@@ -41,4 +41,18 @@ describe("GUI localization contract", () => {
     assert.throws(() => guiMessage("en", "selectProject"));
     assert.throws(() => guiMessage("en", "projects", { extra: "value" }));
   });
+
+  it("covers the complete onboarding copy instead of headings only", () => {
+    assert.equal(
+      GUI_CATALOGS.it.welcomeRegistration,
+      "La registrazione salva localmente metadati Git bounded. Non copia né modifica i file del repository.",
+    );
+    assert.equal(
+      guiMessage("it", "projectsRegistered", { count: "2" }),
+      "2 progetti sono registrati localmente.",
+    );
+    assert.match(GUI_CATALOGS.it.projectDirectoryHelp, /registrazione/u);
+    assert.match(GUI_CATALOGS.it.projectEffect, /Effetto/u);
+    assert.equal(GUI_CATALOGS.it.progressSource, "4. Esamina sorgente");
+  });
 });
