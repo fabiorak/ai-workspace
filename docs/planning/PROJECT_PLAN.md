@@ -606,14 +606,16 @@ composition, exact-byte source provenance, controlled explicit local bundles,
 and read-only effective-instruction preview. It introduced no discovery,
 registry, execution, runtime permission, E6 Context Builder, model, or GUI.
 
-The next recommendation is an E5 increment for immutable versioned instruction
-source lifecycle and lossless export/re-import. It is not yet a sprint
-commitment and must preserve the explicit provenance and non-execution
-boundary established by ADR-0014.
+[Sprint 8](sprints/SPRINT-008.md) completed the first GUI-first product slice.
+ADR-0015 selected a foreground loopback Node host with no new dependency; the
+typed in-process facade and self-guiding UI now deliver register → synthetic
+import → search → event → integrity-verified source without manual or CLI
+knowledge. Security and presentation acceptance cover local authentication,
+Host/Origin/CSRF and body bounds, inert rendering, project scope, recovery,
+keyboard and label baselines, narrow viewport behavior, and corrupt artifacts.
 
-The next committed increment is [Sprint 8](sprints/SPRINT-008.md). It pauses
-deeper E5 expansion to establish the permanent GUI-first product boundary and
-deliver register → synthetic import → search → source inspection without a
-manual or CLI knowledge. An ADR must select GUI packaging and local security
-before any runtime or framework is added. GUI parity for memory, Work Items,
-handoffs, and instruction preview is the priority follow-up tranche.
+Sprint 9 is not yet committed. Its leading recommendation is GUI parity for
+active memory, Work Items, handoffs, and effective-instruction preview. The
+planning session must choose a bounded complete journey, retain CLI support for
+automation, and preserve the provenance, non-execution, and local-only
+boundaries established by ADR-0014 and ADR-0015.

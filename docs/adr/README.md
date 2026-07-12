@@ -34,3 +34,4 @@ Status: proposed | accepted | superseded
 - [ADR-0012: Store handoffs as immutable JSON files](0012-store-handoffs-as-immutable-json-files.md)
 - [ADR-0013: Normalize handoff provenance with lossless source references](0013-normalize-handoff-provenance-with-lossless-source-references.md)
 - [ADR-0014: Compose structured instructions with explicit precedence](0014-compose-structured-instructions-with-explicit-precedence.md)
+- [ADR-0015: Use a loopback built-in web host for the first GUI](0015-use-a-loopback-built-in-web-host-for-the-first-gui.md)

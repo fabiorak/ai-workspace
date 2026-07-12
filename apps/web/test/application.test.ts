@@ -1,0 +1,79 @@
+import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, it } from "node:test";
+import { promisify } from "node:util";
+import { GuiApplication } from "../src/index.ts";
+
+const execFileAsync = promisify(execFile);
+const sampleSessionPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../integrations/codex/test/fixtures/session.jsonl",
+);
+
+describe("GUI application facade", () => {
+  it("reuses existing use cases without exposing project paths", async () =>
+    withFixture(async ({ app, repository }) => {
+      const project = await app.registerProject(repository);
+      assert.equal("canonicalPath" in project, false);
+      assert.equal((await app.listProjects())[0]?.id, project.id);
+      assert.equal((await app.inspectProject(project.id)).name, project.name);
+    }));
+
+  it("imports idempotently and navigates project-scoped evidence", async () =>
+    withFixture(async ({ app, repository }) => {
+      const project = await app.registerProject(repository);
+      const first = await app.importSample(project.id);
+      const second = await app.importSample(project.id);
+      assert.ok(first.addedEvents > 0);
+      assert.equal(second.addedEvents, 0);
+      assert.equal(second.existingEvents, first.totalEvents);
+      const search = await app.search({ projectId: project.id, text: "test" });
+      assert.ok(search.results.length > 0);
+      assert.equal(search.results[0]?.trust, "UNTRUSTED");
+      const event = await app.showEvent(project.id, search.results[0]!.eventId);
+      assert.match(event.injectionWarning, /inert data/u);
+      const artifact = await app.openEventSource(project.id, event.eventId);
+      assert.equal(artifact.trust, "UNTRUSTED");
+      assert.ok(artifact.byteLength > 0);
+    }));
+});
+
+async function withFixture(
+  run: (value: { app: GuiApplication; repository: string }) => Promise<void>,
+) {
+  const root = await mkdtemp(join(tmpdir(), "ai-workspace-gui-app-"));
+  const home = join(root, "home");
+  const repository = join(root, "repository");
+  try {
+    await mkdir(repository);
+    await execFileAsync("git", [
+      "-C",
+      repository,
+      "init",
+      "--initial-branch=main",
+    ]);
+    await writeFile(join(repository, "README.md"), "# Synthetic GUI project\n");
+    await execFileAsync("git", ["-C", repository, "add", "README.md"]);
+    await execFileAsync("git", [
+      "-C",
+      repository,
+      "-c",
+      "user.name=Synthetic GUI Fixture",
+      "-c",
+      "user.email=gui-fixture@example.invalid",
+      "commit",
+      "-m",
+      "initial",
+    ]);
+    await run({
+      app: new GuiApplication({ workspaceHome: home, sampleSessionPath }),
+      repository,
+    });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+}

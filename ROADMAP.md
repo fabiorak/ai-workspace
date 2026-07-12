@@ -3,14 +3,14 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 5](docs/planning/sprints/SPRINT-005.md) are complete.
-M3 proves a controlled synthetic cross-agent handoff with explicit Work Items,
-section-level trust, bounded Git state, and deterministic evaluation. The tiny
-fixture produced no context saving; Sprint 6 will be refined from this evidence
-before any E6 optimization claim. Detailed results remain in sprint records.
-The next forecast increment is [Sprint 6](docs/planning/sprints/SPRINT-006.md),
-an E4 hardening experiment that measures break-even and structural provenance
-overhead before considering a backward-compatible representation change.
+Sprint 0 through [Sprint 8](docs/planning/sprints/SPRINT-008.md) are complete.
+The repository now includes the M3 cross-agent handoff, normalized measurable
+handoff persistence, deterministic effective-instruction preview, and the
+first GUI-first local journey. The foreground loopback GUI guides project
+registration, synthetic import, evidence search, and integrity-verified source
+inspection without requiring CLI knowledge. The next sprint is intentionally
+uncommitted pending Sprint 9 planning; GUI parity for active memory, Work Items,
+handoffs, and effective instructions is the leading product recommendation.
 
 ## 1. Project Memory
 

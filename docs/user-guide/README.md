@@ -1,5 +1,6 @@
 # User Guide
 
+- [Complete the first guided GUI journey](gui-first-journey.md)
 - [Register and inspect local Git repositories](project-registry.md)
 - [Import and inspect a Codex session](session-ingestion.md)
 - [Search historical events and open source evidence](historical-search.md)

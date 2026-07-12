@@ -22,6 +22,7 @@
     "cli": "node apps/cli/dist/main.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "gui": "node apps/web/dist/main.js",
     "lint": "eslint .",
     "test": "node --test apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "test:watch": "node --test --watch apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",

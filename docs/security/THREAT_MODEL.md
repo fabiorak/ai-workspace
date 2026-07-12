@@ -64,6 +64,16 @@ The host operating system is trusted for the initial local deployment. Content
 read from the host is not automatically trusted. External providers, imported
 content, generated model output, packages, and tool arguments remain untrusted.
 
+The first GUI adds a browser-to-loopback boundary. Its foreground host binds
+only to `127.0.0.1`, validates the request remote address and exact Host,
+establishes an opaque cookie through a one-time bootstrap URL, and requires an
+exact same-origin Origin plus CSRF token for mutations. A restrictive CSP,
+frame denial, no-sniff, no-referrer, local-only assets, bounded bodies, declared
+methods and content types, and inert `textContent` rendering reduce DNS
+rebinding, CSRF, framing, XSS, and data-exfiltration risks. Non-loopback access,
+remote assets, persistent daemon operation, and production packaging remain
+forbidden without a new architecture and threat review.
+
 ## Principal threats and baseline controls
 
 ### Secret capture and disclosure

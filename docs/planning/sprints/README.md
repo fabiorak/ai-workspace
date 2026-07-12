@@ -12,4 +12,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 5 — Hand Off One Work Item Across Agents](SPRINT-005.md) — completed
 - [Sprint 6 — Make Handoff Overhead Measurable and Proportional](SPRINT-006.md) — completed
 - [Sprint 7 — Inspect Effective Instructions Before Agent Execution](SPRINT-007.md) — completed
-- [Sprint 8 — Make the First Project Journey GUI-first](SPRINT-008.md) — planned
+- [Sprint 8 — Make the First Project Journey GUI-first](SPRINT-008.md) — completed

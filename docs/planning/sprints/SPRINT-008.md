@@ -4,7 +4,7 @@
 
 **Milestone:** post-M3 local GUI alpha, first vertical slice
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 
@@ -258,5 +258,44 @@ security decision is accepted.
 
 ## Execution log
 
-Append dated implementation evidence here. Add review and retrospective only
-after the complete no-manual GUI journey and all final gates pass.
+### 2026-07-11 to 2026-07-12
+
+- S8-01 froze six interaction states and complete inline action, effect,
+  prerequisite, recovery, focus, label, keyboard, non-color, reduced-motion,
+  and capability-map contracts.
+- S8-02 accepted ADR-0015 before implementation: a dependency-free foreground
+  Node host bound to loopback with one-time bootstrap, session cookie, CSRF,
+  Host/Origin checks, restrictive CSP, local assets, and bounded requests.
+- S8-03 introduced a typed in-process facade over Project Registry, controlled
+  Codex ingestion, historical search, event inspection, and artifact opening.
+- S8-04 through S8-06 delivered project onboarding, idempotent safe-sample
+  import, filtered search, event detail, and integrity-verified source display.
+- S8-07 proved the isolated visible journey plus authentication, mutation
+  controls, body bounds, project scope, empty results, inert rendering,
+  viewport/reduced-motion CSS, idempotency, and corruption fail-closed paths.
+- The final gate passed formatting, lint, typecheck, build, and 126 tests. The
+  runnable `npm run gui` entry point uses no framework, remote asset,
+  telemetry, model, agent, tool, or imported-instruction execution.
+
+## Sprint review
+
+The sprint delivered the first operational GUI-first slice rather than a
+static shell. A first-time user can follow register → safe sample import →
+search → event → source using visible labels and inline guidance. Evidence
+remains project-scoped, visibly `UNTRUSTED`, inert, bounded, source-linked, and
+integrity checked. The acceptance is synthetic and automated; it is not a
+claim of broad usability or WCAG certification. A real-browser participant
+study and native folder selection remain future validation work.
+
+The priority recommendation for Sprint 9 planning is GUI parity for active
+memory, Work Items, handoffs, and effective-instruction preview, sequenced as
+complete guided journeys rather than disconnected controls.
+
+## Retrospective
+
+- Architecture and interaction contracts made the dependency-free vertical
+  slice possible without weakening the security boundary.
+- Progressive gates caught presentation defects early, but runnable entry
+  points must become an explicit acceptance item before the final quality gate.
+- Next experiment: test each GUI tranche through both the in-process facade and
+  its real foreground startup path before documentation closure.

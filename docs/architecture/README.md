@@ -14,6 +14,14 @@ plane baseline. Application frameworks, UI technology, transactional storage,
 historical search, and privacy-service boundaries remain design candidates and
 will be selected when a vertical product slice requires them.
 
+The first GUI vertical slice is a foreground Node built-in HTTP host in
+`apps/web`. It binds only to loopback, serves semantic HTML and local assets,
+and calls a typed in-process application facade rather than the CLI. A one-time
+bootstrap establishes an opaque session cookie; Host, Origin, CSRF, method,
+content-type, and body bounds are checked before state changes. Imported
+evidence is rendered as inert text. ADR-0015 records this reversible alpha
+boundary and its desktop and packaging revisit triggers.
+
 The implemented local persistence baseline now consists of:
 
 - a schema-versioned atomic JSON Project Registry;

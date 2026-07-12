@@ -1,0 +1,32 @@
+{
+  "name": "@ai-workspace/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local self-guiding GUI for AI Workspace",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "ai-workspace-gui": "dist/main.js"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/codex-adapter": "0.0.0",
+    "@ai-workspace/git-adapter": "0.0.0",
+    "@ai-workspace/historical-search": "0.0.0",
+    "@ai-workspace/local-project-registry": "0.0.0",
+    "@ai-workspace/local-session-ingestion": "0.0.0",
+    "@ai-workspace/project-registry": "0.0.0",
+    "@ai-workspace/session-ingestion": "0.0.0"
+  }
+}

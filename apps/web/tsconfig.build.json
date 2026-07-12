@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../../packages/historical-search/tsconfig.build.json" },
+    { "path": "../../packages/project-registry/tsconfig.build.json" },
+    { "path": "../../packages/session-ingestion/tsconfig.build.json" },
+    { "path": "../../integrations/codex/tsconfig.build.json" },
+    { "path": "../../integrations/git/tsconfig.build.json" },
+    { "path": "../../integrations/local-project-registry/tsconfig.build.json" },
+    { "path": "../../integrations/local-session-ingestion/tsconfig.build.json" }
+  ]
+}

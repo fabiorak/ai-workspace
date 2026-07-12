@@ -9,8 +9,8 @@ sensitive data before it reaches external models.
 
 > [!IMPORTANT]
 > AI Workspace is currently in the design and early scaffolding phase. There
-> is no supported release yet. The repository contains early CLI slices for
-> local development and evaluation.
+> is no supported release yet. The repository contains an early local GUI and
+> CLI slices for synthetic development and evaluation.
 
 ## Why AI Workspace?
 
@@ -114,6 +114,22 @@ decisions rather than assumed by this initial scaffold.
 - [Roadmap](ROADMAP.md)
 
 ## Current capabilities
+
+Sprint 8 adds the primary self-guiding local GUI journey. Build it, start the
+foreground loopback host, and open the one-time URL printed in the terminal:
+
+```bash
+npm ci
+npm run build
+npm run gui
+```
+
+The GUI guides project registration, safe synthetic import, literal evidence
+search, canonical event inspection, and integrity-verified source opening. It
+binds only to `127.0.0.1`, uses no remote assets or telemetry, and keeps
+imported content visibly `UNTRUSTED` and inert. This is a pre-release alpha;
+real or private transcripts are not supported. See the
+[GUI first-journey guide](docs/user-guide/gui-first-journey.md).
 
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,
