@@ -74,6 +74,13 @@ rebinding, CSRF, framing, XSS, and data-exfiltration risks. Non-loopback access,
 remote assets, persistent daemon operation, and production packaging remain
 forbidden without a new architecture and threat review.
 
+GUI active-memory mutations require both the existing browser mutation
+controls and explicit canonical event IDs. The domain resolves those sources
+inside the selected project before persistence; missing and foreign sources
+fail without disclosing foreign content. `USER_CURATED` is displayed as an
+attribution state, never as trusted input, executable instruction, or an
+automatic promotion from historical evidence.
+
 ## Principal threats and baseline controls
 
 ### Secret capture and disclosure

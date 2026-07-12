@@ -3,14 +3,14 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 8](docs/planning/sprints/SPRINT-008.md) are complete.
+Sprint 0 through [Sprint 9](docs/planning/sprints/SPRINT-009.md) are complete.
 The repository now includes the M3 cross-agent handoff, normalized measurable
 handoff persistence, deterministic effective-instruction preview, and the
-first GUI-first local journey. The foreground loopback GUI guides project
-registration, synthetic import, evidence search, and integrity-verified source
-inspection without requiring CLI knowledge. The next sprint is intentionally
-uncommitted pending Sprint 9 planning; GUI parity for active memory, Work Items,
-handoffs, and effective instructions is the leading product recommendation.
+first GUI-first local journeys. The foreground loopback GUI guides project
+registration, synthetic import, evidence search, integrity-verified source
+inspection, and complete source-linked active-memory lifecycle without CLI
+knowledge. Work Item/handoff and effective-instruction GUI parity remain the
+leading product recommendations; no later sprint is committed yet.
 
 ## 1. Project Memory
 

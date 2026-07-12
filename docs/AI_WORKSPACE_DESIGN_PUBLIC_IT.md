@@ -1931,8 +1931,12 @@ ADR-018 Context policy bound to agent and skill
 Questa sequenza esprime dipendenze concettuali di lungo periodo e non sostituisce
 la roadmap operativa in `ROADMAP.md`. Il Core MVP alpha resta software-only:
 Project Registry, ingestion controllata, ricerca storica bounded, active memory
-curata, Work Item e handoff verificabili. Backend indicizzati, UI, model access,
-Context Builder e orchestrazione richiedono vertical slice e ADR dedicati.
+curata, Work Item e handoff verificabili. La GUI foreground loopback
+implementata copre ora il primo journey progetto/ricerca/source e il lifecycle
+completo dell'active memory source-linked; ADR-0015 ne registra il boundary
+browser locale. Parità GUI più ampia, backend indicizzati, model access,
+Context Builder e orchestrazione richiedono ancora vertical slice e ADR
+dedicati.
 
 ### MVP 1 — Project Memory
 

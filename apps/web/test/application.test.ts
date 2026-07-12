@@ -40,6 +40,50 @@ describe("GUI application facade", () => {
       assert.equal(artifact.trust, "UNTRUSTED");
       assert.ok(artifact.byteLength > 0);
     }));
+
+  it("curates source-linked memory through its additive lifecycle", async () =>
+    withFixture(async ({ app, repository }) => {
+      const project = await app.registerProject(repository);
+      await app.importSample(project.id);
+      const eventId = (
+        await app.search({ projectId: project.id, text: "test" })
+      ).results[0]!.eventId;
+      const created = await app.addMemory({
+        projectId: project.id,
+        type: "DECISION",
+        content: "Use the fictional tested greeting.",
+        sourceEventIds: [eventId],
+      });
+      assert.equal(created.curation, "USER_CURATED");
+      assert.equal(created.sources[0]!.trust, "UNTRUSTED");
+      const verified = await app.verifyMemory({
+        projectId: project.id,
+        memoryId: created.id,
+        note: "Reviewed against the synthetic test result.",
+        sourceEventIds: [eventId],
+      });
+      assert.equal(verified.verification, "VERIFIED");
+      const superseded = await app.supersedeMemory({
+        projectId: project.id,
+        memoryId: verified.id,
+        content: "Use the revised fictional tested greeting.",
+        sourceEventIds: [eventId],
+      });
+      assert.equal(superseded.previous.validity, "SUPERSEDED");
+      assert.equal(superseded.replacement.verification, "UNVERIFIED");
+      assert.equal(superseded.replacement.confidence, "UNASSESSED");
+      const invalidated = await app.invalidateMemory({
+        projectId: project.id,
+        memoryId: superseded.replacement.id,
+        reason: "The fictional requirement was withdrawn.",
+        sourceEventIds: [eventId],
+      });
+      assert.equal(invalidated.validity, "INVALIDATED");
+      assert.deepEqual(
+        (await app.listMemory({ projectId: project.id })).items,
+        [],
+      );
+    }));
 });
 
 async function withFixture(

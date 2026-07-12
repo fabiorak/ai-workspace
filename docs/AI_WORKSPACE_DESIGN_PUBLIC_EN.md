@@ -2597,9 +2597,12 @@ ADR-026 Unified Work Item for code and documents
 
 This is a long-term product horizon, not the operational sprint plan in
 `ROADMAP.md`. The Core MVP alpha remains software-only: Project Registry,
-controlled ingestion, bounded historical search, curated active memory,
-Work Items, and verifiable handoffs. Indexed backends, UI, model access,
-Context Builder, and orchestration require dedicated vertical slices and ADRs.
+controlled ingestion, bounded historical search, curated active memory, Work
+Items, and verifiable handoffs. The implemented foreground loopback GUI now
+covers the first project/search/source journey and complete source-linked
+active-memory lifecycle; ADR-0015 records its local browser boundary. Broader
+GUI parity, indexed backends, model access, Context Builder, and orchestration
+still require dedicated vertical slices and ADRs.
 
 ### MVP 1 — Project Memory and Search
 

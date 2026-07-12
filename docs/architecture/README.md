@@ -22,6 +22,12 @@ content-type, and body bounds are checked before state changes. Imported
 evidence is rendered as inert text. ADR-0015 records this reversible alpha
 boundary and its desktop and packaging revisit triggers.
 
+The same facade now exposes the provider-neutral active-memory lifecycle to the
+GUI. Presentation and HTTP layers do not reconstruct domain rules: all
+same-project provenance, active-only listing, optimistic versions, terminal
+transitions, and additive verification/supersession/invalidation remain owned
+by `packages/active-memory` and the atomic local adapter.
+
 The implemented local persistence baseline now consists of:
 
 - a schema-versioned atomic JSON Project Registry;

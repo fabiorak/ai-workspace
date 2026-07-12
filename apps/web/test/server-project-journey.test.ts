@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -87,6 +88,8 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Register this project/u);
     assert.match(html, /GUI parity next/u);
     assert.match(html, /label for="search-query"/u);
+    assert.match(html, /Create source-linked memory/u);
+    assert.match(html, /USER_CURATED does not mean trusted/u);
     assert.match(html, /role="alert"/u);
     assert.equal(/https?:\/\/(?!127\.0\.0\.1)/u.test(html), false);
     const script = await (
@@ -255,6 +258,145 @@ describe("GUI server project onboarding", () => {
     );
   });
 
+  it("curates and persists complete source-linked memory lifecycle over HTTP", async () => {
+    const projects = (await (await api("/api/projects")).json()) as {
+      id: string;
+    }[];
+    const projectId = projects[0]!.id;
+    const search = (await (
+      await api(
+        `/api/projects/${encodeURIComponent(projectId)}/search?q=test&limit=1`,
+      )
+    ).json()) as { results: { eventId: string }[] };
+    const sourceEventIds = [search.results[0]!.eventId];
+    const createdResponse = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/memory`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          type: "CONSTRAINT",
+          content: "Keep the fictional greeting covered by a test.",
+          sourceEventIds,
+        }),
+      },
+    );
+    assert.equal(createdResponse.status, 201);
+    const created = (await createdResponse.json()) as {
+      id: string;
+      validity: string;
+      verification: string;
+      confidence: string;
+      curation: string;
+      sources: { trust: string }[];
+    };
+    assert.deepEqual(
+      [
+        created.validity,
+        created.verification,
+        created.confidence,
+        created.curation,
+      ],
+      ["ACTIVE", "UNVERIFIED", "UNASSESSED", "USER_CURATED"],
+    );
+    assert.equal(created.sources[0]!.trust, "UNTRUSTED");
+    const listed = (await (
+      await api(
+        `/api/projects/${encodeURIComponent(projectId)}/memory?limit=20`,
+      )
+    ).json()) as { items: { id: string }[] };
+    assert.equal(
+      listed.items.some((item) => item.id === created.id),
+      true,
+    );
+    const verified = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/memory/${created.id}/verify`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          note: "Reviewed against synthetic evidence.",
+          sourceEventIds,
+        }),
+      },
+    );
+    assert.equal(
+      ((await verified.json()) as { verification: string }).verification,
+      "VERIFIED",
+    );
+    const superseded = (await (
+      await api(
+        `/api/projects/${encodeURIComponent(projectId)}/memory/${created.id}/supersede`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            content: "Keep the revised fictional greeting covered by a test.",
+            sourceEventIds,
+          }),
+        },
+      )
+    ).json()) as {
+      previous: { validity: string };
+      replacement: { id: string; verification: string };
+    };
+    assert.equal(superseded.previous.validity, "SUPERSEDED");
+    assert.equal(superseded.replacement.verification, "UNVERIFIED");
+    const invalidated = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/memory/${superseded.replacement.id}/invalidate`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          reason: "Synthetic requirement removed.",
+          sourceEventIds,
+        }),
+      },
+    );
+    assert.equal(
+      ((await invalidated.json()) as { validity: string }).validity,
+      "INVALIDATED",
+    );
+    const terminal = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/memory?validity=INVALIDATED`,
+    );
+    assert.match(await terminal.text(), /Synthetic requirement removed/u);
+  });
+
+  it("rejects invalid memory filters, missing sources, and terminal transitions", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    assert.equal(
+      (await api(`/api/projects/${projectId}/memory?validity=UNKNOWN`)).status,
+      400,
+    );
+    assert.equal(
+      (
+        await api(`/api/projects/${projectId}/memory`, {
+          method: "POST",
+          body: JSON.stringify({
+            type: "DECISION",
+            content: "No source",
+            sourceEventIds: [],
+          }),
+        })
+      ).status,
+      400,
+    );
+    const invalidated = (await (
+      await api(`/api/projects/${projectId}/memory?validity=INVALIDATED`)
+    ).json()) as { items: { id: string }[] };
+    const response = await api(
+      `/api/projects/${projectId}/memory/${invalidated.items[0]!.id}/verify`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          note: "Must fail",
+          sourceEventIds: ["missing-event"],
+        }),
+      },
+    );
+    assert.equal(response.status, 400);
+    assert.equal((await response.text()).includes("Must fail"), false);
+  });
+
   it("rejects oversized bodies and undeclared methods without leaking input", async () => {
     const canary = "PRIVATE-CANARY-SHOULD-NOT-ECHO";
     const oversized = await api("/api/projects", {
@@ -267,6 +409,22 @@ describe("GUI server project onboarding", () => {
       (await api("/api/projects", { method: "DELETE" })).status,
       404,
     );
+  });
+
+  it("fails closed when active-memory storage is corrupt", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    const digest = createHash("sha256").update(projectId).digest("hex");
+    await writeFile(
+      join(root, "home", "memory", `project_${digest}.json`),
+      "corrupt-memory-canary",
+    );
+    const response = await api(`/api/projects/${projectId}/memory`);
+    assert.equal(response.status, 400);
+    const body = await response.text();
+    assert.match(body, /valid JSON/u);
+    assert.equal(body.includes("corrupt-memory-canary"), false);
   });
 
   it("fails closed when source artifact integrity is lost", async () => {

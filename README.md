@@ -131,6 +131,12 @@ imported content visibly `UNTRUSTED` and inert. This is a pre-release alpha;
 real or private transcripts are not supported. See the
 [GUI first-journey guide](docs/user-guide/gui-first-journey.md).
 
+Sprint 9 extends that same primary GUI with complete active-memory curation.
+From an inspected canonical event, users can explicitly create a source-linked
+decision, constraint, or failure; browse active or terminal items; inspect
+provenance; and verify, supersede, or invalidate additively. `USER_CURATED`
+never promotes the linked `UNTRUSTED` evidence to trusted or executable data.
+
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state
@@ -186,7 +192,7 @@ Results remain visibly untrusted, source-linked evidence. Artifact content is
 shown only after an explicit command and a successful SHA-256 integrity check.
 See the [Historical Search guide](docs/user-guide/historical-search.md).
 
-Sprint 4 adds explicit curation of selected evidence as active decisions,
+Sprint 4 added explicit CLI curation of selected evidence as active decisions,
 constraints, and failures:
 
 ```bash

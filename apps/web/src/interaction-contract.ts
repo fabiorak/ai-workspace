@@ -1,5 +1,12 @@
 export type GuiJourneyStep =
-  "WELCOME" | "PROJECTS" | "IMPORT" | "SEARCH" | "EVENT" | "ARTIFACT";
+  | "WELCOME"
+  | "PROJECTS"
+  | "IMPORT"
+  | "SEARCH"
+  | "EVENT"
+  | "ARTIFACT"
+  | "MEMORY"
+  | "MEMORY_DETAIL";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -148,6 +155,38 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: false,
       }),
     ),
+    screen(
+      "MEMORY",
+      "Curate active project memory",
+      "Turn explicitly selected evidence into active decisions, constraints, or failures.",
+      action({
+        id: "create-memory",
+        label: "Create source-linked memory",
+        description:
+          "Create one USER_CURATED item from the selected canonical event.",
+        effect:
+          "Creates ACTIVE, UNVERIFIED, UNASSESSED memory without promoting evidence trust.",
+        prerequisites:
+          "Inspect a canonical event in the selected project and explicitly use it as evidence.",
+        mutates: true,
+      }),
+    ),
+    screen(
+      "MEMORY_DETAIL",
+      "Memory lifecycle and provenance",
+      "Inspect trust and attribution, then verify, supersede, or invalidate additively.",
+      action({
+        id: "transition-memory",
+        label: "Record a lifecycle transition",
+        description:
+          "Apply one explicit valid transition with newly selected canonical evidence.",
+        effect:
+          "Appends attribution and provenance; no memory or evidence is edited or deleted.",
+        prerequisites:
+          "Choose an ACTIVE item and explicitly select a same-project canonical event.",
+        mutates: true,
+      }),
+    ),
   ],
 );
 
@@ -220,7 +259,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 6)
+  if (steps.size !== 8)
     throw new Error(
       "The first GUI journey must cover all six committed steps.",
     );

@@ -1,5 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { basename, join } from "node:path";
+import {
+  ActiveMemory,
+  type InvalidateMemoryInput,
+  type ListMemoryQuery,
+  type MemoryItem,
+  type SupersedeMemoryInput,
+  type VerifyMemoryInput,
+} from "@ai-workspace/active-memory";
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
 import { GitRepositoryInspector } from "@ai-workspace/git-adapter";
 import {
@@ -7,6 +15,10 @@ import {
   type HistoricalSearchQuery,
 } from "@ai-workspace/historical-search";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
+import {
+  JsonActiveMemoryStore,
+  LocalMemorySourceEventReader,
+} from "@ai-workspace/local-active-memory";
 import {
   FileArtifactStore,
   HighConfidenceRestrictedDataScreen,
@@ -87,6 +99,10 @@ export type GuiArtifact = Readonly<{
   content: string;
   injectionWarning: string;
 }>;
+export type GuiMemoryPage = Readonly<{
+  items: readonly MemoryItem[];
+  nextCursor: string | null;
+}>;
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -105,6 +121,7 @@ export class GuiApplication {
   readonly #registry: ProjectRegistry;
   readonly #ingestion: SessionIngestion;
   readonly #history: HistoricalSearch;
+  readonly #memory: ActiveMemory;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -136,6 +153,15 @@ export class GuiApplication {
       events: new LocalHistoricalEventReader(dependencies.workspaceHome),
       artifacts: new FileArtifactStore(dependencies.workspaceHome),
       projects,
+    });
+    this.#memory = new ActiveMemory({
+      store: new JsonActiveMemoryStore(dependencies.workspaceHome),
+      sourceEvents: new LocalMemorySourceEventReader(
+        dependencies.workspaceHome,
+      ),
+      projects,
+      ids: randomUUID,
+      clock: () => new Date(),
     });
     this.#sampleSessionPath = dependencies.sampleSessionPath;
   }
@@ -259,6 +285,55 @@ export class GuiApplication {
         injectionWarning: injectionWarning(),
       });
     }, "Return to the canonical event. Reimport the reviewed sample if source integrity is unavailable.");
+  }
+
+  public async listMemory(query: ListMemoryQuery): Promise<GuiMemoryPage> {
+    return this.#run(
+      () => this.#memory.list(query),
+      "Keep the selected project and filters, then retry loading active memory.",
+    );
+  }
+  public async showMemory(
+    projectId: string,
+    memoryId: string,
+  ): Promise<MemoryItem> {
+    return this.#run(
+      () => this.#memory.show(projectId, memoryId),
+      "Return to the memory list, select an item in this project, and retry.",
+    );
+  }
+  public async addMemory(
+    input: Readonly<{
+      projectId: string;
+      type: MemoryItem["type"];
+      content: string;
+      sourceEventIds: readonly string[];
+    }>,
+  ): Promise<MemoryItem> {
+    return this.#run(
+      () => this.#memory.add(input),
+      "Keep the entered content, select canonical evidence from this project, and retry.",
+    );
+  }
+  public async verifyMemory(input: VerifyMemoryInput): Promise<MemoryItem> {
+    return this.#run(
+      () => this.#memory.verify(input),
+      "Keep the verification note, select current canonical evidence, and retry.",
+    );
+  }
+  public async supersedeMemory(input: SupersedeMemoryInput) {
+    return this.#run(
+      () => this.#memory.supersede(input),
+      "Keep the replacement content, select current canonical evidence, and retry.",
+    );
+  }
+  public async invalidateMemory(
+    input: InvalidateMemoryInput,
+  ): Promise<MemoryItem> {
+    return this.#run(
+      () => this.#memory.invalidate(input),
+      "Keep the reason, select current canonical evidence, and retry.",
+    );
   }
 
   async #run<T>(operation: () => Promise<T>, recovery: string): Promise<T> {

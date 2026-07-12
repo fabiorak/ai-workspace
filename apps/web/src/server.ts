@@ -10,6 +10,14 @@ import {
   SESSION_EVENT_TYPES,
   type SessionEventType,
 } from "@ai-workspace/session-ingestion";
+import {
+  MEMORY_ITEM_TYPES,
+  MEMORY_VALIDITIES,
+  MEMORY_VERIFICATIONS,
+  type MemoryItemType,
+  type MemoryValidity,
+  type MemoryVerification,
+} from "@ai-workspace/active-memory";
 
 const MAX_BODY = 32 * 1024;
 const COOKIE = "aiw_session";
@@ -78,6 +86,52 @@ export async function startGuiServer(
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
       if (request.method === "GET") {
+        const memoryList = /^\/api\/projects\/([^/]+)\/memory$/u.exec(
+          url.pathname,
+        );
+        if (memoryList !== null) {
+          const type = optionalEnum(
+            url.searchParams.get("type"),
+            MEMORY_ITEM_TYPES,
+            "memory type",
+          ) as MemoryItemType | undefined;
+          const validity = optionalEnum(
+            url.searchParams.get("validity"),
+            MEMORY_VALIDITIES,
+            "memory validity",
+          ) as MemoryValidity | undefined;
+          const verification = optionalEnum(
+            url.searchParams.get("verification"),
+            MEMORY_VERIFICATIONS,
+            "memory verification",
+          ) as MemoryVerification | undefined;
+          const limit = optionalLimit(url.searchParams.get("limit"));
+          const cursor = url.searchParams.get("cursor");
+          return json(
+            response,
+            200,
+            await application.listMemory({
+              projectId: decodeURIComponent(memoryList[1]!),
+              ...(type === undefined ? {} : { type }),
+              ...(validity === undefined ? {} : { validity }),
+              ...(verification === undefined ? {} : { verification }),
+              ...(limit === undefined ? {} : { limit }),
+              ...(cursor === null ? {} : { cursor }),
+            }),
+          );
+        }
+        const memoryItem = /^\/api\/projects\/([^/]+)\/memory\/([^/]+)$/u.exec(
+          url.pathname,
+        );
+        if (memoryItem !== null)
+          return json(
+            response,
+            200,
+            await application.showMemory(
+              decodeURIComponent(memoryItem[1]!),
+              decodeURIComponent(memoryItem[2]!),
+            ),
+          );
         const search = /^\/api\/projects\/([^/]+)\/search$/u.exec(url.pathname);
         if (search !== null) {
           const typeValue = url.searchParams.get("type");
@@ -150,6 +204,77 @@ export async function startGuiServer(
             201,
             await application.registerProject(body.path),
           );
+        }
+        const addMemory = /^\/api\/projects\/([^/]+)\/memory$/u.exec(
+          url.pathname,
+        );
+        if (addMemory !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.type !== "string" ||
+            !MEMORY_ITEM_TYPES.includes(body.type as MemoryItemType) ||
+            typeof body.content !== "string" ||
+            !stringArray(body.sourceEventIds)
+          )
+            return reject(
+              response,
+              400,
+              "Enter a documented memory type, content, and canonical source events.",
+            );
+          return json(
+            response,
+            201,
+            await application.addMemory({
+              projectId: decodeURIComponent(addMemory[1]!),
+              type: body.type as MemoryItemType,
+              content: body.content,
+              sourceEventIds: body.sourceEventIds,
+            }),
+          );
+        }
+        const transition =
+          /^\/api\/projects\/([^/]+)\/memory\/([^/]+)\/(verify|supersede|invalidate)$/u.exec(
+            url.pathname,
+          );
+        if (transition !== null) {
+          const body = await readJson(request);
+          if (!record(body) || !stringArray(body.sourceEventIds))
+            return reject(
+              response,
+              400,
+              "Select at least one canonical source event.",
+            );
+          const base = {
+            projectId: decodeURIComponent(transition[1]!),
+            memoryId: decodeURIComponent(transition[2]!),
+            sourceEventIds: body.sourceEventIds,
+          };
+          if (transition[3] === "verify" && typeof body.note === "string")
+            return json(
+              response,
+              200,
+              await application.verifyMemory({ ...base, note: body.note }),
+            );
+          if (transition[3] === "supersede" && typeof body.content === "string")
+            return json(
+              response,
+              201,
+              await application.supersedeMemory({
+                ...base,
+                content: body.content,
+              }),
+            );
+          if (transition[3] === "invalidate" && typeof body.reason === "string")
+            return json(
+              response,
+              200,
+              await application.invalidateMemory({
+                ...base,
+                reason: body.reason,
+              }),
+            );
+          return reject(response, 400, "Enter the documented lifecycle value.");
         }
         const inspect = /^\/api\/projects\/([^/]+)\/inspect$/u.exec(
           url.pathname,
@@ -287,4 +412,28 @@ function reject(response: ServerResponse, status: number, message: string) {
 }
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function stringArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((item) => typeof item === "string")
+  );
+}
+function optionalEnum(
+  value: string | null,
+  allowed: readonly string[],
+  label: string,
+): string | undefined {
+  if (value === null) return undefined;
+  if (!allowed.includes(value))
+    throw new Error(`Choose a documented ${label}.`);
+  return value;
+}
+function optionalLimit(value: string | null): number | undefined {
+  if (value === null) return undefined;
+  const limit = Number(value);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+    throw new Error("Memory limit must be an integer from 1 to 100.");
+  return limit;
 }

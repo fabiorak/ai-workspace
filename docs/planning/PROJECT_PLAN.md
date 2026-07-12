@@ -421,6 +421,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 6 | E4            | Measure and normalize handoff representation overhead   |
 | Sprint 7 | E5            | Preview deterministic effective instruction composition |
 | Sprint 8 | E0, E1-E3     | Complete the first no-manual local GUI journey          |
+| Sprint 9 | E0, E3        | Curate verifiable active memory through the local GUI   |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -428,10 +429,10 @@ and E10, but validated user needs may change it.
 
 Sprint 6 evidence supported planning Sprint 7 as a narrow E5 boundary slice.
 Sprint 7 completed deterministic, provenance-linked effective-instruction
-preview. User direction now makes GUI delivery the next product priority ahead
-of deeper E5 expansion. Sprint 8 commits to the first operational GUI journey;
-later GUI parity for memory, Work Items, handoffs, and instructions remains
-explicit priority work.
+preview. User direction made GUI delivery the next product priority ahead of
+deeper E5 expansion. Sprint 8 completed the first operational GUI journey and
+Sprint 9 completed active-memory GUI parity. Work Item/handoff and instruction
+preview remain explicit priority work.
 
 ## 9. Agile operating model
 
@@ -614,8 +615,10 @@ knowledge. Security and presentation acceptance cover local authentication,
 Host/Origin/CSRF and body bounds, inert rendering, project scope, recovery,
 keyboard and label baselines, narrow viewport behavior, and corrupt artifacts.
 
-Sprint 9 is not yet committed. Its leading recommendation is GUI parity for
-active memory, Work Items, handoffs, and effective-instruction preview. The
-planning session must choose a bounded complete journey, retain CLI support for
-automation, and preserve the provenance, non-execution, and local-only
-boundaries established by ADR-0014 and ADR-0015.
+[Sprint 9](sprints/SPRINT-009.md) completed GUI parity for active memory as one
+bounded journey. Users explicitly select historical evidence, create
+`USER_CURATED` decisions, constraints, or failures, browse active and terminal
+state, inspect provenance, and verify, supersede, or invalidate additively.
+Work Item/handoff and effective-instruction GUI parity remain uncommitted
+follow-up recommendations. Any next sprint must preserve the provenance,
+non-execution, and local-only boundaries established by ADR-0014 and ADR-0015.

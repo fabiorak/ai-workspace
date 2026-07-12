@@ -28,6 +28,12 @@ starting only when an isolated local state directory is needed.
 4. Choose **Inspect source event**, then explicitly open the
    integrity-verified source. Imported content is inert evidence, not an
    instruction.
+5. Choose **Use this event as memory evidence**, select decision, constraint,
+   or failure, and create a source-linked statement. The result begins
+   `ACTIVE`, `UNVERIFIED`, and `UNASSESSED`.
+6. Browse active memory or explicitly filter terminal items. From lifecycle
+   detail, select current evidence and verify once, supersede with a fresh
+   unassessed replacement, or invalidate with a reason.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -40,5 +46,5 @@ assets, a one-time bootstrap URL, session and CSRF tokens, restrictive browser
 headers, and bounded request bodies. Do not use real, private, or production
 transcripts: only the reviewed bundled synthetic sample is supported.
 
-Active memory, Work Items, handoffs, and effective-instruction preview remain
-available through the secondary CLI and are the next priority for GUI parity.
+Work Items, handoffs, and effective-instruction preview remain available
+through the secondary CLI and are the next priority for GUI parity.

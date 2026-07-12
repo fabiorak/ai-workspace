@@ -1,5 +1,11 @@
 # Curate active project memory
 
+The primary local GUI supports this complete lifecycle. Start it with
+`npm run gui`, inspect a canonical event, choose **Use this event as memory
+evidence**, and follow the inline create, browse, verify, supersede, or
+invalidate actions. The CLI below remains supported for automation,
+diagnostics, and advanced workflows.
+
 Active memory records the small set of decisions, constraints, and failures
 that a local user currently considers relevant. It is separate from imported
 history:
