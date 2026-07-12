@@ -16,3 +16,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 9 — Curate Verifiable Active Memory in the GUI](SPRINT-009.md) — completed
 - [Sprint 10 — Manage Work Items and Handoffs in the GUI](SPRINT-010.md) — completed
 - [Sprint 11 — Localize the GUI and Preview Effective Instructions](SPRINT-011.md) — completed
+- [Sprint 12 — Preview a Bounded Context Pack](SPRINT-012.md) — planned

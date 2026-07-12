@@ -424,6 +424,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 9  | E0, E3        | Curate verifiable active memory through the local GUI   |
 | Sprint 10 | E0, E4        | Manage Work Items and handoffs through a GUI cockpit    |
 | Sprint 11 | E0, E5        | Localize the GUI and preview effective instructions     |
+| Sprint 12 | E0, E6        | Preview a deterministic budgeted Context Pack           |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
