@@ -15,6 +15,9 @@
         "./packages/historical-search/src/index.ts"
       ],
       "@ai-workspace/handoff": ["./packages/handoff/src/index.ts"],
+      "@ai-workspace/instruction-manager": [
+        "./packages/instruction-manager/src/index.ts"
+      ],
       "@ai-workspace/local-session-ingestion": [
         "./integrations/local-session-ingestion/src/index.ts"
       ],
@@ -26,6 +29,9 @@
       ],
       "@ai-workspace/local-handoffs": [
         "./integrations/local-handoffs/src/index.ts"
+      ],
+      "@ai-workspace/local-instructions": [
+        "./integrations/local-instructions/src/index.ts"
       ],
       "@ai-workspace/local-work-items": [
         "./integrations/local-work-items/src/index.ts"
