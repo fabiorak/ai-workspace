@@ -18,3 +18,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 11 — Localize the GUI and Preview Effective Instructions](SPRINT-011.md) — completed
 - [Sprint 12 — Preview a Bounded Context Pack](SPRINT-012.md) — completed
 - [Sprint 13 — Measure Context Pack Budget Pressure](SPRINT-013.md) — completed
+- [Sprint 14 — Measure Continuity Disclosure Granularity](SPRINT-014.md) — completed

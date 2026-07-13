@@ -1,5 +1,8 @@
 import type { Handoff } from "@ai-workspace/handoff";
 import type { EffectiveInstructions } from "@ai-workspace/instruction-manager";
+import { CONTINUITY_SECTION_ORDER } from "./sections.ts";
+
+export { CONTINUITY_SECTION_ORDER } from "./sections.ts";
 
 export const CONTEXT_PACK_SCHEMA_VERSION = 1;
 export type ContextCategory = "CONTINUITY" | "INSTRUCTIONS";
@@ -42,17 +45,6 @@ export type BuildContextPackInput = Readonly<{
 }>;
 
 const MAX_BUDGET = 1_000_000;
-const SECTION_ORDER = [
-  "objective",
-  "repository",
-  "selectedMemory",
-  "knownFailures",
-  "testState",
-  "relevantFiles",
-  "nextAction",
-  "sourceReferences",
-] as const;
-
 export class ContextBuilderError extends Error {
   public constructor(message: string) {
     super(message);
@@ -72,16 +64,15 @@ export function buildContextPack(
     throw new ContextBuilderError(
       "Context inputs must belong to the same explicit project.",
     );
-  const candidates: Omit<ContextItem, "exactBytes">[] = SECTION_ORDER.map(
-    (section) => ({
+  const candidates: Omit<ContextItem, "exactBytes">[] =
+    CONTINUITY_SECTION_ORDER.map((section) => ({
       id: `handoff:${section}`,
       category: "CONTINUITY",
       sourceType: "HANDOFF_SECTION",
       sourceId: input.handoff.id,
       trust: "MIXED",
       content: JSON.stringify(input.handoff.sections[section]),
-    }),
-  );
+    }));
   for (const rule of input.instructions?.rules ?? [])
     candidates.push({
       id: `instruction:${rule.sourceId}:${rule.position}:${rule.ruleId}`,
@@ -145,3 +136,4 @@ function validateBudget(value: number, category: ContextCategory) {
 }
 
 export * from "./measurement.ts";
+export * from "./continuity-disclosure.ts";

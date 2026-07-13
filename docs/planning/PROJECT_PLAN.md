@@ -426,6 +426,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 11 | E0, E5        | Localize the GUI and preview effective instructions     |
 | Sprint 12 | E0, E6        | Preview a deterministic budgeted Context Pack           |
 | Sprint 13 | E0, E6        | Measure synthetic Context Pack budget pressure          |
+| Sprint 14 | E0, E6        | Measure continuity disclosure granularity               |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -452,6 +453,12 @@ of continuity, instructions, and budgets. It reports exact candidate, included,
 and omitted content bytes without changing selection behavior. The evidence
 recommends a later bounded experiment on continuity granularity and progressive
 disclosure before broader retrieval or compression.
+Sprint 14 compares full continuity sections with immutable resolvable
+references and generic string-leaf outlines over the unchanged synthetic
+profiles and budgets. Neither lower-detail level improves the sampled standard
+fit boundary, so production behavior remains unchanged. The measured
+3,816-byte repeated metadata floor supports a later ADR comparison of shared
+metadata/provenance envelopes before any disclosure implementation.
 
 ## 9. Agile operating model
 
@@ -653,7 +660,12 @@ explicit immutable handoff and optional reviewed effective instructions.
 Separate exact-byte budgets include or omit whole items deterministically; the
 preview is neither persisted nor delivered or executed.
 
-[Sprint 13](sprints/SPRINT-013.md) completed the evidence-led follow-up. Its bounded
-synthetic corpus measures category pressure and distributions without adding a
-user-facing control or accepting retrieval, deduplication, compression, or a
-new context representation.
+[Sprint 13](sprints/SPRINT-013.md) completed the evidence-led follow-up. Its
+bounded synthetic corpus measures category pressure and distributions without
+adding a user-facing control or accepting retrieval, deduplication,
+compression, or a new context representation.
+
+[Sprint 14](sprints/SPRINT-014.md) completed the next representation experiment.
+Full, reference, and outline levels preserve complete metadata and immutable
+resolution identity, but the lower-detail levels do not improve the standard
+budget-fit boundary and remain excluded from the production builder.

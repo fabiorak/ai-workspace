@@ -209,6 +209,12 @@ and distributions without changing the GUI, selection policy, persistence, or
 execution boundary. See the
 [budget-pressure report](docs/development/context-pack-budget-pressure-corpus.md).
 
+Sprint 14 compares the current full continuity sections with experiment-only
+resolvable references and structural outlines. Exact results retain regressions:
+neither lower-detail level improves the sampled 4,096-byte fit boundary, so the
+production builder and GUI remain unchanged. See the
+[granularity report](docs/development/continuity-disclosure-granularity-corpus.md).
+
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state

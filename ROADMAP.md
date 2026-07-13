@@ -9,8 +9,12 @@ active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
 [Sprint 13](docs/planning/sprints/SPRINT-013.md) completed Context Pack pressure
 measurement over a deterministic 27-sample synthetic corpus before any new
-optimization was selected. M4 remains open: agent and skill profiles, context
-policies, broader retrieval, and execution are not implemented.
+optimization was selected. [Sprint 14](docs/planning/sprints/SPRINT-014.md)
+then measured resolvable reference and outline granularity without enabling
+either representation: neither improves the sampled standard-budget fit
+boundary. M4 remains open: agent and skill
+profiles, context policies, broader retrieval, and execution are not
+implemented.
 
 ## 1. Project Memory
 
@@ -37,9 +41,11 @@ complete session.
 - code graph, artifact store, caching, and savings metrics.
 
 The current implementation enforces exact UTF-8 content-byte budgets and
-reports whole-item omissions. Synthetic pressure data recommends evaluating
-continuity granularity and progressive disclosure next; it does not yet accept
-that mechanism or a production optimization claim.
+reports whole-item omissions. Synthetic granularity data rejects generic
+string-leaf outlines and leaves resolvable references experiment-only. The
+next evidence step is an ADR comparing repeated per-section metadata with a
+lossless shared metadata/provenance envelope; no production optimization claim
+is accepted.
 
 ## 4. Privacy Proxy
 

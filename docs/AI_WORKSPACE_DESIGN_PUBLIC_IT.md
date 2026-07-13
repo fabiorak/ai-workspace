@@ -1939,7 +1939,12 @@ inglese/italiano, anteprima delle effective instruction e una prima anteprima
 Context Pack read-only con budget exact-byte e input espliciti. La misurazione
 developer implementata riporta ora byte esatti candidati,
 inclusi e omessi su un corpus Context Pack sintetico deterministico; non cambia
-la policy di selezione e non avanza claim di rilevanza o produzione. Backend
+la policy di selezione e non avanza claim di rilevanza o produzione. Un
+confronto di granularità solo sperimentale conserva metadata completi di
+sezione e identità di risoluzione immutabile nei livelli reference, outline e
+full. Il risultato negativo sul budget standard non abilita alcun livello nel
+builder di produzione e indica soltanto un futuro confronto ADR sui metadata
+condivisi. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

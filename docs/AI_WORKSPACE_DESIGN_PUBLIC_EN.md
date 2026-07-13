@@ -2605,6 +2605,10 @@ Pack preview over explicit inputs; ADR-0015 records its local browser boundary.
 The implemented developer measurement now reports exact candidate, included,
 and omitted content bytes across a deterministic synthetic Context Pack corpus;
 it changes no selection policy and makes no relevance or production claim.
+An experiment-only granularity comparison retains full section metadata and
+immutable resolution identity across reference, outline, and full levels. Its
+negative standard-budget result enables none of those levels in the production
+builder and points only to a later shared-metadata ADR comparison.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

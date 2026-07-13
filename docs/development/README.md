@@ -4,6 +4,7 @@ Measurement reports:
 
 - [Synthetic handoff break-even corpus](handoff-break-even-corpus.md)
 - [Synthetic Context Pack budget-pressure corpus](context-pack-budget-pressure-corpus.md)
+- [Synthetic continuity disclosure granularity corpus](continuity-disclosure-granularity-corpus.md)
 
 ## Prerequisites
 

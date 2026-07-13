@@ -11,7 +11,7 @@ import {
 const PROJECT_ID = "synthetic-context-project";
 const WORK_ITEM_ID = "synthetic-context-work-item";
 
-const CONTINUITY_PROFILES = {
+export const SYNTHETIC_CONTINUITY_PROFILES = {
   compact: { payloadBytes: 32, listItems: 1 },
   working: { payloadBytes: 256, listItems: 4 },
   extended: { payloadBytes: 1_024, listItems: 16 },
@@ -21,7 +21,7 @@ const INSTRUCTION_PROFILES = {
   focused: { ruleCount: 4, payloadBytes: 64 },
   broad: { ruleCount: 16, payloadBytes: 256 },
 } as const;
-const BUDGET_PROFILES = {
+export const SYNTHETIC_BUDGET_PROFILES = {
   constrained: { CONTINUITY: 64, INSTRUCTIONS: 64 },
   standard: { CONTINUITY: 4_096, INSTRUCTIONS: 2_048 },
   generous: { CONTINUITY: 100_000, INSTRUCTIONS: 100_000 },
@@ -30,12 +30,14 @@ const BUDGET_PROFILES = {
 export function buildSyntheticContextCorpus(): readonly ContextPackCorpusSample[] {
   const samples: ContextPackCorpusSample[] = [];
   for (const [continuityName, continuity] of Object.entries(
-    CONTINUITY_PROFILES,
+    SYNTHETIC_CONTINUITY_PROFILES,
   ))
     for (const [instructionName, instruction] of Object.entries(
       INSTRUCTION_PROFILES,
     ))
-      for (const [budgetName, budgets] of Object.entries(BUDGET_PROFILES)) {
+      for (const [budgetName, budgets] of Object.entries(
+        SYNTHETIC_BUDGET_PROFILES,
+      )) {
         const handoff = syntheticHandoff(
           continuityName,
           continuity.payloadBytes,
@@ -70,6 +72,21 @@ export function buildSyntheticContextCorpus(): readonly ContextPackCorpusSample[
 
 export function buildSyntheticContextCorpusReport(): ContextPackCorpusReport {
   return measureContextPackCorpus(buildSyntheticContextCorpus());
+}
+
+export function buildSyntheticContinuityHandoff(
+  profile: keyof typeof SYNTHETIC_CONTINUITY_PROFILES,
+): Handoff {
+  const value = SYNTHETIC_CONTINUITY_PROFILES[profile];
+  return syntheticHandoff(profile, value.payloadBytes, value.listItems);
+}
+
+export function buildSyntheticContinuityBudgets() {
+  return Object.freeze(
+    Object.entries(SYNTHETIC_BUDGET_PROFILES).map(([label, value]) =>
+      Object.freeze({ label, exactBytes: value.CONTINUITY }),
+    ),
+  );
 }
 
 function syntheticHandoff(

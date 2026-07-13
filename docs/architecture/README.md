@@ -45,6 +45,11 @@ Its developer-only measurement boundary accepts already-built read-only
 previews, validates their exact-byte accounting, and produces an immutable
 schema-versioned corpus report. Reports distinguish candidate, included, and
 omitted content bytes and cannot modify builder selection behavior.
+An additional experiment-only projection compares the current full continuity
+sections with resolvable references and string-leaf outlines. All levels retain
+complete metadata and SHA-256-bound immutable resolution identity, but none is
+accepted as Context Builder input. The experiment performs no storage lookup,
+automatic level selection, persistence, delivery, or execution.
 
 The implemented local persistence baseline now consists of:
 

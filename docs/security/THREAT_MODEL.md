@@ -91,6 +91,11 @@ The synthetic corpus measurement adds no HTTP or persistence surface. It
 accepts already-built previews in process, bounds samples, dimensions, items,
 budgets, and item bytes, rejects inconsistent accounting without echoing item
 content, and labels its output as measurement rather than selection policy.
+Disclosure projections add no browser, HTTP, storage, or resolution surface.
+They bound IDs, sources, structure depth, nodes, budgets, and representation
+bytes; reject unsupported or circular values without content echo; and retain
+complete trust/provenance metadata at every experiment-only level. Digests are
+identity checks, not authorization, trust promotion, or proof of availability.
 
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
