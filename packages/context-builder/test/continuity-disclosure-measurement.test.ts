@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import {
-  buildContextPack,
+  buildContextPackV1,
   ContinuityDisclosureError,
   measureContinuityDisclosureCorpus,
   projectContinuityDisclosure,
@@ -36,7 +36,7 @@ describe("continuity disclosure measurement", () => {
   it("keeps FULL byte-identical to current Context Builder candidates", () => {
     for (const value of corpus()) {
       const projected = projectContinuityDisclosure(value.handoff);
-      const preview = buildContextPack({
+      const preview = buildContextPackV1({
         handoff: value.handoff,
         budgets: { CONTINUITY: 100_000, INSTRUCTIONS: 1 },
       });

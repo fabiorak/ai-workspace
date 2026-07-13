@@ -12,7 +12,8 @@ import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
 import { WorkItems, type WorkItem } from "@ai-workspace/core";
 import {
   buildContextPack,
-  type ContextPackPreview,
+  expandContextPack,
+  type ExpandedContextPackPreview,
 } from "@ai-workspace/context-builder";
 import {
   GitHandoffRepositoryReader,
@@ -577,7 +578,7 @@ export class GuiApplication {
 
   public async previewContext(
     input: GuiContextPreviewInput,
-  ): Promise<ContextPackPreview> {
+  ): Promise<ExpandedContextPackPreview> {
     return this.#run(async () => {
       const handoff = await this.#handoffs.show(
         input.projectId,
@@ -588,14 +589,16 @@ export class GuiApplication {
         input.bundles.length === 0
           ? undefined
           : await this.#previewInstructions(input);
-      return buildContextPack({
-        handoff,
-        ...(instructions === undefined ? {} : { instructions }),
-        budgets: {
-          CONTINUITY: input.continuityBudget,
-          INSTRUCTIONS: input.instructionBudget,
-        },
-      });
+      return expandContextPack(
+        buildContextPack({
+          handoff,
+          ...(instructions === undefined ? {} : { instructions }),
+          budgets: {
+            CONTINUITY: input.continuityBudget,
+            INSTRUCTIONS: input.instructionBudget,
+          },
+        }),
+      );
     }, "Keep the explicit handoff, bundle paths, and byte budgets; correct the highlighted value and preview again.");
   }
 

@@ -72,5 +72,14 @@ describe("GUI localization contract", () => {
       "Trovati 2 risultati in 3 progetti e 40 eventi esaminati.",
     );
     assert.match(GUI_CATALOGS.it.selectInspect, /Seleziona questo progetto/u);
+    assert.match(GUI_CATALOGS.it.contextWarning, /schema v2/u);
+    assert.match(
+      guiMessage("it", "contextReady", {
+        schema: "2",
+        entries: "3",
+        sharedBytes: "512",
+      }),
+      /3 sorgenti condivise.*512 byte/u,
+    );
   });
 });

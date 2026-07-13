@@ -51,8 +51,11 @@ identifiers, and user-authored content remain in their original language.
 9. Inspect a persisted handoff to reveal **Preview a bounded Context Pack**.
    Enter positive continuity and instruction budgets in exact UTF-8 bytes and
    optionally repeat reviewed instruction bundle paths. Items are included only
-   when they fit wholly; omissions show `BUDGET_EXCEEDED`. The token figure is
-   only `ceil(exact included bytes / 4)`.
+   when they fit wholly; omissions show `BUDGET_EXCEEDED`. Schema v2 stores
+   repeated canonical sources once, and the status reports shared source count
+   and exact bytes. The displayed items are already expanded with complete
+   trust and source navigation. The token figure is only
+   `ceil(exact included bytes / 4)`.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -73,7 +76,7 @@ remain inactive.
 
 Context Pack preview does not search history, read repository files, truncate
 content, choose sources automatically, persist a pack, or send a prompt.
-ADR-0016 accepts a packet-level source table only for a possible future Context
-Pack schema. Sprint 15 adds no GUI option and does not change the current
-embedded schema-v1 preview. A later rollout must preserve the complete guided
-journey, visible trust/source identity, and backward compatibility.
+ADR-0016's packet-level source table is implemented as explicit schema v2.
+Schema v1 remains supported rather than reinterpreted, while the GUI receives a
+lossless expanded view and a safe shared-byte summary. Source IDs are identity
+checks, not trust, permission, availability, delivery, or execution signals.

@@ -1,12 +1,12 @@
 import { TextEncoder } from "node:util";
-import type { ContextCategory, ContextPackPreview } from "./index.ts";
+import type { ContextCategory, ContextPackPreviewV1 } from "./index.ts";
 
 export const CONTEXT_PACK_CORPUS_REPORT_SCHEMA_VERSION = 1;
 
 export type ContextPackCorpusSample = Readonly<{
   label: string;
   dimensions: Readonly<Record<string, string>>;
-  preview: ContextPackPreview;
+  preview: ContextPackPreviewV1;
 }>;
 
 export type ContextPackCategoryMeasurement = Readonly<{
@@ -201,7 +201,7 @@ function measureSample(
   });
 }
 
-function validatePreview(preview: ContextPackPreview) {
+function validatePreview(preview: ContextPackPreviewV1) {
   if (
     preview.schemaVersion !== 1 ||
     preview.effect !== "READ_ONLY_NOT_PERSISTED_OR_EXECUTED" ||

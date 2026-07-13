@@ -162,8 +162,9 @@ The visible journey is:
    effective instructions, provenance, precedence, exclusions, and conflicts
    without persistence, enforcement, or execution.
 9. inspect an immutable handoff, enter exact UTF-8 byte budgets, and preview a
-   deterministic Context Pack whose included and omitted whole items retain
-   source identity. The token count is labeled as an estimate only.
+   deterministic schema-v2 Context Pack whose shared canonical source table,
+   expanded logical items, and whole-item omissions retain source identity.
+   The token count is labeled as an estimate only.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -229,6 +230,16 @@ identifies the owning project on every inert `UNTRUSTED` result, and switches
 to project-scoped event/source inspection only after an explicit user action.
 The local scan is bounded to 100 projects and 10,000 canonical events; no index,
 OpenSearch, network service, or persistence change is introduced.
+
+Sprint 17 rolls the accepted ADR-0016 source table into the read-only Context
+Pack preview as explicit schema v2. The builder charges exact marginal shared
+table growth while selecting whole sections, emits only sources referenced by
+included sections, and expands complete trust and navigation identity before
+the bilingual GUI renders it. Schema-v1 candidates and historical measurements
+remain reproducible. The production implementation reproduces the synthetic
+4,926→3,517, 7,560→6,151, and 33,000→31,592 byte results. No pack is persisted,
+delivered, or executed. See the
+[schema-v2 rollout](docs/development/context-pack-source-table-rollout.md).
 
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,

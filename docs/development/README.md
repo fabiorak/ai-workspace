@@ -6,6 +6,7 @@ Measurement reports:
 - [Synthetic Context Pack budget-pressure corpus](context-pack-budget-pressure-corpus.md)
 - [Synthetic continuity disclosure granularity corpus](continuity-disclosure-granularity-corpus.md)
 - [Synthetic Context Pack metadata-envelope corpus](context-pack-metadata-envelope-corpus.md)
+- [Context Pack schema-v2 source-table rollout](context-pack-source-table-rollout.md)
 
 ## Prerequisites
 

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import {
-  buildContextPack,
+  buildContextPackV1,
   CONTINUITY_SECTION_ORDER,
   expandMetadataEnvelope,
   measureMetadataEnvelopeCorpus,
@@ -67,7 +67,7 @@ describe("Context Pack metadata envelope measurement", () => {
   it("keeps EMBEDDED byte-identical to current Context Builder candidates", () => {
     for (const value of corpus()) {
       const embedded = projectMetadataEnvelope(value.handoff).EMBEDDED;
-      const preview = buildContextPack({
+      const preview = buildContextPackV1({
         handoff: value.handoff,
         budgets: { CONTINUITY: 100_000, INSTRUCTIONS: 1 },
       });

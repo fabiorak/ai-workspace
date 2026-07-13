@@ -21,3 +21,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 14 — Measure Continuity Disclosure Granularity](SPRINT-014.md) — completed
 - [Sprint 15 — Decide the Context Pack Metadata Envelope](SPRINT-015.md) — completed
 - [Sprint 16 — Search Historical Evidence Across Projects](SPRINT-016.md) — completed
+- [Sprint 17 — Roll Out the Context Pack Source Table](SPRINT-017.md) — completed

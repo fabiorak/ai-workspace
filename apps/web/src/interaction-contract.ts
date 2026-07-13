@@ -276,12 +276,12 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
     screen(
       "CONTEXT_PACK",
       "Bounded Context Pack",
-      "Preview explicit continuity and instruction material within exact-byte budgets.",
+      "Preview schema-v2 continuity with shared canonical provenance and instruction material within exact-byte budgets.",
       action({
         id: "preview-context-pack",
         label: "Preview Context Pack read-only",
         description:
-          "Build one deterministic preview from an explicit immutable handoff and optional reviewed instructions.",
+          "Build one deterministic expanded preview from an explicit immutable handoff and optional reviewed instructions.",
         effect:
           "Includes or omits whole source-linked items without persistence, delivery, enforcement, or execution.",
         prerequisites:

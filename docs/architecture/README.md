@@ -54,9 +54,13 @@ The metadata-envelope experiment separately compares embedded metadata with a
 packet-level source table and a full metadata table over the unchanged corpus.
 It uses SHA-256 identities over complete canonical source/metadata values,
 scope-bound bounded tables, canonical unique references, and lossless
-fail-closed expansion. ADR-0016 accepts only the source table as a future
-schema direction. The experiment remains outside the production builder,
-facade, GUI, persistence, delivery, and execution graph.
+fail-closed expansion. ADR-0016 accepts only the source table. Sprint 17 rolls
+that representation into production Context Pack schema v2 while retaining an
+explicit v1 writer/reader path. The builder charges canonical marginal table
+growth during deterministic whole-section selection; the facade expands v2
+before presentation and exposes only entry count and shared exact bytes. The
+experiment remains separate, and persistence, delivery, and execution remain
+outside the graph.
 
 The implemented local persistence baseline now consists of:
 

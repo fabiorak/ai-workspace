@@ -3,6 +3,11 @@
 **Status:** accepted  
 **Date:** 2026-07-13
 
+**Implemented:** Sprint 17, 2026-07-13. Context Pack schema v2 satisfies the
+rollout gates with explicit v1 compatibility, deterministic marginal
+shared-byte accounting, lossless facade expansion, and bilingual GUI coverage.
+Persistence, delivery, and execution remain absent.
+
 ## Context
 
 Sprint 14 measured a 3,816-byte metadata-only floor across the eight current

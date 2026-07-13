@@ -1954,11 +1954,12 @@ sezione e identità di risoluzione immutabile nei livelli reference, outline e
 full. Il risultato negativo sul budget standard non abilita alcun livello nel
 builder di produzione. Un confronto exact-byte successivo espande in modo
 lossless le alternative con source table e tabella completa dei metadata nelle
-stesse sezioni logiche. ADR-0016 accetta la source table come direzione futura
-per un Context Pack versionato: crea l'unico nuovo fit compact sul budget
-standard ed è più piccola della tabella metadata completa in ogni profilo. Il
-builder schema-v1, la GUI, la persistenza, il delivery e l'esecuzione restano
-invariati in attesa di contract di compatibilità successivi. Backend
+stesse sezioni logiche. ADR-0016 accetta la source table come direzione per un
+Context Pack versionato: crea l'unico nuovo fit compact sul budget standard ed
+è più piccola della tabella metadata completa in ogni profilo. Sprint 17 la
+implementa come schema v2 con compatibilità schema v1 esplicita, accounting
+marginale deterministico dei byte condivisi, espansione lossless e ispezione
+GUI bilingue. Persistenza, delivery ed esecuzione restano assenti. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

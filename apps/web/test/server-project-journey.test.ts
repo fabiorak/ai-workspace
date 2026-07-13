@@ -541,10 +541,15 @@ describe("GUI server project onboarding", () => {
       },
     );
     assert.equal(context.status, 200);
-    assert.equal(
-      ((await context.json()) as { effect: string }).effect,
-      "READ_ONLY_NOT_PERSISTED_OR_EXECUTED",
-    );
+    const contextBody = (await context.json()) as {
+      schemaVersion: number;
+      effect: string;
+      sourceTableSummary: { entryCount: number; exactBytes: number };
+    };
+    assert.equal(contextBody.schemaVersion, 2);
+    assert.equal(contextBody.effect, "READ_ONLY_NOT_PERSISTED_OR_EXECUTED");
+    assert.ok(contextBody.sourceTableSummary.entryCount > 0);
+    assert.ok(contextBody.sourceTableSummary.exactBytes > 0);
     const validation = (await (
       await api(
         `/api/projects/${projectId}/work-items/${work.id}/handoffs/${created.id}/validate`,

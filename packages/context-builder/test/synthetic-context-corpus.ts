@@ -2,7 +2,7 @@ import type { WorkItemSource } from "@ai-workspace/core";
 import type { Handoff, SectionMetadata } from "@ai-workspace/handoff";
 import { composeInstructions } from "@ai-workspace/instruction-manager";
 import {
-  buildContextPack,
+  buildContextPackV1,
   measureContextPackCorpus,
   type ContextPackCorpusReport,
   type ContextPackCorpusSample,
@@ -51,7 +51,7 @@ export function buildSyntheticContextCorpus(): readonly ContextPackCorpusSample[
               instructions: instructionName,
               budget: budgetName,
             }),
-            preview: buildContextPack({
+            preview: buildContextPackV1({
               handoff,
               ...(instruction.ruleCount === 0
                 ? {}

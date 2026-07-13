@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 16](docs/planning/sprints/SPRINT-016.md) are complete.
+Sprint 0 through [Sprint 17](docs/planning/sprints/SPRINT-017.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -14,8 +14,9 @@ then measured resolvable reference and outline granularity without enabling
 either representation: neither improves the sampled standard-budget fit
 boundary. [Sprint 15](docs/planning/sprints/SPRINT-015.md) then accepted a
 future packet-level source table in ADR-0016 after an exact lossless comparison
-created one new compact standard-budget fit. Production behavior remains
-embedded and unchanged. M4 remains open: agent and skill
+created one new compact standard-budget fit. Sprint 17 rolled that source table
+out as explicit schema v2 with schema-v1 compatibility and lossless expanded
+GUI inspection. M4 remains open: agent and skill
 profiles, context policies, broader retrieval, and execution are not
 implemented.
 
@@ -23,6 +24,13 @@ implemented.
 increment: bounded literal search across all registered projects from the
 primary bilingual GUI, with project identity and project-scoped source
 navigation on every result. It adds no index or OpenSearch dependency.
+
+[Sprint 17](docs/planning/sprints/SPRINT-017.md) completed the bounded ADR-0016
+rollout. Explicit Context Pack schema v2 uses a canonical source table,
+deterministic marginal shared-byte accounting, schema-v1 compatibility, and
+lossless read-only inspection in the bilingual GUI. Persistence, delivery,
+execution, CodeGraph, profiles, and new infrastructure remain outside the
+increment.
 
 ## 1. Project Memory
 
@@ -51,9 +59,10 @@ complete session.
 The current implementation enforces exact UTF-8 content-byte budgets and
 reports whole-item omissions. Synthetic granularity data rejects generic
 string-leaf outlines and leaves resolvable references experiment-only.
-ADR-0016 accepts a source table, not a full metadata table, as a future schema
-direction from exact lossless evidence. A later rollout must add explicit
-schema compatibility and builder/GUI contracts before production changes.
+ADR-0016 accepts a source table, not a full metadata table. Schema v2 now
+implements it with explicit v1 compatibility, canonical fail-closed expansion,
+and builder/GUI contracts. Broader retrieval, compression, delivery, and
+execution remain future decisions.
 
 ## 4. Privacy Proxy
 

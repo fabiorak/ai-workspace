@@ -78,14 +78,14 @@ const EN = {
   previewReady:
     "Effective instruction preview ready. Nothing was persisted or executed.",
   contextWarning:
-    "Context preview uses exact UTF-8 byte budgets. It does not persist, send, enforce, or execute anything.",
+    "Schema v2 shares canonical source provenance once and uses exact UTF-8 byte budgets. The expanded preview does not persist, send, enforce, or execute anything.",
   continuityBudget: "Continuity budget (exact UTF-8 bytes)",
   instructionBudget: "Instruction budget (exact UTF-8 bytes)",
   contextBundles: "Optional reviewed instruction bundle paths, one per line",
   contextEmpty:
     "Inspect an immutable handoff, then enter explicit budgets to preview its Context Pack.",
   contextReady:
-    "Context Pack preview ready. Review included and omitted atomic items below.",
+    "Context Pack schema {schema} preview ready: {entries} shared source entries use {sharedBytes} exact bytes. Review expanded logical items and omissions below.",
   fallback: "Unsupported language values safely fall back to English.",
   progressProject: "1. Project",
   progressSample: "2. Safe sample",
@@ -294,7 +294,7 @@ const IT = {
   previewReady:
     "Anteprima delle istruzioni effettive pronta. Nulla è stato persistito o eseguito.",
   contextWarning:
-    "L'anteprima del contesto usa budget in byte UTF-8 esatti. Non persiste, invia, applica o esegue nulla.",
+    "Lo schema v2 condivide una sola volta la provenienza canonica e usa budget in byte UTF-8 esatti. L'anteprima espansa non persiste, invia, applica o esegue nulla.",
   continuityBudget: "Budget continuità (byte UTF-8 esatti)",
   instructionBudget: "Budget istruzioni (byte UTF-8 esatti)",
   contextBundles:
@@ -302,7 +302,7 @@ const IT = {
   contextEmpty:
     "Esamina un handoff immutabile, poi inserisci budget espliciti per l'anteprima del Context Pack.",
   contextReady:
-    "Anteprima Context Pack pronta. Esamina gli elementi atomici inclusi e omessi qui sotto.",
+    "Anteprima Context Pack schema {schema} pronta: {entries} sorgenti condivise usano {sharedBytes} byte esatti. Esamina elementi logici espansi e omissioni.",
   fallback: "I valori lingua non supportati usano in sicurezza l'inglese.",
   progressProject: "1. Progetto",
   progressSample: "2. Esempio sicuro",

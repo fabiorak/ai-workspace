@@ -167,6 +167,8 @@ describe("GUI application facade", () => {
         instructionBudget: 1,
       });
       assert.equal(context.effect, "READ_ONLY_NOT_PERSISTED_OR_EXECUTED");
+      assert.equal(context.schemaVersion, 2);
+      assert.ok(context.sourceTableSummary?.exactBytes);
       assert.ok(context.included.length > 0);
       assert.equal(
         (await app.listHandoffs(project.id, active.id))[0]!.id,

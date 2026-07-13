@@ -2618,11 +2618,12 @@ immutable resolution identity across reference, outline, and full levels. Its
 negative standard-budget result enables none of those levels in the production
 builder. A subsequent exact comparison expands source-table and full
 metadata-table alternatives losslessly to the same logical sections.
-ADR-0016 accepts the source table as a future versioned Context Pack direction:
-it creates the only new compact standard-budget fit and is smaller than the
-full metadata table in every profile. The production schema-v1 builder, GUI,
-persistence, delivery, and execution remain unchanged pending later
-compatibility contracts.
+ADR-0016 accepts the source table as a versioned Context Pack direction: it
+creates the only new compact standard-budget fit and is smaller than the full
+metadata table in every profile. Sprint 17 implements it as schema v2 with
+explicit schema-v1 compatibility, deterministic marginal shared-byte
+accounting, lossless expansion, and bilingual GUI inspection. Persistence,
+delivery, and execution remain absent.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

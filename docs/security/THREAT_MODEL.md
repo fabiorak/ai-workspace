@@ -106,14 +106,17 @@ They bound IDs, sources, structure depth, nodes, budgets, and representation
 bytes; reject unsupported or circular values without content echo; and retain
 complete trust/provenance metadata at every experiment-only level. Digests are
 identity checks, not authorization, trust promotion, or proof of availability.
-The metadata-envelope experiment likewise remains in process and disconnected
-from production. Its packet tables repeat and validate project, Work Item, and
-handoff scope; retain every canonical source field and section-specific trust;
-bound items, tables, sources, references, and exact bytes; and reject dangling,
-duplicate, unreferenced, noncanonical, malformed, cross-scope, inconsistent,
-or oversized inputs with one generic non-echoing error. SHA-256 table IDs bind
-identity but do not authorize resolution, delivery, or execution. ADR-0016
-requires a new versioned contract and threat review before rollout.
+The metadata-envelope experiment remains in process. Its accepted source-table
+contract is now implemented by production Context Pack schema v2: packet tables
+repeat and validate project, Work Item, and handoff scope; retain every
+canonical source field and section-specific trust; bound items, tables,
+sources, references, and exact bytes; and reject dangling, duplicate,
+unreferenced, noncanonical, malformed, cross-scope, inconsistent, or oversized
+inputs with one generic non-echoing error. SHA-256 table IDs bind identity but
+do not authorize resolution, delivery, or execution. The complete v2 packet is
+validated before expansion, and the HTTP facade returns logical expanded
+content plus a safe count/byte summary rather than raw reference resolution.
+Schema v1 remains explicit and is never reinterpreted as v2.
 
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources

@@ -429,6 +429,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 14 | E0, E6        | Measure continuity disclosure granularity               |
 | Sprint 15 | E0, E6        | Decide the Context Pack metadata envelope               |
 | Sprint 16 | E0, E3        | Search historical evidence across registered projects   |
+| Sprint 17 | E0, E6        | Roll out the versioned Context Pack source table        |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -470,6 +471,11 @@ Sprint 16 completed the next user-priority correction to E3. It composes
 the existing literal local search across registered projects, returns explicit
 project identity, and preserves project-scoped source inspection without
 introducing OpenSearch or another index.
+Sprint 17 completed the bounded ADR-0016 compatibility increment. Explicit
+Context Pack schema v2 retains schema-v1 reads and exact baseline candidates,
+accounts deterministically for shared source-table bytes, and exposes an
+expanded read-only bilingual preview without persistence, delivery, execution,
+profiles, CodeGraph, or new infrastructure.
 
 ## 9. Agile operating model
 
@@ -692,3 +698,9 @@ the primary GUI. A bounded all-project scan must merge before the result limit,
 identify every owning project, and fail without partial results; indexed search
 remains deferred to measured scale triggers and a later ADR. The GUI defaults
 to all registered projects; the CLI remains explicitly project-scoped.
+
+[Sprint 17](sprints/SPRINT-017.md) rolled out ADR-0016 through explicit Context
+Pack schema v2. Lossless source-table expansion, deterministic marginal
+shared-byte budgeting, schema-v1 compatibility, and bilingual GUI inspection
+now precede every read-only v2 preview; persistence, delivery, and execution
+remain absent.
