@@ -439,6 +439,14 @@ implemented adapter performs a bounded literal scan of validated canonical
 events. A lightweight local index or OpenSearch may be selected later through
 an ADR based on corpus measurements, performance, and operational cost.
 
+The implemented global GUI composition enumerates registered projects only,
+normalizes up to 100 explicit project IDs, scans at most 10,000 canonical
+events, merges matches before one 1–100 result limit, and identifies the owning
+project without exposing its path. Any included project failure aborts the
+report rather than returning misleading partial results. Event/source
+inspection remains project-scoped after explicit user selection. This closes
+the unknown-project usability gap without selecting an index.
+
 Its purpose is not to become active agent memory, but to make all previous evidence searchable.
 
 ### 7.1 Indexed content

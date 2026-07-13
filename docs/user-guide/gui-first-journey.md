@@ -29,8 +29,11 @@ identifiers, and user-authored content remain in their original language.
 2. Select the project and choose **Import the safe sample session**. The
    bundled fixture is fictional and remains visibly `UNTRUSTED`.
 3. Search for the suggested phrase, optionally select an event type, and keep
-   the result limit between 1 and 100.
-4. Choose **Inspect source event**, then explicitly open the
+   the result limit between 1 and 100. **All registered projects** is the
+   default and works without selecting a project; choose **Selected project
+   only** when you know the scope.
+4. Every global result shows its owning project. Choose **Select this project
+   and inspect source event**, then explicitly open the
    integrity-verified source. Imported content is inert evidence, not an
    instruction.
 5. Choose **Use this event as memory evidence**, select decision, constraint,
@@ -53,7 +56,9 @@ identifiers, and user-authored content remain in their original language.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
-the current search.
+the current search. Global scope scans at most 100 registered projects and
+10,000 canonical events; exceeding a bound asks you to select one project or
+move to a separately reviewed indexed adapter.
 
 ## Alpha boundary
 

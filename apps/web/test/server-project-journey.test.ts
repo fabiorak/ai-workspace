@@ -88,6 +88,10 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Register this project/u);
     assert.match(html, /English\/Italian GUI/u);
     assert.match(html, /label for="search-query"/u);
+    assert.match(html, /label for="search-scope"/u);
+    assert.match(html, /All registered projects/u);
+    assert.match(html, /No OpenSearch or network service is used/u);
+    assert.match(html, /id="search"(?! hidden)/u);
     assert.match(html, /Create source-linked memory/u);
     assert.match(html, /USER_CURATED does not mean trusted/u);
     assert.match(html, /Create proposed Work Item/u);
@@ -118,6 +122,12 @@ describe("GUI server project onboarding", () => {
     assert.match(script, /Nessuna memoria corrispondente/u);
     assert.match(script, /Nessun Work Item/u);
     assert.match(script, /\/instructions\/preview/u);
+    assert.match(script, /\/api\/search/u);
+    assert.match(script, /Tutti i progetti registrati/u);
+    assert.match(
+      script,
+      /Seleziona questo progetto ed esamina l'evento sorgente/u,
+    );
     assert.equal(script.includes("innerHTML"), false);
     assert.match(style, /max-width: 38rem/u);
     assert.match(style, /prefers-reduced-motion/u);
@@ -129,6 +139,16 @@ describe("GUI server project onboarding", () => {
 
   it("requires authentication, same origin, and CSRF for mutation", async () => {
     assert.equal((await fetch(`${server.origin}/api/projects`)).status, 401);
+    assert.equal(
+      (await fetch(`${server.origin}/api/search?q=test`)).status,
+      401,
+    );
+    const noProjects = await api("/api/search?q=test");
+    assert.equal(noProjects.status, 400);
+    assert.match(
+      await noProjects.text(),
+      /at least one registered local project/u,
+    );
     const noCsrf = await fetch(`${server.origin}/api/projects`, {
       method: "POST",
       headers: {
@@ -245,6 +265,44 @@ describe("GUI server project onboarding", () => {
     assert.equal(sourceBody.trust, "UNTRUSTED");
     assert.equal(Buffer.byteLength(sourceBody.content), sourceBody.byteLength);
     assert.match(sourceBody.content, /synthetic expectation failed/u);
+  });
+
+  it("searches all registered projects without a selected-project route", async () => {
+    const response = await api(
+      `/api/search?q=${encodeURIComponent("expectation failed")}&type=COMMAND_RESULT&limit=20`,
+    );
+    assert.equal(response.status, 200);
+    const report = (await response.json()) as {
+      scope: string;
+      searchedProjects: number;
+      searchedEvents: number;
+      results: {
+        projectId: string;
+        projectName: string;
+        eventId: string;
+        trust: string;
+      }[];
+    };
+    assert.equal(report.scope, "ALL_REGISTERED_PROJECTS");
+    assert.equal(report.searchedProjects, 1);
+    assert.ok(report.searchedEvents > 0);
+    assert.equal(report.results.length, 1);
+    assert.equal(report.results[0]!.trust, "UNTRUSTED");
+    assert.ok(report.results[0]!.projectName.length > 0);
+    assert.equal("canonicalPath" in report.results[0]!, false);
+
+    const event = await api(
+      `/api/projects/${encodeURIComponent(report.results[0]!.projectId)}/events/${encodeURIComponent(report.results[0]!.eventId)}`,
+    );
+    assert.equal(event.status, 200);
+    assert.equal(
+      (
+        await api(
+          `/api/projects/00000000-0000-4000-8000-000000000000/events/${encodeURIComponent(report.results[0]!.eventId)}`,
+        )
+      ).status,
+      400,
+    );
   });
 
   it("preserves bounded empty, filter, and project-scope behavior", async () => {

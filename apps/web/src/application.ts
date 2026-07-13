@@ -102,6 +102,24 @@ export type GuiSearchReport = Readonly<{
   }>[];
   emptyGuidance: string | null;
 }>;
+export type GuiGlobalSearchReport = Readonly<{
+  scope: "ALL_REGISTERED_PROJECTS";
+  text: string;
+  searchedProjects: number;
+  searchedEvents: number;
+  results: readonly Readonly<{
+    projectId: string;
+    projectName: string;
+    eventId: string;
+    sessionId: string;
+    type: SessionEventType;
+    occurredAt: string | null;
+    trust: "UNTRUSTED";
+    snippet: string;
+    matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
+  }>[];
+  emptyGuidance: string | null;
+}>;
 export type GuiEvent = Readonly<{
   projectId: string;
   eventId: string;
@@ -164,6 +182,7 @@ export class GuiApplication {
   readonly #registry: ProjectRegistry;
   readonly #ingestion: SessionIngestion;
   readonly #history: HistoricalSearch;
+  readonly #listRegisteredProjects: () => Promise<readonly RegisteredProject[]>;
   readonly #memory: ActiveMemory;
   readonly #workItems: WorkItems;
   readonly #handoffs: Handoffs;
@@ -181,6 +200,7 @@ export class GuiApplication {
     const projectStore = new JsonProjectRegistryStore(
       join(dependencies.workspaceHome, "projects.json"),
     );
+    this.#listRegisteredProjects = () => projectStore.load();
     const projects = {
       exists: async (projectId: string) =>
         (await projectStore.load()).some((project) => project.id === projectId),
@@ -333,6 +353,56 @@ export class GuiApplication {
             : null,
       });
     }, "Keep the query, adjust the highlighted search field or filters, and retry.");
+  }
+  public async searchAllProjects(
+    input: Omit<GuiSearchInput, "projectId" | "sessionId">,
+  ): Promise<GuiGlobalSearchReport> {
+    return this.#run(async () => {
+      const projects = await this.#listRegisteredProjects();
+      if (projects.length === 0)
+        throw new Error(
+          "Global search needs at least one registered local project.",
+        );
+      const report = await this.#history.searchAcrossProjects({
+        projectIds: projects.map((project) => project.id),
+        text: input.text,
+        ...(input.type === undefined ? {} : { type: input.type }),
+        ...(input.limit === undefined ? {} : { limit: input.limit }),
+      });
+      const names = new Map(
+        projects.map((project) => [project.id, project.name]),
+      );
+      return Object.freeze({
+        scope: "ALL_REGISTERED_PROJECTS" as const,
+        text: report.query.text,
+        searchedProjects: report.searchedProjects,
+        searchedEvents: report.searchedEvents,
+        results: Object.freeze(
+          report.results.map((result) => {
+            const projectName = names.get(result.projectId);
+            if (projectName === undefined)
+              throw new Error(
+                "Global search returned an unregistered project scope.",
+              );
+            return Object.freeze({
+              projectId: result.projectId,
+              projectName,
+              eventId: result.eventId,
+              sessionId: result.sessionId,
+              type: result.type,
+              occurredAt: result.occurredAt,
+              trust: result.trust,
+              snippet: result.snippet,
+              matchedIn: result.matchedIn,
+            });
+          }),
+        ),
+        emptyGuidance:
+          report.results.length === 0
+            ? "No matching evidence across registered projects. Check spelling, remove filters, or select one project to diagnose its import."
+            : null,
+      });
+    }, "Keep the query and filters, register or inspect local projects if needed, then retry without relying on partial results.");
   }
   public async showEvent(
     projectId: string,

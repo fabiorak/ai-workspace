@@ -6,6 +6,8 @@ import {
 } from "./errors.ts";
 import type {
   HistoricalEvent,
+  GlobalHistoricalSearchQuery,
+  GlobalHistoricalSearchReport,
   HistoricalSearchQuery,
   HistoricalSearchReport,
   HistoricalSearchResult,
@@ -16,6 +18,8 @@ import type { HistoricalSearchDependencies } from "./ports.ts";
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const MAX_ARTIFACT_DISPLAY_BYTES = 64 * 1024;
+const MAX_GLOBAL_PROJECTS = 100;
+const MAX_GLOBAL_EVENTS = 10_000;
 const SNIPPET_CONTEXT = 72;
 const decoder = new TextDecoder("utf8", { fatal: true });
 
@@ -107,6 +111,116 @@ export class HistoricalSearch {
     });
   }
 
+  public async searchAcrossProjects(
+    query: GlobalHistoricalSearchQuery,
+  ): Promise<GlobalHistoricalSearchReport> {
+    const text = requiredValue(query.text, "Search text");
+    const limit = searchLimit(query.limit);
+    if (
+      !Array.isArray(query.projectIds) ||
+      query.projectIds.length < 1 ||
+      query.projectIds.length > MAX_GLOBAL_PROJECTS
+    )
+      throw new HistoricalSearchError(
+        `Global search requires from 1 to ${MAX_GLOBAL_PROJECTS} registered project IDs. Select one project or migrate to an indexed adapter when this bound is exceeded.`,
+      );
+    const projectIds = query.projectIds.map((projectId) =>
+      requiredValue(projectId, "Project ID"),
+    );
+    if (new Set(projectIds).size !== projectIds.length)
+      throw new HistoricalSearchError(
+        "Global search project IDs must be unique. Reload registered projects and retry.",
+      );
+    projectIds.sort((left, right) => left.localeCompare(right, "en"));
+    const events: HistoricalEvent[] = [];
+    for (const projectId of projectIds) {
+      await this.#assertProject(projectId);
+      let projectEvents: readonly HistoricalEvent[];
+      try {
+        projectEvents = await this.#dependencies.events.list(projectId);
+      } catch (error) {
+        throw new HistoricalSearchError(
+          "Global history could not be read safely. Preserve local state, select one project to diagnose it, and retry without using partial results.",
+          { cause: error },
+        );
+      }
+      if (projectEvents.some((event) => event.projectId !== projectId))
+        throw new HistoricalSearchError(
+          "Global history returned inconsistent project scope. Preserve local state, repair the adapter, and retry without using partial results.",
+        );
+      events.push(...projectEvents);
+      if (events.length > MAX_GLOBAL_EVENTS)
+        throw new HistoricalSearchError(
+          `Global history exceeds ${MAX_GLOBAL_EVENTS} canonical events. Select one project or migrate to an indexed search adapter.`,
+        );
+    }
+    const filtered =
+      query.type === undefined
+        ? events
+        : events.filter(({ event }) => event.type === query.type);
+    const ordered = [...filtered].sort(compareEvents);
+    let results: HistoricalSearchResult[];
+    try {
+      results = await this.#match(ordered, text);
+    } catch (error) {
+      throw new HistoricalSearchError(
+        "Global historical evidence could not be searched safely. Preserve local state, select one project to diagnose it, and retry without using partial results.",
+        { cause: error },
+      );
+    }
+    return Object.freeze({
+      query: Object.freeze({
+        projectIds: Object.freeze(projectIds),
+        text,
+        type: query.type ?? null,
+        limit,
+      }),
+      searchedProjects: projectIds.length,
+      searchedEvents: filtered.length,
+      results: Object.freeze(results.slice(0, limit)),
+    });
+  }
+
+  async #match(
+    ordered: readonly HistoricalEvent[],
+    text: string,
+  ): Promise<HistoricalSearchResult[]> {
+    const needle = text.toLowerCase();
+    const results: HistoricalSearchResult[] = [];
+    for (const historicalEvent of ordered) {
+      const { event } = historicalEvent;
+      let payload: string;
+      let matchedIn: HistoricalSearchResult["matchedIn"];
+      if (event.payload.kind === "INLINE_TEXT") {
+        payload = event.payload.text;
+        matchedIn = "INLINE_PAYLOAD";
+      } else {
+        const content = await this.#dependencies.artifacts.read(
+          event.payload.artifact.id,
+        );
+        payload = decodeArtifact(content, event.payload.artifact.id);
+        matchedIn = "ARTIFACT_PAYLOAD";
+      }
+      const matchIndex = payload.toLowerCase().indexOf(needle);
+      if (matchIndex < 0) continue;
+      results.push(
+        Object.freeze({
+          eventId: event.id,
+          projectId: historicalEvent.projectId,
+          sessionId: event.sessionId,
+          sequence: event.sequence,
+          type: event.type,
+          occurredAt: event.occurredAt,
+          trust: event.trust,
+          snippet: snippet(payload, matchIndex, text.length),
+          matchedIn,
+          source: event.source,
+        }),
+      );
+    }
+    return results;
+  }
+
   public async showEvent(
     projectIdValue: string,
     eventIdValue: string,
@@ -158,12 +272,24 @@ function compareEvents(left: HistoricalEvent, right: HistoricalEvent): number {
     return timestampOrder;
   }
 
+  const projectOrder = left.projectId.localeCompare(right.projectId, "en");
+  if (projectOrder !== 0) return projectOrder;
+
   const sessionOrder = left.event.sessionId.localeCompare(
     right.event.sessionId,
   );
   return sessionOrder === 0
     ? left.event.sequence - right.event.sequence
     : sessionOrder;
+}
+
+function searchLimit(value: number | undefined) {
+  const limit = value ?? DEFAULT_LIMIT;
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > MAX_LIMIT)
+    throw new HistoricalSearchError(
+      `Search limit must be an integer from 1 to ${MAX_LIMIT}. Omit it to use ${DEFAULT_LIMIT}.`,
+    );
+  return limit;
 }
 
 function snippet(

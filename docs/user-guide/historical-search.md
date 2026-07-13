@@ -36,6 +36,15 @@ npm run cli -- session import \
 
 ### 3. Search a known historical item
 
+When the project is unknown, start the local GUI and use the default **All
+registered projects** scope. Each result shows safe project name/ID; selecting
+one result deliberately enters that project's existing event/source journey.
+The query, type, limit, and scope remain in place when returning. The global
+GUI scan accepts at most 100 registered projects and 10,000 canonical events
+and returns at most 100 results without repository paths or partial reports.
+
+The CLI remains explicitly project-scoped:
+
 ```bash
 npm run cli -- history search \
   "synthetic expectation failed" \
@@ -117,8 +126,10 @@ KiB. These bounds protect an interactive first slice; they are not final scale
 targets.
 
 There is currently no fuzzy, semantic, vector, stemmed, or indexed search.
-OpenSearch remains deferred until measured corpus size, latency, concurrency,
-ranking, or query-language needs exceed the local adapter.
+Global GUI search composes bounded project readers in memory and does not make
+an OpenSearch completeness or ranking claim. OpenSearch remains deferred until
+measured corpus size, latency, concurrency, ranking, or query-language needs
+exceed the local adapter.
 
 ## Security boundary
 

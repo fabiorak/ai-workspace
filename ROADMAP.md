@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 15](docs/planning/sprints/SPRINT-015.md) are complete.
+Sprint 0 through [Sprint 16](docs/planning/sprints/SPRINT-016.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -18,6 +18,11 @@ created one new compact standard-budget fit. Production behavior remains
 embedded and unchanged. M4 remains open: agent and skill
 profiles, context policies, broader retrieval, and execution are not
 implemented.
+
+[Sprint 16](docs/planning/sprints/SPRINT-016.md) completed the E3 usability
+increment: bounded literal search across all registered projects from the
+primary bilingual GUI, with project identity and project-scoped source
+navigation on every result. It adds no index or OpenSearch dependency.
 
 ## 1. Project Memory
 

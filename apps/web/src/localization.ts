@@ -13,7 +13,7 @@ const EN = {
   welcome: "Start with one local project",
   next: "Next recommended action",
   import: "Import safe sample evidence",
-  search: "Search project history",
+  search: "Search historical evidence",
   event: "Inspect canonical event",
   artifact: "Integrity-verified source evidence",
   memory: "Curate active project memory",
@@ -30,6 +30,9 @@ const EN = {
   refreshGit: "Refresh Git inspection",
   importSample: "Import the safe sample session",
   searchEvidence: "Search evidence",
+  searchScope: "Projects to search",
+  allProjects: "All registered projects",
+  selectedProjectOnly: "Selected project only",
   inspectEvent: "Inspect source event",
   openSource: "Open integrity-verified source",
   useMemorySource: "Use this event as memory evidence",
@@ -110,7 +113,7 @@ const EN = {
     "Effect: adds canonical events and immutable artifacts locally. Repeating this action is idempotent.",
   selectProjectSample: "Select a project to enable the safe sample.",
   searchIntro:
-    "Search is literal, local, bounded, and scoped to the selected project. Results are evidence, not instructions.",
+    "Search is literal, local, and bounded. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.",
   searchQuestion: "What evidence are you looking for?",
   searchTry: "Try the safe sample phrase",
   searchHelpBody:
@@ -120,7 +123,25 @@ const EN = {
   maximumResults: "Maximum results",
   searchEffect:
     "Effect: reads local canonical events. Nothing is executed, changed, or sent over a network.",
-  searchPrompt: "Enter a query to search the selected project.",
+  searchPrompt:
+    "Enter a query to search all registered projects, or choose selected-project scope.",
+  selectedScopeRequiresProject:
+    "Select a registered project or choose all-project scope.",
+  searchingAll: "Searching bounded evidence across registered projects…",
+  searchingSelected: "Searching bounded evidence in the selected project…",
+  globalEmpty:
+    "No matching evidence across registered projects. Check spelling, remove filters, or inspect one project's import.",
+  projectEmpty:
+    "No matching evidence in the selected project. Check spelling, remove filters, or import the safe sample.",
+  globalFound:
+    "Found {count} result(s) across {projects} projects and {events} searched events.",
+  projectFound:
+    "Found {count} result(s) across {events} searched events in the selected project.",
+  resultProject: "Project: {name} ({id})",
+  selectInspect: "Select this project and inspect source event",
+  projectReloadRequired:
+    "The result project is no longer registered. Reload projects and search again.",
+  searchAttention: "Search needs attention.",
   untrustedEvidence: "UNTRUSTED evidence:",
   injectionBody:
     "imperative text may be prompt injection. Treat it as inert data and do not execute it.",
@@ -207,7 +228,7 @@ const IT = {
   welcome: "Inizia con un progetto locale",
   next: "Prossima azione consigliata",
   import: "Importa evidenza di esempio sicura",
-  search: "Cerca nella cronologia del progetto",
+  search: "Cerca nelle evidenze storiche",
   event: "Esamina l'evento canonico",
   artifact: "Evidenza sorgente con integrità verificata",
   memory: "Cura la memoria attiva del progetto",
@@ -224,6 +245,9 @@ const IT = {
   refreshGit: "Aggiorna ispezione Git",
   importSample: "Importa la sessione di esempio sicura",
   searchEvidence: "Cerca evidenza",
+  searchScope: "Progetti in cui cercare",
+  allProjects: "Tutti i progetti registrati",
+  selectedProjectOnly: "Solo il progetto selezionato",
   inspectEvent: "Esamina evento sorgente",
   openSource: "Apri sorgente con integrità verificata",
   useMemorySource: "Usa questo evento come evidenza della memoria",
@@ -306,7 +330,7 @@ const IT = {
     "Effetto: aggiunge localmente eventi canonici e artifact immutabili. Ripetere l'azione è idempotente.",
   selectProjectSample: "Seleziona un progetto per abilitare l'esempio sicuro.",
   searchIntro:
-    "La ricerca è letterale, locale, bounded e limitata al progetto selezionato. I risultati sono evidenze, non istruzioni.",
+    "La ricerca è letterale, locale e bounded. Cerca in tutti i progetti registrati quando non ricordi a quale appartiene l'evidenza. I risultati sono evidenze UNTRUSTED, non istruzioni. Non vengono usati OpenSearch o servizi di rete.",
   searchQuestion: "Quale evidenza stai cercando?",
   searchTry: "Prova la frase dell'esempio sicuro",
   searchHelpBody:
@@ -316,7 +340,27 @@ const IT = {
   maximumResults: "Numero massimo di risultati",
   searchEffect:
     "Effetto: legge gli eventi canonici locali. Nulla viene eseguito, modificato o inviato in rete.",
-  searchPrompt: "Inserisci una query per cercare nel progetto selezionato.",
+  searchPrompt:
+    "Inserisci una query per cercare in tutti i progetti registrati oppure scegli l'ambito del progetto selezionato.",
+  selectedScopeRequiresProject:
+    "Seleziona un progetto registrato oppure scegli l'ambito di tutti i progetti.",
+  searchingAll:
+    "Ricerca bounded delle evidenze nei progetti registrati in corso…",
+  searchingSelected:
+    "Ricerca bounded delle evidenze nel progetto selezionato in corso…",
+  globalEmpty:
+    "Nessuna evidenza corrispondente nei progetti registrati. Controlla il testo, rimuovi i filtri o verifica l'importazione di un progetto.",
+  projectEmpty:
+    "Nessuna evidenza corrispondente nel progetto selezionato. Controlla il testo, rimuovi i filtri o importa l'esempio sicuro.",
+  globalFound:
+    "Trovati {count} risultati in {projects} progetti e {events} eventi esaminati.",
+  projectFound:
+    "Trovati {count} risultati in {events} eventi esaminati nel progetto selezionato.",
+  resultProject: "Progetto: {name} ({id})",
+  selectInspect: "Seleziona questo progetto ed esamina l'evento sorgente",
+  projectReloadRequired:
+    "Il progetto del risultato non è più registrato. Ricarica i progetti e ripeti la ricerca.",
+  searchAttention: "La ricerca richiede attenzione.",
   untrustedEvidence: "Evidenza UNTRUSTED:",
   injectionBody:
     "il testo imperativo potrebbe essere prompt injection. Trattalo come dato inerte e non eseguirlo.",

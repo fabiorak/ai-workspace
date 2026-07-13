@@ -120,17 +120,17 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
     ),
     screen(
       "SEARCH",
-      "Search project history",
-      "Find bounded canonical evidence in the selected project.",
+      "Search historical evidence",
+      "Find bounded canonical evidence across registered projects or in the selected project.",
       action({
         id: "search-evidence",
         label: "Search evidence",
         description:
-          "Run literal project-scoped search with the visible query and filters.",
+          "Run literal bounded search with explicit all-project or selected-project scope.",
         effect:
           "Reads local canonical events only; no content is executed or sent over a network.",
         prerequisites:
-          "Select a project and enter a search term. Import the safe sample if the project is empty.",
+          "Register at least one project and enter a search term. Selected-project scope additionally requires a project selection.",
         mutates: false,
       }),
     ),

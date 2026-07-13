@@ -86,6 +86,30 @@ export async function startGuiServer(
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
       if (request.method === "GET") {
+        if (url.pathname === "/api/search") {
+          const typeValue = url.searchParams.get("type");
+          if (
+            typeValue !== null &&
+            !SESSION_EVENT_TYPES.includes(typeValue as SessionEventType)
+          )
+            return reject(
+              response,
+              400,
+              "Choose a documented canonical event type.",
+            );
+          const limitValue = url.searchParams.get("limit");
+          return json(
+            response,
+            200,
+            await application.searchAllProjects({
+              text: url.searchParams.get("q") ?? "",
+              ...(typeValue === null
+                ? {}
+                : { type: typeValue as SessionEventType }),
+              ...(limitValue === null ? {} : { limit: Number(limitValue) }),
+            }),
+          );
+        }
         const workList = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
           url.pathname,
         );

@@ -223,6 +223,13 @@ the production builder, schema-v1 preview, GUI, persistence, delivery, and
 execution are unchanged. See the
 [metadata-envelope report](docs/development/context-pack-metadata-envelope-corpus.md).
 
+Sprint 16 closes the E3 global-search gap in the primary GUI. Literal,
+case-insensitive evidence search now defaults to all registered projects,
+identifies the owning project on every inert `UNTRUSTED` result, and switches
+to project-scoped event/source inspection only after an explicit user action.
+The local scan is bounded to 100 projects and 10,000 canonical events; no index,
+OpenSearch, network service, or persistence change is introduced.
+
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state
@@ -265,7 +272,8 @@ references; imported content remains untrusted and is never executed. See the
 > narrow. They are suitable for synthetic pre-release evaluation, not private
 > or production transcripts. No complete secret or PII detection is claimed.
 
-Sprint 3 adds project-scoped literal search and explicit source inspection:
+The CLI retains Sprint 3 project-scoped literal search and explicit source
+inspection; use the GUI's default all-project scope when the project is unknown:
 
 ```bash
 npm run cli -- history search "test failed" --project <project-id>

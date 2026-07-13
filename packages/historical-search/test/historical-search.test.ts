@@ -99,6 +99,173 @@ test("rejects non-UTF-8 artifact content with recovery context", async () => {
   );
 });
 
+test("searches all explicit projects before applying one deterministic limit", async () => {
+  const events = [
+    historicalEventFor("project-b", "shared evidence later", "ERROR", 2),
+    historicalEventFor("project-a", "shared evidence first", "TEST_RESULT", 1),
+  ];
+  const search = createMultiProjectSearch(events);
+
+  const report = await search.searchAcrossProjects({
+    projectIds: ["project-b", "project-a"],
+    text: "shared evidence",
+    limit: 1,
+  });
+
+  assert.deepEqual(report.query.projectIds, ["project-a", "project-b"]);
+  assert.equal(report.searchedProjects, 2);
+  assert.equal(report.searchedEvents, 2);
+  assert.equal(report.results.length, 1);
+  assert.equal(report.results[0]?.projectId, "project-a");
+  assert.deepEqual(
+    report,
+    await search.searchAcrossProjects({
+      projectIds: ["project-a", "project-b"],
+      text: "shared evidence",
+      limit: 1,
+    }),
+  );
+});
+
+test("keeps global filters, artifact matches, provenance, and project scope", async () => {
+  const event = historicalEventFor(
+    "project-b",
+    "ignored",
+    "COMMAND_RESULT",
+    1,
+    true,
+  );
+  const search = createMultiProjectSearch(
+    [event],
+    "Global synthetic artifact evidence",
+  );
+  const report = await search.searchAcrossProjects({
+    projectIds: ["project-a", "project-b"],
+    text: "artifact evidence",
+    type: "COMMAND_RESULT",
+  });
+  assert.equal(report.results[0]?.projectId, "project-b");
+  assert.equal(report.results[0]?.matchedIn, "ARTIFACT_PAYLOAD");
+  assert.equal(report.results[0]?.trust, "UNTRUSTED");
+  assert.match(report.results[0]?.source.recordHash ?? "", /^d{64}$/u);
+});
+
+test("rejects invalid global scope and excessive event volume", async () => {
+  const search = createMultiProjectSearch([]);
+  await assert.rejects(
+    search.searchAcrossProjects({ projectIds: [], text: "evidence" }),
+    /from 1 to 100/u,
+  );
+  await assert.rejects(
+    search.searchAcrossProjects({
+      projectIds: ["project-a", "project-a"],
+      text: "evidence",
+    }),
+    /must be unique/u,
+  );
+  await assert.rejects(
+    search.searchAcrossProjects({
+      projectIds: Array.from({ length: 101 }, (_, index) => `project-${index}`),
+      text: "evidence",
+    }),
+    /from 1 to 100/u,
+  );
+
+  const event = historicalEventFor("project-a", "bounded", "ERROR", 1);
+  const oversized = new HistoricalSearch({
+    events: {
+      async list() {
+        return Array.from({ length: 10_001 }, () => event);
+      },
+      async find() {
+        return null;
+      },
+    },
+    artifacts: {
+      async read() {
+        return encoder.encode("");
+      },
+    },
+    projects: {
+      async exists() {
+        return true;
+      },
+    },
+  });
+  await assert.rejects(
+    oversized.searchAcrossProjects({
+      projectIds: ["project-a"],
+      text: "bounded",
+    }),
+    /exceeds 10000 canonical events/u,
+  );
+});
+
+test("fails global search without partial results or rejected-content echo", async () => {
+  const canary = "PRIVATE-SYNTHETIC-GLOBAL-SEARCH-CANARY";
+  const search = new HistoricalSearch({
+    events: {
+      async list(projectId) {
+        if (projectId === "project-b") throw new Error(canary);
+        return [
+          historicalEventFor("project-a", "matching evidence", "ERROR", 1),
+        ];
+      },
+      async find() {
+        return null;
+      },
+    },
+    artifacts: {
+      async read() {
+        return encoder.encode("");
+      },
+    },
+    projects: {
+      async exists() {
+        return true;
+      },
+    },
+  });
+  await assert.rejects(
+    search.searchAcrossProjects({
+      projectIds: ["project-a", "project-b"],
+      text: "matching",
+    }),
+    (error: unknown) =>
+      error instanceof Error &&
+      /without using partial results/u.test(error.message) &&
+      !error.message.includes(canary),
+  );
+
+  const inconsistent = new HistoricalSearch({
+    events: {
+      async list() {
+        return [historicalEventFor("foreign-project", "matching", "ERROR", 1)];
+      },
+      async find() {
+        return null;
+      },
+    },
+    artifacts: {
+      async read() {
+        return encoder.encode("");
+      },
+    },
+    projects: {
+      async exists() {
+        return true;
+      },
+    },
+  });
+  await assert.rejects(
+    inconsistent.searchAcrossProjects({
+      projectIds: ["project-a"],
+      text: "matching",
+    }),
+    /inconsistent project scope/u,
+  );
+});
+
 function createSearch(
   events: readonly HistoricalEvent[],
   artifactContent = "Synthetic source evidence",
@@ -163,4 +330,48 @@ function historicalEvent(
     }),
   });
   return Object.freeze({ projectId: "project-1", event });
+}
+
+function createMultiProjectSearch(
+  events: readonly HistoricalEvent[],
+  artifactContent = "Synthetic source evidence",
+) {
+  return new HistoricalSearch({
+    events: {
+      async list(projectId: string) {
+        return events.filter((event) => event.projectId === projectId);
+      },
+      async find(projectId: string, eventId: string) {
+        return (
+          events.find(
+            (event) =>
+              event.projectId === projectId && event.event.id === eventId,
+          ) ?? null
+        );
+      },
+    },
+    artifacts: {
+      async read() {
+        return encoder.encode(artifactContent);
+      },
+    },
+    projects: {
+      async exists(projectId: string) {
+        return projectId === "project-a" || projectId === "project-b";
+      },
+    },
+  });
+}
+
+function historicalEventFor(
+  projectId: string,
+  text: string,
+  type: SessionEvent["type"],
+  sequence: number,
+  artifactPayload = false,
+): HistoricalEvent {
+  return Object.freeze({
+    ...historicalEvent(text, type, sequence, artifactPayload),
+    projectId,
+  });
 }

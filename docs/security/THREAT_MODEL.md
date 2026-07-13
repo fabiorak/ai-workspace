@@ -82,6 +82,16 @@ Effective-instruction GUI preview accepts only explicit local paths through the
 existing bounded fail-closed reader and does not persist, enforce, or execute
 instruction text.
 
+Global historical search enumerates only registered projects inside the
+authenticated loopback facade. One query is bounded to 100 unique project IDs,
+10,000 canonical events, and 100 returned results. Matches are merged before
+the limit; any unreadable, corrupt, cross-scoped, or oversized included history
+fails the whole query without a partial report or content echo. Results expose
+safe project name/ID, never repository paths. Event and artifact reads remain
+project-scoped, integrity checked, and reachable only after the user explicitly
+selects the result's project. Global results remain inert `UNTRUSTED` evidence
+and cannot create cross-project memory or state.
+
 Context Pack preview accepts only project/Work-Item-scoped persisted handoff
 identity plus optional explicit instruction bundle paths and bounded numeric
 budgets. The browser cannot submit a handoff body or request an inferred latest

@@ -41,6 +41,49 @@ describe("GUI application facade", () => {
       assert.ok(artifact.byteLength > 0);
     }));
 
+  it("searches all registered projects without exposing paths", async () =>
+    withFixture(async ({ app, repository, root }) => {
+      const first = await app.registerProject(repository);
+      await app.importSample(first.id);
+      const secondRepository = join(root, "second-repository");
+      await mkdir(secondRepository);
+      await execFileAsync("git", [
+        "-C",
+        secondRepository,
+        "init",
+        "--initial-branch=main",
+      ]);
+      await writeFile(
+        join(secondRepository, "README.md"),
+        "# Second synthetic GUI project\n",
+      );
+      await execFileAsync("git", ["-C", secondRepository, "add", "README.md"]);
+      await execFileAsync("git", [
+        "-C",
+        secondRepository,
+        "-c",
+        "user.name=Synthetic GUI Fixture",
+        "-c",
+        "user.email=gui-fixture@example.invalid",
+        "commit",
+        "-m",
+        "initial",
+      ]);
+      await app.registerProject(secondRepository);
+
+      const report = await app.searchAllProjects({
+        text: "expectation failed",
+        type: "COMMAND_RESULT",
+      });
+      assert.equal(report.scope, "ALL_REGISTERED_PROJECTS");
+      assert.equal(report.searchedProjects, 2);
+      assert.equal(report.results.length, 1);
+      assert.equal(report.results[0]?.projectId, first.id);
+      assert.equal(report.results[0]?.projectName, first.name);
+      assert.equal("canonicalPath" in report.results[0]!, false);
+      assert.equal(JSON.stringify(report).includes(repository), false);
+    }));
+
   it("curates source-linked memory through its additive lifecycle", async () =>
     withFixture(async ({ app, repository }) => {
       const project = await app.registerProject(repository);

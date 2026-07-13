@@ -5,6 +5,8 @@ export {
 export { HistoricalSearch } from "./historical-search.ts";
 export type {
   HistoricalEvent,
+  GlobalHistoricalSearchQuery,
+  GlobalHistoricalSearchReport,
   HistoricalSearchQuery,
   HistoricalSearchReport,
   HistoricalSearchResult,

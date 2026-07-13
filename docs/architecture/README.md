@@ -74,9 +74,14 @@ an execution path. These choices are recorded in ADR-0005 through ADR-0007.
 
 Historical retrieval is also behind domain-owned ports. The initial adapter
 scans validated canonical session events with mandatory project scope and
-resolves artifact-backed payloads through an integrity-checking read port. Raw
-source artifacts are opened only after explicit user action. ADR-0008 records
-the bounded literal-search strategy and the triggers for selecting an index.
+resolves artifact-backed payloads through an integrity-checking read port. The
+provider-neutral use case can now compose an explicit set of up to 100
+registered project IDs and 10,000 canonical events, merge deterministic matches
+before one global limit, and reject inconsistent or partial scope. The GUI
+enriches results with safe project name/ID and requires an explicit project
+selection before existing event/source routes are used. Raw source artifacts
+are opened only after explicit user action. ADR-0008 records the bounded
+literal-search strategy and the triggers for selecting an index.
 
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while

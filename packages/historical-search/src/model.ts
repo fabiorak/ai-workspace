@@ -42,6 +42,25 @@ export type HistoricalSearchReport = Readonly<{
   results: readonly HistoricalSearchResult[];
 }>;
 
+export type GlobalHistoricalSearchQuery = Readonly<{
+  projectIds: readonly string[];
+  text: string;
+  type?: SessionEventType;
+  limit?: number;
+}>;
+
+export type GlobalHistoricalSearchReport = Readonly<{
+  query: Readonly<{
+    projectIds: readonly string[];
+    text: string;
+    type: SessionEventType | null;
+    limit: number;
+  }>;
+  searchedProjects: number;
+  searchedEvents: number;
+  results: readonly HistoricalSearchResult[];
+}>;
+
 export type OpenedArtifact = Readonly<{
   id: string;
   byteLength: number;

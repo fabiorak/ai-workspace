@@ -61,5 +61,16 @@ describe("GUI localization contract", () => {
     );
     assert.match(GUI_CATALOGS.it.noMatchingMemory, /Nessuna memoria/u);
     assert.match(GUI_CATALOGS.it.noWorkItems, /Nessun Work Item/u);
+    assert.equal(GUI_CATALOGS.it.allProjects, "Tutti i progetti registrati");
+    assert.match(GUI_CATALOGS.it.searchIntro, /OpenSearch/u);
+    assert.equal(
+      guiMessage("it", "globalFound", {
+        count: "2",
+        projects: "3",
+        events: "40",
+      }),
+      "Trovati 2 risultati in 3 progetti e 40 eventi esaminati.",
+    );
+    assert.match(GUI_CATALOGS.it.selectInspect, /Seleziona questo progetto/u);
   });
 });

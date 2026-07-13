@@ -428,6 +428,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 13 | E0, E6        | Measure synthetic Context Pack budget pressure          |
 | Sprint 14 | E0, E6        | Measure continuity disclosure granularity               |
 | Sprint 15 | E0, E6        | Decide the Context Pack metadata envelope               |
+| Sprint 16 | E0, E3        | Search historical evidence across registered projects   |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -465,6 +466,10 @@ compact/working/extended content by 1,409/1,409/1,408 bytes and creates the
 only new standard-budget fit. ADR-0016 accepts it as a future schema direction;
 the full metadata table changes no fit boundary, and no production writer or
 GUI behavior is enabled.
+Sprint 16 completed the next user-priority correction to E3. It composes
+the existing literal local search across registered projects, returns explicit
+project identity, and preserves project-scoped source inspection without
+introducing OpenSearch or another index.
 
 ## 9. Agile operating model
 
@@ -681,3 +686,9 @@ decision. Exact prototypes and lossless adversarial contracts preceded
 ADR-0016, which accepts the source table for a future schema. The normalization
 remains disabled until later writer, reader, facade, and GUI compatibility
 contracts pass.
+
+[Sprint 16](sprints/SPRINT-016.md) closed the global-search gap in
+the primary GUI. A bounded all-project scan must merge before the result limit,
+identify every owning project, and fail without partial results; indexed search
+remains deferred to measured scale triggers and a later ADR. The GUI defaults
+to all registered projects; the CLI remains explicitly project-scoped.

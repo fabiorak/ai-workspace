@@ -458,6 +458,15 @@ primo adapter implementato esegue una scansione letterale bounded degli eventi
 canonici validati; un indice locale leggero o OpenSearch potranno essere scelti
 in seguito tramite ADR, sulla base di corpus, prestazioni e costi operativi.
 
+La composizione globale implementata nella GUI enumera soltanto i progetti
+registrati, normalizza fino a 100 project ID espliciti, esamina al massimo
+10.000 eventi canonici, unisce i match prima di un unico limite di 1–100
+risultati e identifica il progetto senza esporne il percorso. Il failure di un
+progetto incluso interrompe l'intero report invece di restituire risultati
+parziali fuorvianti. L'ispezione di evento e sorgente resta project-scoped dopo
+una selezione utente esplicita. Questo chiude il gap del progetto dimenticato
+senza scegliere un indice.
+
 Il suo scopo non è diventare la memoria attiva dell'agente, ma consentire di recuperare qualsiasi evidenza precedente.
 
 ### 8.1 Contenuti indicizzati
