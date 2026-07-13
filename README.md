@@ -183,79 +183,34 @@ imported content visibly `UNTRUSTED` and inert. This is a pre-release alpha;
 real or private transcripts are not supported. See the
 [GUI first-journey guide](docs/user-guide/gui-first-journey.md).
 
-Sprint 9 extends that same primary GUI with complete active-memory curation.
-From an inspected canonical event, users can explicitly create a source-linked
-decision, constraint, or failure; browse active or terminal items; inspect
-provenance; and verify, supersede, or invalidate additively. `USER_CURATED`
-never promotes the linked `UNTRUSTED` evidence to trusted or executable data.
+The current GUI also provides:
 
-Sprint 10 adds the continuity cockpit: complete Work Item lifecycle plus
-transparent handoff preview, immutable creation, history inspection, read-only
-Git drift validation, and explicit successor guidance. Preview never writes a
-handoff file, and no cockpit action executes or contacts an agent.
+- source-linked active-memory curation with additive verification,
+  supersession, and invalidation;
+- explicit Work Item lifecycle and immutable handoff creation, inspection, Git
+  drift validation, and successor preparation;
+- deterministic effective-instruction preview with provenance, precedence,
+  exclusions, conflicts, and no runtime enforcement;
+- schema-v2 Context Pack preview with exact UTF-8 category budgets, whole-item
+  omissions, canonical shared-source provenance, and lossless expansion;
+- portable schema-v1 agent and skill profile inspection with optional SHA-256
+  pinning, relationship validation, and canonical JSON round trips;
+- bounded literal history search across at most 100 registered projects and
+  10,000 canonical events, without an index or OpenSearch.
 
-Sprint 11 adds an extensible typed localization boundary with complete English
-and Italian catalogs, deterministic fallback, validated interpolation, and no
-translation service. It also brings effective-instruction composition into the
-GUI as an explicit read-only preview. Stable enums, IDs, paths, commands,
-hashes, evidence, and persisted content remain unchanged.
+All these surfaces are local and inspectable. Imported evidence remains
+`UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
+`USER_CONFIGURED` attribution, not executable authority. Context Packs and
+profiles are not persisted, delivered, installed, selected, or executed. See
+the [active-memory](docs/user-guide/active-memory.md),
+[Work Item and handoff](docs/user-guide/work-items-and-handoffs.md),
+[effective-instruction](docs/user-guide/effective-instructions.md),
+[agent and skill profile](docs/user-guide/agent-skill-profiles.md), and
+[GUI journey](docs/user-guide/gui-first-journey.md) guides for the current
+contracts and limitations.
 
-Sprint 12 adds the first read-only E6 slice. Context Pack preview combines one
-explicitly inspected immutable handoff with optional reviewed effective
-instructions, enforces separate exact-byte budgets, and reports whole-item
-omissions. It performs no retrieval, truncation, persistence, delivery, model
-call, or execution.
-
-Sprint 13 measures that boundary with a deterministic 27-sample synthetic
-corpus over continuity, instruction, and budget profiles. Exact reports expose
-candidate, included, and omitted content bytes, category retention, fit counts,
-and distributions without changing the GUI, selection policy, persistence, or
-execution boundary. See the
-[budget-pressure report](docs/development/context-pack-budget-pressure-corpus.md).
-
-Sprint 14 compares the current full continuity sections with experiment-only
-resolvable references and structural outlines. Exact results retain regressions:
-neither lower-detail level improves the sampled 4,096-byte fit boundary, so the
-production builder and GUI remain unchanged. See the
-[granularity report](docs/development/continuity-disclosure-granularity-corpus.md).
-
-Sprint 15 compares the unchanged embedded metadata with packet-level source
-and full-metadata tables. ADR-0016 accepts the source table as a future schema
-direction after it reduces the compact sample from 4,926 to 3,517 bytes and
-creates the only new standard-budget fit. The prototype remains experiment-only:
-the production builder, schema-v1 preview, GUI, persistence, delivery, and
-execution are unchanged. See the
-[metadata-envelope report](docs/development/context-pack-metadata-envelope-corpus.md).
-
-Sprint 16 closes the E3 global-search gap in the primary GUI. Literal,
-case-insensitive evidence search now defaults to all registered projects,
-identifies the owning project on every inert `UNTRUSTED` result, and switches
-to project-scoped event/source inspection only after an explicit user action.
-The local scan is bounded to 100 projects and 10,000 canonical events; no index,
-OpenSearch, network service, or persistence change is introduced.
-
-Sprint 17 rolls the accepted ADR-0016 source table into the read-only Context
-Pack preview as explicit schema v2. The builder charges exact marginal shared
-table growth while selecting whole sections, emits only sources referenced by
-included sections, and expands complete trust and navigation identity before
-the bilingual GUI renders it. Schema-v1 candidates and historical measurements
-remain reproducible. The production implementation reproduces the synthetic
-4,926→3,517, 7,560→6,151, and 33,000→31,592 byte results. No pack is persisted,
-delivered, or executed. See the
-[schema-v2 rollout](docs/development/context-pack-source-table-rollout.md).
-
-Sprint 18 adds the first portable agent/skill profile boundary. One explicit
-project-scoped schema-v1 JSON bundle describes one agent and exactly its enabled
-skills, with versions, models, tools, instruction-source IDs, context budgets,
-risks, confirmations, inputs, outputs, author, and license. A controlled local
-reader supports optional SHA-256 pinning and canonical newline-terminated JSON
-round trips; the bilingual GUI renders the result as inert `USER_CONFIGURED`
-data. Nothing is discovered, installed, selected, enforced, delivered, or
-executed. See the
-[agent and skill profile guide](docs/user-guide/agent-skill-profiles.md).
-
-The completed Project Registry slice can register and inspect local non-bare
-Git repositories from the CLI. It records an opaque project identifier,
+The Project Registry can register and inspect local non-bare Git repositories
+from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state
 in a local versioned registry.
 
@@ -276,7 +231,7 @@ Add `--json` to any project command for machine-readable output. Local registry
 data is stored under `~/.ai-workspace` by default and is never committed to the
 registered repository. See the [Project Registry guide](docs/user-guide/project-registry.md).
 
-Sprint 2 adds controlled Codex session ingestion for a registered project:
+The CLI supports controlled Codex session ingestion for a registered project:
 
 ```bash
 npm run cli -- session import \
@@ -296,8 +251,8 @@ references; imported content remains untrusted and is never executed. See the
 > narrow. They are suitable for synthetic pre-release evaluation, not private
 > or production transcripts. No complete secret or PII detection is claimed.
 
-The CLI retains Sprint 3 project-scoped literal search and explicit source
-inspection; use the GUI's default all-project scope when the project is unknown:
+The CLI provides project-scoped literal search and explicit source inspection;
+use the GUI's default all-project scope when the project is unknown:
 
 ```bash
 npm run cli -- history search "test failed" --project <project-id>
@@ -310,7 +265,7 @@ Results remain visibly untrusted, source-linked evidence. Artifact content is
 shown only after an explicit command and a successful SHA-256 integrity check.
 See the [Historical Search guide](docs/user-guide/historical-search.md).
 
-Sprint 4 added explicit CLI curation of selected evidence as active decisions,
+The CLI can explicitly curate selected evidence as active decisions,
 constraints, and failures:
 
 ```bash
@@ -369,9 +324,8 @@ npm run check
 See the [development guide](docs/development/README.md) for individual quality
 commands and workspace conventions.
 
-Sprint commitments and completed evidence are recorded in the
-[sprint archive](docs/planning/sprints/README.md). Search currently scans local
-canonical events; it does not select or introduce OpenSearch.
+Search currently scans local canonical events; it does not require or use
+OpenSearch.
 
 ## Contributing
 
