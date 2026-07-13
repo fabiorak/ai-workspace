@@ -137,3 +137,4 @@ function validateBudget(value: number, category: ContextCategory) {
 
 export * from "./measurement.ts";
 export * from "./continuity-disclosure.ts";
+export * from "./metadata-envelope.ts";

@@ -50,6 +50,13 @@ sections with resolvable references and string-leaf outlines. All levels retain
 complete metadata and SHA-256-bound immutable resolution identity, but none is
 accepted as Context Builder input. The experiment performs no storage lookup,
 automatic level selection, persistence, delivery, or execution.
+The metadata-envelope experiment separately compares embedded metadata with a
+packet-level source table and a full metadata table over the unchanged corpus.
+It uses SHA-256 identities over complete canonical source/metadata values,
+scope-bound bounded tables, canonical unique references, and lossless
+fail-closed expansion. ADR-0016 accepts only the source table as a future
+schema direction. The experiment remains outside the production builder,
+facade, GUI, persistence, delivery, and execution graph.
 
 The implemented local persistence baseline now consists of:
 

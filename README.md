@@ -215,6 +215,14 @@ neither lower-detail level improves the sampled 4,096-byte fit boundary, so the
 production builder and GUI remain unchanged. See the
 [granularity report](docs/development/continuity-disclosure-granularity-corpus.md).
 
+Sprint 15 compares the unchanged embedded metadata with packet-level source
+and full-metadata tables. ADR-0016 accepts the source table as a future schema
+direction after it reduces the compact sample from 4,926 to 3,517 bytes and
+creates the only new standard-budget fit. The prototype remains experiment-only:
+the production builder, schema-v1 preview, GUI, persistence, delivery, and
+execution are unchanged. See the
+[metadata-envelope report](docs/development/context-pack-metadata-envelope-corpus.md).
+
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state

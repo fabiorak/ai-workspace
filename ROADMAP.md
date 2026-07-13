@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 12](docs/planning/sprints/SPRINT-012.md) are complete.
+Sprint 0 through [Sprint 15](docs/planning/sprints/SPRINT-015.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -12,7 +12,10 @@ measurement over a deterministic 27-sample synthetic corpus before any new
 optimization was selected. [Sprint 14](docs/planning/sprints/SPRINT-014.md)
 then measured resolvable reference and outline granularity without enabling
 either representation: neither improves the sampled standard-budget fit
-boundary. M4 remains open: agent and skill
+boundary. [Sprint 15](docs/planning/sprints/SPRINT-015.md) then accepted a
+future packet-level source table in ADR-0016 after an exact lossless comparison
+created one new compact standard-budget fit. Production behavior remains
+embedded and unchanged. M4 remains open: agent and skill
 profiles, context policies, broader retrieval, and execution are not
 implemented.
 
@@ -42,10 +45,10 @@ complete session.
 
 The current implementation enforces exact UTF-8 content-byte budgets and
 reports whole-item omissions. Synthetic granularity data rejects generic
-string-leaf outlines and leaves resolvable references experiment-only. The
-next evidence step is an ADR comparing repeated per-section metadata with a
-lossless shared metadata/provenance envelope; no production optimization claim
-is accepted.
+string-leaf outlines and leaves resolvable references experiment-only.
+ADR-0016 accepts a source table, not a full metadata table, as a future schema
+direction from exact lossless evidence. A later rollout must add explicit
+schema compatibility and builder/GUI contracts before production changes.
 
 ## 4. Privacy Proxy
 

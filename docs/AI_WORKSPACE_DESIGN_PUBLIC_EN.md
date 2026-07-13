@@ -2608,7 +2608,13 @@ it changes no selection policy and makes no relevance or production claim.
 An experiment-only granularity comparison retains full section metadata and
 immutable resolution identity across reference, outline, and full levels. Its
 negative standard-budget result enables none of those levels in the production
-builder and points only to a later shared-metadata ADR comparison.
+builder. A subsequent exact comparison expands source-table and full
+metadata-table alternatives losslessly to the same logical sections.
+ADR-0016 accepts the source table as a future versioned Context Pack direction:
+it creates the only new compact standard-budget fit and is smaller than the
+full metadata table in every profile. The production schema-v1 builder, GUI,
+persistence, delivery, and execution remain unchanged pending later
+compatibility contracts.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

@@ -68,3 +68,7 @@ remain inactive.
 
 Context Pack preview does not search history, read repository files, truncate
 content, choose sources automatically, persist a pack, or send a prompt.
+ADR-0016 accepts a packet-level source table only for a possible future Context
+Pack schema. Sprint 15 adds no GUI option and does not change the current
+embedded schema-v1 preview. A later rollout must preserve the complete guided
+journey, visible trust/source identity, and backward compatibility.

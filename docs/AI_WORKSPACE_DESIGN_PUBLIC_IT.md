@@ -1943,8 +1943,13 @@ la policy di selezione e non avanza claim di rilevanza o produzione. Un
 confronto di granularità solo sperimentale conserva metadata completi di
 sezione e identità di risoluzione immutabile nei livelli reference, outline e
 full. Il risultato negativo sul budget standard non abilita alcun livello nel
-builder di produzione e indica soltanto un futuro confronto ADR sui metadata
-condivisi. Backend
+builder di produzione. Un confronto exact-byte successivo espande in modo
+lossless le alternative con source table e tabella completa dei metadata nelle
+stesse sezioni logiche. ADR-0016 accetta la source table come direzione futura
+per un Context Pack versionato: crea l'unico nuovo fit compact sul budget
+standard ed è più piccola della tabella metadata completa in ogni profilo. Il
+builder schema-v1, la GUI, la persistenza, il delivery e l'esecuzione restano
+invariati in attesa di contract di compatibilità successivi. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

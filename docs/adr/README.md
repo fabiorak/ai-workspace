@@ -35,3 +35,4 @@ Status: proposed | accepted | superseded
 - [ADR-0013: Normalize handoff provenance with lossless source references](0013-normalize-handoff-provenance-with-lossless-source-references.md)
 - [ADR-0014: Compose structured instructions with explicit precedence](0014-compose-structured-instructions-with-explicit-precedence.md)
 - [ADR-0015: Use a loopback built-in web host for the first GUI](0015-use-a-loopback-built-in-web-host-for-the-first-gui.md)
+- [ADR-0016: Use a source table for future Context Pack metadata](0016-use-a-source-table-for-future-context-pack-metadata.md)

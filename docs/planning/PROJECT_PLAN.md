@@ -427,6 +427,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 12 | E0, E6        | Preview a deterministic budgeted Context Pack           |
 | Sprint 13 | E0, E6        | Measure synthetic Context Pack budget pressure          |
 | Sprint 14 | E0, E6        | Measure continuity disclosure granularity               |
+| Sprint 15 | E0, E6        | Decide the Context Pack metadata envelope               |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -459,6 +460,11 @@ profiles and budgets. Neither lower-detail level improves the sampled standard
 fit boundary, so production behavior remains unchanged. The measured
 3,816-byte repeated metadata floor supports a later ADR comparison of shared
 metadata/provenance envelopes before any disclosure implementation.
+Sprint 15 completed that bounded decision increment. The source table reduces
+compact/working/extended content by 1,409/1,409/1,408 bytes and creates the
+only new standard-budget fit. ADR-0016 accepts it as a future schema direction;
+the full metadata table changes no fit boundary, and no production writer or
+GUI behavior is enabled.
 
 ## 9. Agile operating model
 
@@ -669,3 +675,9 @@ compression, or a new context representation.
 Full, reference, and outline levels preserve complete metadata and immutable
 resolution identity, but the lower-detail levels do not improve the standard
 budget-fit boundary and remain excluded from the production builder.
+
+[Sprint 15](sprints/SPRINT-015.md) completed the follow-up architecture
+decision. Exact prototypes and lossless adversarial contracts preceded
+ADR-0016, which accepts the source table for a future schema. The normalization
+remains disabled until later writer, reader, facade, and GUI compatibility
+contracts pass.
