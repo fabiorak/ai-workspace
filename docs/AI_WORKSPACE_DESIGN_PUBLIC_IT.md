@@ -1959,7 +1959,14 @@ Context Pack versionato: crea l'unico nuovo fit compact sul budget standard ed
 è più piccola della tabella metadata completa in ogni profilo. Sprint 17 la
 implementa come schema v2 con compatibilità schema v1 esplicita, accounting
 marginale deterministico dei byte condivisi, espansione lossless e ispezione
-GUI bilingue. Persistenza, delivery ed esecuzione restano assenti. Backend
+GUI bilingue. Persistenza, delivery ed esecuzione restano assenti.
+Sprint 18 aggiunge il primo boundary portabile schema v1 per agenti e skill: un
+bundle JSON project-scoped esplicito contiene un agente ed esattamente le skill
+abilitate, valida versioni e relazioni modello/tool/contesto/conferma e compie
+round trip JSON canonici. La GUI bilingue ispeziona input sintetici locali con
+digest pinning come dati descrittivi `USER_CONFIGURED`. Non vengono abilitati
+registry, installazione, risoluzione disponibilità, selezione, permessi,
+delivery o esecuzione. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

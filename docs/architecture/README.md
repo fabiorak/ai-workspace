@@ -36,6 +36,16 @@ preview reuses the provider-neutral composer and strict local bundle reader
 through the typed facade; HTTP and presentation remain read-only and do not
 enforce or execute instruction content.
 
+The first agent/skill profile slice also belongs to the provider-neutral
+instruction-management boundary. Schema v1 contains one project-scoped agent
+and exactly its enabled skills, validates internal model/tool/context/
+confirmation compatibility, and encodes canonical newline-terminated JSON.
+The existing local-instructions integration reads one explicit bounded file,
+optionally pins its SHA-256 digest, and returns no full path. The facade and GUI
+inspect the value only; there is no discovery, registry persistence,
+installation, selection, availability resolution, permission enforcement,
+delivery, or execution graph.
+
 The first E6 slice is `packages/context-builder`, a provider-neutral in-memory
 builder. It maps the eight sections of one validated immutable handoff and
 optional effective instruction rules into two deterministic categories. Exact

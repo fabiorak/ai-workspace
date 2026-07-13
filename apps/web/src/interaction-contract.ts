@@ -12,6 +12,7 @@ export type GuiJourneyStep =
   | "HANDOFF_BUILDER"
   | "HANDOFF_DETAIL"
   | "INSTRUCTIONS"
+  | "AGENT_PROFILE"
   | "CONTEXT_PACK";
 export type GuiState =
   | "FIRST_RUN"
@@ -274,6 +275,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
       }),
     ),
     screen(
+      "AGENT_PROFILE",
+      "Agent and skill profile",
+      "Inspect one portable versioned USER_CONFIGURED agent and its complete enabled skill set without activation.",
+      action({
+        id: "preview-agent-profile",
+        label: "Inspect profile read-only",
+        description:
+          "Validate one explicit digest-pinned local schema-v1 profile and its internal model, tool, context, and confirmation relationships.",
+        effect:
+          "Shows canonical portable declarations without installation, selection, permission, delivery, or execution.",
+        prerequisites:
+          "Select a registered project and one reviewed synthetic agent profile bundle.",
+        mutates: false,
+      }),
+    ),
+    screen(
       "CONTEXT_PACK",
       "Bounded Context Pack",
       "Preview schema-v2 continuity with shared canonical provenance and instruction material within exact-byte budgets.",
@@ -361,7 +378,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 14)
+  if (steps.size !== 15)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

@@ -23,6 +23,7 @@ const EN = {
   handoff: "Build a transparent handoff",
   handoffDetail: "Immutable handoff",
   instructions: "Preview effective instructions",
+  agentProfile: "Inspect an agent and skill profile",
   context: "Preview a bounded Context Pack",
   capabilities: "Product capability map",
   register: "Register this project",
@@ -58,6 +59,7 @@ const EN = {
   successor: "Prepare successor",
   backHandoff: "Return to handoff builder",
   previewInstructions: "Preview instructions read-only",
+  previewAgentProfile: "Inspect profile read-only",
   previewContext: "Preview Context Pack read-only",
   noExecution:
     "Configured instruction text and precedence are descriptive. The GUI does not enforce or execute them.",
@@ -75,6 +77,14 @@ const EN = {
     "Select a project and explicit reviewed synthetic bundle paths to preview effective instructions.",
   instructionWarning:
     "Read-only preview: nothing is persisted or executed. USER_CONFIGURED does not mean runtime permission.",
+  profileWarning:
+    "USER_CONFIGURED profile declarations are descriptive. They are not installed, selected, enforced, resolved, delivered, or executed and grant no runtime permission.",
+  profilePath: "Reviewed schema-v1 agent profile bundle path",
+  profileDigest: "Expected SHA-256 digest (optional pin)",
+  profileEmpty:
+    "Select a project and one explicit reviewed synthetic profile bundle to inspect agent and skill declarations.",
+  profileReady:
+    "Profile {name} inspected with {skills} skills: {sourceBytes} source bytes and {canonicalBytes} canonical bytes. No capability was activated.",
   previewReady:
     "Effective instruction preview ready. Nothing was persisted or executed.",
   contextWarning:
@@ -238,6 +248,7 @@ const IT = {
   handoff: "Crea un handoff trasparente",
   handoffDetail: "Handoff immutabile",
   instructions: "Anteprima delle istruzioni effettive",
+  agentProfile: "Ispeziona un profilo agente e skill",
   context: "Anteprima di un Context Pack bounded",
   capabilities: "Mappa delle funzionalità del prodotto",
   register: "Registra questo progetto",
@@ -273,6 +284,7 @@ const IT = {
   successor: "Prepara successore",
   backHandoff: "Torna al builder handoff",
   previewInstructions: "Anteprima istruzioni in sola lettura",
+  previewAgentProfile: "Ispeziona profilo in sola lettura",
   previewContext: "Anteprima Context Pack in sola lettura",
   noExecution:
     "Testo e precedenza delle istruzioni configurate sono descrittivi. La GUI non li applica né li esegue.",
@@ -291,6 +303,14 @@ const IT = {
     "Seleziona un progetto e i percorsi espliciti di bundle sintetici revisionati per vedere le istruzioni effettive.",
   instructionWarning:
     "Anteprima in sola lettura: nulla viene persistito o eseguito. USER_CONFIGURED non indica un permesso runtime.",
+  profileWarning:
+    "Le dichiarazioni profilo USER_CONFIGURED sono descrittive. Non vengono installate, selezionate, applicate, risolte, consegnate o eseguite e non concedono permessi runtime.",
+  profilePath: "Percorso bundle profilo agente schema v1 revisionato",
+  profileDigest: "Digest SHA-256 atteso (pin facoltativo)",
+  profileEmpty:
+    "Seleziona un progetto e un bundle profilo sintetico revisionato esplicito per ispezionare agente e skill.",
+  profileReady:
+    "Profilo {name} ispezionato con {skills} skill: {sourceBytes} byte sorgente e {canonicalBytes} byte canonici. Nessuna capacità è stata attivata.",
   previewReady:
     "Anteprima delle istruzioni effettive pronta. Nulla è stato persistito o eseguito.",
   contextWarning:

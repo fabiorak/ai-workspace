@@ -24,6 +24,7 @@ describe("GUI interaction contract", () => {
         "HANDOFF_BUILDER",
         "HANDOFF_DETAIL",
         "INSTRUCTIONS",
+        "AGENT_PROFILE",
         "CONTEXT_PACK",
       ],
     );

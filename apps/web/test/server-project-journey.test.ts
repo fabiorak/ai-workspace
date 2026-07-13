@@ -12,6 +12,7 @@ import {
   startGuiServer,
   type GuiServer,
 } from "../src/index.ts";
+import { buildSyntheticAgentProfile } from "../../../packages/instruction-manager/test/synthetic-agent-profile.ts";
 
 const execFileAsync = promisify(execFile);
 const sampleSessionPath = join(
@@ -102,6 +103,8 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Validate current Git state/u);
     assert.match(html, /Language \/ Lingua/u);
     assert.match(html, /Preview effective instructions/u);
+    assert.match(html, /Inspect an agent and skill profile/u);
+    assert.match(html, /grant no runtime permission/u);
     assert.match(html, /Preview a bounded Context Pack/u);
     assert.match(html, /No translation service is used/u);
     assert.match(html, /role="alert"/u);
@@ -620,6 +623,46 @@ describe("GUI server project onboarding", () => {
       preview.rules[0]!.content,
       "Keep the synthetic journey tested.",
     );
+  });
+
+  it("inspects a digest-pinned agent and skill profile over authenticated HTTP", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    const profilePath = join(root, "gui-agent-profile.json");
+    const source = JSON.stringify(
+      buildSyntheticAgentProfile(projectId),
+      null,
+      2,
+    );
+    await writeFile(profilePath, source);
+    const digest = createHash("sha256").update(source).digest("hex");
+    const response = await api(
+      `/api/projects/${projectId}/agent-profile/preview`,
+      {
+        method: "POST",
+        body: JSON.stringify({ path: profilePath, expectedDigest: digest }),
+      },
+    );
+    assert.equal(response.status, 200);
+    const preview = (await response.json()) as {
+      bundle: { agent: { id: string }; skills: unknown[] };
+      sourceDigest: string;
+      effect: string;
+    };
+    assert.equal(preview.bundle.agent.id, "review-agent");
+    assert.equal(preview.bundle.skills.length, 2);
+    assert.equal(preview.sourceDigest, digest);
+    assert.equal(
+      preview.effect,
+      "DESCRIPTIVE_NOT_INSTALLED_SELECTED_ENFORCED_OR_EXECUTED",
+    );
+    const foreign = await api(
+      `/api/projects/foreign-project/agent-profile/preview`,
+      { method: "POST", body: JSON.stringify({ path: profilePath }) },
+    );
+    assert.equal(foreign.status, 400);
+    assert.equal((await foreign.text()).includes(profilePath), false);
   });
 
   it("rejects oversized bodies and undeclared methods without leaking input", async () => {

@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { promisify } from "node:util";
 import { GuiApplication } from "../src/index.ts";
+import { buildSyntheticAgentProfile } from "../../../packages/instruction-manager/test/synthetic-agent-profile.ts";
 
 const execFileAsync = promisify(execFile);
 const sampleSessionPath = join(
@@ -223,6 +224,28 @@ describe("GUI application facade", () => {
       );
       assert.equal(preview.rules[0]!.status, "ACTIVE");
       assert.equal(preview.rules[0]!.sourceTrust, "USER_CONFIGURED");
+    }));
+
+  it("inspects one portable agent and skill profile without path exposure or activation", async () =>
+    withFixture(async ({ app, repository, root }) => {
+      const project = await app.registerProject(repository);
+      const profilePath = join(root, "synthetic-agent-profile.json");
+      await writeFile(
+        profilePath,
+        JSON.stringify(buildSyntheticAgentProfile(project.id), null, 2),
+      );
+      const preview = await app.previewAgentProfile({
+        projectId: project.id,
+        profile: { path: profilePath },
+      });
+      assert.equal(preview.bundle.agent.id, "review-agent");
+      assert.equal(preview.bundle.skills.length, 2);
+      assert.equal(preview.sourceName, "synthetic-agent-profile.json");
+      assert.equal(
+        preview.effect,
+        "DESCRIPTIVE_NOT_INSTALLED_SELECTED_ENFORCED_OR_EXECUTED",
+      );
+      assert.equal(JSON.stringify(preview).includes(root), false);
     }));
 });
 

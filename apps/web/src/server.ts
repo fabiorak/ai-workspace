@@ -331,6 +331,37 @@ export async function startGuiServer(
             }),
           );
         }
+        const agentProfilePreview =
+          /^\/api\/projects\/([^/]+)\/agent-profile\/preview$/u.exec(
+            url.pathname,
+          );
+        if (agentProfilePreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.path !== "string" ||
+            (body.expectedDigest !== undefined &&
+              typeof body.expectedDigest !== "string")
+          )
+            return reject(
+              response,
+              400,
+              "Select one explicit reviewed schema-v1 agent profile bundle.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewAgentProfile({
+              projectId: decodeURIComponent(agentProfilePreview[1]!),
+              profile: {
+                path: body.path,
+                ...(body.expectedDigest === undefined
+                  ? {}
+                  : { expectedDigest: body.expectedDigest }),
+              },
+            }),
+          );
+        }
         const contextPreview =
           /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/context\/preview$/u.exec(
             url.pathname,

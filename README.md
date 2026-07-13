@@ -165,6 +165,9 @@ The visible journey is:
    deterministic schema-v2 Context Pack whose shared canonical source table,
    expanded logical items, and whole-item omissions retain source identity.
    The token count is labeled as an estimate only.
+10. select one reviewed synthetic agent/skill profile bundle and inspect its
+    canonical portable declarations and digest without installation, selection,
+    permission, delivery, or execution.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -240,6 +243,16 @@ remain reproducible. The production implementation reproduces the synthetic
 4,926→3,517, 7,560→6,151, and 33,000→31,592 byte results. No pack is persisted,
 delivered, or executed. See the
 [schema-v2 rollout](docs/development/context-pack-source-table-rollout.md).
+
+Sprint 18 adds the first portable agent/skill profile boundary. One explicit
+project-scoped schema-v1 JSON bundle describes one agent and exactly its enabled
+skills, with versions, models, tools, instruction-source IDs, context budgets,
+risks, confirmations, inputs, outputs, author, and license. A controlled local
+reader supports optional SHA-256 pinning and canonical newline-terminated JSON
+round trips; the bilingual GUI renders the result as inert `USER_CONFIGURED`
+data. Nothing is discovered, installed, selected, enforced, delivered, or
+executed. See the
+[agent and skill profile guide](docs/user-guide/agent-skill-profiles.md).
 
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,

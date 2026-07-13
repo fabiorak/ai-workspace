@@ -2624,6 +2624,13 @@ metadata table in every profile. Sprint 17 implements it as schema v2 with
 explicit schema-v1 compatibility, deterministic marginal shared-byte
 accounting, lossless expansion, and bilingual GUI inspection. Persistence,
 delivery, and execution remain absent.
+Sprint 18 adds the first portable agent/skill schema-v1 boundary: one explicit
+project-scoped JSON bundle contains one agent and exactly its enabled skills,
+validates versions, model/tool/context/confirmation relationships, and
+round-trips through canonical JSON. The bilingual GUI inspects digest-pinned
+local synthetic input as `USER_CONFIGURED` descriptive data. No registry,
+installation, availability resolution, selection, permission, delivery, or
+execution is enabled.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

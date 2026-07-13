@@ -56,6 +56,11 @@ identifiers, and user-authored content remain in their original language.
    and exact bytes. The displayed items are already expanded with complete
    trust and source navigation. The token figure is only
    `ceil(exact included bytes / 4)`.
+10. In **Inspect an agent and skill profile**, select one reviewed synthetic
+    schema-v1 JSON file and optionally pin its SHA-256 digest. Review the
+    canonical agent, enabled skills, models, tools, context budgets, risks,
+    confirmations, provenance, and byte counts. No declaration is installed,
+    selected, resolved, enforced, delivered, or executed.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -70,9 +75,10 @@ assets, a one-time bootstrap URL, session and CSRF tokens, restrictive browser
 headers, and bounded request bodies. Do not use real, private, or production
 transcripts: only the reviewed bundled synthetic sample is supported.
 
-The GUI does not discover, author, edit, enforce, or execute instructions.
-Agents, models, tools, translation services, and external network requests
-remain inactive.
+The GUI does not discover, author, edit, install, select, enforce, or execute
+instructions, agents, or skills. Models, tools, translation services, and
+external network requests remain inactive. Agent/skill profile declarations
+are inspected as `USER_CONFIGURED` inert data and do not grant permission.
 
 Context Pack preview does not search history, read repository files, truncate
 content, choose sources automatically, persist a pack, or send a prompt.

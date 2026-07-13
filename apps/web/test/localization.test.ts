@@ -81,5 +81,15 @@ describe("GUI localization contract", () => {
       }),
       /3 sorgenti condivise.*512 byte/u,
     );
+    assert.match(GUI_CATALOGS.it.profileWarning, /non concedono permessi/u);
+    assert.match(
+      guiMessage("it", "profileReady", {
+        name: "Review",
+        skills: "2",
+        sourceBytes: "1000",
+        canonicalBytes: "900",
+      }),
+      /Review.*2 skill.*1000 byte.*900 byte/u,
+    );
   });
 });

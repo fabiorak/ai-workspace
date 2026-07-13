@@ -430,6 +430,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 15 | E0, E6        | Decide the Context Pack metadata envelope               |
 | Sprint 16 | E0, E3        | Search historical evidence across registered projects   |
 | Sprint 17 | E0, E6        | Roll out the versioned Context Pack source table        |
+| Sprint 18 | E0, E5        | Inspect portable agent and skill profiles               |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -448,9 +449,9 @@ not translate persisted or source data. The next increment should follow
 observed bilingual usability evidence before another locale or E6 scope.
 Sprint 12 then delivered the first E6 boundary: deterministic read-only Context
 Pack preview from an explicit immutable handoff and optional effective
-instructions with exact-byte category budgets and whole-item omissions. M4 is
-not complete; retrieval, agent profiles, context policies, and execution remain
-future work.
+instructions with exact-byte category budgets and whole-item omissions. At that
+point M4 remained incomplete; retrieval, agent profiles, context policies, and
+execution were future work.
 Sprint 13 measures that boundary across 27 deterministic synthetic combinations
 of continuity, instructions, and budgets. It reports exact candidate, included,
 and omitted content bytes without changing selection behavior. The evidence
@@ -476,6 +477,10 @@ Context Pack schema v2 retains schema-v1 reads and exact baseline candidates,
 accounts deterministically for shared source-table bytes, and exposes an
 expanded read-only bilingual preview without persistence, delivery, execution,
 profiles, CodeGraph, or new infrastructure.
+Sprint 18 completed the read-only E5 profile-contract increment. One explicit
+project-scoped JSON bundle describes one agent and exactly its enabled skills,
+validates model/tool/context/confirmation relationships, round-trips
+canonically, and remains uninstalled, unselected, unenforced, and unexecuted.
 
 ## 9. Agile operating model
 
@@ -704,3 +709,8 @@ Pack schema v2. Lossless source-table expansion, deterministic marginal
 shared-byte budgeting, schema-v1 compatibility, and bilingual GUI inspection
 now precede every read-only v2 preview; persistence, delivery, and execution
 remain absent.
+
+[Sprint 18](sprints/SPRINT-018.md) added the first portable agent and skill
+profile boundary. Strict provider-neutral contracts, digest-pinned local
+import, canonical re-import, and bilingual GUI inspection now precede any
+future registry, selection, permission, delivery, or execution work.

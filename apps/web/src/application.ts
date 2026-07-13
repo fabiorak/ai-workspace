@@ -35,7 +35,10 @@ import {
   type EffectiveInstructions,
 } from "@ai-workspace/instruction-manager";
 import {
+  LocalAgentProfileReader,
   LocalInstructionBundleReader,
+  type LocalAgentProfileInput,
+  type LocalAgentProfileInspection,
   type LocalInstructionBundleInput,
 } from "@ai-workspace/local-instructions";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
@@ -154,6 +157,10 @@ export type GuiInstructionPreviewInput = Readonly<{
   agent?: string;
   task?: string;
 }>;
+export type GuiAgentProfilePreviewInput = Readonly<{
+  projectId: string;
+  profile: LocalAgentProfileInput;
+}>;
 export type GuiContextPreviewInput = Readonly<{
   projectId: string;
   workItemId: string;
@@ -190,6 +197,9 @@ export class GuiApplication {
   readonly #previewInstructions: (
     input: GuiInstructionPreviewInput,
   ) => Promise<EffectiveInstructions>;
+  readonly #previewAgentProfile: (
+    input: GuiAgentProfilePreviewInput,
+  ) => Promise<LocalAgentProfileInspection>;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -260,6 +270,7 @@ export class GuiApplication {
       clock: () => new Date(),
     });
     const instructionReader = new LocalInstructionBundleReader();
+    const agentProfileReader = new LocalAgentProfileReader();
     this.#previewInstructions = async (input) => {
       if (!(await projects.exists(input.projectId)))
         throw new Error(
@@ -275,6 +286,13 @@ export class GuiApplication {
         ...(input.agent === undefined ? {} : { agent: input.agent }),
         ...(input.task === undefined ? {} : { task: input.task }),
       });
+    };
+    this.#previewAgentProfile = async (input) => {
+      if (!(await projects.exists(input.projectId)))
+        throw new Error(
+          "The agent profile preview project is not registered locally.",
+        );
+      return agentProfileReader.read(input.projectId, input.profile);
     };
     this.#sampleSessionPath = dependencies.sampleSessionPath;
   }
@@ -573,6 +591,15 @@ export class GuiApplication {
     return this.#run(
       () => this.#previewInstructions(input),
       "Keep the selected project and explicit reviewed bundle paths, correct the highlighted context, and preview again.",
+    );
+  }
+
+  public async previewAgentProfile(
+    input: GuiAgentProfilePreviewInput,
+  ): Promise<LocalAgentProfileInspection> {
+    return this.#run(
+      () => this.#previewAgentProfile(input),
+      "Keep the selected project and reviewed profile path, correct the profile or digest, and preview again.",
     );
   }
 

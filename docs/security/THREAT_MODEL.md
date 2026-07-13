@@ -118,6 +118,16 @@ validated before expansion, and the HTTP facade returns logical expanded
 content plus a safe count/byte summary rather than raw reference resolution.
 Schema v1 remains explicit and is never reinterpreted as v2.
 
+Agent/skill profile preview accepts one explicit local path only after a
+registered project is selected. The adapter bounds bytes, decodes UTF-8
+fatally, optionally pins the exact SHA-256 source digest, validates exact schema
+keys and project scope, checks enabled-skill, model, tool, context, and
+confirmation relationships, and proves canonical re-import. Success returns a
+safe basename rather than the full path. Failures use one non-echoing error.
+Profile trust is `USER_CONFIGURED` attribution only: declarations never grant
+runtime capabilities, resolve availability, install packages, select an agent,
+change instruction composition, configure a sandbox, deliver data, or execute.
+
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
 inside the selected project before persistence; missing and foreign sources

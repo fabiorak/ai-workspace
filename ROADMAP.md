@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 17](docs/planning/sprints/SPRINT-017.md) are complete.
+Sprint 0 through [Sprint 18](docs/planning/sprints/SPRINT-018.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -16,9 +16,9 @@ boundary. [Sprint 15](docs/planning/sprints/SPRINT-015.md) then accepted a
 future packet-level source table in ADR-0016 after an exact lossless comparison
 created one new compact standard-budget fit. Sprint 17 rolled that source table
 out as explicit schema v2 with schema-v1 compatibility and lossless expanded
-GUI inspection. M4 remains open: agent and skill
-profiles, context policies, broader retrieval, and execution are not
-implemented.
+GUI inspection. Sprint 18 adds the first portable agent/skill profile contract.
+M4 remains open: profile-driven composition, context policies, broader
+retrieval, permissions, and execution are not implemented.
 
 [Sprint 16](docs/planning/sprints/SPRINT-016.md) completed the E3 usability
 increment: bounded literal search across all registered projects from the
@@ -31,6 +31,12 @@ deterministic marginal shared-byte accounting, schema-v1 compatibility, and
 lossless read-only inspection in the bilingual GUI. Persistence, delivery,
 execution, CodeGraph, profiles, and new infrastructure remain outside the
 increment.
+
+[Sprint 18](docs/planning/sprints/SPRINT-018.md) completed the next M4 boundary:
+strict portable schema-v1 agent and skill profiles, controlled local
+digest-pinned import, canonical round-trip export, and bilingual read-only
+inspection. It adds no registry persistence, installation, permission
+enforcement, model/tool access, selection, delivery, or execution.
 
 ## 1. Project Memory
 
