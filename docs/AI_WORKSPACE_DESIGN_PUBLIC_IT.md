@@ -1976,7 +1976,17 @@ v2 invariato producono un envelope transiente con digest del profilo,
 provenance delle dichiarazioni e delle regole, elementi inclusi, omissioni e
 accounting. I selettori context include/exclude restano descrittivi e non
 risolti. Non vengono abilitati registry, selezione automatica, verifica di
-disponibilità, persistenza, permessi, delivery o esecuzione. Backend
+disponibilità, persistenza, permessi, delivery o esecuzione.
+Sprint 20 misura, senza attivare, un mapping uno-a-uno fra otto selector
+profilo `handoff.*` e le sezioni di continuità esistenti. Un safety floor non
+escludibile di obiettivo/repository/prossima azione/riferimenti sorgente
+conserva identità del task e provenance. Su nove casi policy/profilo e 27
+budget, i fit passano da 9 a 12 e i byte candidati storici ripetuti scendono del
+49,89% con perdita floor zero. La decisione `adapt` mantiene projection e
+report bilingue solo come misurazione perché non esistono evidenze di
+rilevanza/qualità resume né accounting source-table schema v2 che giustifichino
+semantica di produzione. Selector arbitrari, retrieval, permessi e comportamento
+Context Builder restano invariati. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

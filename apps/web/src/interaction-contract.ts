@@ -14,7 +14,8 @@ export type GuiJourneyStep =
   | "INSTRUCTIONS"
   | "AGENT_PROFILE"
   | "CONTEXT_PACK"
-  | "PROFILE_CONTEXT";
+  | "PROFILE_CONTEXT"
+  | "CONTEXT_SELECTOR_REPORT";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -323,6 +324,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: false,
       }),
     ),
+    screen(
+      "CONTEXT_SELECTOR_REPORT",
+      "Profile context selector measurement",
+      "Compare baseline and experiment-only handoff section selection with exact candidate bytes and a visible safety floor.",
+      action({
+        id: "preview-context-selectors",
+        label: "Preview selector measurement read-only",
+        description:
+          "Measure one reviewed profile's documented handoff selectors against one immutable handoff and its profile continuity budget.",
+        effect:
+          "Shows section decisions, provenance, hashes, exact candidate bytes, and fit without changing Context Builder or profile policy.",
+        prerequisites:
+          "Inspect a persisted handoff and select one reviewed profile using only the documented experiment-only handoff selector vocabulary.",
+        mutates: false,
+      }),
+    ),
   ],
 );
 
@@ -395,7 +412,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 16)
+  if (steps.size !== 17)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

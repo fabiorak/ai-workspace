@@ -52,3 +52,8 @@ permissions, policies, or sandbox configuration.
 The final envelope exists only for the current response. It contains the safe
 profile filename/digest and logical preview values, never the full selected
 paths, and is not persisted or delivered to a model.
+
+Use the separate [context selector measurement](context-selector-measurement.md)
+to inspect an experiment-only mapping to handoff sections. Sprint 20's `adapt`
+decision leaves this production profile-governed preview unchanged: selectors
+remain descriptive here.

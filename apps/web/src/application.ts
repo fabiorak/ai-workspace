@@ -13,6 +13,8 @@ import { WorkItems, type WorkItem } from "@ai-workspace/core";
 import {
   buildContextPack,
   expandContextPack,
+  measureContextSelectorCorpus,
+  type ContextSelectorCorpusReport,
   type ExpandedContextPackPreview,
 } from "@ai-workspace/context-builder";
 import {
@@ -190,6 +192,17 @@ export type GuiProfileContextPreview = Readonly<{
   contextPack: ExpandedContextPackPreview;
   effect: "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED";
 }>;
+export type GuiContextSelectorPreviewInput = Readonly<{
+  projectId: string;
+  workItemId: string;
+  handoffId: string;
+  profile: LocalAgentProfileInput;
+}>;
+export type GuiContextSelectorPreview = Readonly<{
+  profile: LocalAgentProfileInspection;
+  report: ContextSelectorCorpusReport;
+  effect: "EXPERIMENT_ONLY_NO_CONTEXT_BUILDER_OR_PROFILE_POLICY_CHANGE";
+}>;
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -221,6 +234,9 @@ export class GuiApplication {
   readonly #previewProfileContext: (
     input: GuiProfileContextPreviewInput,
   ) => Promise<GuiProfileContextPreview>;
+  readonly #previewContextSelectors: (
+    input: GuiContextSelectorPreviewInput,
+  ) => Promise<GuiContextSelectorPreview>;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -343,6 +359,35 @@ export class GuiApplication {
         contextPack,
         effect:
           "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED" as const,
+      });
+    };
+    this.#previewContextSelectors = async (input) => {
+      if (!(await projects.exists(input.projectId)))
+        throw new Error(
+          "The context-selector report project is not registered locally.",
+        );
+      const [profile, handoff] = await Promise.all([
+        agentProfileReader.read(input.projectId, input.profile),
+        this.#handoffs.show(input.projectId, input.workItemId, input.handoffId),
+      ]);
+      const report = measureContextSelectorCorpus([
+        {
+          label: "selected-profile",
+          handoff,
+          selectors: profile.bundle.agent.context,
+          budgets: [
+            {
+              label: "profile-continuity-budget",
+              exactBytes: profile.bundle.agent.context.continuityBudgetBytes,
+            },
+          ],
+        },
+      ]);
+      return Object.freeze({
+        profile,
+        report,
+        effect:
+          "EXPERIMENT_ONLY_NO_CONTEXT_BUILDER_OR_PROFILE_POLICY_CHANGE" as const,
       });
     };
     this.#sampleSessionPath = dependencies.sampleSessionPath;
@@ -686,6 +731,15 @@ export class GuiApplication {
     return this.#run(
       () => this.#previewProfileContext(input),
       "Keep the explicit handoff, reviewed profile and instruction paths, and allowed model; correct the incompatible selection and preview again.",
+    );
+  }
+
+  public async previewContextSelectors(
+    input: GuiContextSelectorPreviewInput,
+  ): Promise<GuiContextSelectorPreview> {
+    return this.#run(
+      () => this.#previewContextSelectors(input),
+      "Keep the explicit handoff and reviewed profile path; use only documented experiment-only handoff selectors, preserve the safety floor, and preview again.",
     );
   }
 

@@ -62,3 +62,8 @@ and execution remain future work. The separate
 one explicitly selected profile with its exact instruction-source closure and
 an immutable handoff in memory; it does not install, persist, deliver, resolve,
 or execute the result.
+
+The separate [context selector measurement](context-selector-measurement.md)
+accepts only a documented experiment-only `handoff.*` vocabulary and reports
+proposed section loss. It does not change the descriptive semantics of normal
+profiles.

@@ -33,3 +33,10 @@ accepted the source table direction subsequently implemented by schema v2;
 the experiment remains separate and also retains the rejected full-metadata
 alternative for reproducibility. No Context Pack persistence, delivery, or
 execution path exists.
+
+The profile context selector experiment maps an explicit `handoff.*`
+vocabulary one-to-one to the same eight continuity sections. It projects
+selected/excluded reasons, trust, sources, exact historical candidate bytes,
+and SHA-256 while enforcing a non-excludable objective/repository/next-action/
+source-reference safety floor. Corpus and GUI reports are measurement-only;
+the `adapt` decision leaves production builder and profile semantics unchanged.

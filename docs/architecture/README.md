@@ -57,6 +57,15 @@ and unchanged Context Pack schema-v2 builder into a transient envelope.
 Context include/exclude selectors remain descriptive; no resolver, persistence,
 delivery, permission, or execution boundary is introduced.
 
+The selector-measurement increment adds a separate experiment-only projection
+inside `packages/context-builder`. Eight explicit `handoff.*` selectors map
+one-to-one to existing continuity sections; objective, repository, next action,
+and source references are a non-excludable safety floor. Projection retains
+trust/source counts and hashes byte-identical historical v1 candidates. The
+facade reports one digest-pinned profile against one immutable handoff but
+cannot override selectors or budget and never passes the result into
+`buildContextPack`. Decision `adapt` leaves production and schemas unchanged.
+
 The first E6 slice is `packages/context-builder`, a provider-neutral in-memory
 builder. It maps the eight sections of one validated immutable handoff and
 optional effective instruction rules into two deterministic categories. Exact

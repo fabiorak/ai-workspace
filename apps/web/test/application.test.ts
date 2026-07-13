@@ -296,7 +296,26 @@ describe("GUI application facade", () => {
         value.effect,
         "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED",
       );
+      const selectorPreview = await app.previewContextSelectors({
+        projectId: project.id,
+        workItemId: work.id,
+        handoffId: handoff.id,
+        profile: { path: fixture.selectorProfilePath },
+      });
+      const selectorCase = selectorPreview.report.cases[0]!;
+      assert.equal(selectorPreview.report.caseCount, 1);
+      assert.equal(selectorCase.safetyFloorLossCount, 0);
+      assert.ok(
+        selectorCase.selectedCandidateBytes <
+          selectorCase.baselineCandidateBytes,
+      );
+      assert.equal(selectorCase.budgets[0]!.label, "profile-continuity-budget");
+      assert.equal(
+        selectorPreview.effect,
+        "EXPERIMENT_ONLY_NO_CONTEXT_BUILDER_OR_PROFILE_POLICY_CHANGE",
+      );
       assert.equal(JSON.stringify(value).includes(root), false);
+      assert.equal(JSON.stringify(selectorPreview).includes(root), false);
     }));
 });
 
@@ -308,6 +327,26 @@ async function writeProfileCompositionFixtures(
   await writeFile(
     profilePath,
     JSON.stringify(buildSyntheticAgentProfile(projectId), null, 2),
+  );
+  const selectorProfilePath = join(root, "selector-profile.json");
+  const profile = buildSyntheticAgentProfile(projectId);
+  await writeFile(
+    selectorProfilePath,
+    JSON.stringify(
+      {
+        ...profile,
+        agent: {
+          ...profile.agent,
+          context: {
+            ...profile.agent.context,
+            include: ["handoff.test_state", "handoff.relevant_files"],
+            exclude: [],
+          },
+        },
+      },
+      null,
+      2,
+    ),
   );
   const sourceIds = [
     "project-review-rules",
@@ -342,7 +381,7 @@ async function writeProfileCompositionFixtures(
     );
     bundlePaths.push(path);
   }
-  return { profilePath, bundlePaths };
+  return { profilePath, selectorProfilePath, bundlePaths };
 }
 
 async function withFixture(

@@ -139,6 +139,17 @@ declaration provenance but no full paths. Include/exclude selectors remain
 inert descriptive strings and never become filesystem, retrieval, permission,
 or sandbox input. The envelope is not persisted, delivered, or executable.
 
+The context-selector measurement route accepts one explicit digest-pinned
+profile after project/Work-Item/handoff scope is resolved. Selectors and the
+continuity budget come from that profile; callers cannot submit a policy,
+budget, handoff body, path/glob interpretation, or retrieval query. The
+experiment recognizes only eight exact `handoff.*` strings, rejects legacy or
+unknown values and conflicts without echo, and prevents exclusion of objective,
+repository, next action, and source references. Results contain safe profile
+identity, section trust/source counts, exact bytes, and hashes, but no full
+paths or content resolver. They never enter production Context Builder,
+persistence, permission, delivery, or execution paths.
+
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
 inside the selected project before persistence; missing and foreign sources

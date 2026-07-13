@@ -27,6 +27,7 @@ describe("GUI interaction contract", () => {
         "AGENT_PROFILE",
         "CONTEXT_PACK",
         "PROFILE_CONTEXT",
+        "CONTEXT_SELECTOR_REPORT",
       ],
     );
     assert.equal(

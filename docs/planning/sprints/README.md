@@ -24,3 +24,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 17 — Roll Out the Context Pack Source Table](SPRINT-017.md) — completed
 - [Sprint 18 — Inspect Portable Agent and Skill Profiles](SPRINT-018.md) — completed
 - [Sprint 19 — Compose a Profile-Governed Context Preview](SPRINT-019.md) — completed
+- [Sprint 20 — Measure Profile Context Selector Semantics](SPRINT-020.md) — completed

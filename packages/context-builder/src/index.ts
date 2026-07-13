@@ -715,3 +715,4 @@ function corrupt(): ContextBuilderError {
 export * from "./measurement.ts";
 export * from "./continuity-disclosure.ts";
 export * from "./metadata-envelope.ts";
+export * from "./context-selectors.ts";

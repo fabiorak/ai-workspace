@@ -432,6 +432,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 17 | E0, E6        | Roll out the versioned Context Pack source table        |
 | Sprint 18 | E0, E5        | Inspect portable agent and skill profiles               |
 | Sprint 19 | E0, E5, E6    | Compose a profile-governed Context Pack preview         |
+| Sprint 20 | E0, E5, E6    | Measure profile context selector semantics              |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -488,6 +489,12 @@ allowed model, and one immutable handoff now produce effective instructions
 and an unchanged schema-v2 Context Pack. Agent target and exact-byte budgets
 come only from the profile; selector semantics, availability, persistence,
 permissions, delivery, and execution remain deferred.
+Sprint 20 completed the evidence-led selector experiment. Eight exact
+`handoff.*` strings map to existing continuity sections under a four-section
+safety floor. Nine cases and 27 budget observations improve fit from 9 to 12
+and reduce repeated historical candidate bytes by 49.89%, but measure no
+relevance or resume quality. Decision `adapt` leaves schemas, selectors, and
+Context Builder production behavior unchanged.
 
 ## 9. Agile operating model
 
@@ -728,3 +735,10 @@ schema or Context Builder policy. Exact instruction-source closure, explicit
 allowed-model selection, derived agent target, profile-owned byte budgets, and
 safe profile/source provenance are now inspectable in the bilingual GUI. The
 result remains transient and non-executable.
+
+[Sprint 20](sprints/SPRINT-020.md) measured an experiment-only interpretation
+of profile context selectors. Deterministic section decisions, a
+non-excludable safety floor, byte-identical historical candidates, bounded
+corpus results, and a bilingual report make proposed loss visible. The `adapt`
+decision accepts no production policy; continuity-quality evidence and
+schema-v2 accounting must precede any ADR or rollout.

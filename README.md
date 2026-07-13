@@ -172,6 +172,10 @@ The visible journey is:
     declared instruction bundles, and one allowed model; preview the derived
     effective instructions and profile-budgeted Context Pack with provenance,
     without installation, persistence, delivery, or execution.
+12. measure one reviewed profile's experiment-only `handoff.*` selectors
+    against that immutable handoff, with visible section decisions, safety
+    floor, provenance, exact candidate bytes, and profile-budget fit; production
+    Context Builder policy remains unchanged.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -202,6 +206,9 @@ The current GUI also provides:
 - profile-governed read-only composition that requires exact instruction-source
   closure, derives agent target and byte budgets from the reviewed profile, and
   returns effective instructions plus an unchanged schema-v2 Context Pack;
+- experiment-only profile context selector measurement with an explicit
+  eight-section vocabulary, non-excludable safety floor, exact historical
+  candidate bytes, and no production policy change;
 - bounded literal history search across at most 100 registered projects and
   10,000 canonical events, without an index or OpenSearch.
 
@@ -214,7 +221,8 @@ installed, runtime-selected, or executed. See the
 [Work Item and handoff](docs/user-guide/work-items-and-handoffs.md),
 [effective-instruction](docs/user-guide/effective-instructions.md),
 [agent and skill profile](docs/user-guide/agent-skill-profiles.md),
-[profile-governed context](docs/user-guide/profile-governed-context.md), and
+[profile-governed context](docs/user-guide/profile-governed-context.md),
+[context selector measurement](docs/user-guide/context-selector-measurement.md), and
 [GUI journey](docs/user-guide/gui-first-journey.md) guides for the current
 contracts and limitations.
 

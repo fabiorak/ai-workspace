@@ -458,6 +458,38 @@ export async function startGuiServer(
             }),
           );
         }
+        const contextSelectorPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/context-selectors\/preview$/u.exec(
+            url.pathname,
+          );
+        if (contextSelectorPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !record(body.profile) ||
+            typeof body.profile.path !== "string" ||
+            (body.profile.expectedDigest !== undefined &&
+              typeof body.profile.expectedDigest !== "string")
+          )
+            return reject(
+              response,
+              400,
+              "Select one reviewed profile using only documented experiment-only handoff selectors.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewContextSelectors({
+              projectId: decodeURIComponent(contextSelectorPreview[1]!),
+              workItemId: decodeURIComponent(contextSelectorPreview[2]!),
+              handoffId: decodeURIComponent(contextSelectorPreview[3]!),
+              profile: body.profile as {
+                path: string;
+                expectedDigest?: string;
+              },
+            }),
+          );
+        }
         const createWork = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
           url.pathname,
         );

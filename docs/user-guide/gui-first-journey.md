@@ -67,6 +67,11 @@ identifiers, and user-authored content remain in their original language.
     profile budgets, declaration provenance, effective rules, Context Pack
     items, and omissions. Nothing is installed, persisted, delivered, or
     executed.
+12. Under **Measure profile context selectors**, select one reviewed profile
+    using only the documented `handoff.*` vocabulary. Review every selected or
+    excluded section, safety-floor reason, trust, source count, hash, exact
+    candidate bytes, reduction, and fit against the profile continuity budget.
+    The report is experiment-only and changes no Context Builder policy.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -96,3 +101,6 @@ checks, not trust, permission, availability, delivery, or execution signals.
 Profile-governed composition does not interpret context selectors as paths,
 retrieval queries, permissions, or sandbox policy. Model compatibility checks
 only the reviewed declaration and does not prove runtime availability.
+Context selector measurement does not interpret values as paths, globs,
+retrieval queries, permissions, or availability. Its candidate-byte result is
+not a token, relevance, completeness, or task-quality claim.

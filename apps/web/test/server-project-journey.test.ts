@@ -790,6 +790,64 @@ describe("GUI server project onboarding", () => {
       body: JSON.stringify({ ...request, model: "unavailable-model" }),
     });
     assert.equal(disallowed.status, 400);
+    const selectorProfilePath = join(root, "gui-selector-profile.json");
+    const selectorProfile = buildSyntheticAgentProfile(projectId);
+    const selectorProfileSource = JSON.stringify(
+      {
+        ...selectorProfile,
+        agent: {
+          ...selectorProfile.agent,
+          context: {
+            ...selectorProfile.agent.context,
+            include: ["handoff.test_state", "handoff.relevant_files"],
+            exclude: [],
+          },
+        },
+      },
+      null,
+      2,
+    );
+    await writeFile(selectorProfilePath, selectorProfileSource);
+    const selectorPath = `/api/projects/${projectId}/work-items/${work.id}/handoffs/${handoff.id}/context-selectors/preview`;
+    const selectorResponse = await api(selectorPath, {
+      method: "POST",
+      body: JSON.stringify({
+        profile: {
+          path: selectorProfilePath,
+          expectedDigest: createHash("sha256")
+            .update(selectorProfileSource)
+            .digest("hex"),
+        },
+      }),
+    });
+    assert.equal(selectorResponse.status, 200);
+    const selectorValue = (await selectorResponse.json()) as {
+      report: {
+        caseCount: number;
+        cases: {
+          safetyFloorLossCount: number;
+          baselineCandidateBytes: number;
+          selectedCandidateBytes: number;
+        }[];
+      };
+      effect: string;
+    };
+    assert.equal(selectorValue.report.caseCount, 1);
+    assert.equal(selectorValue.report.cases[0]!.safetyFloorLossCount, 0);
+    assert.ok(
+      selectorValue.report.cases[0]!.selectedCandidateBytes <
+        selectorValue.report.cases[0]!.baselineCandidateBytes,
+    );
+    assert.equal(
+      selectorValue.effect,
+      "EXPERIMENT_ONLY_NO_CONTEXT_BUILDER_OR_PROFILE_POLICY_CHANGE",
+    );
+    const legacySelector = await api(selectorPath, {
+      method: "POST",
+      body: JSON.stringify({ profile: { path: profilePath } }),
+    });
+    assert.equal(legacySelector.status, 400);
+    assert.equal((await legacySelector.text()).includes(profilePath), false);
   });
 
   it("rejects oversized bodies and undeclared methods without leaking input", async () => {

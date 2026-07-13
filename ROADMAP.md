@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 19](docs/planning/sprints/SPRINT-019.md) are complete.
+Sprint 0 through [Sprint 20](docs/planning/sprints/SPRINT-020.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -22,6 +22,11 @@ instruction-source closure, one allowed model, and one immutable handoff into
 effective instructions and an unchanged schema-v2 Context Pack. M4 remains
 open: selector-driven retrieval, enforceable context policies, permissions,
 delivery, and execution are not implemented.
+Sprint 20 measured an experiment-only one-to-one `handoff.*` selector
+vocabulary and safety floor. The result is `adapt`: fit improves from 9 to 12
+of 27 observations and repeated candidate bytes fall 49.89%, but no
+continuity-quality evidence or schema-v2 accounting supports production
+rollout. Normal selectors and Context Builder behavior remain unchanged.
 
 [Sprint 16](docs/planning/sprints/SPRINT-016.md) completed the E3 usability
 increment: bounded literal search across all registered projects from the
@@ -48,6 +53,12 @@ budgets come only from the reviewed profile. The transient result retains
 profile digest and declaration provenance alongside effective rules and an
 expanded Context Pack. It adds no registry, availability resolution,
 persistence, delivery, permission, or execution path.
+
+[Sprint 20](docs/planning/sprints/SPRINT-020.md) completed the selector-evidence
+increment. Eight explicit selectors map to existing handoff sections while a
+four-section safety floor remains non-excludable. The bilingual report is
+measurement-only. Decision `adapt` defers vocabulary versioning and production
+policy until continuity-quality evidence exists.
 
 ## 1. Project Memory
 

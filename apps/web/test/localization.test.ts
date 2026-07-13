@@ -102,5 +102,16 @@ describe("GUI localization contract", () => {
       }),
       /review-agent.*model-balanced.*3 sorgenti.*3 regole.*schema 2/u,
     );
+    assert.match(GUI_CATALOGS.it.contextSelectorWarning, /safety floor/u);
+    assert.match(
+      guiMessage("it", "contextSelectorReady", {
+        selected: "3000",
+        baseline: "5000",
+        reduction: "40",
+        loss: "0",
+        fit: "YES",
+      }),
+      /3000.*5000.*40%.*safety floor 0.*YES/u,
+    );
   });
 });

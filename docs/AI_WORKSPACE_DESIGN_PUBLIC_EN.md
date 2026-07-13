@@ -2641,6 +2641,15 @@ provenance, included items, omissions, and accounting. Context include/exclude
 selectors remain descriptive and unresolved. No registry, automatic
 selection, availability lookup, persistence, permission, delivery, or
 execution is enabled.
+Sprint 20 measures, but does not activate, a one-to-one mapping from eight
+`handoff.*` profile selectors to existing continuity sections. A
+non-excludable objective/repository/next-action/source-reference floor retains
+task identity and provenance. Across nine policy/profile cases and 27 budgets,
+fit rises from 9 to 12 and repeated historical candidate bytes fall 49.89%
+with zero floor loss. Decision `adapt` keeps projection and bilingual report
+measurement-only because no relevance/resume-quality evidence or schema-v2
+source-table accounting justifies production semantics. Arbitrary selectors,
+retrieval, permissions, and Context Builder behavior remain unchanged.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 
