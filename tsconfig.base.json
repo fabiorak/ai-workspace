@@ -22,6 +22,9 @@
       "@ai-workspace/claude-code-adapter": [
         "./integrations/claude-code/src/index.ts"
       ],
+      "@ai-workspace/context-builder": [
+        "./packages/context-builder/src/index.ts"
+      ],
       "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],
       "@ai-workspace/historical-search": [
         "./packages/historical-search/src/index.ts"
