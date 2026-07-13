@@ -61,6 +61,12 @@ identifiers, and user-authored content remain in their original language.
     canonical agent, enabled skills, models, tools, context budgets, risks,
     confirmations, provenance, and byte counts. No declaration is installed,
     selected, resolved, enforced, delivered, or executed.
+11. After inspecting an immutable handoff, use **Compose profile-governed
+    context** to select the reviewed profile again, every exact instruction
+    bundle it declares, and one allowed model. Review the derived agent target,
+    profile budgets, declaration provenance, effective rules, Context Pack
+    items, and omissions. Nothing is installed, persisted, delivered, or
+    executed.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
@@ -86,3 +92,7 @@ ADR-0016's packet-level source table is implemented as explicit schema v2.
 Schema v1 remains supported rather than reinterpreted, while the GUI receives a
 lossless expanded view and a safe shared-byte summary. Source IDs are identity
 checks, not trust, permission, availability, delivery, or execution signals.
+
+Profile-governed composition does not interpret context selectors as paths,
+retrieval queries, permissions, or sandbox policy. Model compatibility checks
+only the reviewed declaration and does not prove runtime availability.

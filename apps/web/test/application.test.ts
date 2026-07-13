@@ -247,7 +247,103 @@ describe("GUI application facade", () => {
       );
       assert.equal(JSON.stringify(preview).includes(root), false);
     }));
+
+  it("composes a profile-governed Context Pack from explicit reviewed inputs", async () =>
+    withFixture(async ({ app, repository, root }) => {
+      const project = await app.registerProject(repository);
+      await app.importSample(project.id);
+      const eventId = (
+        await app.search({ projectId: project.id, text: "test" })
+      ).results[0]!.eventId;
+      const work = await app.createWorkItem({
+        projectId: project.id,
+        objective: "Review the synthetic profile composition.",
+        sourceEventIds: [eventId],
+      });
+      await app.transitionWorkItem("activate", {
+        projectId: project.id,
+        workItemId: work.id,
+        sourceEventIds: [eventId],
+      });
+      const handoff = await app.createHandoff({
+        projectId: project.id,
+        workItemId: work.id,
+        nextAction: "Compose the reviewed synthetic profile.",
+        sourceEventIds: [eventId],
+        memoryIds: [],
+        relevantFiles: ["README.md"],
+      });
+      const fixture = await writeProfileCompositionFixtures(root, project.id);
+      const value = await app.previewProfileContext({
+        projectId: project.id,
+        workItemId: work.id,
+        handoffId: handoff.id,
+        profile: { path: fixture.profilePath },
+        bundles: fixture.bundlePaths.map((path) => ({ path })),
+        model: "model-balanced",
+        task: "synthetic-review",
+      });
+      assert.equal(value.selection.target.agent, "review-agent");
+      assert.equal(value.selection.target.model, "model-balanced");
+      assert.deepEqual(value.contextPack.budgets, {
+        CONTINUITY: 16_384,
+        INSTRUCTIONS: 4_096,
+      });
+      assert.equal(value.profile.sourceName, "profile-composition.json");
+      assert.equal(value.instructions.rules.length, 3);
+      assert.equal(value.contextPack.schemaVersion, 2);
+      assert.equal(
+        value.effect,
+        "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED",
+      );
+      assert.equal(JSON.stringify(value).includes(root), false);
+    }));
 });
+
+async function writeProfileCompositionFixtures(
+  root: string,
+  projectId: string,
+) {
+  const profilePath = join(root, "profile-composition.json");
+  await writeFile(
+    profilePath,
+    JSON.stringify(buildSyntheticAgentProfile(projectId), null, 2),
+  );
+  const sourceIds = [
+    "project-review-rules",
+    "dependency-review-rules",
+    "test-review-rules",
+  ];
+  const bundlePaths: string[] = [];
+  for (const [position, id] of sourceIds.entries()) {
+    const path = join(root, `${id}.json`);
+    await writeFile(
+      path,
+      JSON.stringify({
+        schemaVersion: 1,
+        projectId,
+        source: {
+          id,
+          projectId,
+          scope: "PROJECT",
+          target: null,
+          trust: "USER_CONFIGURED",
+          rules: [
+            {
+              id: `synthetic.rule.${position}`,
+              kind: "CONSTRAINT",
+              overridable: false,
+              content: `Synthetic reviewed instruction ${position}.`,
+              position,
+            },
+          ],
+        },
+      }),
+    );
+    bundlePaths.push(path);
+  }
+  return { profilePath, bundlePaths };
+}
 
 async function withFixture(
   run: (value: {

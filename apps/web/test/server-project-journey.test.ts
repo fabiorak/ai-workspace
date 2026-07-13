@@ -665,6 +665,133 @@ describe("GUI server project onboarding", () => {
     assert.equal((await foreign.text()).includes(profilePath), false);
   });
 
+  it("composes profile-governed instructions and Context Pack over authenticated HTTP", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    const search = (await (
+      await api(`/api/projects/${projectId}/search?q=test&limit=1`)
+    ).json()) as { results: { eventId: string }[] };
+    const sourceEventIds = [search.results[0]!.eventId];
+    const work = (await (
+      await api(`/api/projects/${projectId}/work-items`, {
+        method: "POST",
+        body: JSON.stringify({
+          objective: "Compose a synthetic profile over HTTP.",
+          sourceEventIds,
+        }),
+      })
+    ).json()) as { id: string };
+    await api(`/api/projects/${projectId}/work-items/${work.id}/activate`, {
+      method: "POST",
+      body: JSON.stringify({ sourceEventIds }),
+    });
+    const handoff = (await (
+      await api(
+        `/api/projects/${projectId}/work-items/${work.id}/handoffs/create`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            nextAction: "Preview the synthetic profile composition.",
+            sourceEventIds,
+            memoryIds: [],
+            relevantFiles: ["README.md"],
+          }),
+        },
+      )
+    ).json()) as { id: string };
+    const profilePath = join(root, "gui-profile-composition.json");
+    const profileSource = JSON.stringify(
+      buildSyntheticAgentProfile(projectId),
+      null,
+      2,
+    );
+    await writeFile(profilePath, profileSource);
+    const bundlePaths: string[] = [];
+    for (const [position, id] of [
+      "project-review-rules",
+      "dependency-review-rules",
+      "test-review-rules",
+    ].entries()) {
+      const path = join(root, `gui-${id}.json`);
+      await writeFile(
+        path,
+        JSON.stringify({
+          schemaVersion: 1,
+          projectId,
+          source: {
+            id,
+            projectId,
+            scope: "PROJECT",
+            target: null,
+            trust: "USER_CONFIGURED",
+            rules: [
+              {
+                id: `gui.profile.rule.${position}`,
+                kind: "CONSTRAINT",
+                overridable: false,
+                content: `Synthetic profile rule ${position}.`,
+                position,
+              },
+            ],
+          },
+        }),
+      );
+      bundlePaths.push(path);
+    }
+    const path = `/api/projects/${projectId}/work-items/${work.id}/handoffs/${handoff.id}/profile-context/preview`;
+    const request = {
+      profile: {
+        path: profilePath,
+        expectedDigest: createHash("sha256")
+          .update(profileSource)
+          .digest("hex"),
+      },
+      bundles: bundlePaths.map((bundlePath) => ({ path: bundlePath })),
+      model: "model-balanced",
+      task: "http-review",
+    };
+    const response = await api(path, {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+    assert.equal(response.status, 200);
+    const value = (await response.json()) as {
+      selection: {
+        target: { model: string; agent: string };
+        instructionSources: unknown[];
+        budgets: { CONTINUITY: number; INSTRUCTIONS: number };
+      };
+      instructions: { rules: unknown[] };
+      contextPack: { schemaVersion: number; budgets: unknown };
+      effect: string;
+    };
+    assert.deepEqual(value.selection.target, {
+      model: "model-balanced",
+      agent: "review-agent",
+      task: "http-review",
+    });
+    assert.equal(value.selection.instructionSources.length, 3);
+    assert.equal(value.instructions.rules.length, 3);
+    assert.equal(value.contextPack.schemaVersion, 2);
+    assert.deepEqual(value.contextPack.budgets, value.selection.budgets);
+    assert.equal(
+      value.effect,
+      "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED",
+    );
+    const missing = await api(path, {
+      method: "POST",
+      body: JSON.stringify({ ...request, bundles: request.bundles.slice(1) }),
+    });
+    assert.equal(missing.status, 400);
+    assert.equal((await missing.text()).includes(profilePath), false);
+    const disallowed = await api(path, {
+      method: "POST",
+      body: JSON.stringify({ ...request, model: "unavailable-model" }),
+    });
+    assert.equal(disallowed.status, 400);
+  });
+
   it("rejects oversized bodies and undeclared methods without leaking input", async () => {
     const canary = "PRIVATE-CANARY-SHOULD-NOT-ECHO";
     const oversized = await api("/api/projects", {

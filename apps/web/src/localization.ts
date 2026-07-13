@@ -61,6 +61,8 @@ const EN = {
   previewInstructions: "Preview instructions read-only",
   previewAgentProfile: "Inspect profile read-only",
   previewContext: "Preview Context Pack read-only",
+  profileContext: "Compose profile-governed context",
+  previewProfileContext: "Compose profile and Context Pack read-only",
   noExecution:
     "Configured instruction text and precedence are descriptive. The GUI does not enforce or execute them.",
   bundlePaths: "Reviewed instruction bundle paths, one per line",
@@ -96,6 +98,16 @@ const EN = {
     "Inspect an immutable handoff, then enter explicit budgets to preview its Context Pack.",
   contextReady:
     "Context Pack schema {schema} preview ready: {entries} shared source entries use {sharedBytes} exact bytes. Review expanded logical items and omissions below.",
+  profileContextWarning:
+    "Explicit read-only composition: the profile supplies the agent target and exact-byte budgets. You select an allowed model and the exact reviewed instruction sources. Nothing is installed, resolved, persisted, delivered, or executed.",
+  profileContextBundles:
+    "Exact reviewed instruction bundle paths declared by the profile, one per line",
+  profileContextModel: "Allowed model to select explicitly",
+  profileContextTask: "Task target (optional explicit selector)",
+  profileContextEmpty:
+    "Inspect an immutable handoff, then select one profile, its exact instruction sources, and one allowed model.",
+  profileContextReady:
+    "Profile {profile} composed for {model}: {sources} declared sources, {rules} effective rules, Context Pack schema {schema}. Review provenance, budgets, included items, and omissions below.",
   fallback: "Unsupported language values safely fall back to English.",
   progressProject: "1. Project",
   progressSample: "2. Safe sample",
@@ -286,6 +298,8 @@ const IT = {
   previewInstructions: "Anteprima istruzioni in sola lettura",
   previewAgentProfile: "Ispeziona profilo in sola lettura",
   previewContext: "Anteprima Context Pack in sola lettura",
+  profileContext: "Componi contesto governato dal profilo",
+  previewProfileContext: "Componi profilo e Context Pack in sola lettura",
   noExecution:
     "Testo e precedenza delle istruzioni configurate sono descrittivi. La GUI non li applica né li esegue.",
   bundlePaths: "Percorsi dei bundle revisionati, uno per riga",
@@ -323,6 +337,16 @@ const IT = {
     "Esamina un handoff immutabile, poi inserisci budget espliciti per l'anteprima del Context Pack.",
   contextReady:
     "Anteprima Context Pack schema {schema} pronta: {entries} sorgenti condivise usano {sharedBytes} byte esatti. Esamina elementi logici espansi e omissioni.",
+  profileContextWarning:
+    "Composizione esplicita in sola lettura: il profilo fornisce target agente e budget in byte esatti. Selezioni un modello consentito e le sorgenti istruzioni revisionate esatte. Nulla viene installato, risolto, persistito, consegnato o eseguito.",
+  profileContextBundles:
+    "Percorsi esatti dei bundle istruzioni revisionati dichiarati dal profilo, uno per riga",
+  profileContextModel: "Modello consentito da selezionare esplicitamente",
+  profileContextTask: "Target attività (selettore esplicito facoltativo)",
+  profileContextEmpty:
+    "Esamina un handoff immutabile, poi seleziona un profilo, le sue sorgenti istruzioni esatte e un modello consentito.",
+  profileContextReady:
+    "Profilo {profile} composto per {model}: {sources} sorgenti dichiarate, {rules} regole effettive, Context Pack schema {schema}. Esamina provenance, budget, elementi inclusi e omissioni.",
   fallback: "I valori lingua non supportati usano in sicurezza l'inglese.",
   progressProject: "1. Progetto",
   progressSample: "2. Esempio sicuro",

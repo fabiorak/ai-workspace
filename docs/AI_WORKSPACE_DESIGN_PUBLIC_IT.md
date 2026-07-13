@@ -1966,7 +1966,17 @@ abilitate, valida versioni e relazioni modello/tool/contesto/conferma e compie
 round trip JSON canonici. La GUI bilingue ispeziona input sintetici locali con
 digest pinning come dati descrittivi `USER_CONFIGURED`. Non vengono abilitati
 registry, installazione, risoluzione disponibilità, selezione, permessi,
-delivery o esecuzione. Backend
+delivery o esecuzione.
+Sprint 19 aggiunge il boundary successivo di composizione in sola lettura.
+L'utente seleziona esplicitamente un profilo revisionato, l'insieme esatto
+delle sorgenti istruzioni dichiarate, un modello consentito e un handoff
+immutabile. Il profilo fornisce il target AGENT e i budget exact-byte di
+continuità/istruzioni; il composer deterministico e il Context Builder schema
+v2 invariato producono un envelope transiente con digest del profilo,
+provenance delle dichiarazioni e delle regole, elementi inclusi, omissioni e
+accounting. I selettori context include/exclude restano descrittivi e non
+risolti. Non vengono abilitati registry, selezione automatica, verifica di
+disponibilità, persistenza, permessi, delivery o esecuzione. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

@@ -23,3 +23,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 16 — Search Historical Evidence Across Projects](SPRINT-016.md) — completed
 - [Sprint 17 — Roll Out the Context Pack Source Table](SPRINT-017.md) — completed
 - [Sprint 18 — Inspect Portable Agent and Skill Profiles](SPRINT-018.md) — completed
+- [Sprint 19 — Compose a Profile-Governed Context Preview](SPRINT-019.md) — completed

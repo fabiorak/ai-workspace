@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 18](docs/planning/sprints/SPRINT-018.md) are complete.
+Sprint 0 through [Sprint 19](docs/planning/sprints/SPRINT-019.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -16,9 +16,12 @@ boundary. [Sprint 15](docs/planning/sprints/SPRINT-015.md) then accepted a
 future packet-level source table in ADR-0016 after an exact lossless comparison
 created one new compact standard-budget fit. Sprint 17 rolled that source table
 out as explicit schema v2 with schema-v1 compatibility and lossless expanded
-GUI inspection. Sprint 18 adds the first portable agent/skill profile contract.
-M4 remains open: profile-driven composition, context policies, broader
-retrieval, permissions, and execution are not implemented.
+GUI inspection. Sprint 18 added the first portable agent/skill profile
+contract. Sprint 19 composes one explicitly selected profile, its exact
+instruction-source closure, one allowed model, and one immutable handoff into
+effective instructions and an unchanged schema-v2 Context Pack. M4 remains
+open: selector-driven retrieval, enforceable context policies, permissions,
+delivery, and execution are not implemented.
 
 [Sprint 16](docs/planning/sprints/SPRINT-016.md) completed the E3 usability
 increment: bounded literal search across all registered projects from the
@@ -37,6 +40,14 @@ strict portable schema-v1 agent and skill profiles, controlled local
 digest-pinned import, canonical round-trip export, and bilingual read-only
 inspection. It adds no registry persistence, installation, permission
 enforcement, model/tool access, selection, delivery, or execution.
+
+[Sprint 19](docs/planning/sprints/SPRINT-019.md) completed the read-only
+profile-composition boundary. Exact declared instruction-source closure and an
+explicit allowed-model selection are required; the agent target and exact-byte
+budgets come only from the reviewed profile. The transient result retains
+profile digest and declaration provenance alongside effective rules and an
+expanded Context Pack. It adds no registry, availability resolution,
+persistence, delivery, permission, or execution path.
 
 ## 1. Project Memory
 

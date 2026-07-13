@@ -8,6 +8,7 @@
 - [Create Work Items and immutable handoffs](work-items-and-handoffs.md)
 - [Preview effective configured instructions](effective-instructions.md)
 - [Inspect portable agent and skill profiles](agent-skill-profiles.md)
+- [Compose profile-governed instructions and context](profile-governed-context.md)
 
 Installation and workflow documentation will expand with each usable vertical
 slice.

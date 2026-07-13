@@ -408,6 +408,56 @@ export async function startGuiServer(
             }),
           );
         }
+        const profileContextPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/profile-context\/preview$/u.exec(
+            url.pathname,
+          );
+        if (profileContextPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !record(body.profile) ||
+            typeof body.profile.path !== "string" ||
+            (body.profile.expectedDigest !== undefined &&
+              typeof body.profile.expectedDigest !== "string") ||
+            !Array.isArray(body.bundles) ||
+            body.bundles.length < 1 ||
+            !body.bundles.every(
+              (bundle) =>
+                record(bundle) &&
+                typeof bundle.path === "string" &&
+                (bundle.expectedDigest === undefined ||
+                  typeof bundle.expectedDigest === "string"),
+            ) ||
+            typeof body.model !== "string" ||
+            !body.model.trim() ||
+            !optionalString(body.task)
+          )
+            return reject(
+              response,
+              400,
+              "Select one reviewed profile, its exact instruction bundles, and one allowed model.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewProfileContext({
+              projectId: decodeURIComponent(profileContextPreview[1]!),
+              workItemId: decodeURIComponent(profileContextPreview[2]!),
+              handoffId: decodeURIComponent(profileContextPreview[3]!),
+              profile: body.profile as {
+                path: string;
+                expectedDigest?: string;
+              },
+              bundles: body.bundles as readonly {
+                path: string;
+                expectedDigest?: string;
+              }[],
+              model: body.model,
+              ...(body.task === undefined ? {} : { task: body.task }),
+            }),
+          );
+        }
         const createWork = /^\/api\/projects\/([^/]+)\/work-items$/u.exec(
           url.pathname,
         );

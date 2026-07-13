@@ -128,6 +128,17 @@ Profile trust is `USER_CONFIGURED` attribution only: declarations never grant
 runtime capabilities, resolve availability, install packages, select an agent,
 change instruction composition, configure a sandbox, deliver data, or execute.
 
+Profile-governed context preview requires the user to select the profile path,
+optional pinned digest, every instruction bundle path, one allowed model, and
+one project/Work-Item/handoff-scoped immutable packet. Before composition, the
+domain requires exact closure between selected source IDs and the union
+declared by the agent and enabled skills; missing and extra sources fail with a
+generic non-echoing error. Agent target and byte budgets cannot be overridden
+by the HTTP caller. The response retains safe profile digest/name and source
+declaration provenance but no full paths. Include/exclude selectors remain
+inert descriptive strings and never become filesystem, retrieval, permission,
+or sandbox input. The envelope is not persisted, delivered, or executable.
+
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
 inside the selected project before persistence; missing and foreign sources

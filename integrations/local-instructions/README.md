@@ -9,3 +9,8 @@ and project scope, and proves canonical encode/re-import identity. It returns a
 safe basename, digest, source/canonical byte counts, logical bundle, and
 canonical encoding. It never returns the full path or discovers, installs,
 persists, resolves, selects, delivers, or executes any declaration.
+
+Profile-governed composition reuses this reader and the existing explicit
+instruction-bundle reader. The adapter still performs only bounded local reads;
+exact source closure, model compatibility, target derivation, and budgets are
+owned by the provider-neutral instruction-manager contract.

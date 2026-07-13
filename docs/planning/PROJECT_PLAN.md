@@ -431,6 +431,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 16 | E0, E3        | Search historical evidence across registered projects   |
 | Sprint 17 | E0, E6        | Roll out the versioned Context Pack source table        |
 | Sprint 18 | E0, E5        | Inspect portable agent and skill profiles               |
+| Sprint 19 | E0, E5, E6    | Compose a profile-governed Context Pack preview         |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -481,6 +482,12 @@ Sprint 18 completed the read-only E5 profile-contract increment. One explicit
 project-scoped JSON bundle describes one agent and exactly its enabled skills,
 validates model/tool/context/confirmation relationships, round-trips
 canonically, and remains uninstalled, unselected, unenforced, and unexecuted.
+Sprint 19 completed the read-only E5/E6 composition increment. One explicit
+profile, its exact declared instruction sources, an explicitly selected
+allowed model, and one immutable handoff now produce effective instructions
+and an unchanged schema-v2 Context Pack. Agent target and exact-byte budgets
+come only from the profile; selector semantics, availability, persistence,
+permissions, delivery, and execution remain deferred.
 
 ## 9. Agile operating model
 
@@ -714,3 +721,10 @@ remain absent.
 profile boundary. Strict provider-neutral contracts, digest-pinned local
 import, canonical re-import, and bilingual GUI inspection now precede any
 future registry, selection, permission, delivery, or execution work.
+
+[Sprint 19](sprints/SPRINT-019.md) connected that profile boundary to existing
+instruction and Context Pack composition without changing either persisted
+schema or Context Builder policy. Exact instruction-source closure, explicit
+allowed-model selection, derived agent target, profile-owned byte budgets, and
+safe profile/source provenance are now inspectable in the bilingual GUI. The
+result remains transient and non-executable.

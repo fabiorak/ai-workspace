@@ -2631,6 +2631,16 @@ round-trips through canonical JSON. The bilingual GUI inspects digest-pinned
 local synthetic input as `USER_CONFIGURED` descriptive data. No registry,
 installation, availability resolution, selection, permission, delivery, or
 execution is enabled.
+Sprint 19 adds the next read-only composition boundary. The user explicitly
+selects one reviewed profile, its exact declared instruction-source set, one
+allowed model, and one immutable handoff. The profile supplies the AGENT target
+and continuity/instruction exact-byte budgets; the existing deterministic
+composer and unchanged Context Pack schema-v2 builder produce a transient
+inspection envelope with profile digest, declaration ownership, effective-rule
+provenance, included items, omissions, and accounting. Context include/exclude
+selectors remain descriptive and unresolved. No registry, automatic
+selection, availability lookup, persistence, permission, delivery, or
+execution is enabled.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

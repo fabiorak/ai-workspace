@@ -91,5 +91,16 @@ describe("GUI localization contract", () => {
       }),
       /Review.*2 skill.*1000 byte.*900 byte/u,
     );
+    assert.match(GUI_CATALOGS.it.profileContextWarning, /sola lettura/u);
+    assert.match(
+      guiMessage("it", "profileContextReady", {
+        profile: "review-agent",
+        model: "model-balanced",
+        sources: "3",
+        rules: "3",
+        schema: "2",
+      }),
+      /review-agent.*model-balanced.*3 sorgenti.*3 regole.*schema 2/u,
+    );
   });
 });

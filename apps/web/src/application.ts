@@ -31,8 +31,10 @@ import {
   type HistoricalSearchQuery,
 } from "@ai-workspace/historical-search";
 import {
+  composeProfileInstructions,
   composeInstructions,
   type EffectiveInstructions,
+  type ProfileInstructionSelection,
 } from "@ai-workspace/instruction-manager";
 import {
   LocalAgentProfileReader,
@@ -172,6 +174,22 @@ export type GuiContextPreviewInput = Readonly<{
   continuityBudget: number;
   instructionBudget: number;
 }>;
+export type GuiProfileContextPreviewInput = Readonly<{
+  projectId: string;
+  workItemId: string;
+  handoffId: string;
+  profile: LocalAgentProfileInput;
+  bundles: readonly LocalInstructionBundleInput[];
+  model: string;
+  task?: string;
+}>;
+export type GuiProfileContextPreview = Readonly<{
+  profile: LocalAgentProfileInspection;
+  selection: ProfileInstructionSelection;
+  instructions: EffectiveInstructions;
+  contextPack: ExpandedContextPackPreview;
+  effect: "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED";
+}>;
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -200,6 +218,9 @@ export class GuiApplication {
   readonly #previewAgentProfile: (
     input: GuiAgentProfilePreviewInput,
   ) => Promise<LocalAgentProfileInspection>;
+  readonly #previewProfileContext: (
+    input: GuiProfileContextPreviewInput,
+  ) => Promise<GuiProfileContextPreview>;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -293,6 +314,36 @@ export class GuiApplication {
           "The agent profile preview project is not registered locally.",
         );
       return agentProfileReader.read(input.projectId, input.profile);
+    };
+    this.#previewProfileContext = async (input) => {
+      if (!(await projects.exists(input.projectId)))
+        throw new Error(
+          "The profile-governed Context Pack project is not registered locally.",
+        );
+      const [profile, bundle, handoff] = await Promise.all([
+        agentProfileReader.read(input.projectId, input.profile),
+        instructionReader.read(input.projectId, input.bundles),
+        this.#handoffs.show(input.projectId, input.workItemId, input.handoffId),
+      ]);
+      const composition = composeProfileInstructions(profile.bundle, bundle, {
+        model: input.model,
+        ...(input.task === undefined ? {} : { task: input.task }),
+      });
+      const contextPack = expandContextPack(
+        buildContextPack({
+          handoff,
+          instructions: composition.instructions,
+          budgets: composition.selection.budgets,
+        }),
+      );
+      return Object.freeze({
+        profile,
+        selection: composition.selection,
+        instructions: composition.instructions,
+        contextPack,
+        effect:
+          "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED" as const,
+      });
     };
     this.#sampleSessionPath = dependencies.sampleSessionPath;
   }
@@ -627,6 +678,15 @@ export class GuiApplication {
         }),
       );
     }, "Keep the explicit handoff, bundle paths, and byte budgets; correct the highlighted value and preview again.");
+  }
+
+  public async previewProfileContext(
+    input: GuiProfileContextPreviewInput,
+  ): Promise<GuiProfileContextPreview> {
+    return this.#run(
+      () => this.#previewProfileContext(input),
+      "Keep the explicit handoff, reviewed profile and instruction paths, and allowed model; correct the incompatible selection and preview again.",
+    );
   }
 
   async #run<T>(operation: () => Promise<T>, recovery: string): Promise<T> {

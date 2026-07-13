@@ -46,6 +46,17 @@ inspect the value only; there is no discovery, registry persistence,
 installation, selection, availability resolution, permission enforcement,
 delivery, or execution graph.
 
+The profile-composition increment remains inside that provider-neutral,
+read-only graph. `composeProfileInstructions` requires the exact union of agent
+and enabled-skill instruction-source IDs, one explicitly selected allowed
+model, and same-project values. It derives the AGENT target and both exact-byte
+budgets from the validated profile, while retaining declaration ownership for
+each source. The facade combines the safe digest-pinned profile inspection,
+existing local instruction reader, immutable handoff, instruction composer,
+and unchanged Context Pack schema-v2 builder into a transient envelope.
+Context include/exclude selectors remain descriptive; no resolver, persistence,
+delivery, permission, or execution boundary is introduced.
+
 The first E6 slice is `packages/context-builder`, a provider-neutral in-memory
 builder. It maps the eight sections of one validated immutable handoff and
 optional effective instruction rules into two deterministic categories. Exact

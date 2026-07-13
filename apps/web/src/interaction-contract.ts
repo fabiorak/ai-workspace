@@ -13,7 +13,8 @@ export type GuiJourneyStep =
   | "HANDOFF_DETAIL"
   | "INSTRUCTIONS"
   | "AGENT_PROFILE"
-  | "CONTEXT_PACK";
+  | "CONTEXT_PACK"
+  | "PROFILE_CONTEXT";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -306,6 +307,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: false,
       }),
     ),
+    screen(
+      "PROFILE_CONTEXT",
+      "Profile-governed context",
+      "Inspect exact profile-to-instruction selection and its budgeted Context Pack without runtime authority.",
+      action({
+        id: "preview-profile-context",
+        label: "Compose profile and Context Pack read-only",
+        description:
+          "Combine one reviewed profile, its exact declared instruction sources, one allowed model, and one immutable handoff.",
+        effect:
+          "Shows profile provenance, effective rules, exact budgets, included items, and omissions without persistence, delivery, or execution.",
+        prerequisites:
+          "Inspect a persisted handoff and explicitly select one reviewed profile, all declared instruction bundles, and one allowed model.",
+        mutates: false,
+      }),
+    ),
   ],
 );
 
@@ -323,7 +340,7 @@ function screen(
     primaryAction,
     accessibility: Object.freeze({
       landmark: "main",
-      focusTarget: `${step.toLowerCase()}-heading`,
+      focusTarget: `${step.toLowerCase().replaceAll("_", "-")}-heading`,
       statusText: "Visible text and aria-live status describe every result.",
       keyboardReachable: true,
       programmaticLabels: true,
@@ -378,7 +395,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 15)
+  if (steps.size !== 16)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

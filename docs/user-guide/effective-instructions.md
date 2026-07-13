@@ -58,3 +58,8 @@ MCP configuration, or home-directory instructions.
 Only reviewed synthetic bundles are supported in this pre-release slice. Do
 not provide private prompts, credentials, customer configurations, or live
 agent files.
+
+The separate [profile-governed context](profile-governed-context.md) preview
+can require an exact profile-declared source set and derive the agent target
+before calling this same composer. The standalone preview remains available
+for direct inspection and does not infer or activate a profile.

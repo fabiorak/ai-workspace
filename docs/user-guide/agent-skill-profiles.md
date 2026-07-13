@@ -57,4 +57,8 @@ files fail closed without echoing bundle content or full paths.
 Review or regenerate the synthetic file, select the owning registered project,
 and update an expected digest only after reviewing the new bytes. Profile
 discovery, authoring, persistence, installation, signing, availability checks,
-instruction composition, Context Pack wiring, and execution remain future work.
+and execution remain future work. The separate
+[profile-governed context](profile-governed-context.md) workflow can now compose
+one explicitly selected profile with its exact instruction-source closure and
+an immutable handoff in memory; it does not install, persist, deliver, resolve,
+or execute the result.

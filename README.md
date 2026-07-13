@@ -168,6 +168,10 @@ The visible journey is:
 10. select one reviewed synthetic agent/skill profile bundle and inspect its
     canonical portable declarations and digest without installation, selection,
     permission, delivery, or execution.
+11. from an immutable handoff, explicitly select that profile, its exact
+    declared instruction bundles, and one allowed model; preview the derived
+    effective instructions and profile-budgeted Context Pack with provenance,
+    without installation, persistence, delivery, or execution.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -195,17 +199,22 @@ The current GUI also provides:
   omissions, canonical shared-source provenance, and lossless expansion;
 - portable schema-v1 agent and skill profile inspection with optional SHA-256
   pinning, relationship validation, and canonical JSON round trips;
+- profile-governed read-only composition that requires exact instruction-source
+  closure, derives agent target and byte budgets from the reviewed profile, and
+  returns effective instructions plus an unchanged schema-v2 Context Pack;
 - bounded literal history search across at most 100 registered projects and
   10,000 canonical events, without an index or OpenSearch.
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
 `USER_CONFIGURED` attribution, not executable authority. Context Packs and
-profiles are not persisted, delivered, installed, selected, or executed. See
-the [active-memory](docs/user-guide/active-memory.md),
+profile-composition previews are not persisted or delivered; profiles are not
+installed, runtime-selected, or executed. See the
+[active-memory](docs/user-guide/active-memory.md),
 [Work Item and handoff](docs/user-guide/work-items-and-handoffs.md),
 [effective-instruction](docs/user-guide/effective-instructions.md),
-[agent and skill profile](docs/user-guide/agent-skill-profiles.md), and
+[agent and skill profile](docs/user-guide/agent-skill-profiles.md),
+[profile-governed context](docs/user-guide/profile-governed-context.md), and
 [GUI journey](docs/user-guide/gui-first-journey.md) guides for the current
 contracts and limitations.
 
