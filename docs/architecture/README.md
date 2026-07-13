@@ -41,6 +41,10 @@ builder. It maps the eight sections of one validated immutable handoff and
 optional effective instruction rules into two deterministic categories. Exact
 UTF-8 byte budgets include or omit whole items with source identity and reason.
 The builder performs no I/O, retrieval, persistence, delivery, or execution.
+Its developer-only measurement boundary accepts already-built read-only
+previews, validates their exact-byte accounting, and produces an immutable
+schema-versioned corpus report. Reports distinguish candidate, included, and
+omitted content bytes and cannot modify builder selection behavior.
 
 The implemented local persistence baseline now consists of:
 

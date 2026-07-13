@@ -3,18 +3,14 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 9](docs/planning/sprints/SPRINT-009.md) are complete.
-The repository now includes the M3 cross-agent handoff, normalized measurable
-handoff persistence, deterministic effective-instruction preview, and the
-first GUI-first local journeys. The foreground loopback GUI guides project
-registration, synthetic import, evidence search, integrity-verified source
-inspection, and complete source-linked active-memory lifecycle without CLI
-knowledge. Work Item/handoff and effective-instruction GUI parity remain the
-leading product recommendations. [Sprint 10](docs/planning/sprints/SPRINT-010.md)
-is now planned as a bounded continuity cockpit for complete Work Item lifecycle,
-transparent handoff preview and immutable creation, section-level inspection,
-read-only Git drift validation, and successor guidance. Execution, Context
-Builder, and the experimental handoff evaluator remain out of scope.
+Sprint 0 through [Sprint 12](docs/planning/sprints/SPRINT-012.md) are complete.
+The foreground loopback GUI now covers the Core MVP journey, complete
+active-memory and continuity cockpit workflows, English/Italian localization,
+effective-instruction preview, and deterministic budgeted Context Pack preview.
+[Sprint 13](docs/planning/sprints/SPRINT-013.md) completed Context Pack pressure
+measurement over a deterministic 27-sample synthetic corpus before any new
+optimization was selected. M4 remains open: agent and skill profiles, context
+policies, broader retrieval, and execution are not implemented.
 
 ## 1. Project Memory
 
@@ -39,6 +35,11 @@ complete session.
 - Context Builder and category-based token budgets;
 - progressive disclosure, deduplication, and compression;
 - code graph, artifact store, caching, and savings metrics.
+
+The current implementation enforces exact UTF-8 content-byte budgets and
+reports whole-item omissions. Synthetic pressure data recommends evaluating
+continuity granularity and progressive disclosure next; it does not yet accept
+that mechanism or a production optimization claim.
 
 ## 4. Privacy Proxy
 

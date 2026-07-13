@@ -2602,6 +2602,9 @@ Items, and verifiable handoffs. The implemented foreground loopback GUI now
 covers the complete Core MVP journey, English/Italian localization,
 effective-instruction preview, and a first read-only exact-byte-budgeted Context
 Pack preview over explicit inputs; ADR-0015 records its local browser boundary.
+The implemented developer measurement now reports exact candidate, included,
+and omitted content bytes across a deterministic synthetic Context Pack corpus;
+it changes no selection policy and makes no relevance or production claim.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

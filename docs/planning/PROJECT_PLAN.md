@@ -425,6 +425,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 10 | E0, E4        | Manage Work Items and handoffs through a GUI cockpit    |
 | Sprint 11 | E0, E5        | Localize the GUI and preview effective instructions     |
 | Sprint 12 | E0, E6        | Preview a deterministic budgeted Context Pack           |
+| Sprint 13 | E0, E6        | Measure synthetic Context Pack budget pressure          |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -446,6 +447,11 @@ Pack preview from an explicit immutable handoff and optional effective
 instructions with exact-byte category budgets and whole-item omissions. M4 is
 not complete; retrieval, agent profiles, context policies, and execution remain
 future work.
+Sprint 13 measures that boundary across 27 deterministic synthetic combinations
+of continuity, instructions, and budgets. It reports exact candidate, included,
+and omitted content bytes without changing selection behavior. The evidence
+recommends a later bounded experiment on continuity granularity and progressive
+disclosure before broader retrieval or compression.
 
 ## 9. Agile operating model
 
@@ -640,3 +646,14 @@ localization plus read-only effective-instruction preview. `handoff evaluate`,
 agent/model execution, Context Builder, document
 Work Items, instruction authoring/enforcement, and automatic translation remain
 outside the slice.
+
+[Sprint 12](sprints/SPRINT-012.md) completed the first E6 slice with an
+in-memory provider-neutral Context Builder and a bilingual GUI preview over one
+explicit immutable handoff and optional reviewed effective instructions.
+Separate exact-byte budgets include or omit whole items deterministically; the
+preview is neither persisted nor delivered or executed.
+
+[Sprint 13](sprints/SPRINT-013.md) completed the evidence-led follow-up. Its bounded
+synthetic corpus measures category pressure and distributions without adding a
+user-facing control or accepting retrieval, deduplication, compression, or a
+new context representation.

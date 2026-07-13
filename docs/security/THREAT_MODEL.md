@@ -87,6 +87,10 @@ identity plus optional explicit instruction bundle paths and bounded numeric
 budgets. The browser cannot submit a handoff body or request an inferred latest
 packet. Whole-item omission prevents semantic substring truncation; the result
 remains inert, in memory, and unavailable to any model or execution gateway.
+The synthetic corpus measurement adds no HTTP or persistence surface. It
+accepts already-built previews in process, bounds samples, dimensions, items,
+budgets, and item bytes, rejects inconsistent accounting without echoing item
+content, and labels its output as measurement rather than selection policy.
 
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources

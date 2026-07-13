@@ -202,6 +202,13 @@ instructions, enforces separate exact-byte budgets, and reports whole-item
 omissions. It performs no retrieval, truncation, persistence, delivery, model
 call, or execution.
 
+Sprint 13 measures that boundary with a deterministic 27-sample synthetic
+corpus over continuity, instruction, and budget profiles. Exact reports expose
+candidate, included, and omitted content bytes, category retention, fit counts,
+and distributions without changing the GUI, selection policy, persistence, or
+execution boundary. See the
+[budget-pressure report](docs/development/context-pack-budget-pressure-corpus.md).
+
 The completed Project Registry slice can register and inspect local non-bare
 Git repositories from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state
