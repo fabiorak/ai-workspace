@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 20](docs/planning/sprints/SPRINT-020.md) are complete.
+Sprint 0 through [Sprint 21](docs/planning/sprints/SPRINT-021.md) are complete.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -27,6 +27,12 @@ vocabulary and safety floor. The result is `adapt`: fit improves from 9 to 12
 of 27 observations and repeated candidate bytes fall 49.89%, but no
 continuity-quality evidence or schema-v2 accounting supports production
 rollout. Normal selectors and Context Builder behavior remain unchanged.
+Sprint 21 froze six synthetic, digest-pinned continuity manifests before
+selection. None of the three policies preserves the corpus: exact required
+answer recall is 0%, 55.56%, and 77.78% for floor-only, focused, and risk-aware.
+All retain first action, but source coverage is also incomplete. Exact
+schema-v2 accounting creates no new fit. Both decisions are `no change`, with
+production and GUI behavior unchanged.
 
 [Sprint 16](docs/planning/sprints/SPRINT-016.md) completed the E3 usability
 increment: bounded literal search across all registered projects from the
@@ -59,6 +65,12 @@ increment. Eight explicit selectors map to existing handoff sections while a
 four-section safety floor remains non-excludable. The bilingual report is
 measurement-only. Decision `adapt` defers vocabulary versioning and production
 policy until continuity-quality evidence exists.
+
+[Sprint 21](docs/planning/sprints/SPRINT-021.md) completed that bounded
+measurement. Predeclared exact-answer anchors show task-dependent optional
+sections are lost by every candidate policy. Historical v1 candidate sums and
+exact schema-v2 bytes remain separate; neither accounting method improves the
+18/54 fit count, and production behavior stays unchanged.
 
 ## 1. Project Memory
 

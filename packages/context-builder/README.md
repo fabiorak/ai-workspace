@@ -40,3 +40,12 @@ selected/excluded reasons, trust, sources, exact historical candidate bytes,
 and SHA-256 while enforcing a non-excludable objective/repository/next-action/
 source-reference safety floor. Corpus and GUI reports are measurement-only;
 the `adapt` decision leaves production builder and profile semantics unchanged.
+
+The follow-up continuity-evidence evaluator freezes six synthetic,
+digest-pinned manifests before projection. It reports exact answer,
+first-action, and required-source availability for baseline and selector
+policies while keeping historical v1 candidate sums separate from exact
+schema-v2 section-plus-source-table bytes. No candidate policy preserves the
+whole corpus and no new budget fit is created, so the `no change` result adds
+no production builder, schema, policy, GUI, persistence, delivery, or execution
+behavior.

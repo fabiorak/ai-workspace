@@ -209,6 +209,9 @@ The current GUI also provides:
 - experiment-only profile context selector measurement with an explicit
   eight-section vocabulary, non-excludable safety floor, exact historical
   candidate bytes, and no production policy change;
+- model-free selector evidence-retention measurement over six digest-pinned
+  synthetic manifests, with exact answer/source availability and separate
+  schema-v2 accounting; no candidate policy passes the corpus;
 - bounded literal history search across at most 100 registered projects and
   10,000 canonical events, without an index or OpenSearch.
 
@@ -225,6 +228,10 @@ installed, runtime-selected, or executed. See the
 [context selector measurement](docs/user-guide/context-selector-measurement.md), and
 [GUI journey](docs/user-guide/gui-first-journey.md) guides for the current
 contracts and limitations.
+
+The development-only [selector continuity evidence report](docs/development/selector-continuity-evidence-retention.md)
+records the fixed Sprint 21 corpus, exact results, and `no change` decisions. It
+adds no GUI input or user-facing quality score.
 
 The Project Registry can register and inspect local non-bare Git repositories
 from the CLI. It records an opaque project identifier,

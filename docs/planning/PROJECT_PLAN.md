@@ -742,3 +742,13 @@ non-excludable safety floor, byte-identical historical candidates, bounded
 corpus results, and a bilingual report make proposed loss visible. The `adapt`
 decision accepts no production policy; continuity-quality evidence and
 schema-v2 accounting must precede any ADR or rollout.
+
+[Sprint 21](sprints/SPRINT-021.md) completed that bounded evidence step. Six
+digest-pinned synthetic continuation manifests predeclare nine exact answers,
+supporting sections and 15 unique required-source observations, plus six first
+actions. Floor-only, focused, and risk-aware retain 0, 5, and 7 answers; none is
+corpus-preserving. All retain first action, but source coverage remains 0%,
+60%, and 86.67%. Separate historical-v1 and exact schema-v2 accounting both
+fit 18/54 budget observations, creating no new boundary. Evidence semantics
+and schema-v2 fit are both `no change`; production builder, selector semantics,
+GUI, delivery, and execution remain unchanged and no ADR was created.

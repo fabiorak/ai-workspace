@@ -81,6 +81,12 @@ descriptive in normal profile-governed Context Pack preview. A future increment
 should first measure continuity/task-quality or answerability, then revisit
 vocabulary versioning, compatibility, floor evidence, and v2 accounting.
 
+Sprint 21 completed that bounded follow-up with six predeclared digest-pinned
+synthetic consumers. No candidate policy preserves all exact answers and
+required sources, and exact schema-v2 accounting creates no new fit. The
+separate evidence and fit decisions are both `no change`; see the
+[continuity evidence report](selector-continuity-evidence-retention.md).
+
 ## Reproduction
 
 ```bash

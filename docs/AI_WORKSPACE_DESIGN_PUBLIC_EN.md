@@ -2650,6 +2650,15 @@ with zero floor loss. Decision `adapt` keeps projection and bilingual report
 measurement-only because no relevance/resume-quality evidence or schema-v2
 source-table accounting justifies production semantics. Arbitrary selectors,
 retrieval, permissions, and Context Builder behavior remain unchanged.
+Sprint 21 freezes six digest-pinned synthetic consumers before applying those
+policies. Exact model-free evaluation retains 0/9 required answers for
+floor-only, 5/9 for focused, and 7/9 for risk-aware; all retain 6/6 expected
+first actions, but required-source coverage is respectively 0/15, 9/15, and
+13/15. No policy is corpus-preserving. Separate schema-v2 accounting includes
+the marginal canonical source-table union and matches the production builder
+on complete baselines, yet v1 and v2 fit both remain 18/54. The evidence and
+fit decisions are both `no change`: no ADR, policy activation, builder/schema
+change, GUI control, persistence, delivery, or execution is introduced.
 Indexed backends, model access, broader Context Builder retrieval, and
 orchestration still require dedicated vertical slices and ADRs.
 

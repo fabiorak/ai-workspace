@@ -66,6 +66,18 @@ facade reports one digest-pinned profile against one immutable handoff but
 cannot override selectors or budget and never passes the result into
 `buildContextPack`. Decision `adapt` leaves production and schemas unchanged.
 
+The follow-up evidence-retention increment remains in the same package and
+adds no facade or runtime edge. Six in-memory digest-pinned synthetic manifests
+are validated for exact-answer uniqueness, optional-section coverage,
+first-action identity, source navigation, scope, and bounds before the existing
+selector projection runs. The evaluator measures retained exact bytes and
+canonical sources, then separately accounts historical embedded v1 candidates
+and schema-v2 normalized sections plus the marginal source-table union. It
+matches the production v2 builder only as a baseline contract check; it never
+passes projected input into `buildContextPack`. No policy preserves the corpus
+or creates a new sampled fit, so builder, schemas, profile semantics, facade,
+GUI, persistence, delivery, and execution remain unchanged.
+
 The first E6 slice is `packages/context-builder`, a provider-neutral in-memory
 builder. It maps the eight sections of one validated immutable handoff and
 optional effective instruction rules into two deterministic categories. Exact

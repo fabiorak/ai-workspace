@@ -1986,7 +1986,16 @@ budget, i fit passano da 9 a 12 e i byte candidati storici ripetuti scendono del
 report bilingue solo come misurazione perché non esistono evidenze di
 rilevanza/qualità resume né accounting source-table schema v2 che giustifichino
 semantica di produzione. Selector arbitrari, retrieval, permessi e comportamento
-Context Builder restano invariati. Backend
+Context Builder restano invariati. Sprint 21 congela sei consumer sintetici
+digest-pinned prima di applicare tali policy. La valutazione exact e model-free
+conserva 0/9 risposte richieste per floor-only, 5/9 per focused e 7/9 per
+risk-aware; tutte conservano 6/6 prime azioni attese, mentre la copertura source
+richiesta è rispettivamente 0/15, 9/15 e 13/15. Nessuna policy preserva il
+corpus. L'accounting schema v2 separato include l'unione marginale della source
+table canonica e coincide con il builder di produzione sulle baseline complete,
+ma i fit v1 e v2 restano entrambi 18/54. Le decisioni su evidenza e fit sono
+entrambe `no change`: non vengono introdotti ADR, attivazione policy, modifiche
+builder/schema, controlli GUI, persistenza, delivery o esecuzione. Backend
 indicizzati, model access, retrieval Context Builder più ampio e orchestrazione
 richiedono ancora vertical slice e ADR dedicati.
 

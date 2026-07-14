@@ -150,6 +150,18 @@ identity, section trust/source counts, exact bytes, and hashes, but no full
 paths or content resolver. They never enter production Context Builder,
 persistence, permission, delivery, or execution paths.
 
+The fixed selector continuity-evidence corpus adds no HTTP, GUI, local reader,
+upload, or persistence boundary. Manifests and handoffs are repository-owned
+synthetic values validated in memory before projection. Complete handoff
+SHA-256 pinning prevents post-result ground-truth substitution; exact-answer
+uniqueness, project/Work-Item/handoff scope, source-table identity and
+navigation, bounded counts/bytes, canonical ordering, and generic non-echoing
+failure cover ambiguity, stale input, corruption, controls, and oversized
+values. Digests remain integrity identities, not signatures or authority. The
+report contains hashes and counts rather than rejected answer content and
+cannot authorize retrieval, profile policy, builder input, delivery, or
+execution.
+
 GUI active-memory mutations require both the existing browser mutation
 controls and explicit canonical event IDs. The domain resolves those sources
 inside the selected project before persistence; missing and foreign sources

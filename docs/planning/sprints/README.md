@@ -25,3 +25,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 18 — Inspect Portable Agent and Skill Profiles](SPRINT-018.md) — completed
 - [Sprint 19 — Compose a Profile-Governed Context Preview](SPRINT-019.md) — completed
 - [Sprint 20 — Measure Profile Context Selector Semantics](SPRINT-020.md) — completed
+- [Sprint 21 — Measure Selector Continuity Evidence Retention](SPRINT-021.md) — completed

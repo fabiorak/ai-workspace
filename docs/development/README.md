@@ -8,6 +8,7 @@ Measurement reports:
 - [Synthetic Context Pack metadata-envelope corpus](context-pack-metadata-envelope-corpus.md)
 - [Context Pack schema-v2 source-table rollout](context-pack-source-table-rollout.md)
 - [Profile context selector measurement](context-selector-measurement.md)
+- [Selector continuity evidence retention](selector-continuity-evidence-retention.md)
 
 ## Prerequisites
 
