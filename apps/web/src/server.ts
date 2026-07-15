@@ -636,6 +636,56 @@ export async function startGuiServer(
             }),
           );
         }
+        const pseudonymizationPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/pseudonymization\/preview$/u.exec(
+            url.pathname,
+          );
+        if (pseudonymizationPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !record(body.profile) ||
+            typeof body.profile.path !== "string" ||
+            !record(body.policy) ||
+            typeof body.policy.path !== "string" ||
+            !Array.isArray(body.bundles) ||
+            body.bundles.length < 1 ||
+            !body.bundles.every(
+              (bundle) => record(bundle) && typeof bundle.path === "string",
+            ) ||
+            typeof body.model !== "string" ||
+            !body.model.trim() ||
+            !record(body.review) ||
+            typeof body.mappingKeyHex !== "string"
+          )
+            return reject(
+              response,
+              400,
+              "Select the exact profile, instruction sources, policy, model, reviewed span plan, and a volatile 32-byte local mapping key.",
+            );
+          return json(
+            response,
+            201,
+            await application.previewPseudonymization({
+              projectId: decodeURIComponent(pseudonymizationPreview[1]!),
+              workItemId: decodeURIComponent(pseudonymizationPreview[2]!),
+              handoffId: decodeURIComponent(pseudonymizationPreview[3]!),
+              profile: body.profile as {
+                path: string;
+                expectedDigest?: string;
+              },
+              policy: body.policy as { path: string; expectedDigest?: string },
+              bundles: body.bundles as readonly {
+                path: string;
+                expectedDigest?: string;
+              }[],
+              model: body.model,
+              ...(body.task === undefined ? {} : { task: body.task as string }),
+              review: body.review as never,
+              mappingKeyHex: body.mappingKeyHex,
+            }),
+          );
+        }
         const contextSelectorPreview =
           /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/context-selectors\/preview$/u.exec(
             url.pathname,

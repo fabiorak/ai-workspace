@@ -38,6 +38,7 @@
     "@ai-workspace/local-handoffs": "0.0.0",
     "@ai-workspace/local-instructions": "0.0.0",
     "@ai-workspace/local-privacy-policy": "0.0.0",
+    "@ai-workspace/local-privacy-mapping": "0.0.0",
     "@ai-workspace/local-session-ingestion": "0.0.0",
     "@ai-workspace/local-work-items": "0.0.0",
     "@ai-workspace/project-registry": "0.0.0",

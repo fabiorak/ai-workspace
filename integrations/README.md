@@ -25,6 +25,9 @@ Implemented adapters:
   schema-versioned JSON file;
 - `local-privacy-policy/` reads one explicit bounded digest-pinned model data
   policy with fatal UTF-8, same-project validation, and safe basename output;
+- `local-privacy-mapping/` stores immutable reversible mappings only as
+  bounded AES-256-GCM authenticated ciphertext with explicit in-memory keys,
+  private modes, owner locking, and flushed atomic publication;
 - `local-session-ingestion/` persists canonical sessions and artifacts and
   exposes local historical-event reads;
 - `local-work-items/` persists project-scoped Work Item operation logs with

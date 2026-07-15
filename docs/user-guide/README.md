@@ -12,6 +12,7 @@
 - [Compose profile-governed instructions and context](profile-governed-context.md)
 - [Measure profile context selectors](context-selector-measurement.md)
 - [Preview a model privacy policy](privacy-preflight.md)
+- [Preview a reversible privacy transformation](reversible-privacy-transformation.md)
 
 Installation and workflow documentation will expand with each usable vertical
 slice.

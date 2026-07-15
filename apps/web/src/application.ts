@@ -58,6 +58,7 @@ import {
   type LocalModelDataPolicyInput,
   type LocalModelDataPolicyInspection,
 } from "@ai-workspace/local-privacy-policy";
+import { EncryptedPrivacyMappingStore } from "@ai-workspace/local-privacy-mapping";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
 import {
   JsonActiveMemoryStore,
@@ -79,6 +80,10 @@ import {
 } from "@ai-workspace/project-registry";
 import {
   evaluatePrivacyPreflight,
+  pseudonymizeContextPack,
+  restorePseudonymizedItems,
+  type PseudonymReview,
+  type PseudonymizationPreview,
   type PrivacyPreflightReport,
 } from "@ai-workspace/privacy-gateway";
 import {
@@ -220,6 +225,20 @@ export type GuiPrivacyPreflightPreview = Readonly<{
   preflight: PrivacyPreflightReport;
   effect: "READ_ONLY_NOT_AUTHORIZED_PERSISTED_DELIVERED_OR_EXECUTED";
 }>;
+export type GuiPseudonymizationInput = GuiPrivacyPreflightInput &
+  Readonly<{ review: PseudonymReview; mappingKeyHex: string }>;
+export type GuiPseudonymizationPreview = Readonly<{
+  policy: LocalModelDataPolicyInspection;
+  preflight: PrivacyPreflightReport;
+  transformation: PseudonymizationPreview;
+  mapping: Readonly<{
+    persisted: true;
+    restorationVerified: true;
+    mappingSetId: string;
+    encryptedAtRest: true;
+  }>;
+  effect: "LOCAL_REVIEW_AND_ENCRYPTED_MAPPING_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
+}>;
 export type GuiContextSelectorPreviewInput = Readonly<{
   projectId: string;
   workItemId: string;
@@ -271,6 +290,7 @@ export class GuiApplication {
     input: GuiPrivacyPreflightInput,
   ) => Promise<GuiPrivacyPreflightPreview>;
   readonly #sampleSessionPath: string;
+  readonly #workspaceHome: string;
 
   public constructor(
     dependencies: Readonly<{
@@ -278,6 +298,7 @@ export class GuiApplication {
       sampleSessionPath: string;
     }>,
   ) {
+    this.#workspaceHome = dependencies.workspaceHome;
     const projectStore = new JsonProjectRegistryStore(
       join(dependencies.workspaceHome, "projects.json"),
     );
@@ -915,6 +936,56 @@ export class GuiApplication {
       () => this.#previewPrivacyPreflight(input),
       "Keep the explicit handoff, reviewed profile, exact instruction sources, allowed model, and digest-pinned same-project policy; correct the incompatible selection and preview again. No data was sent.",
     );
+  }
+
+  public async previewPseudonymization(
+    input: GuiPseudonymizationInput,
+  ): Promise<GuiPseudonymizationPreview> {
+    return this.#run(async () => {
+      if (!/^[a-f0-9]{64}$/u.test(input.mappingKeyHex))
+        throw new Error(
+          "The local mapping key must be exactly 32 bytes encoded as 64 lowercase hexadecimal characters.",
+        );
+      const [composition, policy] = await Promise.all([
+        this.#previewProfileContext(input),
+        new LocalModelDataPolicyReader().read(input.projectId, input.policy),
+      ]);
+      const preflight = evaluatePrivacyPreflight({
+        policy: policy.policy,
+        modelId: input.model,
+        contextPack: composition.contextPack,
+      });
+      const key = Buffer.from(input.mappingKeyHex, "hex");
+      const transformed = pseudonymizeContextPack({
+        review: input.review,
+        contextPack: composition.contextPack,
+        key,
+      });
+      const store = new EncryptedPrivacyMappingStore(this.#workspaceHome, key);
+      await store.save(transformed.mapping);
+      const persisted = await store.read(input.review.mappingSetId);
+      const restored = restorePseudonymizedItems({
+        mapping: persisted,
+        items: transformed.preview.items,
+      });
+      if (restored.length !== transformed.preview.items.length)
+        throw new Error(
+          "The encrypted mapping did not verify a complete local round trip.",
+        );
+      return Object.freeze({
+        policy,
+        preflight,
+        transformation: transformed.preview,
+        mapping: Object.freeze({
+          persisted: true as const,
+          restorationVerified: true as const,
+          mappingSetId: input.review.mappingSetId,
+          encryptedAtRest: true as const,
+        }),
+        effect:
+          "LOCAL_REVIEW_AND_ENCRYPTED_MAPPING_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED" as const,
+      });
+    }, "No source evidence changed and no data was sent. Keep the reviewed exact hashes and UTF-8 byte ranges, use a new mapping-set identity, verify the volatile 32-byte key, and retry.");
   }
 
   async #run<T>(operation: () => Promise<T>, recovery: string): Promise<T> {

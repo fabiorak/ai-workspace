@@ -4,6 +4,8 @@ import type {
   ExpandedContextPackPreview,
 } from "@ai-workspace/context-builder";
 
+export * from "./pseudonymization.ts";
+
 export const MODEL_DATA_POLICY_SCHEMA_VERSION = 1;
 export const PRIVACY_PREFLIGHT_EFFECT =
   "READ_ONLY_REVIEW_EVIDENCE_NOT_AUTHORIZED_OR_DELIVERED" as const;

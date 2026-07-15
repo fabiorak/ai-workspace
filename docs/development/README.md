@@ -114,6 +114,17 @@ decision are documented in
 [General Link Retrieval Scale Corpus](general-link-retrieval-scale-corpus.md).
 The harness uses temporary synthetic state only and exposes no runtime route.
 
+## Reversible privacy transformation
+
+Sprint 26 freezes its synthetic Unicode, integrity, encryption, permission,
+non-echo, and round-trip cases in
+[Privacy Pseudonymization Corpus](privacy-pseudonymization-corpus.md).
+`packages/privacy-gateway` owns the pure reviewed-span transformation and
+restore contracts. `integrations/local-privacy-mapping` owns only authenticated
+encrypted persistence. Tests must use fictional values and explicit synthetic
+32-byte keys; never add real mappings, keys, identity data, paths, or generated
+ciphertext artifacts to the repository.
+
 ## Architecture decisions
 
 Material decisions are recorded in `docs/adr/`. New ADRs use the next numeric

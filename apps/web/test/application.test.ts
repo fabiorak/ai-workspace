@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -340,6 +341,46 @@ describe("GUI application facade", () => {
       );
       assert.equal(privacy.selection.target.model, privacy.preflight.modelId);
       assert.equal(JSON.stringify(privacy).includes(root), false);
+      const reviewedItem = value.contextPack.included[0]!;
+      const pseudonymized = await app.previewPseudonymization({
+        projectId: project.id,
+        workItemId: work.id,
+        handoffId: handoff.id,
+        profile: { path: fixture.profilePath },
+        bundles: fixture.bundlePaths.map((path) => ({ path })),
+        model: "model-balanced",
+        task: "synthetic-review",
+        policy: { path: policyPath },
+        mappingKeyHex: "17".repeat(32),
+        review: {
+          schemaVersion: 1,
+          mappingSetId: "synthetic-mapping-1",
+          projectId: project.id,
+          workItemId: work.id,
+          handoffId: handoff.id,
+          modelId: "model-balanced",
+          attribution: "USER_REVIEWED",
+          selections: [
+            {
+              itemId: reviewedItem.id,
+              contentSha256: createHash("sha256")
+                .update(reviewedItem.content, "utf8")
+                .digest("hex"),
+              byteStart: 0,
+              byteEnd: 1,
+              entityType: "OTHER",
+            },
+          ],
+        },
+      });
+      assert.equal(pseudonymized.mapping.restorationVerified, true);
+      assert.equal(pseudonymized.mapping.encryptedAtRest, true);
+      assert.match(pseudonymized.effect, /NOT_AUTHORIZED/u);
+      assert.equal(
+        JSON.stringify(pseudonymized).includes("17".repeat(32)),
+        false,
+      );
+      assert.equal(JSON.stringify(pseudonymized).includes(root), false);
       await assert.rejects(
         app.previewPrivacyPreflight({
           projectId: project.id,

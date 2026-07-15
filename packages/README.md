@@ -30,7 +30,9 @@ Implemented packages:
   instruction output;
 - `privacy-gateway/` owns canonical model data policies, conservative
   classification, the shared high-confidence restricted detector, and
-  deterministic non-authorizing Context Pack preflight reports;
+  deterministic non-authorizing Context Pack preflight reports, plus
+  exact-hash reviewed-span pseudonymization and byte-exact restoration
+  contracts;
 
 Other directories remain placeholders until their public contracts are defined
 through implementation and ADRs.

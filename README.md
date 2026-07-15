@@ -235,6 +235,10 @@ The current GUI also provides:
   non-echoing privacy preflight in the English/Italian GUI;
 - one shared narrow high-confidence restricted-data detector whose result
   overrides declarations while preserving existing ingestion behavior.
+- exact-hash, user-reviewed UTF-8 span pseudonymization with deterministic
+  inert aliases, byte-exact local restoration, and a separate AES-256-GCM
+  authenticated mapping store; the volatile key remains user-custodied and no
+  result authorizes model delivery.
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
@@ -251,7 +255,9 @@ installed, runtime-selected, or executed. See the
 contracts and limitations. The [General Inbox guide](docs/user-guide/general-inbox.md)
 documents project-free capture and search. The [privacy preflight guide](docs/user-guide/privacy-preflight.md)
 explains policy inputs, decisions, recovery, and why reviewable is not
-authorization.
+authorization. The [reversible privacy transformation guide](docs/user-guide/reversible-privacy-transformation.md)
+documents reviewed spans, encrypted mappings, volatile key custody, exact
+restore, and current limitations.
 
 The development-only [selector continuity evidence report](docs/development/selector-continuity-evidence-retention.md)
 records the fixed Sprint 21 corpus, exact results, and `no change` decisions. It

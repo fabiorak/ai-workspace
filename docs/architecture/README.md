@@ -115,6 +115,19 @@ in-process facade and authenticated loopback route. The dependency direction
 remains presentation → local adapter/provider-neutral package; no network,
 model, delivery, persistence, permission, or execution adapter is present.
 
+The second E7 increment extends the same provider-neutral package with
+schema-v1 reviewed-span contracts, deterministic HMAC-derived inert aliases,
+exact UTF-8 boundary validation, and byte-exact restoration. It never mutates
+the expanded Context Pack supplied to it. The separate
+`integrations/local-privacy-mapping` adapter receives an explicit 32-byte key
+in memory and persists only bounded AES-256-GCM authenticated ciphertext. Clear
+scope metadata is authenticated as additional data; nonce and authentication
+tag are stored beside ciphertext, while original selected values remain inside
+the encrypted canonical mapping. `apps/web` exposes one authenticated scoped
+action that verifies a save/read/restore round trip and returns neither mapping
+plaintext, key, nor path. Key generation, persistence, recovery, rotation,
+network, model delivery, permission, and execution remain outside the graph.
+
 The implemented local persistence baseline now consists of:
 
 - a schema-versioned atomic JSON Project Registry;
@@ -128,7 +141,10 @@ The implemented local persistence baseline now consists of:
   atomic publication without a synthetic project;
 - separate schema-v1 immutable General-to-project link documents with exact
   source-hash binding, explicit target/rationale, a store-wide owner-token
-  lock, restrictive modes, atomic publication, and no evidence mutation.
+  lock, restrictive modes, atomic publication, and no evidence mutation;
+- separate schema-v1 encrypted pseudonym mapping documents with authenticated
+  scope metadata, fresh nonces, explicit volatile keys, owner-token locking,
+  restrictive modes, flushed atomic publication, and no source mutation.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported

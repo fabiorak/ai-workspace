@@ -468,6 +468,39 @@ classifications can be incorrect. A reviewable result therefore remains
 non-authorizing evidence and requires human review and a later enforced
 delivery boundary.
 
+## Implemented E7 reversible-transformation controls
+
+- ADR-0021 requires exact user-reviewed spans rather than claiming automatic
+  PII discovery, and binds each span to project, Work Item, handoff, model,
+  Context Pack item, exact content SHA-256, entity type, and UTF-8 byte range;
+- empty, overlapping, duplicate, dangling, stale, split-code-point,
+  cross-scope, noncanonical, and oversized input fails closed before output;
+- deterministic HMAC-derived aliases are scoped to one explicit 32-byte key
+  and entity type; every byte outside reviewed spans remains unchanged;
+- mapping plaintext is validated, bounded, and stored only inside separate
+  AES-256-GCM authenticated ciphertext using a fresh 96-bit nonce;
+- authenticated additional data binds schema, mapping set, project, Work Item,
+  handoff, and model so metadata tampering or cross-scope replay fails;
+- the adapter requires `0700` directory and `0600` document modes, an exclusive
+  owner-token lock, flushed temporary writes, atomic rename, immutable mapping
+  identity, complete-state reads, and non-owner lock preservation;
+- wrong keys, ciphertext/tag/metadata modification, temporary state, unsafe
+  modes, bounds, corruption, and incomplete restore fail without partial
+  output or selected-value echo;
+- the GUI key is accepted only for the local action, is not returned or placed
+  in browser-local state, and its form value is cleared after each attempt;
+- a successful round trip remains local review evidence and does not change
+  classification, preflight result, permission, model availability, routing,
+  delivery, or execution.
+
+Residual risk: the alpha delegates key generation, strength, storage, backup,
+recovery, reuse, and rotation to the user. A lost key makes mappings
+irrecoverable; a copied or reused key increases exposure. The browser field and
+process memory briefly contain it. Sprint 27 is planned to evaluate an explicit
+cross-platform custody boundary before routine use. A local process with the
+same user privileges may still read process memory or replace files despite
+filesystem modes and authentication checks.
+
 ## Review triggers
 
 Review and update this model when:

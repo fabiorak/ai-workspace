@@ -3,8 +3,9 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 25](docs/planning/sprints/SPRINT-025.md) are complete.
-The next sprint is not yet committed.
+Sprint 0 through [Sprint 26](docs/planning/sprints/SPRINT-026.md) are complete.
+[Sprint 27](docs/planning/sprints/SPRINT-027.md) is planned to decide local
+mapping-key custody and recovery from a predeclared cross-platform corpus.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -106,6 +107,14 @@ scale and integrity measurement of canonical General/link validation. Two
 REFERENCE runs produced identical counts, zero known-item misses, sub-threshold
 latency and less than 2.4% pressure on every production bound. Decision
 `NO_CHANGE` retains JSON scans and creates no index ADR.
+
+[Sprint 26](docs/planning/sprints/SPRINT-026.md) completes the next bounded E7
+slice. Exact-hash user-reviewed UTF-8 spans produce deterministic inert aliases
+while preserving all unselected bytes. A separate local adapter stores only
+AES-256-GCM authenticated ciphertext with fresh nonces, private modes, owner
+locking, atomic publication, and explicit volatile key custody. The bilingual
+GUI verifies byte-exact restoration without changing evidence or authorizing
+network, model, delivery, permission, or execution behavior.
 
 ## 1. Project Memory
 

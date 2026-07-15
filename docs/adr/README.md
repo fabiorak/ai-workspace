@@ -41,3 +41,4 @@ Status: proposed | accepted | superseded
 - [ADR-0019: Use separate atomic General conversation documents](0019-use-separate-atomic-general-conversation-documents.md)
 
 - [ADR-0020: Use separate immutable General-to-project links](0020-use-separate-immutable-general-project-links.md)
+- [ADR-0021: Use reviewed spans and encrypted local pseudonym mappings](0021-use-reviewed-spans-and-encrypted-local-pseudonym-mappings.md)

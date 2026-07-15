@@ -16,7 +16,8 @@ export type GuiJourneyStep =
   | "AGENT_PROFILE"
   | "CONTEXT_PACK"
   | "PROFILE_CONTEXT"
-  | "CONTEXT_SELECTOR_REPORT";
+  | "CONTEXT_SELECTOR_REPORT"
+  | "PRIVACY_TRANSFORMATION";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -357,6 +358,24 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: false,
       }),
     ),
+    screen(
+      "PRIVACY_TRANSFORMATION",
+      "Reversible privacy transformation",
+      "Apply explicitly reviewed exact UTF-8 spans, persist only an authenticated encrypted mapping, and verify local restoration without delivery authority.",
+      action({
+        id: "preview-pseudonymization",
+        label: "Transform and verify locally",
+        description:
+          "Replace reviewed values with deterministic inert aliases and verify the separate encrypted mapping through a complete local round trip.",
+        effect:
+          "Persists authenticated ciphertext only; source evidence and Context Packs remain unchanged and nothing is sent or executed.",
+        prerequisites:
+          "Complete the exact privacy inputs, review item hashes and UTF-8 byte ranges, choose a new mapping-set identity, and provide a volatile 32-byte key.",
+        recovery:
+          "No source evidence changed and no data was sent. Correct the exact reviewed plan or key and retry with a new mapping-set identity.",
+        mutates: true,
+      }),
+    ),
   ],
 );
 
@@ -429,7 +448,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 18)
+  if (steps.size !== 19)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

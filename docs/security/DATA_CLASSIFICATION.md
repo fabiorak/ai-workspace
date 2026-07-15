@@ -125,3 +125,17 @@ The result is `BLOCKED` or `REVIEWABLE_NOT_AUTHORIZED`. Neither result sends
 content or grants permission. `USER_CONFIGURED` records attribution only, and
 the narrow detector is not complete secret, PII, identity, or regulatory-data
 coverage.
+
+## Implemented reversible transformation
+
+Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping
+metadata, and reversible mappings remain `CONFIDENTIAL`. Pseudonymization does
+not lower source classification and is not anonymization. Original values are
+retained only inside a separate AES-256-GCM authenticated mapping ciphertext;
+the explicit 32-byte key is volatile caller input and is never persisted or
+returned. Canonical evidence and Context Packs remain byte-unchanged.
+
+The first implementation performs no automatic PII detection and grants no
+model permission. Unknown or unreviewed content retains its existing class and
+risk. Key material is `RESTRICTED` and must never enter ordinary storage, logs,
+fixtures, reports, browser-local state, or source control.

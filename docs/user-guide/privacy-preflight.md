@@ -41,5 +41,6 @@ policy. It is not model availability, permission, routing, anonymization,
 delivery, execution, or proof of complete secret/PII detection.
 
 The preview is transient. It creates no policy registry, decision record,
-audit record, pseudonymization mapping, network request, model call, or runtime
-authority.
+audit record, network request, model call, or runtime authority. A separate
+explicit reviewed-span action can create an encrypted reversible mapping; it
+does not change this preflight result or authorize delivery.

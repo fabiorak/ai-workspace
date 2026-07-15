@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/local-privacy-mapping",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Authenticated encrypted local storage for reversible pseudonym mappings",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/privacy-gateway": "0.0.0"
+  }
+}

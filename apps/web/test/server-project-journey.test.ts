@@ -870,7 +870,11 @@ describe("GUI server project onboarding", () => {
         budgets: { CONTINUITY: number; INSTRUCTIONS: number };
       };
       instructions: { rules: unknown[] };
-      contextPack: { schemaVersion: number; budgets: unknown };
+      contextPack: {
+        schemaVersion: number;
+        budgets: unknown;
+        included: readonly { id: string; content: string }[];
+      };
       effect: string;
     };
     assert.deepEqual(value.selection.target, {
@@ -940,6 +944,53 @@ describe("GUI server project onboarding", () => {
     );
     assert.match(privacy.effect, /NOT_AUTHORIZED/u);
     assert.equal(JSON.stringify(privacy).includes(root), false);
+    const reviewedItem = value.contextPack.included[0]!;
+    const pseudonymizationPath = path.replace(
+      "/profile-context/preview",
+      "/pseudonymization/preview",
+    );
+    const mappingKeyHex = "29".repeat(32);
+    const pseudonymizationResponse = await api(pseudonymizationPath, {
+      method: "POST",
+      body: JSON.stringify({
+        ...request,
+        policy: { path: policyPath },
+        mappingKeyHex,
+        review: {
+          schemaVersion: 1,
+          mappingSetId: "http-mapping-1",
+          projectId,
+          workItemId: work.id,
+          handoffId: handoff.id,
+          modelId: "model-balanced",
+          attribution: "USER_REVIEWED",
+          selections: [
+            {
+              itemId: reviewedItem.id,
+              contentSha256: createHash("sha256")
+                .update(reviewedItem.content, "utf8")
+                .digest("hex"),
+              byteStart: 0,
+              byteEnd: 1,
+              entityType: "OTHER",
+            },
+          ],
+        },
+      }),
+    });
+    assert.equal(pseudonymizationResponse.status, 201);
+    const pseudonymization = (await pseudonymizationResponse.json()) as {
+      mapping: { restorationVerified: boolean; encryptedAtRest: boolean };
+      effect: string;
+    };
+    assert.equal(pseudonymization.mapping.restorationVerified, true);
+    assert.equal(pseudonymization.mapping.encryptedAtRest, true);
+    assert.match(pseudonymization.effect, /NOT_AUTHORIZED/u);
+    assert.equal(
+      JSON.stringify(pseudonymization).includes(mappingKeyHex),
+      false,
+    );
+    assert.equal(JSON.stringify(pseudonymization).includes(root), false);
     const wrongModelPolicy = await api(privacyPath, {
       method: "POST",
       body: JSON.stringify({

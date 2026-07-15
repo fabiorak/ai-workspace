@@ -438,6 +438,8 @@ must be adjusted using evidence from completed increments.
 | Sprint 23 | E0, E3        | Capture and find General questions                      |
 | Sprint 24 | E0, E3        | Link General evidence to a project explicitly           |
 | Sprint 25 | E0, E3        | Measure General link retrieval scale                    |
+| Sprint 26 | E0, E7        | Preview reversible privacy transformation               |
+| Sprint 27 | E0, E7        | Decide local mapping key custody                        |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -797,3 +799,18 @@ validation and scan measurement against predeclared thresholds. Two complete
 REFERENCE runs retained identical counts and zero known-item misses while all
 latency and bound-pressure gates passed. Decision `NO_CHANGE` adds no index or
 ADR; semantic retrieval retains its separate lexical-miss evidence gate.
+
+[Sprint 26](sprints/SPRINT-026.md) completed the second E7/M5 boundary. Exact
+user-reviewed UTF-8 spans are bound to Context Pack item hashes and transformed
+into deterministic inert aliases without changing canonical evidence. A
+separate adapter persists only AES-256-GCM authenticated ciphertext with fresh
+nonces, scope-bound metadata, restrictive modes, owner locking, and atomic
+publication. The bilingual GUI verifies byte-exact restore locally; it returns
+no mapping plaintext, key, or path and creates no delivery authority.
+
+[Sprint 27](sprints/SPRINT-027.md) is planned from Sprint 26's principal
+residual risk: explicit volatile hexadecimal keys prove the cryptographic
+boundary but are not routine key custody. A predeclared cross-platform corpus
+will compare volatile import, OS credential-store, and passphrase-wrapping
+candidates before an ADR or production rollout. Network recovery, delivery,
+models, execution, and real credentials remain excluded.

@@ -81,6 +81,16 @@ identifiers, and user-authored content remain in their original language.
     excluded section, safety-floor reason, trust, source count, hash, exact
     candidate bytes, reduction, and fit against the profile continuity budget.
     The report is experiment-only and changes no Context Builder policy.
+14. Under **Preview model privacy policy**, reuse the exact profile composition
+    and select one same-project digest-pinned model policy. Review every item
+    class, hash, decision, default, restricted detector category, and recovery.
+    `REVIEWABLE_NOT_AUTHORIZED` is not permission or delivery.
+15. After that review, **Reversible privacy transformation** accepts exact item
+    hashes and UTF-8 byte ranges, shows inert pseudonymized content, persists
+    only an authenticated encrypted mapping, and verifies local byte-exact
+    restoration. Its volatile key is never returned and the form field is
+    cleared after the attempt. This remains manual, `CONFIDENTIAL`, and
+    non-authorizing; it is not complete PII detection or model delivery.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search
 results retain the query and filters, and back actions return without clearing
