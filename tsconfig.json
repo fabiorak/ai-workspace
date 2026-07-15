@@ -17,6 +17,9 @@
       "@ai-workspace/general-conversation": [
         "./packages/general-conversation/src/index.ts"
       ],
+      "@ai-workspace/general-project-link": [
+        "./packages/general-project-link/src/index.ts"
+      ],
       "@ai-workspace/historical-search": [
         "./packages/historical-search/src/index.ts"
       ],
@@ -36,6 +39,9 @@
       "@ai-workspace/local-general-conversation": [
         "./integrations/local-general-conversation/src/index.ts"
       ],
+      "@ai-workspace/local-general-project-link": [
+        "./integrations/local-general-project-link/src/index.ts"
+      ],
       "@ai-workspace/local-handoffs": [
         "./integrations/local-handoffs/src/index.ts"
       ],
@@ -53,6 +59,9 @@
       ],
       "@ai-workspace/local-privacy-policy": [
         "./integrations/local-privacy-policy/src/index.ts"
+      ],
+      "@ai-workspace/local-privacy-mapping": [
+        "./integrations/local-privacy-mapping/src/index.ts"
       ],
       "@ai-workspace/session-ingestion": [
         "./packages/session-ingestion/src/index.ts"
