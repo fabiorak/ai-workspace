@@ -4,7 +4,7 @@
 
 **Milestone:** M5-adjacent provenance increment
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 
@@ -112,3 +112,43 @@ git diff --check
 | Stale content is linked                    | Bind and revalidate exact General SHA-256                         |
 | Link becomes trusted memory                | `USER_AUTHORED`/`UNVERIFIED` evidence only; no promotion consumer |
 | Corrupt links leak partial results         | Validate the complete requested link set before search output     |
+
+## Delivered outcome
+
+- ADR-0020 selected a separate immutable, schema-v1 link aggregate before
+  implementation; no database, migration, model, network, or encryption store
+  was introduced.
+- `packages/general-project-link` owns explicit creation, exact General hash
+  binding, project validation, restricted-rationale screening, attribution,
+  duplicate semantics, and the `LINK_ONLY` boundary.
+- `integrations/local-general-project-link` owns bounded canonical JSON
+  documents, a store-wide owner-token lock, flushed temporary writes, atomic
+  rename, directory flush, restrictive modes, and fail-closed reads.
+- Scoped historical search validates all links and both referenced scopes,
+  annotates General results, and supports an explicit `associatedProjectId`
+  filter. Existing project-only search and CLI behavior are unchanged.
+- The loopback GUI/API show exact `GENERAL` source/hash and explicit `PROJECT`
+  target before creation, render link attribution and rationale with
+  `textContent`, and state the non-ownership effect in English and Italian.
+- Synthetic tests cover stale hashes, restricted rationale without echo,
+  duplicates, missing/removed projects, corruption, partial temporary state,
+  restrictive permissions, exact association filtering, and unchanged General
+  API bytes.
+
+## Review and retrospective
+
+The separate aggregate preserved both existing canonical formats and required
+only additive ports. Store-wide locking is intentionally conservative: it
+prevents duplicate tuple races while the bounded corpus is small. No measured
+scale or lexical miss trigger justifies FTS5, semantic retrieval, or another
+runtime dependency. Sprint 25 will measure validation and scan cost before any
+index decision.
+
+## Verification result
+
+- clean locked install and clean composite build passed;
+- repository check passed with 217/217 tests, including isolated loopback GUI
+  acceptance;
+- npm audit reported 0 vulnerabilities;
+- formatting, lint, typecheck, diff check, and public-safety scan passed;
+- one commit is created without push as the final close action.

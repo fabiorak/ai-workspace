@@ -125,7 +125,7 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
     screen(
       "GENERAL_INBOX",
       "General Inbox",
-      "Create project-free conversations and append immutable local user questions.",
+      "Create project-free conversations, append immutable local user questions, and explicitly link exact evidence to a registered project without changing scope.",
       action({
         id: "capture-general-question",
         label: "Save question to General",

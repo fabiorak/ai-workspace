@@ -388,6 +388,24 @@ Baseline controls:
 - General evidence is never active memory, a Work Item, instruction, handoff,
   Context Pack, policy, prompt, permission, delivery, or execution input.
 
+## Implemented General-to-project link controls
+
+- link creation requires an exact General conversation, event, lowercase
+  SHA-256, explicit registered project, reviewed rationale, and create action;
+- current project selection is never treated as consent, and link effect is
+  fixed to `LINK_ONLY` with `LOCAL_USER`, `USER_AUTHORED`, `UNVERIFIED`, and
+  `CONFIDENTIAL` attribution;
+- the shared restricted detector screens rationale before persistence without
+  echoing rejected content;
+- a separate bounded canonical store validates exact keys, hashes, timestamps,
+  duplicate tuples, filenames, modes, locks, temporary state, and total bytes;
+- every retrieved link is revalidated against the exact General event/hash and
+  registered target; stale, removed, cross-scope, corrupt, or partial state
+  fails the complete requested link set without partial results;
+- links never mutate evidence or grant ownership, trust, active memory,
+  instruction priority, Work Item/Context Pack membership, permission,
+  delivery, model access, or execution.
+
 ## Implemented E3 active-memory storage controls
 
 - imported evidence remains `UNTRUSTED` and cannot promote itself into active

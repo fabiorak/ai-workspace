@@ -437,6 +437,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 22 | E0, E7        | Preview model privacy policy before delivery            |
 | Sprint 23 | E0, E3        | Capture and find General questions                      |
 | Sprint 24 | E0, E3        | Link General evidence to a project explicitly           |
+| Sprint 25 | E0, E3        | Measure General link retrieval scale                    |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -785,7 +786,13 @@ the separate atomic persistence representation before code. The bilingual
 General Inbox does not invoke a model, create assistant responses, promote
 evidence, add a database/index, or claim semantic retrieval.
 
-[Sprint 24](sprints/SPRINT-024.md) is planned to add an explicit immutable
-provenance link from selected General evidence to a registered project. It
-must preserve the original `GENERAL` ownership and bytes, keep project-only
-search isolated, and add no promotion, model, delivery, or execution path.
+[Sprint 24](sprints/SPRINT-024.md) completed ADR-0020 with a separate immutable
+General-to-project provenance-link aggregate. Exact hash binding, explicit
+target and rationale, bounded atomic persistence, fail-closed validation,
+retrieval annotations/filtering, and a bilingual confirmation journey preserve
+the original scopes and bytes without promotion or execution.
+
+[Sprint 25](sprints/SPRINT-025.md) is planned to measure deterministic General
+and link validation/scan cost against predeclared thresholds before considering
+FTS5 or another rebuildable local index. Semantic retrieval retains its
+separate lexical-miss evidence gate.

@@ -189,6 +189,10 @@ export class HistoricalSearch {
   ): Promise<ScopedHistoricalSearchReport> {
     const text = requiredValue(query.text, "Search text");
     const limit = searchLimit(query.limit);
+    const associatedProjectId =
+      query.associatedProjectId === undefined
+        ? null
+        : requiredValue(query.associatedProjectId, "Associated project ID");
     if (query.scope !== "GENERAL_ONLY" && query.scope !== "ALL_SCOPES")
       throw new HistoricalSearchError(
         "Search scope must be GENERAL_ONLY or ALL_SCOPES.",
@@ -213,6 +217,17 @@ export class HistoricalSearch {
     if (this.#dependencies.general === undefined)
       throw new HistoricalSearchError(
         "General conversation search is not configured in this application.",
+      );
+    if (associatedProjectId !== null && this.#dependencies.links === undefined)
+      throw new HistoricalSearchError(
+        "Associated-project search is not configured in this application.",
+      );
+    if (
+      associatedProjectId !== null &&
+      !(await this.#dependencies.projects.exists(associatedProjectId))
+    )
+      throw new HistoricalSearchError(
+        "The associated-project filter must name a registered project.",
       );
 
     try {
@@ -239,14 +254,48 @@ export class HistoricalSearch {
           throw new Error("cross-scope General event");
         return conversation.events;
       });
+      const links =
+        this.#dependencies.links === undefined
+          ? []
+          : await this.#dependencies.links.list();
+      const eventsById = new Map(
+        generalEvents.map((event) => [event.id, event] as const),
+      );
+      if (eventsById.size !== generalEvents.length)
+        throw new Error("duplicate cross-conversation General event ID");
+      const linksByEvent = new Map<string, (typeof links)[number][]>();
+      for (const link of links) {
+        const event = eventsById.get(link.generalEventId);
+        if (
+          link.sourceScope !== "GENERAL" ||
+          link.targetScope !== "PROJECT" ||
+          link.effect !== "LINK_ONLY" ||
+          event === undefined ||
+          event.conversationId !== link.generalConversationId ||
+          event.contentSha256 !== link.generalContentSha256 ||
+          !(await this.#dependencies.projects.exists(link.targetProjectId))
+        )
+          throw new Error("invalid General project link");
+        const existing = linksByEvent.get(link.generalEventId) ?? [];
+        existing.push(link);
+        linksByEvent.set(link.generalEventId, existing);
+      }
       const filteredProjectEvents =
         query.type === undefined
           ? projectEvents
           : projectEvents.filter(({ event }) => event.type === query.type);
-      const filteredGeneralEvents =
+      const typeFilteredGeneralEvents =
         query.type === undefined || query.type === "USER_MESSAGE"
           ? generalEvents
           : [];
+      const filteredGeneralEvents =
+        associatedProjectId === null
+          ? typeFilteredGeneralEvents
+          : typeFilteredGeneralEvents.filter((event) =>
+              (linksByEvent.get(event.id) ?? []).some(
+                (link) => link.targetProjectId === associatedProjectId,
+              ),
+            );
       if (
         filteredProjectEvents.length + filteredGeneralEvents.length >
         MAX_GLOBAL_EVENTS
@@ -295,6 +344,19 @@ export class HistoricalSearch {
             snippet: snippet(event.content, index, text.length),
             matchedIn: "INLINE_PAYLOAD" as const,
             source: event.provenance,
+            links: Object.freeze(
+              (linksByEvent.get(event.id) ?? []).map((link) =>
+                Object.freeze({
+                  id: link.id,
+                  targetProjectId: link.targetProjectId,
+                  rationale: link.rationale,
+                  createdAt: link.createdAt,
+                  actor: link.actor,
+                  verification: link.verification,
+                  effect: link.effect,
+                }),
+              ),
+            ),
           }),
         );
       }
@@ -306,6 +368,7 @@ export class HistoricalSearch {
           text,
           type: query.type ?? null,
           limit,
+          associatedProjectId,
         }),
         searchedProjects: query.scope === "ALL_SCOPES" ? projectIds.length : 0,
         searchedConversations: conversations.length,

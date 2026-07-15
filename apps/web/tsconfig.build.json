@@ -11,6 +11,7 @@
     { "path": "../../packages/core/tsconfig.build.json" },
     { "path": "../../packages/context-builder/tsconfig.build.json" },
     { "path": "../../packages/general-conversation/tsconfig.build.json" },
+    { "path": "../../packages/general-project-link/tsconfig.build.json" },
     { "path": "../../packages/handoff/tsconfig.build.json" },
     { "path": "../../packages/historical-search/tsconfig.build.json" },
     { "path": "../../packages/instruction-manager/tsconfig.build.json" },
@@ -22,6 +23,9 @@
     { "path": "../../integrations/local-active-memory/tsconfig.build.json" },
     {
       "path": "../../integrations/local-general-conversation/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/local-general-project-link/tsconfig.build.json"
     },
     { "path": "../../integrations/local-handoffs/tsconfig.build.json" },
     { "path": "../../integrations/local-instructions/tsconfig.build.json" },

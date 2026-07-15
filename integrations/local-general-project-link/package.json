@@ -1,8 +1,8 @@
 {
-  "name": "@ai-workspace/historical-search",
+  "name": "@ai-workspace/local-general-project-link",
   "version": "0.0.0",
   "private": true,
-  "description": "Provider-neutral historical event retrieval contracts and use cases",
+  "description": "Atomic local JSON storage for immutable General-to-project links",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -18,8 +18,6 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@ai-workspace/general-conversation": "0.0.0",
-    "@ai-workspace/general-project-link": "0.0.0",
-    "@ai-workspace/session-ingestion": "0.0.0"
+    "@ai-workspace/general-project-link": "0.0.0"
   }
 }

@@ -151,8 +151,9 @@ AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
 The visible journey is:
 
 1. capture a project-free question explicitly in the General Inbox, including
-   before any project is registered, or register and select an existing local
-   Git repository;
+   before any project is registered, then optionally link one exact event to an
+   explicitly selected registered project with a reviewed rationale; or
+   register and select an existing local Git repository;
 2. import the bundled fictional session—never a private transcript;
 3. search and inspect `UNTRUSTED` canonical evidence and its verified source;
 4. curate source-linked active memory and manage its additive lifecycle;
@@ -225,6 +226,10 @@ The current GUI also provides:
 - a separate bounded atomic General conversation store with immutable
   `LOCAL_USER`/`USER_AUTHORED` questions, exact UTF-8 bytes and SHA-256,
   `UNVERIFIED` state, default `CONFIDENTIAL` handling, and no model response;
+- separate immutable `LINK_ONLY` General-to-project provenance documents with
+  exact source-hash binding, explicit target/rationale, atomic restrictive
+  storage, retrieval annotations and association filtering, without changing
+  either evidence scope;
 - schema-v1 model data policies with canonical project/model scope, exact item
   content-hash assertions, conservative `CONFIDENTIAL` defaulting, and a
   non-echoing privacy preflight in the English/Italian GUI;

@@ -1,8 +1,8 @@
 {
-  "name": "@ai-workspace/historical-search",
+  "name": "@ai-workspace/general-project-link",
   "version": "0.0.0",
   "private": true,
-  "description": "Provider-neutral historical event retrieval contracts and use cases",
+  "description": "Provider-neutral immutable General-to-project provenance links",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@ai-workspace/general-conversation": "0.0.0",
-    "@ai-workspace/general-project-link": "0.0.0",
-    "@ai-workspace/session-ingestion": "0.0.0"
+    "@ai-workspace/privacy-gateway": "0.0.0"
   }
 }

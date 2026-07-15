@@ -3002,3 +3002,11 @@ integrity, explicit provenance, `UNVERIFIED` evidence state, and default
 `ALL_SCOPES`; project-only search remains isolated. Capture invokes no model,
 creates no assistant response, and performs no promotion, delivery, or
 execution. Semantic and indexed retrieval remain evidence-gated.
+
+ADR-0020 also implements explicit immutable `GENERAL`-to-`PROJECT` provenance
+links in a second bounded atomic schema-v1 store. A link binds one exact General
+event hash to one explicitly selected registered project and user-authored
+rationale. Retrieval validates both scopes, annotates General results, and can
+filter by an explicit associated project without changing `GENERAL` ownership.
+Links do not copy evidence or create active memory, instructions, permission,
+delivery, model invocation, or execution.

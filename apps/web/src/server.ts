@@ -94,6 +94,11 @@ export async function startGuiServer(
           200,
           await application.listGeneralConversations(),
         );
+      if (
+        request.method === "GET" &&
+        url.pathname === "/api/general/project-links"
+      )
+        return json(response, 200, await application.listGeneralProjectLinks());
       if (request.method === "GET") {
         if (url.pathname === "/api/scoped-search") {
           const scope = url.searchParams.get("scope");
@@ -124,6 +129,13 @@ export async function startGuiServer(
                 ? {}
                 : { type: typeValue as SessionEventType }),
               ...(limitValue === null ? {} : { limit: Number(limitValue) }),
+              ...(url.searchParams.get("associatedProjectId") === null
+                ? {}
+                : {
+                    associatedProjectId: url.searchParams.get(
+                      "associatedProjectId",
+                    )!,
+                  }),
             }),
           );
         }
@@ -329,6 +341,33 @@ export async function startGuiServer(
             response,
             201,
             await application.createGeneralConversation(body.title),
+          );
+        }
+        if (url.pathname === "/api/general/project-links") {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.generalConversationId !== "string" ||
+            typeof body.generalEventId !== "string" ||
+            typeof body.generalContentSha256 !== "string" ||
+            typeof body.targetProjectId !== "string" ||
+            typeof body.rationale !== "string"
+          )
+            return reject(
+              response,
+              400,
+              "Choose an exact General event and registered target project, then enter a reviewed rationale.",
+            );
+          return json(
+            response,
+            201,
+            await application.createGeneralProjectLink({
+              generalConversationId: body.generalConversationId,
+              generalEventId: body.generalEventId,
+              generalContentSha256: body.generalContentSha256,
+              targetProjectId: body.targetProjectId,
+              rationale: body.rationale,
+            }),
           );
         }
         const generalAppend =

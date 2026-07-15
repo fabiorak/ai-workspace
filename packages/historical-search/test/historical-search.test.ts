@@ -4,6 +4,7 @@ import test from "node:test";
 
 import type { SessionEvent } from "@ai-workspace/session-ingestion";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
+import type { GeneralProjectLink } from "@ai-workspace/general-project-link";
 
 import { HistoricalSearch, type HistoricalEvent } from "../src/index.ts";
 
@@ -50,6 +51,62 @@ test("searches General without projects and merges all scopes before the global 
   assert.equal(all.searchedEvents, 2);
   assert.equal(all.results.length, 1);
   assert.equal(all.results[0]?.scope, "GENERAL");
+});
+
+test("annotates and explicitly filters General results by validated project links", async () => {
+  const general = generalConversation(
+    "linked fictional evidence",
+    "2026-01-15T09:00:00.000Z",
+  );
+  const link: GeneralProjectLink = Object.freeze({
+    id: "link-fictional",
+    sourceScope: "GENERAL",
+    generalConversationId: general.id,
+    generalEventId: general.events[0]!.id,
+    generalContentSha256: general.events[0]!.contentSha256,
+    targetScope: "PROJECT",
+    targetProjectId: "project-a",
+    rationale: "Relevant to the fictional parser",
+    rationaleExactBytes: 33,
+    rationaleSha256: "b".repeat(64),
+    createdAt: "2026-01-15T10:00:00.000Z",
+    actor: "LOCAL_USER",
+    origin: "USER_AUTHORED",
+    verification: "UNVERIFIED",
+    dataClass: "CONFIDENTIAL",
+    effect: "LINK_ONLY",
+  });
+  let projectPresent = true;
+  const search = new HistoricalSearch({
+    events: { list: async () => [], find: async () => null },
+    artifacts: { read: async () => encoder.encode("unused") },
+    projects: { exists: async (id) => id === "project-a" && projectPresent },
+    general: { list: async () => [general] },
+    links: { list: async () => [link] },
+  });
+  const report = await search.searchAcrossScopes({
+    scope: "GENERAL_ONLY",
+    projectIds: [],
+    text: "fictional",
+    associatedProjectId: "project-a",
+  });
+  const result = report.results[0];
+  assert.equal(report.query.associatedProjectId, "project-a");
+  assert.equal(result?.scope, "GENERAL");
+  if (result?.scope === "GENERAL") {
+    assert.equal(result.links[0]?.targetProjectId, "project-a");
+    assert.equal(result.links[0]?.effect, "LINK_ONLY");
+  }
+  projectPresent = false;
+  await assert.rejects(
+    () =>
+      search.searchAcrossScopes({
+        scope: "GENERAL_ONLY",
+        projectIds: [],
+        text: "fictional",
+      }),
+    /without using partial results/u,
+  );
 });
 
 test("searches case-insensitively with deterministic filters and provenance", async () => {

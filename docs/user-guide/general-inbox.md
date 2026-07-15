@@ -38,12 +38,35 @@ content. It does not provide stemming, typo tolerance, synonyms, fuzzy or
 semantic similarity, ranking, or completeness claims. The CLI remains
 project-scoped.
 
+## Link exact evidence to a project
+
+After registering a project, choose **Link to PROJECT / Collega a PROJECT** on
+one exact General event. Review the displayed `GENERAL` conversation/event and
+SHA-256, explicitly choose the `PROJECT` target, enter a rationale, and create
+the immutable link. The rationale is `USER_AUTHORED`, `UNVERIFIED`, and
+`CONFIDENTIAL`; restricted high-confidence values are blocked before storage.
+
+The effect is always `LINK_ONLY`: neither General nor project evidence is
+moved, copied, reclassified, promoted, or changed. A link grants no ownership,
+truth, instruction priority, active memory, Work Item, Context Pack inclusion,
+permission, delivery, model call, or execution. Duplicate tuples and stale
+hashes are rejected. Search can display validated links on General results and
+can filter General scopes by an explicit associated project. Selected-project
+history still never includes General implicitly.
+
 ## Storage and recovery
 
 General uses separate schema-v1 JSON documents under the local workspace state,
 not a hidden project. Documents are bounded, canonically validated, integrity
 checked, locked, flushed, and atomically published with restrictive modes.
 There are no edit or delete operations.
+
+Links use a second separate bounded schema-v1 JSON store with a store-wide
+owner-token lock, flushed temporary write, atomic rename, restrictive modes,
+and no edit/delete operation. If a target project is removed, a source hash is
+stale, or any requested link is corrupt, linked retrieval fails without partial
+results. Preserve state for diagnosis and never remove a lock until its owner
+is confirmed inactive.
 
 If listing or all-scope search reports corruption, no partial General result is
 returned. Preserve the local state for diagnosis, confirm the affected file,

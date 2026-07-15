@@ -30,6 +30,9 @@ identifiers, and user-authored content remain in their original language.
 2. Enter an existing local Git repository directory and select **Register this
    project**. Registration stores bounded metadata locally and does not modify
    repository files.
+   After registration, an exact General event can be linked through an explicit
+   `GENERAL` source/hash, `PROJECT` target, reviewed rationale, and create
+   action. The effect is `LINK_ONLY`; neither scope nor evidence bytes change.
 3. Select the project and choose **Import the safe sample session**. The
    bundled fixture is fictional and remains visibly `UNTRUSTED`.
 4. Search for the suggested phrase, optionally select an event type, and keep

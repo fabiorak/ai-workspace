@@ -4,6 +4,7 @@ import type {
   SourceReference,
 } from "@ai-workspace/session-ingestion";
 import type { GeneralEvent } from "@ai-workspace/general-conversation";
+import type { GeneralProjectLink } from "@ai-workspace/general-project-link";
 
 export type HistoricalEvent = Readonly<{
   projectId: string;
@@ -68,6 +69,7 @@ export type ScopedHistoricalSearchQuery = Readonly<{
   text: string;
   type?: SessionEventType;
   limit?: number;
+  associatedProjectId?: string;
 }>;
 
 export type ScopedHistoricalSearchResult =
@@ -99,6 +101,15 @@ export type ScopedHistoricalSearchResult =
       snippet: string;
       matchedIn: "INLINE_PAYLOAD";
       source: GeneralEvent["provenance"];
+      links: readonly Readonly<{
+        id: string;
+        targetProjectId: string;
+        rationale: string;
+        createdAt: string;
+        actor: GeneralProjectLink["actor"];
+        verification: GeneralProjectLink["verification"];
+        effect: GeneralProjectLink["effect"];
+      }>[];
     }>;
 
 export type ScopedHistoricalSearchReport = Readonly<{
@@ -108,6 +119,7 @@ export type ScopedHistoricalSearchReport = Readonly<{
     text: string;
     type: SessionEventType | null;
     limit: number;
+    associatedProjectId: string | null;
   }>;
   searchedProjects: number;
   searchedConversations: number;

@@ -18,6 +18,9 @@ Implemented packages:
   use cases, including additive tagged-scope General/all-scope retrieval;
 - `general-conversation/` owns project-free immutable question capture,
   provenance, integrity, classification, and persistence ports;
+- `general-project-link/` owns explicit immutable `LINK_ONLY` associations from
+  exact General event hashes to registered projects, including rationale,
+  attribution, duplicate, stale-reference, and restricted-data rules;
 - `handoff/` owns immutable provider-neutral handoff snapshots, section-level
   trust and provenance, stable rendering, persistence ports, and the
   backward-readable v1/v2 persisted codec with lossless normalized source

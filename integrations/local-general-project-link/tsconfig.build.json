@@ -8,8 +8,6 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    { "path": "../general-conversation/tsconfig.build.json" },
-    { "path": "../general-project-link/tsconfig.build.json" },
-    { "path": "../session-ingestion/tsconfig.build.json" }
+    { "path": "../../packages/general-project-link/tsconfig.build.json" }
   ]
 }

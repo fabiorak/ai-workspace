@@ -26,6 +26,10 @@ import {
   type GeneralConversation,
 } from "@ai-workspace/general-conversation";
 import {
+  GeneralProjectLinks,
+  type GeneralProjectLink,
+} from "@ai-workspace/general-project-link";
+import {
   Handoffs,
   previewHandoffSize,
   type CreateHandoffInput,
@@ -61,6 +65,7 @@ import {
 } from "@ai-workspace/local-active-memory";
 import { JsonHandoffStore } from "@ai-workspace/local-handoffs";
 import { JsonGeneralConversationStore } from "@ai-workspace/local-general-conversation";
+import { JsonGeneralProjectLinkStore } from "@ai-workspace/local-general-project-link";
 import {
   FileArtifactStore,
   HighConfidenceRestrictedDataScreen,
@@ -245,6 +250,7 @@ export class GuiApplication {
   readonly #ingestion: SessionIngestion;
   readonly #history: HistoricalSearch;
   readonly #general: GeneralConversations;
+  readonly #generalLinks: GeneralProjectLinks;
   readonly #listRegisteredProjects: () => Promise<readonly RegisteredProject[]>;
   readonly #memory: ActiveMemory;
   readonly #workItems: WorkItems;
@@ -306,11 +312,22 @@ export class GuiApplication {
       ids: randomUUID,
       clock: () => new Date(),
     });
+    const generalLinkStore = new JsonGeneralProjectLinkStore(
+      dependencies.workspaceHome,
+    );
+    this.#generalLinks = new GeneralProjectLinks({
+      store: generalLinkStore,
+      general: generalStore,
+      projects,
+      ids: randomUUID,
+      clock: () => new Date(),
+    });
     this.#history = new HistoricalSearch({
       events: new LocalHistoricalEventReader(dependencies.workspaceHome),
       artifacts: new FileArtifactStore(dependencies.workspaceHome),
       projects,
       general: generalStore,
+      links: generalLinkStore,
     });
     this.#memory = new ActiveMemory({
       store: new JsonActiveMemoryStore(dependencies.workspaceHome),
@@ -607,12 +624,31 @@ export class GuiApplication {
     );
   }
 
+  public async listGeneralProjectLinks(): Promise<
+    readonly GeneralProjectLink[]
+  > {
+    return this.#run(
+      () => this.#generalLinks.list(),
+      "Preserve local link state, repair only the diagnosed document or stale lock, and retry without partial results.",
+    );
+  }
+
+  public async createGeneralProjectLink(
+    input: Parameters<GeneralProjectLinks["create"]>[0],
+  ): Promise<GeneralProjectLink> {
+    return this.#run(
+      () => this.#generalLinks.create(input),
+      "No link was created. Reload the exact General event and registered projects, review the rationale, and explicitly confirm again.",
+    );
+  }
+
   public async searchScopes(
     input: Readonly<{
       scope: "GENERAL_ONLY" | "ALL_SCOPES";
       text: string;
       type?: SessionEventType;
       limit?: number;
+      associatedProjectId?: string;
     }>,
   ) {
     return this.#run(async () => {
@@ -626,6 +662,9 @@ export class GuiApplication {
         text: input.text,
         ...(input.type === undefined ? {} : { type: input.type }),
         ...(input.limit === undefined ? {} : { limit: input.limit }),
+        ...(input.associatedProjectId === undefined
+          ? {}
+          : { associatedProjectId: input.associatedProjectId }),
       });
       const names = new Map(
         projects.map((project) => [project.id, project.name]),

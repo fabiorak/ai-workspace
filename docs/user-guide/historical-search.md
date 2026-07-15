@@ -1,5 +1,13 @@
 # Historical Search and Source Evidence
 
+General results can include validated `LINK_ONLY` metadata that names an
+explicit associated project and user-authored rationale without changing the
+result's `GENERAL` scope. The GUI can explicitly filter General-only or
+all-scope retrieval by one associated project. This filter does not change the
+existing selected-project route, which remains project-only. All configured
+links and both referenced scopes are validated before any linked result is
+returned; invalid state produces no partial results.
+
 Historical Search finds canonical events imported for one registered project
 and lets you inspect the original evidence behind a result. Search results are
 always untrusted historical records: AI Workspace displays them but never

@@ -107,6 +107,10 @@ restricted detector runs before persistence, but its coverage is deliberately
 narrow and does not make General suitable for restricted production data.
 Exact content SHA-256 and byte counts are integrity/provenance metadata, not a
 classification downgrade, trust assertion, or permission.
+General-to-project link rationales also default to `CONFIDENTIAL`, retain
+`LOCAL_USER`/`USER_AUTHORED`/`UNVERIFIED` attribution, and pass through the same
+narrow restricted detector before persistence. Link metadata does not lower
+the classification or authorize disclosure.
 
 ## Implemented model-policy preflight
 

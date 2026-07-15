@@ -39,3 +39,5 @@ Status: proposed | accepted | superseded
 - [ADR-0017: Require an inspectable privacy decision before model delivery](0017-require-an-inspectable-privacy-decision-before-model-delivery.md)
 - [ADR-0018: Add a general conversation scope with lexical search first](0018-add-a-general-conversation-scope-with-lexical-search-first.md)
 - [ADR-0019: Use separate atomic General conversation documents](0019-use-separate-atomic-general-conversation-documents.md)
+
+- [ADR-0020: Use separate immutable General-to-project links](0020-use-separate-immutable-general-project-links.md)

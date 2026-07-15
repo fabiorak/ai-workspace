@@ -12,6 +12,9 @@ Implemented adapters:
   operation-log codec, reducer, and atomic filesystem store;
 - `local-general-conversation/` validates and atomically persists separate
   bounded schema-v1 General conversation documents with restrictive modes;
+- `local-general-project-link/` validates and atomically persists separate
+  bounded schema-v1 immutable link documents with a store-wide owner-token
+  lock, restrictive modes, and fail-closed duplicate/integrity checks;
 - `local-handoffs/` reads immutable schema-v1 handoffs, writes normalized
   schema-v2 handoffs as scoped JSON files, and records immutable deterministic
   evaluations with exclusive writes;

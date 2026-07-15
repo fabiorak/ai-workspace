@@ -125,7 +125,10 @@ The implemented local persistence baseline now consists of:
   owner-token locks and atomic whole-document replacement;
 - separate schema-v1 General conversation documents with immutable events,
   exact UTF-8 byte/hash integrity, owner-token locks, restrictive modes, and
-  atomic publication without a synthetic project.
+  atomic publication without a synthetic project;
+- separate schema-v1 immutable General-to-project link documents with exact
+  source-hash binding, explicit target/rationale, a store-wide owner-token
+  lock, restrictive modes, atomic publication, and no evidence mutation.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
@@ -143,8 +146,12 @@ works without projects; project-only APIs and CLI remain unchanged and exclude
 General. The GUI enriches project results with safe name/ID and requires an
 explicit project selection before existing event/source routes are used. Raw source artifacts
 are opened only after explicit user action. ADR-0008 records the bounded
-literal-search strategy and the triggers for selecting an index; ADR-0018 and
-ADR-0019 record General scope and persistence.
+literal-search strategy and the triggers for selecting an index; ADR-0018,
+ADR-0019, and ADR-0020 record General scope, persistence, and additive project
+links. Scoped retrieval validates every configured link against its exact
+General event/hash and registered target before returning results. General
+results may expose immutable link metadata or use an explicit associated-project
+filter, but retain `GENERAL` scope; project-only routes remain isolated.
 
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while

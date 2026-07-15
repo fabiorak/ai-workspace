@@ -3779,3 +3779,12 @@ bounded supporta `GENERAL_ONLY` e `ALL_SCOPES`; la ricerca project-only resta
 isolata. La cattura non invoca modelli, non crea risposte assistant e non
 promuove, consegna o esegue contenuto. Ricerca semantica e indicizzata restano
 governate da evidenze.
+
+ADR-0020 implementa anche link di provenance immutabili ed espliciti da
+`GENERAL` a `PROJECT` in un secondo store schema-v1 atomico e bounded. Un link
+lega l'hash esatto di un evento General a un progetto registrato scelto
+esplicitamente e a una motivazione scritta dall'utente. La ricerca valida
+entrambi gli ambiti, annota i risultati General e può filtrare per progetto
+associato esplicito senza cambiare la proprietà `GENERAL`. I link non copiano
+evidenza e non creano memoria attiva, istruzioni, permessi, consegna,
+invocazione di modelli o esecuzione.

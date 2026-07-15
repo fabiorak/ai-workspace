@@ -245,6 +245,65 @@ describe("GUI server project onboarding", () => {
     );
   });
 
+  it("creates an explicit link and filters General retrieval without mutating evidence", async () => {
+    const projects = (await (await api("/api/projects")).json()) as {
+      id: string;
+    }[];
+    const beforeResponse = await api("/api/general/conversations");
+    const beforeText = await beforeResponse.text();
+    const projectsBefore = await (await api("/api/projects")).text();
+    const conversations = JSON.parse(beforeText) as {
+      id: string;
+      events: { id: string; contentSha256: string }[];
+    }[];
+    const conversation = conversations[0]!;
+    const event = conversation.events[0]!;
+    const created = await api("/api/general/project-links", {
+      method: "POST",
+      body: JSON.stringify({
+        generalConversationId: conversation.id,
+        generalEventId: event.id,
+        generalContentSha256: event.contentSha256,
+        targetProjectId: projects[0]!.id,
+        rationale: "Relevant to the fictional station project",
+      }),
+    });
+    assert.equal(created.status, 201);
+    const link = (await created.json()) as {
+      effect: string;
+      sourceScope: string;
+      targetScope: string;
+    };
+    assert.deepEqual(
+      [link.sourceScope, link.targetScope, link.effect],
+      ["GENERAL", "PROJECT", "LINK_ONLY"],
+    );
+    assert.equal(
+      await (await api("/api/general/conversations")).text(),
+      beforeText,
+    );
+    assert.equal(await (await api("/api/projects")).text(), projectsBefore);
+    const filtered = await api(
+      `/api/scoped-search?scope=GENERAL_ONLY&q=${encodeURIComponent("violet station")}&associatedProjectId=${encodeURIComponent(projects[0]!.id)}`,
+    );
+    const report = (await filtered.json()) as {
+      results: { scope: string; links: { effect: string }[] }[];
+    };
+    assert.equal(report.results[0]?.scope, "GENERAL");
+    assert.equal(report.results[0]?.links[0]?.effect, "LINK_ONLY");
+    const duplicate = await api("/api/general/project-links", {
+      method: "POST",
+      body: JSON.stringify({
+        generalConversationId: conversation.id,
+        generalEventId: event.id,
+        generalContentSha256: event.contentSha256,
+        targetProjectId: projects[0]!.id,
+        rationale: "A second rationale must not create a duplicate",
+      }),
+    });
+    assert.equal(duplicate.status, 400);
+  });
+
   it("imports the documented synthetic sample idempotently", async () => {
     const projects = (await (await api("/api/projects")).json()) as {
       id: string;
