@@ -42,6 +42,12 @@
       "@ai-workspace/project-registry": [
         "./packages/project-registry/src/index.ts"
       ],
+      "@ai-workspace/privacy-gateway": [
+        "./packages/privacy-gateway/src/index.ts"
+      ],
+      "@ai-workspace/local-privacy-policy": [
+        "./integrations/local-privacy-policy/src/index.ts"
+      ],
       "@ai-workspace/session-ingestion": [
         "./packages/session-ingestion/src/index.ts"
       ]

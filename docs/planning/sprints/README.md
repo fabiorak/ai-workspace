@@ -26,3 +26,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 19 — Compose a Profile-Governed Context Preview](SPRINT-019.md) — completed
 - [Sprint 20 — Measure Profile Context Selector Semantics](SPRINT-020.md) — completed
 - [Sprint 21 — Measure Selector Continuity Evidence Retention](SPRINT-021.md) — completed
+- [Sprint 22 — Preview Model Privacy Policy Before Delivery](SPRINT-022.md) — completed

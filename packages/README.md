@@ -23,6 +23,9 @@ Implemented packages:
 - `instruction-manager/` owns bounded provider-neutral instruction sources,
   rules, deterministic precedence, conflict decisions, and stable effective
   instruction output;
+- `privacy-gateway/` owns canonical model data policies, conservative
+  classification, the shared high-confidence restricted detector, and
+  deterministic non-authorizing Context Pack preflight reports;
 
 Other directories remain placeholders until their public contracts are defined
 through implementation and ADRs.

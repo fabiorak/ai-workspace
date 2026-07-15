@@ -18,6 +18,8 @@ Implemented adapters:
   discovery, persistence, or execution;
 - `local-project-registry/` persists the Project Registry in a local,
   schema-versioned JSON file;
+- `local-privacy-policy/` reads one explicit bounded digest-pinned model data
+  policy with fatal UTF-8, same-project validation, and safe basename output;
 - `local-session-ingestion/` persists canonical sessions and artifacts and
   exposes local historical-event reads.
 - `local-work-items/` persists project-scoped Work Item operation logs with

@@ -779,6 +779,70 @@ describe("GUI server project onboarding", () => {
       value.effect,
       "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED",
     );
+    const policyPath = join(root, "gui-model-data-policy.json");
+    const policySource = JSON.stringify(
+      {
+        schemaVersion: 1,
+        id: "gui-balanced-policy",
+        version: "1.0.0",
+        projectId,
+        modelId: "model-balanced",
+        maximumDataClass: "CONFIDENTIAL",
+        assertions: [],
+        attribution: "USER_CONFIGURED",
+        author: "AI Workspace contributors",
+        license: "Apache-2.0",
+      },
+      null,
+      2,
+    );
+    await writeFile(policyPath, policySource);
+    const privacyPath = path.replace(
+      "/profile-context/preview",
+      "/privacy-preflight/preview",
+    );
+    const privacyResponse = await api(privacyPath, {
+      method: "POST",
+      body: JSON.stringify({
+        ...request,
+        policy: {
+          path: policyPath,
+          expectedDigest: createHash("sha256")
+            .update(policySource)
+            .digest("hex"),
+        },
+      }),
+    });
+    assert.equal(privacyResponse.status, 200);
+    const privacy = (await privacyResponse.json()) as {
+      policy: { sourceName: string; sourceDigest: string };
+      preflight: {
+        overallResult: string;
+        modelId: string;
+        accounting: { defaultedItems: number; evaluatedItems: number };
+        effect: string;
+      };
+      effect: string;
+    };
+    assert.equal(privacy.policy.sourceName, "gui-model-data-policy.json");
+    assert.equal(privacy.preflight.modelId, "model-balanced");
+    assert.equal(privacy.preflight.overallResult, "REVIEWABLE_NOT_AUTHORIZED");
+    assert.equal(
+      privacy.preflight.accounting.defaultedItems,
+      privacy.preflight.accounting.evaluatedItems,
+    );
+    assert.match(privacy.effect, /NOT_AUTHORIZED/u);
+    assert.equal(JSON.stringify(privacy).includes(root), false);
+    const wrongModelPolicy = await api(privacyPath, {
+      method: "POST",
+      body: JSON.stringify({
+        ...request,
+        model: "model-fast",
+        policy: { path: policyPath },
+      }),
+    });
+    assert.equal(wrongModelPolicy.status, 400);
+    assert.equal((await wrongModelPolicy.text()).includes(policyPath), false);
     const missing = await api(path, {
       method: "POST",
       body: JSON.stringify({ ...request, bundles: request.bundles.slice(1) }),

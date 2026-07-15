@@ -63,6 +63,8 @@ const EN = {
   previewContext: "Preview Context Pack read-only",
   profileContext: "Compose profile-governed context",
   previewProfileContext: "Compose profile and Context Pack read-only",
+  privacyPreflight: "Preview model privacy policy",
+  previewPrivacyPreflight: "Run privacy preflight read-only",
   contextSelectorReport: "Measure profile context selectors",
   previewContextSelectors: "Preview selector measurement read-only",
   noExecution:
@@ -110,6 +112,14 @@ const EN = {
     "Inspect an immutable handoff, then select one profile, its exact instruction sources, and one allowed model.",
   profileContextReady:
     "Profile {profile} composed for {model}: {sources} declared sources, {rules} effective rules, Context Pack schema {schema}. Review provenance, budgets, included items, and omissions below.",
+  privacyPreflightWarning:
+    "Required review boundary: every included item is classified for one explicit model policy. Unknown items default to CONFIDENTIAL and high-confidence restricted patterns always block. REVIEWABLE_NOT_AUTHORIZED is not permission or delivery, and detection is not complete PII coverage.",
+  privacyPolicyPath: "Reviewed schema-v1 model data policy path",
+  privacyPolicyDigest: "Expected policy SHA-256 digest (optional pin)",
+  privacyPreflightEmpty:
+    "Inspect an immutable handoff, then provide one profile, its exact instruction sources, one allowed model, and one same-project model data policy.",
+  privacyPreflightReady:
+    "Privacy preflight {result} for {model} under policy {policy}: {allowed} allowed, {blocked} blocked, {defaulted} defaulted, {restricted} restricted. Review hashes and recovery; nothing was sent or authorized.",
   contextSelectorWarning:
     "Experiment only: selectors map only to documented handoff sections. Objective, repository, next action, and source references form a non-excludable safety floor. This report does not change Context Builder policy.",
   contextSelectorVocabulary:
@@ -310,6 +320,8 @@ const IT = {
   previewContext: "Anteprima Context Pack in sola lettura",
   profileContext: "Componi contesto governato dal profilo",
   previewProfileContext: "Componi profilo e Context Pack in sola lettura",
+  privacyPreflight: "Anteprima policy privacy del modello",
+  previewPrivacyPreflight: "Esegui preflight privacy in sola lettura",
   contextSelectorReport: "Misura i selector context del profilo",
   previewContextSelectors: "Anteprima misurazione selector in sola lettura",
   noExecution:
@@ -359,6 +371,14 @@ const IT = {
     "Esamina un handoff immutabile, poi seleziona un profilo, le sue sorgenti istruzioni esatte e un modello consentito.",
   profileContextReady:
     "Profilo {profile} composto per {model}: {sources} sorgenti dichiarate, {rules} regole effettive, Context Pack schema {schema}. Esamina provenance, budget, elementi inclusi e omissioni.",
+  privacyPreflightWarning:
+    "Boundary di revisione obbligatorio: ogni elemento incluso viene classificato per una policy modello esplicita. Gli elementi sconosciuti diventano CONFIDENTIAL e i pattern restricted ad alta confidenza bloccano sempre. REVIEWABLE_NOT_AUTHORIZED non è permesso o consegna e il rilevamento non copre tutta la PII.",
+  privacyPolicyPath: "Percorso policy dati modello schema v1 revisionata",
+  privacyPolicyDigest: "Digest SHA-256 atteso della policy (pin facoltativo)",
+  privacyPreflightEmpty:
+    "Esamina un handoff immutabile, poi fornisci un profilo, le sue sorgenti istruzioni esatte, un modello consentito e una policy dati modello dello stesso progetto.",
+  privacyPreflightReady:
+    "Preflight privacy {result} per {model} con policy {policy}: {allowed} consentiti, {blocked} bloccati, {defaulted} predefiniti, {restricted} restricted. Esamina hash e recovery; nulla è stato inviato o autorizzato.",
   contextSelectorWarning:
     "Solo esperimento: i selector mappano esclusivamente sezioni handoff documentate. Obiettivo, repository, prossima azione e riferimenti sorgente formano un safety floor non escludibile. Il report non cambia la policy del Context Builder.",
   contextSelectorVocabulary:

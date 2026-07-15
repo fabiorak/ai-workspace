@@ -100,6 +100,25 @@ test("blocks a fictional restricted-data canary without echoing it", () => {
   );
 });
 
+test("retains every legacy restricted-data category and error shape", () => {
+  const screen = new HighConfidenceRestrictedDataScreen();
+  const cases = [
+    ["-----BEGIN PRIVATE KEY-----", "private-key"],
+    ["AKIAABCDEFGHIJKLMNOP", "aws-access-key"],
+    [`ghp_${"A".repeat(30)}`, "github-token"],
+    [`sk-${"a".repeat(20)}`, "provider-api-key"],
+    ["access_token=fictional_value_1234", "assigned-credential"],
+  ] as const;
+  for (const [value, category] of cases)
+    assert.throws(
+      () => screen.assertAllowed(Buffer.from(value), "source record 7"),
+      new RegExp(
+        `Restricted data detected in source record 7 \\(${category}\\); import blocked`,
+        "u",
+      ),
+    );
+});
+
 function makeSession(payloads: readonly string[]): ImportedSession {
   const sessionId = `session_${"a".repeat(64)}`;
   const artifactId = `artifact://sha256/${"c".repeat(64)}`;

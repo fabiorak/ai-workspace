@@ -45,6 +45,11 @@ import {
   type LocalAgentProfileInspection,
   type LocalInstructionBundleInput,
 } from "@ai-workspace/local-instructions";
+import {
+  LocalModelDataPolicyReader,
+  type LocalModelDataPolicyInput,
+  type LocalModelDataPolicyInspection,
+} from "@ai-workspace/local-privacy-policy";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
 import {
   JsonActiveMemoryStore,
@@ -62,6 +67,10 @@ import {
   ProjectRegistry,
   type RegisteredProject,
 } from "@ai-workspace/project-registry";
+import {
+  evaluatePrivacyPreflight,
+  type PrivacyPreflightReport,
+} from "@ai-workspace/privacy-gateway";
 import {
   SessionIngestion,
   type SessionEventType,
@@ -192,6 +201,15 @@ export type GuiProfileContextPreview = Readonly<{
   contextPack: ExpandedContextPackPreview;
   effect: "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED";
 }>;
+export type GuiPrivacyPreflightInput = GuiProfileContextPreviewInput &
+  Readonly<{ policy: LocalModelDataPolicyInput }>;
+export type GuiPrivacyPreflightPreview = Readonly<{
+  profile: LocalAgentProfileInspection;
+  selection: ProfileInstructionSelection;
+  policy: LocalModelDataPolicyInspection;
+  preflight: PrivacyPreflightReport;
+  effect: "READ_ONLY_NOT_AUTHORIZED_PERSISTED_DELIVERED_OR_EXECUTED";
+}>;
 export type GuiContextSelectorPreviewInput = Readonly<{
   projectId: string;
   workItemId: string;
@@ -237,6 +255,9 @@ export class GuiApplication {
   readonly #previewContextSelectors: (
     input: GuiContextSelectorPreviewInput,
   ) => Promise<GuiContextSelectorPreview>;
+  readonly #previewPrivacyPreflight: (
+    input: GuiPrivacyPreflightInput,
+  ) => Promise<GuiPrivacyPreflightPreview>;
   readonly #sampleSessionPath: string;
 
   public constructor(
@@ -308,6 +329,7 @@ export class GuiApplication {
     });
     const instructionReader = new LocalInstructionBundleReader();
     const agentProfileReader = new LocalAgentProfileReader();
+    const modelDataPolicyReader = new LocalModelDataPolicyReader();
     this.#previewInstructions = async (input) => {
       if (!(await projects.exists(input.projectId)))
         throw new Error(
@@ -388,6 +410,25 @@ export class GuiApplication {
         report,
         effect:
           "EXPERIMENT_ONLY_NO_CONTEXT_BUILDER_OR_PROFILE_POLICY_CHANGE" as const,
+      });
+    };
+    this.#previewPrivacyPreflight = async (input) => {
+      const [composition, policy] = await Promise.all([
+        this.#previewProfileContext(input),
+        modelDataPolicyReader.read(input.projectId, input.policy),
+      ]);
+      const preflight = evaluatePrivacyPreflight({
+        policy: policy.policy,
+        modelId: input.model,
+        contextPack: composition.contextPack,
+      });
+      return Object.freeze({
+        profile: composition.profile,
+        selection: composition.selection,
+        policy,
+        preflight,
+        effect:
+          "READ_ONLY_NOT_AUTHORIZED_PERSISTED_DELIVERED_OR_EXECUTED" as const,
       });
     };
     this.#sampleSessionPath = dependencies.sampleSessionPath;
@@ -740,6 +781,15 @@ export class GuiApplication {
     return this.#run(
       () => this.#previewContextSelectors(input),
       "Keep the explicit handoff and reviewed profile path; use only documented experiment-only handoff selectors, preserve the safety floor, and preview again.",
+    );
+  }
+
+  public async previewPrivacyPreflight(
+    input: GuiPrivacyPreflightInput,
+  ): Promise<GuiPrivacyPreflightPreview> {
+    return this.#run(
+      () => this.#previewPrivacyPreflight(input),
+      "Keep the explicit handoff, reviewed profile, exact instruction sources, allowed model, and digest-pinned same-project policy; correct the incompatible selection and preview again. No data was sent.",
     );
   }
 

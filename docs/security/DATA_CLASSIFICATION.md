@@ -100,3 +100,17 @@ Confidential; pseudonymization is not anonymization.
 - no content is sent to an external model merely because it is indexed;
 - local development uses synthetic fixtures;
 - classification changes are explicit, attributable, and auditable.
+
+## Implemented model-policy preflight
+
+The first E7 boundary applies this ordering to every included item in one exact
+profile-governed Context Pack. A same-project, exact-model schema-v1 policy may
+assert a class only for an item ID plus its exact content SHA-256. Missing
+assertions use the `CONFIDENTIAL` default. High-confidence restricted-pattern
+detection wins over every assertion, and `RESTRICTED` is never an allowable
+policy maximum.
+
+The result is `BLOCKED` or `REVIEWABLE_NOT_AUTHORIZED`. Neither result sends
+content or grants permission. `USER_CONFIGURED` records attribution only, and
+the narrow detector is not complete secret, PII, identity, or regulatory-data
+coverage.

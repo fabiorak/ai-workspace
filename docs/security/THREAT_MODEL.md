@@ -401,6 +401,34 @@ Baseline controls:
   and reports drift with guidance to create a successor handoff;
 - stale state never silently refreshes or mutates an existing handoff.
 
+## Implemented E7 privacy-preflight controls
+
+- ADR-0017 requires an explicit inspectable privacy decision before any future
+  model delivery, while the current increment has no delivery consumer;
+- a dependency-free provider-neutral module validates one bounded canonical
+  project/model-scoped policy and exact item-hash assertions;
+- missing assertions default to `CONFIDENTIAL`; model policy can allow at most
+  `CONFIDENTIAL`; high-confidence restricted detection always blocks;
+- the existing ingestion detector categories and non-echoing error shape are
+  preserved through the shared pure detector;
+- reports expose item/source identity, trust, hashes, byte accounting, classes,
+  categories, decisions, and generic reasons, never content, detected matches,
+  surrounding text, or raw policy paths;
+- the controlled local reader uses fatal UTF-8, a 256-KiB bound, optional
+  lowercase SHA-256 pinning, same-project validation, canonical round trip, and
+  safe basename-only output;
+- the authenticated loopback route reuses explicit profile composition and
+  accepts no caller override for agent, budget, class, or policy maximum;
+- no policy, report, audit event, mapping, credential, prompt, or response is
+  persisted or sent; no model, SDK, routing, permission, delivery, or execution
+  capability exists.
+
+Residual risk: fixed high-confidence patterns can produce false positives and
+miss secrets, PII, regulated data, and business identifiers. User-authored
+classifications can be incorrect. A reviewable result therefore remains
+non-authorizing evidence and requires human review and a later enforced
+delivery boundary.
+
 ## Review triggers
 
 Review and update this model when:

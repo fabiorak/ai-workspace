@@ -14,6 +14,7 @@
     { "path": "../../packages/historical-search/tsconfig.build.json" },
     { "path": "../../packages/instruction-manager/tsconfig.build.json" },
     { "path": "../../packages/project-registry/tsconfig.build.json" },
+    { "path": "../../packages/privacy-gateway/tsconfig.build.json" },
     { "path": "../../packages/session-ingestion/tsconfig.build.json" },
     { "path": "../../integrations/codex/tsconfig.build.json" },
     { "path": "../../integrations/git/tsconfig.build.json" },
@@ -21,6 +22,7 @@
     { "path": "../../integrations/local-handoffs/tsconfig.build.json" },
     { "path": "../../integrations/local-instructions/tsconfig.build.json" },
     { "path": "../../integrations/local-project-registry/tsconfig.build.json" },
+    { "path": "../../integrations/local-privacy-policy/tsconfig.build.json" },
     {
       "path": "../../integrations/local-session-ingestion/tsconfig.build.json"
     },

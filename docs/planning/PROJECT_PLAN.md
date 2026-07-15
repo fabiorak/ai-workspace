@@ -433,6 +433,8 @@ must be adjusted using evidence from completed increments.
 | Sprint 18 | E0, E5        | Inspect portable agent and skill profiles               |
 | Sprint 19 | E0, E5, E6    | Compose a profile-governed Context Pack preview         |
 | Sprint 20 | E0, E5, E6    | Measure profile context selector semantics              |
+| Sprint 21 | E0, E5, E6    | Measure exact selector evidence retention               |
+| Sprint 22 | E0, E7        | Preview model privacy policy before delivery            |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -495,6 +497,17 @@ safety floor. Nine cases and 27 budget observations improve fit from 9 to 12
 and reduce repeated historical candidate bytes by 49.89%, but measure no
 relevance or resume quality. Decision `adapt` leaves schemas, selectors, and
 Context Builder production behavior unchanged.
+Sprint 21 completed the predeclared exact-evidence follow-up. None of the three
+generic policies preserves all required answers and sources, and exact
+schema-v2 accounting changes no sampled fit. Both decisions are `no change`;
+M4 closes on deterministic inspectable profiles and Context Packs without
+claiming retrieval, privacy, permission, delivery, or execution.
+Sprint 22 completed the first E7/M5 boundary. It adds an ADR-gated,
+read-only privacy preflight over one explicit profile-governed Context Pack and
+one digest-pinned model data policy. Unknown items default to `CONFIDENTIAL`
+and high-confidence `RESTRICTED` patterns always block. The bilingual GUI
+exposes decisions and recovery without model access, pseudonymization,
+encrypted mappings, persistence, routing, or execution.
 
 ## 9. Agile operating model
 
@@ -752,3 +765,12 @@ corpus-preserving. All retain first action, but source coverage remains 0%,
 fit 18/54 budget observations, creating no new boundary. Evidence semantics
 and schema-v2 fit are both `no change`; production builder, selector semantics,
 GUI, delivery, and execution remain unchanged and no ADR was created.
+
+[Sprint 22](sprints/SPRINT-022.md) completed the first privacy-gateway
+vertical slice. ADR-0017 fixes a fail-closed preflight boundary before code.
+One portable project/model-scoped policy binds classifications to exact
+Context Pack item IDs and SHA-256 values; unasserted content defaults to
+`CONFIDENTIAL`, while shared high-confidence restricted detection overrides
+all declarations. The existing explicit profile/context composition feeds a
+bilingual read-only report, not a network, model, permission, pseudonymization,
+mapping, delivery, or execution path.

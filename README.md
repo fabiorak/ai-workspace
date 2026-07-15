@@ -176,6 +176,11 @@ The visible journey is:
     against that immutable handoff, with visible section decisions, safety
     floor, provenance, exact candidate bytes, and profile-budget fit; production
     Context Builder policy remains unchanged.
+13. select the same explicit profile-governed inputs plus one same-project,
+    exact-model data policy; preview deterministic item classifications,
+    hashes, byte accounting, blocked recovery, and detector limitations.
+    `REVIEWABLE_NOT_AUTHORIZED` remains local evidence: no data is sent and no
+    model permission, delivery, or execution is created.
 
 If the bootstrap URL was already used, stop and restart `npm run gui` to obtain
 a new one. If startup reports missing `dist` files, run `npm run build` again.
@@ -214,6 +219,11 @@ The current GUI also provides:
   schema-v2 accounting; no candidate policy passes the corpus;
 - bounded literal history search across at most 100 registered projects and
   10,000 canonical events, without an index or OpenSearch.
+- schema-v1 model data policies with canonical project/model scope, exact item
+  content-hash assertions, conservative `CONFIDENTIAL` defaulting, and a
+  non-echoing privacy preflight in the English/Italian GUI;
+- one shared narrow high-confidence restricted-data detector whose result
+  overrides declarations while preserving existing ingestion behavior.
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
@@ -227,7 +237,9 @@ installed, runtime-selected, or executed. See the
 [profile-governed context](docs/user-guide/profile-governed-context.md),
 [context selector measurement](docs/user-guide/context-selector-measurement.md), and
 [GUI journey](docs/user-guide/gui-first-journey.md) guides for the current
-contracts and limitations.
+contracts and limitations. The [privacy preflight guide](docs/user-guide/privacy-preflight.md)
+explains policy inputs, decisions, recovery, and why reviewable is not
+authorization.
 
 The development-only [selector continuity evidence report](docs/development/selector-continuity-evidence-retention.md)
 records the fixed Sprint 21 corpus, exact results, and `no change` decisions. It

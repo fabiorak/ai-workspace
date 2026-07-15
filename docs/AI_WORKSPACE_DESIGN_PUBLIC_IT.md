@@ -205,6 +205,14 @@ Ogni input destinato a un modello esterno deve poter attraversare una pipeline
 di pseudonimizzazione reversibile best-effort e controlli indipendenti di
 policy e secret detection.
 
+La prima slice E7 implementata è intenzionalmente più stretta: un preflight
+locale in sola lettura confronta un Context Pack esatto governato dal profilo
+con una policy project/model-scoped e digest-pinned. Gli elementi sconosciuti
+diventano `CONFIDENTIAL`; i pattern restricted ad alta confidenza bloccano
+sempre. Il risultato è evidenza ispezionabile `BLOCKED` o
+`REVIEWABLE_NOT_AUTHORIZED` e non fornisce pseudonimizzazione, rilevamento PII
+completo, accesso al modello, permesso, consegna o esecuzione.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

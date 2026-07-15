@@ -8,8 +8,6 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
-    { "path": "../../packages/historical-search/tsconfig.build.json" },
-    { "path": "../../packages/privacy-gateway/tsconfig.build.json" },
-    { "path": "../../packages/session-ingestion/tsconfig.build.json" }
+    { "path": "../../packages/privacy-gateway/tsconfig.build.json" }
   ]
 }

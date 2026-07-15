@@ -202,6 +202,14 @@ Inputs intended for external models should be able to pass through reversible,
 best-effort pseudonymization plus independent policy and secret-detection
 controls.
 
+The first implemented E7 slice is deliberately narrower: a local read-only
+preflight compares one exact profile-governed Context Pack with one
+project/model-scoped, digest-pinned policy. Unknown items default to
+`CONFIDENTIAL`; narrow high-confidence restricted patterns always block. The
+result is inspectable `BLOCKED` or `REVIEWABLE_NOT_AUTHORIZED` evidence and
+does not provide pseudonymization, complete PII detection, model access,
+permission, delivery, or execution.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

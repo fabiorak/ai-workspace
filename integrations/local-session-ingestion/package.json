@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ai-workspace/historical-search": "0.0.0",
+    "@ai-workspace/privacy-gateway": "0.0.0",
     "@ai-workspace/session-ingestion": "0.0.0"
   }
 }

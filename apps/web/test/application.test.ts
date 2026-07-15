@@ -296,6 +296,62 @@ describe("GUI application facade", () => {
         value.effect,
         "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED",
       );
+      const policyPath = join(root, "synthetic-model-data-policy.json");
+      await writeFile(
+        policyPath,
+        JSON.stringify(
+          {
+            schemaVersion: 1,
+            id: "synthetic-balanced-policy",
+            version: "1.0.0",
+            projectId: project.id,
+            modelId: "model-balanced",
+            maximumDataClass: "CONFIDENTIAL",
+            assertions: [],
+            attribution: "USER_CONFIGURED",
+            author: "AI Workspace contributors",
+            license: "Apache-2.0",
+          },
+          null,
+          2,
+        ),
+      );
+      const privacy = await app.previewPrivacyPreflight({
+        projectId: project.id,
+        workItemId: work.id,
+        handoffId: handoff.id,
+        profile: { path: fixture.profilePath },
+        bundles: fixture.bundlePaths.map((path) => ({ path })),
+        model: "model-balanced",
+        task: "synthetic-review",
+        policy: { path: policyPath },
+      });
+      assert.equal(
+        privacy.preflight.overallResult,
+        "REVIEWABLE_NOT_AUTHORIZED",
+      );
+      assert.equal(
+        privacy.preflight.accounting.defaultedItems,
+        privacy.preflight.accounting.evaluatedItems,
+      );
+      assert.equal(
+        privacy.policy.sourceName,
+        "synthetic-model-data-policy.json",
+      );
+      assert.equal(privacy.selection.target.model, privacy.preflight.modelId);
+      assert.equal(JSON.stringify(privacy).includes(root), false);
+      await assert.rejects(
+        app.previewPrivacyPreflight({
+          projectId: project.id,
+          workItemId: work.id,
+          handoffId: handoff.id,
+          profile: { path: fixture.profilePath },
+          bundles: fixture.bundlePaths.map((path) => ({ path })),
+          model: "model-fast",
+          policy: { path: policyPath },
+        }),
+        /selected model|incompatible/u,
+      );
       const selectorPreview = await app.previewContextSelectors({
         projectId: project.id,
         workItemId: work.id,

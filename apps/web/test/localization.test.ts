@@ -92,6 +92,8 @@ describe("GUI localization contract", () => {
       /Review.*2 skill.*1000 byte.*900 byte/u,
     );
     assert.match(GUI_CATALOGS.it.profileContextWarning, /sola lettura/u);
+    assert.match(GUI_CATALOGS.it.privacyPreflightWarning, /CONFIDENTIAL/u);
+    assert.match(GUI_CATALOGS.it.privacyPreflightWarning, /non è permesso/u);
     assert.match(
       guiMessage("it", "profileContextReady", {
         profile: "review-agent",
@@ -114,4 +116,16 @@ describe("GUI localization contract", () => {
       /3000.*5000.*40%.*safety floor 0.*YES/u,
     );
   });
+  assert.match(
+    guiMessage("it", "privacyPreflightReady", {
+      result: "REVIEWABLE_NOT_AUTHORIZED",
+      model: "model-balanced",
+      policy: "synthetic-policy",
+      allowed: "8",
+      blocked: "0",
+      defaulted: "8",
+      restricted: "0",
+    }),
+    /nulla è stato inviato o autorizzato/u,
+  );
 });

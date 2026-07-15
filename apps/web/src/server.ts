@@ -458,6 +458,64 @@ export async function startGuiServer(
             }),
           );
         }
+        const privacyPreflightPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/privacy-preflight\/preview$/u.exec(
+            url.pathname,
+          );
+        if (privacyPreflightPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !record(body.profile) ||
+            typeof body.profile.path !== "string" ||
+            (body.profile.expectedDigest !== undefined &&
+              typeof body.profile.expectedDigest !== "string") ||
+            !record(body.policy) ||
+            typeof body.policy.path !== "string" ||
+            (body.policy.expectedDigest !== undefined &&
+              typeof body.policy.expectedDigest !== "string") ||
+            !Array.isArray(body.bundles) ||
+            body.bundles.length < 1 ||
+            !body.bundles.every(
+              (bundle) =>
+                record(bundle) &&
+                typeof bundle.path === "string" &&
+                (bundle.expectedDigest === undefined ||
+                  typeof bundle.expectedDigest === "string"),
+            ) ||
+            typeof body.model !== "string" ||
+            !body.model.trim() ||
+            !optionalString(body.task)
+          )
+            return reject(
+              response,
+              400,
+              "Select one reviewed profile, its exact instruction bundles, one allowed model, and one explicit digest-pinned model data policy.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewPrivacyPreflight({
+              projectId: decodeURIComponent(privacyPreflightPreview[1]!),
+              workItemId: decodeURIComponent(privacyPreflightPreview[2]!),
+              handoffId: decodeURIComponent(privacyPreflightPreview[3]!),
+              profile: body.profile as {
+                path: string;
+                expectedDigest?: string;
+              },
+              policy: body.policy as {
+                path: string;
+                expectedDigest?: string;
+              },
+              bundles: body.bundles as readonly {
+                path: string;
+                expectedDigest?: string;
+              }[],
+              model: body.model,
+              ...(body.task === undefined ? {} : { task: body.task }),
+            }),
+          );
+        }
         const contextSelectorPreview =
           /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/context-selectors\/preview$/u.exec(
             url.pathname,

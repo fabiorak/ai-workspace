@@ -104,6 +104,17 @@ before presentation and exposes only entry count and shared exact bytes. The
 experiment remains separate, and persistence, delivery, and execution remain
 outside the graph.
 
+The first E7 increment adds `packages/privacy-gateway`, a dependency-free
+provider-neutral policy/classification/detector/preflight boundary. It consumes
+only an expanded immutable Context Pack, an exact selected model, and a
+validated schema-v1 model data policy. `integrations/local-privacy-policy`
+contains the sole controlled local JSON reader. The existing local ingestion
+adapter calls the same pure high-confidence detector while retaining its
+public error behavior. `apps/web` composes these pieces through its typed
+in-process facade and authenticated loopback route. The dependency direction
+remains presentation → local adapter/provider-neutral package; no network,
+model, delivery, persistence, permission, or execution adapter is present.
+
 The implemented local persistence baseline now consists of:
 
 - a schema-versioned atomic JSON Project Registry;
