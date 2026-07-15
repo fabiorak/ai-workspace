@@ -1,5 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -70,4 +77,27 @@ test("fails closed on incomplete temporary state without deleting it", async () 
     await readFile(join(directory, "orphan.tmp"), "utf8"),
     "partial",
   );
+});
+
+test("fails closed on an existing owner lock and oversized canonical candidate", async () => {
+  const home = join(tmpdir(), `aiw-links-bounds-${crypto.randomUUID()}`);
+  const directory = join(home, "general-project-links");
+  await mkdir(directory, { recursive: true });
+  const lock = join(directory, ".links.lock");
+  await writeFile(
+    lock,
+    `${JSON.stringify({ schemaVersion: 1, ownerToken: "other-owner", pid: 999_999, createdAt: "2026-07-15T10:00:00.000Z" })}\n`,
+    "utf8",
+  );
+  const store = new JsonGeneralProjectLinkStore(home);
+  await assert.rejects(
+    () => store.create(link),
+    /holds the General project-link lock/u,
+  );
+  assert.match(await readFile(lock, "utf8"), /other-owner/u);
+  await rm(lock);
+  const oversized = join(directory, `link_${"a".repeat(64)}.json`);
+  await writeFile(oversized, "x".repeat(64 * 1024 + 1), "utf8");
+  await assert.rejects(() => store.list(), GeneralProjectLinkError);
+  assert.equal((await stat(oversized)).size, 64 * 1024 + 1);
 });

@@ -105,6 +105,15 @@ not depend on provider SDKs, databases, or application frameworks. See
 Do not add a framework, database driver, provider SDK, or independently
 deployed service without documenting the decision and its boundary.
 
+## General link scale measurement
+
+Run `npm run measure:general-links` to reproduce the development-only Sprint 25
+REFERENCE evaluation. Corpus dimensions, exact queries, deterministic counts,
+invalid-state matrix, thresholds, observed results, and the `NO_CHANGE`
+decision are documented in
+[General Link Retrieval Scale Corpus](general-link-retrieval-scale-corpus.md).
+The harness uses temporary synthetic state only and exposes no runtime route.
+
 ## Architecture decisions
 
 Material decisions are recorded in `docs/adr/`. New ADRs use the next numeric

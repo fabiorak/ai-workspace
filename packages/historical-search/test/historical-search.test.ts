@@ -107,6 +107,65 @@ test("annotates and explicitly filters General results by validated project link
       }),
     /without using partial results/u,
   );
+
+  const staleSearch = new HistoricalSearch({
+    events: { list: async () => [], find: async () => null },
+    artifacts: { read: async () => encoder.encode("unused") },
+    projects: { exists: async (id) => id === "project-a" },
+    general: { list: async () => [general] },
+    links: {
+      list: async () => [
+        Object.freeze({ ...link, generalContentSha256: "c".repeat(64) }),
+      ],
+    },
+  });
+  await assert.rejects(
+    () =>
+      staleSearch.searchAcrossScopes({
+        scope: "GENERAL_ONLY",
+        projectIds: [],
+        text: "fictional",
+      }),
+    /without using partial results/u,
+  );
+});
+
+test("rejects duplicate General event identity across conversations", async () => {
+  const first = generalConversation(
+    "first synthetic collision",
+    "2026-01-15T09:00:00.000Z",
+  );
+  const second = Object.freeze({
+    ...generalConversation(
+      "second synthetic collision",
+      "2026-01-15T09:00:00.000Z",
+    ),
+    id: "general-conversation-second",
+    events: Object.freeze([
+      Object.freeze({
+        ...generalConversation(
+          "second synthetic collision",
+          "2026-01-15T09:00:00.000Z",
+        ).events[0]!,
+        conversationId: "general-conversation-second",
+      }),
+    ]),
+  });
+  const search = new HistoricalSearch({
+    events: { list: async () => [], find: async () => null },
+    artifacts: { read: async () => encoder.encode("unused") },
+    projects: { exists: async () => false },
+    general: { list: async () => [first, second] },
+  });
+  await assert.rejects(
+    () =>
+      search.searchAcrossScopes({
+        scope: "GENERAL_ONLY",
+        projectIds: [],
+        text: "synthetic",
+      }),
+    /without using partial results/u,
+  );
 });
 
 test("searches case-insensitively with deterministic filters and provenance", async () => {

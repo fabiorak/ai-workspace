@@ -3,8 +3,8 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 24](docs/planning/sprints/SPRINT-024.md) are complete;
-[Sprint 25](docs/planning/sprints/SPRINT-025.md) is planned.
+Sprint 0 through [Sprint 25](docs/planning/sprints/SPRINT-025.md) are complete.
+The next sprint is not yet committed.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -101,9 +101,11 @@ be linked explicitly to one registered project in a separate immutable atomic
 store; retrieval explains and filters the link while preserving `GENERAL`
 scope and project-only isolation.
 
-[Sprint 25](docs/planning/sprints/SPRINT-025.md) is planned as a development-only
-scale and integrity measurement of canonical General/link validation. It will
-predeclare thresholds and evidence before any FTS5 or other index decision.
+[Sprint 25](docs/planning/sprints/SPRINT-025.md) completed a development-only
+scale and integrity measurement of canonical General/link validation. Two
+REFERENCE runs produced identical counts, zero known-item misses, sub-threshold
+latency and less than 2.4% pressure on every production bound. Decision
+`NO_CHANGE` retains JSON scans and creates no index ADR.
 
 ## 1. Project Memory
 

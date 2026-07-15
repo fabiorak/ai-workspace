@@ -3010,3 +3010,11 @@ rationale. Retrieval validates both scopes, annotates General results, and can
 filter by an explicit associated project without changing `GENERAL` ownership.
 Links do not copy evidence or create active memory, instructions, permission,
 delivery, model invocation, or execution.
+
+Sprint 25 measured that canonical General/link path with a predeclared
+development-only synthetic corpus. Two 240-event/120-link runs produced
+identical counts, zero exact known-item misses, cold totals below 88 ms, warm
+five-query p95 below 91 ms, and at most 2.4% pressure on any production bound
+on the development host. Decision `NO_CHANGE` adds no FTS5/index ADR or runtime
+surface. Timings are local observations; deterministic counts and gates are
+reproducible with `npm run measure:general-links`.

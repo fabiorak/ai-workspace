@@ -3788,3 +3788,12 @@ entrambi gli ambiti, annota i risultati General e può filtrare per progetto
 associato esplicito senza cambiare la proprietà `GENERAL`. I link non copiano
 evidenza e non creano memoria attiva, istruzioni, permessi, consegna,
 invocazione di modelli o esecuzione.
+
+Sprint 25 ha misurato questo percorso canonico General/link con un corpus
+sintetico development-only predefinito. Due run con 240 eventi e 120 link hanno
+prodotto conteggi identici, zero miss esatti known-item, totali cold inferiori
+a 88 ms, p95 warm su cinque query inferiore a 91 ms e pressione massima del
+2,4% sui bound di produzione nell'host di sviluppo. La decisione `NO_CHANGE`
+non aggiunge ADR FTS5/index né superfici runtime. I tempi sono osservazioni
+locali; conteggi e gate deterministici sono riproducibili con
+`npm run measure:general-links`.

@@ -792,7 +792,8 @@ target and rationale, bounded atomic persistence, fail-closed validation,
 retrieval annotations/filtering, and a bilingual confirmation journey preserve
 the original scopes and bytes without promotion or execution.
 
-[Sprint 25](sprints/SPRINT-025.md) is planned to measure deterministic General
-and link validation/scan cost against predeclared thresholds before considering
-FTS5 or another rebuildable local index. Semantic retrieval retains its
-separate lexical-miss evidence gate.
+[Sprint 25](sprints/SPRINT-025.md) completed deterministic General/link
+validation and scan measurement against predeclared thresholds. Two complete
+REFERENCE runs retained identical counts and zero known-item misses while all
+latency and bound-pressure gates passed. Decision `NO_CHANGE` adds no index or
+ADR; semantic retrieval retains its separate lexical-miss evidence gate.

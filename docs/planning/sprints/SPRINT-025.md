@@ -4,7 +4,7 @@
 
 **Milestone:** M5-adjacent retrieval evidence
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 
@@ -102,3 +102,46 @@ git diff --check
 | Synthetic corpus favors the current implementation | Predeclare adversarial fan-out, collision, and corruption cases    |
 | Measurement code becomes a production dependency   | Keep it development-only with no facade or runtime route           |
 | Indexing conflates scale with semantic relevance   | Maintain separate scale and lexical-miss decision gates            |
+
+## Delivered outcome
+
+- the corpus, invalid-reference matrix, operation counts, timing observations,
+  and decision gates were frozen in
+  `docs/development/general-link-retrieval-scale-corpus.md` before code;
+- `scripts/general-link-scale-measurement.ts` creates SMALL or REFERENCE state
+  through production services/stores in a private temporary workspace, reads
+  through production validators, runs five production searches, reports only
+  aggregate metadata, and always removes generated state;
+- two REFERENCE evaluations produced identical document/event/link/byte/match
+  counts with zero known-item misses, scope violations, or effect violations;
+- cold totals were 87.905 ms and 82.804 ms; warm five-query p95 observations
+  were 90.075 ms and 73.986 ms, below the predeclared 2,000/500 ms gates;
+- count and byte pressure remained below 2.4% of every production bound;
+- stale hash, removed project, duplicate identity/tuple, cross-conversation
+  event identity, corruption, temporary state, owner lock, bounds, no-partial,
+  and no-echo contracts remain covered by production-path tests.
+
+## Decision and retrospective
+
+Decision: `NO_CHANGE`. Canonical bounded JSON remains the source and retrieval
+path. No measured scale, latency, bound-pressure, exact known-item miss, or
+validation-amplification trigger justifies FTS5 or another index, so no ADR was
+created. Semantic retrieval remains separately gated by a predeclared
+paraphrase/vocabulary-mismatch corpus under ADR-0018; Sprint 25 provides no such
+evidence.
+
+The elapsed observations are local diagnostics only. Exact counts, bytes,
+matches, violations, and the two-run decision algorithm are deterministic and
+automated. No facade, GUI, runtime, persistence schema, background task,
+network, model, delivery, permission, or execution boundary changed.
+
+## Verification result
+
+- clean locked install and clean composite build passed;
+- repository check passed with 221/221 tests, including isolated loopback GUI
+  acceptance and deterministic SMALL measurement reruns;
+- two complete REFERENCE evaluations passed every frozen gate with decision
+  `NO_CHANGE`;
+- npm audit reported 0 vulnerabilities;
+- formatting, lint, typecheck, diff check, and public-safety scans passed;
+- one commit is created without push as the final close action.

@@ -153,6 +153,14 @@ General event/hash and registered target before returning results. General
 results may expose immutable link metadata or use an explicit associated-project
 filter, but retain `GENERAL` scope; project-only routes remain isolated.
 
+Sprint 25 adds no production edge. Its development-only script composes the
+existing domain services, atomic adapters, and search use case against private
+temporary synthetic state, reports aggregate counts/bytes/timings, and deletes
+the state. Two predeclared REFERENCE runs observed identical counts, zero
+known-item misses, sub-threshold timing, and less than 2.4% pressure on every
+bound. Decision `NO_CHANGE` retains canonical scans; no index ADR, package,
+facade, GUI route, background task, or semantic boundary was added.
+
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while
 the local adapter derives current state from append-only logical operations.

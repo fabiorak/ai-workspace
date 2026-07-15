@@ -257,6 +257,12 @@ The development-only [selector continuity evidence report](docs/development/sele
 records the fixed Sprint 21 corpus, exact results, and `no change` decisions. It
 adds no GUI input or user-facing quality score.
 
+The development-only [General link retrieval scale report](docs/development/general-link-retrieval-scale-corpus.md)
+records Sprint 25's frozen corpus, two deterministic 240-event/120-link runs,
+exact counts, local timing observations, and `NO_CHANGE` index decision. Run
+`npm run measure:general-links` to reproduce it; no normal workspace state,
+runtime API, GUI behavior, index, delivery, or execution path is added.
+
 The Project Registry can register and inspect local non-bare Git repositories
 from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state
