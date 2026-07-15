@@ -10,6 +10,9 @@ export type {
   HistoricalSearchQuery,
   HistoricalSearchReport,
   HistoricalSearchResult,
+  ScopedHistoricalSearchQuery,
+  ScopedHistoricalSearchReport,
+  ScopedHistoricalSearchResult,
   OpenedArtifact,
 } from "./model.ts";
 export type {

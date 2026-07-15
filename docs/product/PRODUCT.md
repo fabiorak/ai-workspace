@@ -73,6 +73,8 @@ replay.
 - local-first behavior is the default, not an installation option;
 - evidence is retained, active memory is curated, and the two are not
   interchangeable;
+- project-free questions retain first-class `GENERAL` provenance and are never
+  attributed to a selected project implicitly;
 - provenance is part of the data model;
 - context selection must be inspectable;
 - provider-specific behavior remains behind adapters;

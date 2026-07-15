@@ -3,7 +3,8 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 22](docs/planning/sprints/SPRINT-022.md) are complete.
+Sprint 0 through [Sprint 23](docs/planning/sprints/SPRINT-023.md) are complete;
+[Sprint 24](docs/planning/sprints/SPRINT-024.md) is planned.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -86,6 +87,18 @@ centralizes the existing narrow high-confidence restricted detector, and
 exposes a non-echoing privacy preflight for an explicitly composed Context Pack. A
 `REVIEWABLE_NOT_AUTHORIZED` result remains local review evidence, never model
 delivery authorization.
+
+[Sprint 23](docs/planning/sprints/SPRINT-023.md) implements ADR-0018/0019. A General Inbox captures explicit local
+user-authored questions without false project attribution and make them
+available to General-only and all-scope bounded literal search through a
+separate atomic JSON store. Model replies, semantic retrieval,
+embeddings, FTS5, databases, automatic promotion, delivery, and execution
+remain outside the slice.
+
+[Sprint 24](docs/planning/sprints/SPRINT-024.md) is planned as an additive
+provenance-link increment: selected General evidence may be associated
+explicitly with a project without changing scope, copying content, or promoting
+it into project history or active memory.
 
 ## 1. Project Memory
 

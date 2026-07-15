@@ -3767,3 +3767,15 @@ Il risultato atteso è un **local-first AI workbench** con:
 - catalogo di automazioni;
 - misurazione dei costi;
 - riduzione concreta del consumo di token.
+
+### Incremento implementato per l'ambito General
+
+La GUI locale include una Posta `GENERAL`, indipendente dai progetti, per
+domande esplicitamente scritte dall'utente. General non è un progetto
+sintetico. Gli eventi immutabili usano uno store JSON atomico, separato e
+bounded, integrità su byte UTF-8/hash esatti, provenance esplicita, stato
+`UNVERIFIED` e classificazione predefinita `CONFIDENTIAL`. La ricerca letterale
+bounded supporta `GENERAL_ONLY` e `ALL_SCOPES`; la ricerca project-only resta
+isolata. La cattura non invoca modelli, non crea risposte assistant e non
+promuove, consegna o esegue contenuto. Ricerca semantica e indicizzata restano
+governate da evidenze.

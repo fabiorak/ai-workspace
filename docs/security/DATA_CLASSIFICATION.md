@@ -101,6 +101,13 @@ Confidential; pseudonymization is not anonymization.
 - local development uses synthetic fixtures;
 - classification changes are explicit, attributable, and auditable.
 
+General Inbox questions default to `CONFIDENTIAL` and remain
+`USER_AUTHORED`/`UNVERIFIED` inert historical evidence. The high-confidence
+restricted detector runs before persistence, but its coverage is deliberately
+narrow and does not make General suitable for restricted production data.
+Exact content SHA-256 and byte counts are integrity/provenance metadata, not a
+classification downgrade, trust assertion, or permission.
+
 ## Implemented model-policy preflight
 
 The first E7 boundary applies this ordering to every included item in one exact

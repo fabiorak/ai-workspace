@@ -14,6 +14,9 @@
         "./packages/context-builder/src/index.ts"
       ],
       "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],
+      "@ai-workspace/general-conversation": [
+        "./packages/general-conversation/src/index.ts"
+      ],
       "@ai-workspace/historical-search": [
         "./packages/historical-search/src/index.ts"
       ],
@@ -29,6 +32,9 @@
       ],
       "@ai-workspace/local-active-memory": [
         "./integrations/local-active-memory/src/index.ts"
+      ],
+      "@ai-workspace/local-general-conversation": [
+        "./integrations/local-general-conversation/src/index.ts"
       ],
       "@ai-workspace/local-handoffs": [
         "./integrations/local-handoffs/src/index.ts"

@@ -88,6 +88,8 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /aria-live="polite"/u);
     assert.match(html, /Register this project/u);
     assert.match(html, /English\/Italian GUI/u);
+    assert.match(html, /General Inbox/u);
+    assert.match(html, /no model request/u);
     assert.match(html, /label for="search-query"/u);
     assert.match(html, /label for="search-scope"/u);
     assert.match(html, /All registered projects/u);
@@ -125,7 +127,7 @@ describe("GUI server project onboarding", () => {
     assert.match(script, /Nessuna memoria corrispondente/u);
     assert.match(script, /Nessun Work Item/u);
     assert.match(script, /\/instructions\/preview/u);
-    assert.match(script, /\/api\/search/u);
+    assert.match(script, /\/api\/scoped-search/u);
     assert.match(script, /Tutti i progetti registrati/u);
     assert.match(
       script,
@@ -138,6 +140,52 @@ describe("GUI server project onboarding", () => {
       redirect: "manual",
     });
     assert.equal(secondBootstrap.status, 410);
+  });
+
+  it("captures and finds General questions without a registered project", async () => {
+    const created = await api("/api/general/conversations", {
+      method: "POST",
+      body: JSON.stringify({ title: "Fictional travel" }),
+    });
+    assert.equal(created.status, 201);
+    const conversation = (await created.json()) as {
+      id: string;
+      events: unknown[];
+    };
+    const appended = await api(
+      `/api/general/conversations/${encodeURIComponent(conversation.id)}/events`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          expectedEventCount: 0,
+          content: "Where is the fictional violet station?",
+        }),
+      },
+    );
+    assert.equal(appended.status, 201);
+    const search = await api(
+      `/api/scoped-search?scope=ALL_SCOPES&q=${encodeURIComponent("VIOLET STATION")}&limit=20`,
+    );
+    assert.equal(search.status, 200);
+    const report = (await search.json()) as {
+      searchedProjects: number;
+      results: { scope: string }[];
+    };
+    assert.equal(report.searchedProjects, 0);
+    assert.deepEqual(
+      report.results.map((result) => result.scope),
+      ["GENERAL"],
+    );
+    const secret = "sk-abcdefghijklmnopqrstuvwxyz123456";
+    const blocked = await api(
+      `/api/general/conversations/${encodeURIComponent(conversation.id)}/events`,
+      {
+        method: "POST",
+        body: JSON.stringify({ expectedEventCount: 1, content: secret }),
+      },
+    );
+    assert.equal(blocked.status, 400);
+    assert.equal((await blocked.text()).includes(secret), false);
   });
 
   it("requires authentication, same origin, and CSRF for mutation", async () => {

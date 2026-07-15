@@ -1,4 +1,5 @@
 import type { ProjectLookup } from "@ai-workspace/session-ingestion";
+import type { GeneralConversation } from "@ai-workspace/general-conversation";
 
 import type { HistoricalEvent } from "./model.ts";
 
@@ -18,4 +19,5 @@ export type HistoricalSearchDependencies = Readonly<{
   events: HistoricalEventReader;
   artifacts: ArtifactResolver;
   projects: ProjectLookup;
+  general?: Readonly<{ list(): Promise<readonly GeneralConversation[]> }>;
 }>;

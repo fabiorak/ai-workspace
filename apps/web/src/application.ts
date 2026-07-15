@@ -22,6 +22,10 @@ import {
   GitRepositoryInspector,
 } from "@ai-workspace/git-adapter";
 import {
+  GeneralConversations,
+  type GeneralConversation,
+} from "@ai-workspace/general-conversation";
+import {
   Handoffs,
   previewHandoffSize,
   type CreateHandoffInput,
@@ -56,6 +60,7 @@ import {
   LocalMemorySourceEventReader,
 } from "@ai-workspace/local-active-memory";
 import { JsonHandoffStore } from "@ai-workspace/local-handoffs";
+import { JsonGeneralConversationStore } from "@ai-workspace/local-general-conversation";
 import {
   FileArtifactStore,
   HighConfidenceRestrictedDataScreen,
@@ -239,6 +244,7 @@ export class GuiApplication {
   readonly #registry: ProjectRegistry;
   readonly #ingestion: SessionIngestion;
   readonly #history: HistoricalSearch;
+  readonly #general: GeneralConversations;
   readonly #listRegisteredProjects: () => Promise<readonly RegisteredProject[]>;
   readonly #memory: ActiveMemory;
   readonly #workItems: WorkItems;
@@ -292,10 +298,19 @@ export class GuiApplication {
       sessionStore: new JsonSessionStore(dependencies.workspaceHome),
       projects,
     });
+    const generalStore = new JsonGeneralConversationStore(
+      dependencies.workspaceHome,
+    );
+    this.#general = new GeneralConversations({
+      store: generalStore,
+      ids: randomUUID,
+      clock: () => new Date(),
+    });
     this.#history = new HistoricalSearch({
       events: new LocalHistoricalEventReader(dependencies.workspaceHome),
       artifacts: new FileArtifactStore(dependencies.workspaceHome),
       projects,
+      general: generalStore,
     });
     this.#memory = new ActiveMemory({
       store: new JsonActiveMemoryStore(dependencies.workspaceHome),
@@ -559,6 +574,76 @@ export class GuiApplication {
             : null,
       });
     }, "Keep the query and filters, register or inspect local projects if needed, then retry without relying on partial results.");
+  }
+
+  public async listGeneralConversations(): Promise<
+    readonly GeneralConversation[]
+  > {
+    return this.#run(
+      () => this.#general.list(),
+      "Preserve local General state, move only the diagnosed corrupt document aside, and reload without partial results.",
+    );
+  }
+
+  public async createGeneralConversation(
+    title: string,
+  ): Promise<GeneralConversation> {
+    return this.#run(
+      () => this.#general.create(title),
+      "Keep the title, remove control or oversized text, and retry the explicit General destination.",
+    );
+  }
+
+  public async appendGeneralQuestion(
+    input: Readonly<{
+      conversationId: string;
+      expectedEventCount: number;
+      content: string;
+    }>,
+  ): Promise<GeneralConversation> {
+    return this.#run(
+      () => this.#general.append(input),
+      "No content was saved. Remove restricted data or reload the immutable conversation before retrying.",
+    );
+  }
+
+  public async searchScopes(
+    input: Readonly<{
+      scope: "GENERAL_ONLY" | "ALL_SCOPES";
+      text: string;
+      type?: SessionEventType;
+      limit?: number;
+    }>,
+  ) {
+    return this.#run(async () => {
+      const projects =
+        input.scope === "ALL_SCOPES"
+          ? await this.#listRegisteredProjects()
+          : [];
+      const report = await this.#history.searchAcrossScopes({
+        scope: input.scope,
+        projectIds: projects.map((project) => project.id),
+        text: input.text,
+        ...(input.type === undefined ? {} : { type: input.type }),
+        ...(input.limit === undefined ? {} : { limit: input.limit }),
+      });
+      const names = new Map(
+        projects.map((project) => [project.id, project.name]),
+      );
+      return Object.freeze({
+        ...report,
+        results: Object.freeze(
+          report.results.map((result) =>
+            result.scope === "PROJECT"
+              ? Object.freeze({
+                  ...result,
+                  projectName: names.get(result.projectId) ?? "Unknown project",
+                })
+              : result,
+          ),
+        ),
+      });
+    }, "Keep the query and explicit scope, repair the reported local state, and retry without partial results.");
   }
   public async showEvent(
     projectId: string,

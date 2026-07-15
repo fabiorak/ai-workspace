@@ -37,3 +37,5 @@ Status: proposed | accepted | superseded
 - [ADR-0015: Use a loopback built-in web host for the first GUI](0015-use-a-loopback-built-in-web-host-for-the-first-gui.md)
 - [ADR-0016: Use a source table for future Context Pack metadata](0016-use-a-source-table-for-future-context-pack-metadata.md)
 - [ADR-0017: Require an inspectable privacy decision before model delivery](0017-require-an-inspectable-privacy-decision-before-model-delivery.md)
+- [ADR-0018: Add a general conversation scope with lexical search first](0018-add-a-general-conversation-scope-with-lexical-search-first.md)
+- [ADR-0019: Use separate atomic General conversation documents](0019-use-separate-atomic-general-conversation-documents.md)

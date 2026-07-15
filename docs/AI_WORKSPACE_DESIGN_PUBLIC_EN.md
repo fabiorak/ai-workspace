@@ -2991,3 +2991,14 @@ The resulting product is a local-first AI workbench with:
 - document analysis;
 - provenance;
 - cost and token analytics.
+
+### Implemented General scope increment
+
+The current local GUI includes a project-free `GENERAL` Inbox for explicit
+user-authored questions. General is not a synthetic project. Its immutable
+events use a separate bounded atomic JSON store, exact UTF-8 byte/hash
+integrity, explicit provenance, `UNVERIFIED` evidence state, and default
+`CONFIDENTIAL` handling. Bounded literal search supports `GENERAL_ONLY` and
+`ALL_SCOPES`; project-only search remains isolated. Capture invokes no model,
+creates no assistant response, and performs no promotion, delivery, or
+execution. Semantic and indexed retrieval remain evidence-gated.

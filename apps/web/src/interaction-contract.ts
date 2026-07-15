@@ -2,6 +2,7 @@ export type GuiJourneyStep =
   | "WELCOME"
   | "PROJECTS"
   | "IMPORT"
+  | "GENERAL_INBOX"
   | "SEARCH"
   | "EVENT"
   | "ARTIFACT"
@@ -118,6 +119,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
           "Adds canonical UNTRUSTED events and immutable artifacts locally; re-import is idempotent.",
         prerequisites:
           "Select a registered project. Do not use private transcripts in this pre-release flow.",
+        mutates: true,
+      }),
+    ),
+    screen(
+      "GENERAL_INBOX",
+      "General Inbox",
+      "Create project-free conversations and append immutable local user questions.",
+      action({
+        id: "capture-general-question",
+        label: "Save question to General",
+        description:
+          "Append one USER_AUTHORED question to the explicitly selected General conversation.",
+        effect:
+          "Persists local CONFIDENTIAL, UNVERIFIED evidence; no model, answer, promotion, delivery, or execution occurs.",
+        prerequisites:
+          "Create or select one General conversation and enter non-restricted bounded text.",
         mutates: true,
       }),
     ),
@@ -412,7 +429,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 17)
+  if (steps.size !== 18)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

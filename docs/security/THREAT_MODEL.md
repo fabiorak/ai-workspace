@@ -348,7 +348,10 @@ Baseline controls:
 
 ## Implemented E3 retrieval controls
 
-- every search and event lookup is scoped to an existing project ID;
+- every search uses an explicit project, `GENERAL_ONLY`, or `ALL_SCOPES`
+  contract; project event lookup remains scoped to an existing project ID;
+- General is never inferred from project selection or represented by a hidden
+  Project Registry entry;
 - optional session and event-type filters can only narrow that project scope;
 - canonical session documents are schema-validated and corrupt data fails
   closed;
@@ -366,6 +369,24 @@ Baseline controls:
 - source bytes are displayed only after an explicit command and are never
   executed, promoted to active memory, or sent to a model;
 - retrieval commands are read-only and use no network service or telemetry.
+
+## Implemented General capture controls
+
+- only explicit local-user GUI actions create a conversation or append one
+  `USER_MESSAGE`; no provider, agent, model, tool, or background writer exists;
+- events bind `GENERAL` scope, `LOCAL_USER`, `USER_AUTHORED`, `UNVERIFIED`,
+  `CONFIDENTIAL`, timestamp, exact UTF-8 bytes, SHA-256, and capture provenance;
+- the shared restricted detector runs before persistence and rejection reports
+  only category and generic recovery;
+- schema, exact keys, canonical encoding, ordering, scope, IDs, timestamps,
+  bounds, bytes, hashes, and duplicate content are validated before use;
+- separate documents use bounded scans, exclusive owner-token locks, `0700`
+  directory/`0600` files, flushed temporary writes, atomic rename, and
+  owner-only cleanup; there is no edit/delete API;
+- corrupt, cross-scope, oversized, noncanonical, incomplete, or integrity-bad
+  General state fails all requested scope search without partial matches;
+- General evidence is never active memory, a Work Item, instruction, handoff,
+  Context Pack, policy, prompt, permission, delivery, or execution input.
 
 ## Implemented E3 active-memory storage controls
 

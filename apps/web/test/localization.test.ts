@@ -61,7 +61,10 @@ describe("GUI localization contract", () => {
     );
     assert.match(GUI_CATALOGS.it.noMatchingMemory, /Nessuna memoria/u);
     assert.match(GUI_CATALOGS.it.noWorkItems, /Nessun Work Item/u);
-    assert.equal(GUI_CATALOGS.it.allProjects, "Tutti i progetti registrati");
+    assert.equal(
+      GUI_CATALOGS.it.allProjects,
+      "Tutti i progetti registrati e General",
+    );
     assert.match(GUI_CATALOGS.it.searchIntro, /OpenSearch/u);
     assert.equal(
       guiMessage("it", "globalFound", {

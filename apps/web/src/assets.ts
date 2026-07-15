@@ -48,12 +48,33 @@ export function shellHtml(csrfToken: string) {
       <div id="import-status" role="status" aria-live="polite">Select a project to enable the safe sample.</div>
       <p id="import-error" class="error" role="alert"></p>
     </section>
+    <section aria-labelledby="general-heading" id="general-inbox">
+      <h2 id="general-heading" tabindex="-1">General Inbox / Posta generale</h2>
+      <p class="notice"><strong>Destination / Destinazione: GENERAL.</strong> Local persistence only: no model request, assistant answer, tool execution, active-memory promotion, Context Pack inclusion, or delivery occurs. Solo persistenza locale: nessuna risposta AI.</p>
+      <p>Questions are immutable USER_AUTHORED, UNVERIFIED evidence and default to CONFIDENTIAL. Restricted high-confidence values are blocked before persistence. Search is literal: it does not find paraphrases, typos, synonyms, or stems.</p>
+      <form id="general-create-form">
+        <label for="general-title">Conversation title / Titolo conversazione</label>
+        <input id="general-title" required maxlength="200" autocomplete="off">
+        <button type="submit">Create General conversation / Crea conversazione General</button>
+        <p class="effect">Effect: creates one empty project-free immutable conversation; changing project selection cannot move it.</p>
+      </form>
+      <form id="general-append-form" hidden>
+        <p id="general-destination" class="notice"></p>
+        <label for="general-question">Question to save / Domanda da salvare</label>
+        <textarea id="general-question" required aria-describedby="general-effect general-error"></textarea>
+        <button type="submit">Save question to GENERAL / Salva domanda in GENERAL</button>
+        <p id="general-effect" class="effect">Effect: appends one local USER_MESSAGE. No assistant message is created.</p>
+      </form>
+      <div id="general-status" role="status" aria-live="polite">Loading bounded General conversations…</div>
+      <p id="general-error" class="error" role="alert"></p>
+      <div id="general-list" aria-label="General conversations"></div>
+    </section>
     <section aria-labelledby="search-heading" id="search">
       <h2 id="search-heading" tabindex="-1" data-i18n="search">Search historical evidence</h2>
       <p data-i18n="searchIntro">Search is literal, local, and bounded. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.</p>
       <form id="search-form">
         <label for="search-scope" data-i18n="searchScope">Projects to search</label>
-        <select id="search-scope" name="scope"><option value="ALL" data-i18n="allProjects">All registered projects</option><option value="SELECTED" data-i18n="selectedProjectOnly">Selected project only</option></select>
+        <select id="search-scope" name="scope"><option value="ALL">All registered projects and General / Tutti i progetti registrati e General</option><option value="GENERAL">General only / Solo General</option><option value="SELECTED" data-i18n="selectedProjectOnly">Selected project only</option></select>
         <label for="search-query">What evidence are you looking for?</label>
         <p id="search-help" class="help"><span data-i18n="searchTry">Try the safe sample phrase</span> <strong>test failed</strong>. <span data-i18n="searchHelpBody">Your query and filters stay in place when inspecting a source.</span></p>
         <input id="search-query" name="query" value="test failed" required aria-describedby="search-help search-error">
@@ -225,6 +246,9 @@ export const APP_JS = `
   const importSection = document.getElementById("import");
   const importStatus = document.getElementById("import-status");
   const importError = document.getElementById("import-error");
+  const generalStatus = document.getElementById("general-status");
+  const generalError = document.getElementById("general-error");
+  const generalList = document.getElementById("general-list");
   const searchSection = document.getElementById("search");
   const searchStatus = document.getElementById("search-status");
   const searchError = document.getElementById("search-error");
@@ -249,6 +273,7 @@ export const APP_JS = `
   let selectedMemory = null;
   let selectedWork = null;
   let selectedHandoff = null;
+  let selectedGeneral = null;
   let reviewedHandoffInput = null;
   const selectedHandoffMemoryIds = new Set();
   const text = (element, value) => { element.textContent = value; };
@@ -289,8 +314,34 @@ export const APP_JS = `
     try { const report = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/import-sample", { method: "POST", body: "{}" }); text(importStatus, report.effect + " Added " + report.addedEvents + ", unchanged " + report.existingEvents + ", total " + report.totalEvents + ". " + report.nextAction); text(guidance, "Safe sample ready. Continue to Search project history."); searchSection.hidden = false; document.getElementById("search-heading").focus(); }
     catch (cause) { text(importStatus, "Sample import needs attention."); text(importError, cause.message); document.getElementById("import-sample").focus(); }
   });
+  const renderGeneral = (conversations) => {
+    generalList.replaceChildren();
+    text(generalStatus, conversations.length ? "Showing " + conversations.length + " bounded General conversation(s)." : "General Inbox is empty. Create an explicit project-free conversation above.");
+    for (const conversation of conversations) {
+      const article = document.createElement("article"); article.className = "result-card";
+      const heading = document.createElement("h3"); text(heading, "GENERAL · " + conversation.title);
+      const state = document.createElement("p"); text(state, conversation.events.length + " immutable USER_MESSAGE event(s) · CONFIDENTIAL · UNVERIFIED");
+      const select = document.createElement("button"); select.type = "button"; text(select, "Append a question here / Aggiungi qui una domanda");
+      select.addEventListener("click", () => { selectedGeneral = conversation; const form = document.getElementById("general-append-form"); form.hidden = false; text(document.getElementById("general-destination"), "Destination / Destinazione: GENERAL · " + conversation.title + " · " + conversation.id); document.getElementById("general-question").focus(); });
+      article.append(heading, state);
+      for (const event of conversation.events) {
+        const body = document.createElement("p"); text(body, event.content);
+        const metadata = document.createElement("p"); text(metadata, event.occurredAt + " · LOCAL_USER · USER_AUTHORED · " + event.exactBytes + " UTF-8 bytes · SHA-256 " + event.contentSha256);
+        const copy = document.createElement("button"); copy.type = "button"; text(copy, "Copy safe search phrase / Copia frase di ricerca");
+        copy.addEventListener("click", async () => { const phrase = event.content.slice(0, 80); await navigator.clipboard?.writeText(phrase); document.getElementById("search-query").value = phrase; document.getElementById("search-scope").value = "GENERAL"; text(generalStatus, "Search phrase prepared; review it in Search before submitting."); });
+        article.append(body, metadata, copy);
+      }
+      article.append(select); generalList.append(article);
+    }
+  };
+  const loadGeneral = async () => { text(generalError, ""); try { renderGeneral(await api("/api/general/conversations")); } catch (cause) { text(generalStatus, "General state needs attention; no partial conversations are shown."); text(generalError, cause.message); } };
+  document.getElementById("general-create-form").addEventListener("submit", async (event) => { event.preventDefault(); const input = document.getElementById("general-title"); text(generalError, ""); try { selectedGeneral = await api("/api/general/conversations", { method: "POST", body: JSON.stringify({ title: input.value }) }); input.value = ""; await loadGeneral(); const form = document.getElementById("general-append-form"); form.hidden = false; text(document.getElementById("general-destination"), "Destination / Destinazione: GENERAL · " + selectedGeneral.title + " · " + selectedGeneral.id); document.getElementById("general-question").focus(); } catch (cause) { text(generalError, cause.message); input.focus(); } });
+  document.getElementById("general-append-form").addEventListener("submit", async (event) => { event.preventDefault(); const input = document.getElementById("general-question"); if (!selectedGeneral) return; text(generalError, ""); try { selectedGeneral = await api("/api/general/conversations/" + encodeURIComponent(selectedGeneral.id) + "/events", { method: "POST", body: JSON.stringify({ expectedEventCount: selectedGeneral.events.length, content: input.value }) }); input.value = ""; await loadGeneral(); text(generalStatus, "Question saved locally in GENERAL. No model was called and no answer was created."); } catch (cause) { text(generalError, cause.message); input.focus(); } });
+  const syncSearchType = () => { const selectedOnly = document.getElementById("search-scope").value === "SELECTED"; const type = document.getElementById("search-type"); type.disabled = !selectedOnly; if (!selectedOnly) type.value = ""; };
+  document.getElementById("search-scope").addEventListener("change", syncSearchType);
+  syncSearchType();
   const showEvent = async (projectId, eventId) => { try { selectedEvent = eventId; const value = await api("/api/projects/" + encodeURIComponent(projectId) + "/events/" + encodeURIComponent(eventId)); const metadata = document.getElementById("event-metadata"); metadata.replaceChildren(); for (const [label, content] of [["Type", value.type], ["Trust", value.trust], ["Session", value.sessionId], ["Occurred", value.occurredAt || "Unknown"], ["Source position", String(value.sourcePosition)]]) { const term = document.createElement("dt"); text(term, label); const detail = document.createElement("dd"); text(detail, content); metadata.append(term, detail); } text(document.getElementById("event-payload"), value.payload); eventSection.hidden = false; artifactSection.hidden = true; document.getElementById("event-heading").focus(); } catch (cause) { text(searchError, cause.message); } };
-  document.getElementById("search-form").addEventListener("submit", async (event) => { event.preventDefault(); const scope = document.getElementById("search-scope").value; if (scope === "SELECTED" && !selectedProject) { text(searchError, message("selectedScopeRequiresProject")); document.getElementById("search-scope").focus(); return; } text(searchError, ""); text(searchStatus, message(scope === "ALL" ? "searchingAll" : "searchingSelected")); searchResults.replaceChildren(); const query = document.getElementById("search-query").value; const typeValue = document.getElementById("search-type").value; const limit = document.getElementById("search-limit").value; const parameters = new URLSearchParams({ q: query, limit }); if (typeValue) parameters.set("type", typeValue); try { const path = scope === "ALL" ? "/api/search?" + parameters : "/api/projects/" + encodeURIComponent(selectedProject) + "/search?" + parameters; const report = await api(path); text(searchStatus, report.results.length === 0 ? message(scope === "ALL" ? "globalEmpty" : "projectEmpty") : message(scope === "ALL" ? "globalFound" : "projectFound", { count: String(report.results.length), projects: String(report.searchedProjects || 1), events: String(report.searchedEvents) })); for (const result of report.results) { const projectId = result.projectId || selectedProject; const project = registeredProjects.get(projectId); const article = document.createElement("article"); article.className = "result-card"; const heading = document.createElement("h3"); text(heading, result.type + " · UNTRUSTED"); const projectLabel = document.createElement("p"); text(projectLabel, message("resultProject", { name: result.projectName || project?.name || "Selected project", id: projectId })); const snippet = document.createElement("p"); text(snippet, result.snippet); const inspect = document.createElement("button"); inspect.type = "button"; text(inspect, scope === "ALL" ? message("selectInspect") : message("inspectEvent")); inspect.addEventListener("click", async () => { if (scope === "ALL") { if (!project) { text(searchError, message("projectReloadRequired")); return; } selectProject(project, false); } await showEvent(projectId, result.eventId); }); article.append(heading, projectLabel, snippet, inspect); searchResults.append(article); } } catch (cause) { text(searchStatus, message("searchAttention")); text(searchError, cause.message); document.getElementById("search-query").focus(); } });
+  document.getElementById("search-form").addEventListener("submit", async (event) => { event.preventDefault(); const scope = document.getElementById("search-scope").value; if (scope === "SELECTED" && !selectedProject) { text(searchError, message("selectedScopeRequiresProject")); document.getElementById("search-scope").focus(); return; } text(searchError, ""); text(searchStatus, scope === "SELECTED" ? message("searchingSelected") : "Searching bounded canonical evidence in " + (scope === "GENERAL" ? "GENERAL_ONLY" : "ALL_SCOPES") + "…"); searchResults.replaceChildren(); const query = document.getElementById("search-query").value; const typeValue = document.getElementById("search-type").value; const limit = document.getElementById("search-limit").value; const parameters = new URLSearchParams({ q: query, limit }); if (typeValue && scope === "SELECTED") parameters.set("type", typeValue); try { const path = scope === "SELECTED" ? "/api/projects/" + encodeURIComponent(selectedProject) + "/search?" + parameters : "/api/scoped-search?scope=" + (scope === "GENERAL" ? "GENERAL_ONLY" : "ALL_SCOPES") + "&" + parameters; const report = await api(path); text(searchStatus, report.results.length === 0 ? "No literal match in the requested scope. Check spelling or try a phrase present in canonical content." : "Found " + report.results.length + " result(s) after scanning " + report.searchedEvents + " event(s); the global limit was applied after scope merge."); for (const result of report.results) { const projectId = result.projectId || selectedProject; const project = result.scope === "PROJECT" ? registeredProjects.get(projectId) : null; const isGeneral = result.scope === "GENERAL"; const article = document.createElement("article"); article.className = "result-card"; const heading = document.createElement("h3"); text(heading, (isGeneral ? "GENERAL" : "PROJECT") + " · " + result.type + " · " + result.trust); const scopeLabel = document.createElement("p"); text(scopeLabel, isGeneral ? "General conversation: " + result.conversationId + " · USER_AUTHORED · CONFIDENTIAL" : message("resultProject", { name: result.projectName || project?.name || "Selected project", id: projectId })); const snippet = document.createElement("p"); text(snippet, result.snippet); article.append(heading, scopeLabel, snippet); if (!isGeneral) { const inspect = document.createElement("button"); inspect.type = "button"; text(inspect, message("inspectEvent")); inspect.addEventListener("click", async () => { if (result.scope === "PROJECT" && project) selectProject(project, false); await showEvent(projectId, result.eventId); }); article.append(inspect); } else { const open = document.createElement("button"); open.type = "button"; text(open, "Open General Inbox / Apri Posta generale"); open.addEventListener("click", () => { document.getElementById("general-heading").focus(); }); article.append(open); } searchResults.append(article); } } catch (cause) { text(searchStatus, message("searchAttention")); text(searchError, cause.message); document.getElementById("search-query").focus(); } });
   document.getElementById("open-source").addEventListener("click", async () => { if (!selectedProject || !selectedEvent) return; const artifactError = document.getElementById("artifact-error"); text(artifactError, ""); try { const value = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/events/" + encodeURIComponent(selectedEvent) + "/source"); text(document.getElementById("artifact-metadata"), value.byteLength + " UTF-8 bytes · " + value.trust + " · " + value.artifactId); text(document.getElementById("artifact-content"), value.content); artifactSection.hidden = false; document.getElementById("artifact-heading").focus(); } catch (cause) { text(artifactError, cause.message); document.getElementById("open-source").focus(); } });
   document.getElementById("back-to-results").addEventListener("click", () => { eventSection.hidden = true; document.getElementById("search-heading").focus(); });
   document.getElementById("artifact-back").addEventListener("click", () => { artifactSection.hidden = true; document.getElementById("event-heading").focus(); });
@@ -329,6 +380,7 @@ export const APP_JS = `
   document.getElementById("context-selector-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("context-selector-error"); const content = document.getElementById("context-selector-content"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { text(error, message("contextSelectorEmpty")); return; } const path = document.getElementById("context-selector-profile-path").value.trim(); const expectedDigest = document.getElementById("context-selector-profile-digest").value.trim(); try { const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/context-selectors/preview", { method: "POST", body: JSON.stringify({ profile: { path, ...(expectedDigest ? { expectedDigest } : {}) } }) }); const measured = value.report.cases[0]; const budget = measured.budgets[0]; text(document.getElementById("context-selector-status"), message("contextSelectorReady", { selected: String(measured.selectedCandidateBytes), baseline: String(measured.baselineCandidateBytes), reduction: String(measured.reductionPercentFromBaseline), loss: String(measured.safetyFloorLossCount), fit: budget.selectorPolicyFits ? "YES" : "NO" })); text(content, JSON.stringify(value, null, 2)); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; text(error, cause.message); document.getElementById("context-selector-profile-path").focus(); } });
   if (selectedProject) { importSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; text(importStatus, message("returningImport")); loadMemory(); loadWork(); }
   applyLocale();
+  loadGeneral();
   loadProjects();
 })();
 `;

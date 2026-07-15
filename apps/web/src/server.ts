@@ -85,7 +85,48 @@ export async function startGuiServer(
         return send(response, "text/javascript; charset=utf-8", APP_JS);
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
+      if (
+        request.method === "GET" &&
+        url.pathname === "/api/general/conversations"
+      )
+        return json(
+          response,
+          200,
+          await application.listGeneralConversations(),
+        );
       if (request.method === "GET") {
+        if (url.pathname === "/api/scoped-search") {
+          const scope = url.searchParams.get("scope");
+          if (scope !== "GENERAL_ONLY" && scope !== "ALL_SCOPES")
+            return reject(
+              response,
+              400,
+              "Choose GENERAL_ONLY or ALL_SCOPES search.",
+            );
+          const typeValue = url.searchParams.get("type");
+          if (
+            typeValue !== null &&
+            !SESSION_EVENT_TYPES.includes(typeValue as SessionEventType)
+          )
+            return reject(
+              response,
+              400,
+              "Choose a documented canonical event type.",
+            );
+          const limitValue = url.searchParams.get("limit");
+          return json(
+            response,
+            200,
+            await application.searchScopes({
+              scope,
+              text: url.searchParams.get("q") ?? "",
+              ...(typeValue === null
+                ? {}
+                : { type: typeValue as SessionEventType }),
+              ...(limitValue === null ? {} : { limit: Number(limitValue) }),
+            }),
+          );
+        }
         if (url.pathname === "/api/search") {
           const typeValue = url.searchParams.get("type");
           if (
@@ -276,6 +317,46 @@ export async function startGuiServer(
             403,
             "The local request failed origin or CSRF validation.",
           );
+        if (url.pathname === "/api/general/conversations") {
+          const body = await readJson(request);
+          if (!record(body) || typeof body.title !== "string")
+            return reject(
+              response,
+              400,
+              "Enter a bounded General conversation title.",
+            );
+          return json(
+            response,
+            201,
+            await application.createGeneralConversation(body.title),
+          );
+        }
+        const generalAppend =
+          /^\/api\/general\/conversations\/([^/]+)\/events$/u.exec(
+            url.pathname,
+          );
+        if (generalAppend !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.content !== "string" ||
+            typeof body.expectedEventCount !== "number"
+          )
+            return reject(
+              response,
+              400,
+              "Enter one question and the current immutable event count.",
+            );
+          return json(
+            response,
+            201,
+            await application.appendGeneralQuestion({
+              conversationId: decodeURIComponent(generalAppend[1]!),
+              expectedEventCount: body.expectedEventCount,
+              content: body.content,
+            }),
+          );
+        }
         if (url.pathname === "/api/projects") {
           const body = await readJson(request);
           if (!record(body) || typeof body.path !== "string")

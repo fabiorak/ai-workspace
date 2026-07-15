@@ -10,6 +10,8 @@ Implemented adapters:
 - `local-active-memory/` resolves project-scoped active-memory provenance from
   schema-validated canonical session events and owns the validated local
   operation-log codec, reducer, and atomic filesystem store;
+- `local-general-conversation/` validates and atomically persists separate
+  bounded schema-v1 General conversation documents with restrictive modes;
 - `local-handoffs/` reads immutable schema-v1 handoffs, writes normalized
   schema-v2 handoffs as scoped JSON files, and records immutable deterministic
   evaluations with exclusive writes;
@@ -21,7 +23,7 @@ Implemented adapters:
 - `local-privacy-policy/` reads one explicit bounded digest-pinned model data
   policy with fatal UTF-8, same-project validation, and safe basename output;
 - `local-session-ingestion/` persists canonical sessions and artifacts and
-  exposes local historical-event reads.
+  exposes local historical-event reads;
 - `local-work-items/` persists project-scoped Work Item operation logs with
   deterministic reduction, owner-token locking, and atomic replacement;
 

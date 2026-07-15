@@ -122,7 +122,10 @@ The implemented local persistence baseline now consists of:
   event prefixes and use exclusive per-session locks;
 - immutable exact-byte artifacts addressed by SHA-256 on the local filesystem;
 - schema-validated per-project active-memory operation logs with diagnostic
-  owner-token locks and atomic whole-document replacement.
+  owner-token locks and atomic whole-document replacement;
+- separate schema-v1 General conversation documents with immutable events,
+  exact UTF-8 byte/hash integrity, owner-token locks, restrictive modes, and
+  atomic publication without a synthetic project.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
@@ -130,15 +133,18 @@ events remain untrusted historical evidence and do not enter active memory or
 an execution path. These choices are recorded in ADR-0005 through ADR-0007.
 
 Historical retrieval is also behind domain-owned ports. The initial adapter
-scans validated canonical session events with mandatory project scope and
+scans validated canonical project sessions and General events with explicit
+tagged scope and
 resolves artifact-backed payloads through an integrity-checking read port. The
 provider-neutral use case can now compose an explicit set of up to 100
 registered project IDs and 10,000 canonical events, merge deterministic matches
-before one global limit, and reject inconsistent or partial scope. The GUI
-enriches results with safe project name/ID and requires an explicit project
-selection before existing event/source routes are used. Raw source artifacts
+before one global limit, and reject inconsistent or partial scope. `GENERAL_ONLY`
+works without projects; project-only APIs and CLI remain unchanged and exclude
+General. The GUI enriches project results with safe name/ID and requires an
+explicit project selection before existing event/source routes are used. Raw source artifacts
 are opened only after explicit user action. ADR-0008 records the bounded
-literal-search strategy and the triggers for selecting an index.
+literal-search strategy and the triggers for selecting an index; ADR-0018 and
+ADR-0019 record General scope and persistence.
 
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while

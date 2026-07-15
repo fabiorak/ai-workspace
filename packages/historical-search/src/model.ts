@@ -3,6 +3,7 @@ import type {
   SessionEventType,
   SourceReference,
 } from "@ai-workspace/session-ingestion";
+import type { GeneralEvent } from "@ai-workspace/general-conversation";
 
 export type HistoricalEvent = Readonly<{
   projectId: string;
@@ -59,6 +60,60 @@ export type GlobalHistoricalSearchReport = Readonly<{
   searchedProjects: number;
   searchedEvents: number;
   results: readonly HistoricalSearchResult[];
+}>;
+
+export type ScopedHistoricalSearchQuery = Readonly<{
+  scope: "GENERAL_ONLY" | "ALL_SCOPES";
+  projectIds: readonly string[];
+  text: string;
+  type?: SessionEventType;
+  limit?: number;
+}>;
+
+export type ScopedHistoricalSearchResult =
+  | Readonly<{
+      scope: "PROJECT";
+      projectId: string;
+      conversationId: string;
+      eventId: string;
+      sequence: number;
+      type: SessionEventType;
+      occurredAt: string | null;
+      trust: "UNTRUSTED";
+      snippet: string;
+      matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
+      source: SourceReference;
+    }>
+  | Readonly<{
+      scope: "GENERAL";
+      conversationId: string;
+      eventId: string;
+      sequence: number;
+      type: "USER_MESSAGE";
+      occurredAt: string;
+      trust: "UNVERIFIED";
+      origin: "USER_AUTHORED";
+      dataClass: "CONFIDENTIAL";
+      exactBytes: number;
+      contentSha256: string;
+      snippet: string;
+      matchedIn: "INLINE_PAYLOAD";
+      source: GeneralEvent["provenance"];
+    }>;
+
+export type ScopedHistoricalSearchReport = Readonly<{
+  query: Readonly<{
+    scope: "GENERAL_ONLY" | "ALL_SCOPES";
+    projectIds: readonly string[];
+    text: string;
+    type: SessionEventType | null;
+    limit: number;
+  }>;
+  searchedProjects: number;
+  searchedConversations: number;
+  searchedEvents: number;
+  scannedGeneralBytes: number;
+  results: readonly ScopedHistoricalSearchResult[];
 }>;
 
 export type OpenedArtifact = Readonly<{

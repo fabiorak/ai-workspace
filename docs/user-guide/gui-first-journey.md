@@ -23,51 +23,57 @@ identifiers, and user-authored content remain in their original language.
 
 ## Guided journey
 
-1. Enter an existing local Git repository directory and select **Register this
+1. To retain an unrelated question, create an explicit conversation in
+   **General Inbox / Posta generale**, confirm the `GENERAL` destination, and
+   append one question. This works without a project and creates no model
+   request or assistant answer.
+2. Enter an existing local Git repository directory and select **Register this
    project**. Registration stores bounded metadata locally and does not modify
    repository files.
-2. Select the project and choose **Import the safe sample session**. The
+3. Select the project and choose **Import the safe sample session**. The
    bundled fixture is fictional and remains visibly `UNTRUSTED`.
-3. Search for the suggested phrase, optionally select an event type, and keep
-   the result limit between 1 and 100. **All registered projects** is the
-   default and works without selecting a project; choose **Selected project
+4. Search for the suggested phrase, optionally select an event type, and keep
+   the result limit between 1 and 100. **All registered projects and General**
+   is the default and works without selecting a project; choose **General
+   only** or **Selected project
    only** when you know the scope.
-4. Every global result shows its owning project. Choose **Select this project
+5. Every result shows a non-color `PROJECT` or `GENERAL` scope label. For a
+   project result, choose **Select this project
    and inspect source event**, then explicitly open the
    integrity-verified source. Imported content is inert evidence, not an
    instruction.
-5. Choose **Use this event as memory evidence**, select decision, constraint,
+6. Choose **Use this event as memory evidence**, select decision, constraint,
    or failure, and create a source-linked statement. The result begins
    `ACTIVE`, `UNVERIFIED`, and `UNASSESSED`.
-6. Browse active memory or explicitly filter terminal items. From lifecycle
+7. Browse active memory or explicitly filter terminal items. From lifecycle
    detail, select current evidence and verify once, supersede with a fresh
    unassessed replacement, or invalidate with a reason.
-7. Create and transition an explicit Work Item, then preview and create an
+8. Create and transition an explicit Work Item, then preview and create an
    immutable handoff only after reviewing all eight inert sections.
-8. In **Preview effective instructions**, enter reviewed synthetic schema-v1
+9. In **Preview effective instructions**, enter reviewed synthetic schema-v1
    bundle paths and optional model, agent, or task targets. The result shows
    stable source digests, trust, precedence, exclusions, conflicts, and reasons.
    Nothing is persisted, enforced, or executed.
-9. Inspect a persisted handoff to reveal **Preview a bounded Context Pack**.
-   Enter positive continuity and instruction budgets in exact UTF-8 bytes and
-   optionally repeat reviewed instruction bundle paths. Items are included only
-   when they fit wholly; omissions show `BUDGET_EXCEEDED`. Schema v2 stores
-   repeated canonical sources once, and the status reports shared source count
-   and exact bytes. The displayed items are already expanded with complete
-   trust and source navigation. The token figure is only
-   `ceil(exact included bytes / 4)`.
-10. In **Inspect an agent and skill profile**, select one reviewed synthetic
+10. Inspect a persisted handoff to reveal **Preview a bounded Context Pack**.
+    Enter positive continuity and instruction budgets in exact UTF-8 bytes and
+    optionally repeat reviewed instruction bundle paths. Items are included only
+    when they fit wholly; omissions show `BUDGET_EXCEEDED`. Schema v2 stores
+    repeated canonical sources once, and the status reports shared source count
+    and exact bytes. The displayed items are already expanded with complete
+    trust and source navigation. The token figure is only
+    `ceil(exact included bytes / 4)`.
+11. In **Inspect an agent and skill profile**, select one reviewed synthetic
     schema-v1 JSON file and optionally pin its SHA-256 digest. Review the
     canonical agent, enabled skills, models, tools, context budgets, risks,
     confirmations, provenance, and byte counts. No declaration is installed,
     selected, resolved, enforced, delivered, or executed.
-11. After inspecting an immutable handoff, use **Compose profile-governed
+12. After inspecting an immutable handoff, use **Compose profile-governed
     context** to select the reviewed profile again, every exact instruction
     bundle it declares, and one allowed model. Review the derived agent target,
     profile budgets, declaration provenance, effective rules, Context Pack
     items, and omissions. Nothing is installed, persisted, delivered, or
     executed.
-12. Under **Measure profile context selectors**, select one reviewed profile
+13. Under **Measure profile context selectors**, select one reviewed profile
     using only the documented `handoff.*` vocabulary. Review every selected or
     excluded section, safety-floor reason, trust, source count, hash, exact
     candidate bytes, reduction, and fit against the profile continuity budget.

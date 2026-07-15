@@ -150,7 +150,9 @@ AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
 
 The visible journey is:
 
-1. register and select an existing local Git repository;
+1. capture a project-free question explicitly in the General Inbox, including
+   before any project is registered, or register and select an existing local
+   Git repository;
 2. import the bundled fictional session—never a private transcript;
 3. search and inspect `UNTRUSTED` canonical evidence and its verified source;
 4. curate source-linked active memory and manage its additive lifecycle;
@@ -218,7 +220,11 @@ The current GUI also provides:
   synthetic manifests, with exact answer/source availability and separate
   schema-v2 accounting; no candidate policy passes the corpus;
 - bounded literal history search across at most 100 registered projects and
-  10,000 canonical events, without an index or OpenSearch.
+  General, with one merge-before-limit result set over at most 10,000 canonical
+  events, without an index or OpenSearch;
+- a separate bounded atomic General conversation store with immutable
+  `LOCAL_USER`/`USER_AUTHORED` questions, exact UTF-8 bytes and SHA-256,
+  `UNVERIFIED` state, default `CONFIDENTIAL` handling, and no model response;
 - schema-v1 model data policies with canonical project/model scope, exact item
   content-hash assertions, conservative `CONFIDENTIAL` defaulting, and a
   non-echoing privacy preflight in the English/Italian GUI;
@@ -237,7 +243,8 @@ installed, runtime-selected, or executed. See the
 [profile-governed context](docs/user-guide/profile-governed-context.md),
 [context selector measurement](docs/user-guide/context-selector-measurement.md), and
 [GUI journey](docs/user-guide/gui-first-journey.md) guides for the current
-contracts and limitations. The [privacy preflight guide](docs/user-guide/privacy-preflight.md)
+contracts and limitations. The [General Inbox guide](docs/user-guide/general-inbox.md)
+documents project-free capture and search. The [privacy preflight guide](docs/user-guide/privacy-preflight.md)
 explains policy inputs, decisions, recovery, and why reviewable is not
 authorization.
 

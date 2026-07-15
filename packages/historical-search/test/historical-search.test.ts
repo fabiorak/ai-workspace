@@ -3,10 +3,54 @@ import { TextEncoder } from "node:util";
 import test from "node:test";
 
 import type { SessionEvent } from "@ai-workspace/session-ingestion";
+import type { GeneralConversation } from "@ai-workspace/general-conversation";
 
 import { HistoricalSearch, type HistoricalEvent } from "../src/index.ts";
 
 const encoder = new TextEncoder();
+
+test("searches General without projects and merges all scopes before the global limit", async () => {
+  const general = generalConversation(
+    "shared evidence general",
+    "2026-01-15T09:00:00.000Z",
+  );
+  const project = historicalEventFor(
+    "project-a",
+    "shared evidence project",
+    "USER_MESSAGE",
+    1,
+  );
+  const search = new HistoricalSearch({
+    events: { list: async () => [project], find: async () => project },
+    artifacts: { read: async () => encoder.encode("unused") },
+    projects: { exists: async (id) => id === "project-a" },
+    general: { list: async () => [general] },
+  });
+  const only = await search.searchAcrossScopes({
+    scope: "GENERAL_ONLY",
+    projectIds: [],
+    text: "SHARED EVIDENCE",
+  });
+  assert.equal(only.searchedProjects, 0);
+  assert.equal(only.results[0]?.scope, "GENERAL");
+  const filtered = await search.searchAcrossScopes({
+    scope: "GENERAL_ONLY",
+    projectIds: [],
+    text: "shared evidence",
+    type: "ERROR",
+  });
+  assert.equal(filtered.query.type, "ERROR");
+  assert.equal(filtered.results.length, 0);
+  const all = await search.searchAcrossScopes({
+    scope: "ALL_SCOPES",
+    projectIds: ["project-a"],
+    text: "shared evidence",
+    limit: 1,
+  });
+  assert.equal(all.searchedEvents, 2);
+  assert.equal(all.results.length, 1);
+  assert.equal(all.results[0]?.scope, "GENERAL");
+});
 
 test("searches case-insensitively with deterministic filters and provenance", async () => {
   const events = [
@@ -373,5 +417,38 @@ function historicalEventFor(
   return Object.freeze({
     ...historicalEvent(text, type, sequence, artifactPayload),
     projectId,
+  });
+}
+
+function generalConversation(
+  content: string,
+  occurredAt: string,
+): GeneralConversation {
+  return Object.freeze({
+    id: "general-conversation-fictional",
+    scope: "GENERAL",
+    title: "Fictional question",
+    createdAt: occurredAt,
+    events: Object.freeze([
+      Object.freeze({
+        id: "general-event-fictional",
+        conversationId: "general-conversation-fictional",
+        sequence: 0,
+        scope: "GENERAL",
+        type: "USER_MESSAGE",
+        occurredAt,
+        actor: "LOCAL_USER",
+        origin: "USER_AUTHORED",
+        verification: "UNVERIFIED",
+        dataClass: "CONFIDENTIAL",
+        content,
+        exactBytes: Buffer.byteLength(content, "utf8"),
+        contentSha256: "a".repeat(64),
+        provenance: Object.freeze({
+          kind: "LOCAL_GENERAL_CAPTURE",
+          capturedAt: occurredAt,
+        }),
+      }),
+    ]),
   });
 }

@@ -7,8 +7,5 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    { "path": "../general-conversation/tsconfig.build.json" },
-    { "path": "../session-ingestion/tsconfig.build.json" }
-  ]
+  "references": [{ "path": "../privacy-gateway/tsconfig.build.json" }]
 }

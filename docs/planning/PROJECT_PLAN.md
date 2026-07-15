@@ -435,6 +435,8 @@ must be adjusted using evidence from completed increments.
 | Sprint 20 | E0, E5, E6    | Measure profile context selector semantics              |
 | Sprint 21 | E0, E5, E6    | Measure exact selector evidence retention               |
 | Sprint 22 | E0, E7        | Preview model privacy policy before delivery            |
+| Sprint 23 | E0, E3        | Capture and find General questions                      |
+| Sprint 24 | E0, E3        | Link General evidence to a project explicitly           |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -774,3 +776,16 @@ Context Pack item IDs and SHA-256 values; unasserted content defaults to
 all declarations. The existing explicit profile/context composition feeds a
 bilingual read-only report, not a network, model, permission, pseudonymization,
 mapping, delivery, or execution path.
+
+[Sprint 23](sprints/SPRINT-023.md) completed the first implementation of
+ADR-0018 and ADR-0019. It adds an explicit project-free `GENERAL` conversation scope,
+bounded immutable local capture of user-authored questions, and compatible
+literal search across General plus registered projects. ADR-0019 must decide
+the separate atomic persistence representation before code. The bilingual
+General Inbox does not invoke a model, create assistant responses, promote
+evidence, add a database/index, or claim semantic retrieval.
+
+[Sprint 24](sprints/SPRINT-024.md) is planned to add an explicit immutable
+provenance link from selected General evidence to a registered project. It
+must preserve the original `GENERAL` ownership and bytes, keep project-only
+search isolated, and add no promotion, model, delivery, or execution path.

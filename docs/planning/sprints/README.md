@@ -27,3 +27,5 @@ results separately from future forecasts in the project plan.
 - [Sprint 20 — Measure Profile Context Selector Semantics](SPRINT-020.md) — completed
 - [Sprint 21 — Measure Selector Continuity Evidence Retention](SPRINT-021.md) — completed
 - [Sprint 22 — Preview Model Privacy Policy Before Delivery](SPRINT-022.md) — completed
+- [Sprint 23 — Capture and Find General Questions](SPRINT-023.md) — completed
+- [Sprint 24 — Link General Evidence to a Project Explicitly](SPRINT-024.md) — planned

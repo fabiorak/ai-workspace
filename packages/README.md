@@ -15,7 +15,9 @@ Implemented packages:
   cases;
 - `session-ingestion/` owns canonical imported-session and event contracts;
 - `historical-search/` owns read-only historical evidence search contracts and
-  use cases.
+  use cases, including additive tagged-scope General/all-scope retrieval;
+- `general-conversation/` owns project-free immutable question capture,
+  provenance, integrity, classification, and persistence ports;
 - `handoff/` owns immutable provider-neutral handoff snapshots, section-level
   trust and provenance, stable rendering, persistence ports, and the
   backward-readable v1/v2 persisted codec with lossless normalized source

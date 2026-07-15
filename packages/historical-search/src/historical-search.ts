@@ -11,6 +11,9 @@ import type {
   HistoricalSearchQuery,
   HistoricalSearchReport,
   HistoricalSearchResult,
+  ScopedHistoricalSearchQuery,
+  ScopedHistoricalSearchReport,
+  ScopedHistoricalSearchResult,
   OpenedArtifact,
 } from "./model.ts";
 import type { HistoricalSearchDependencies } from "./ports.ts";
@@ -181,6 +184,148 @@ export class HistoricalSearch {
     });
   }
 
+  public async searchAcrossScopes(
+    query: ScopedHistoricalSearchQuery,
+  ): Promise<ScopedHistoricalSearchReport> {
+    const text = requiredValue(query.text, "Search text");
+    const limit = searchLimit(query.limit);
+    if (query.scope !== "GENERAL_ONLY" && query.scope !== "ALL_SCOPES")
+      throw new HistoricalSearchError(
+        "Search scope must be GENERAL_ONLY or ALL_SCOPES.",
+      );
+    if (
+      !Array.isArray(query.projectIds) ||
+      query.projectIds.length > MAX_GLOBAL_PROJECTS
+    )
+      throw new HistoricalSearchError(
+        `All-scope search accepts at most ${MAX_GLOBAL_PROJECTS} registered project IDs.`,
+      );
+    const projectIds = query.projectIds.map((id) =>
+      requiredValue(id, "Project ID"),
+    );
+    if (new Set(projectIds).size !== projectIds.length)
+      throw new HistoricalSearchError("All-scope project IDs must be unique.");
+    projectIds.sort((left, right) => left.localeCompare(right, "en"));
+    if (query.scope === "GENERAL_ONLY" && projectIds.length !== 0)
+      throw new HistoricalSearchError(
+        "GENERAL_ONLY search cannot include project IDs.",
+      );
+    if (this.#dependencies.general === undefined)
+      throw new HistoricalSearchError(
+        "General conversation search is not configured in this application.",
+      );
+
+    try {
+      const projectEvents: HistoricalEvent[] = [];
+      if (query.scope === "ALL_SCOPES") {
+        for (const projectId of projectIds) {
+          await this.#assertProject(projectId);
+          const events = await this.#dependencies.events.list(projectId);
+          if (events.some((event) => event.projectId !== projectId))
+            throw new Error("cross-scope project event");
+          projectEvents.push(...events);
+        }
+      }
+      const conversations = await this.#dependencies.general.list();
+      const generalEvents = conversations.flatMap((conversation) => {
+        if (
+          conversation.scope !== "GENERAL" ||
+          conversation.events.some(
+            (event) =>
+              event.conversationId !== conversation.id ||
+              event.scope !== "GENERAL",
+          )
+        )
+          throw new Error("cross-scope General event");
+        return conversation.events;
+      });
+      const filteredProjectEvents =
+        query.type === undefined
+          ? projectEvents
+          : projectEvents.filter(({ event }) => event.type === query.type);
+      const filteredGeneralEvents =
+        query.type === undefined || query.type === "USER_MESSAGE"
+          ? generalEvents
+          : [];
+      if (
+        filteredProjectEvents.length + filteredGeneralEvents.length >
+        MAX_GLOBAL_EVENTS
+      )
+        throw new HistoricalSearchError(
+          `All-scope history exceeds ${MAX_GLOBAL_EVENTS} canonical events. Narrow the scope or adopt an indexed adapter through an ADR.`,
+        );
+
+      const needle = text.toLowerCase();
+      const projectMatches =
+        query.scope === "ALL_SCOPES"
+          ? await this.#match(filteredProjectEvents, text)
+          : [];
+      const results: ScopedHistoricalSearchResult[] = projectMatches.map(
+        (result) =>
+          Object.freeze({
+            scope: "PROJECT" as const,
+            projectId: result.projectId,
+            conversationId: result.sessionId,
+            eventId: result.eventId,
+            sequence: result.sequence,
+            type: result.type,
+            occurredAt: result.occurredAt,
+            trust: result.trust,
+            snippet: result.snippet,
+            matchedIn: result.matchedIn,
+            source: result.source,
+          }),
+      );
+      for (const event of filteredGeneralEvents) {
+        const index = event.content.toLowerCase().indexOf(needle);
+        if (index < 0) continue;
+        results.push(
+          Object.freeze({
+            scope: "GENERAL" as const,
+            conversationId: event.conversationId,
+            eventId: event.id,
+            sequence: event.sequence,
+            type: event.type,
+            occurredAt: event.occurredAt,
+            trust: event.verification,
+            origin: event.origin,
+            dataClass: event.dataClass,
+            exactBytes: event.exactBytes,
+            contentSha256: event.contentSha256,
+            snippet: snippet(event.content, index, text.length),
+            matchedIn: "INLINE_PAYLOAD" as const,
+            source: event.provenance,
+          }),
+        );
+      }
+      results.sort(compareScopedResults);
+      return Object.freeze({
+        query: Object.freeze({
+          scope: query.scope,
+          projectIds: Object.freeze(projectIds),
+          text,
+          type: query.type ?? null,
+          limit,
+        }),
+        searchedProjects: query.scope === "ALL_SCOPES" ? projectIds.length : 0,
+        searchedConversations: conversations.length,
+        searchedEvents:
+          filteredProjectEvents.length + filteredGeneralEvents.length,
+        scannedGeneralBytes: generalEvents.reduce(
+          (sum, event) => sum + event.exactBytes,
+          0,
+        ),
+        results: Object.freeze(results.slice(0, limit)),
+      });
+    } catch (error) {
+      if (error instanceof HistoricalSearchError) throw error;
+      throw new HistoricalSearchError(
+        "All-scope historical evidence could not be validated and searched safely. Preserve local state and retry without using partial results.",
+        { cause: error },
+      );
+    }
+  }
+
   async #match(
     ordered: readonly HistoricalEvent[],
     text: string,
@@ -261,6 +406,24 @@ export class HistoricalSearch {
       );
     }
   }
+}
+
+function compareScopedResults(
+  left: ScopedHistoricalSearchResult,
+  right: ScopedHistoricalSearchResult,
+): number {
+  const time = (left.occurredAt ?? "9999").localeCompare(
+    right.occurredAt ?? "9999",
+  );
+  if (time !== 0) return time;
+  const scope = left.scope.localeCompare(right.scope, "en");
+  if (scope !== 0) return scope;
+  const conversation = left.conversationId.localeCompare(
+    right.conversationId,
+    "en",
+  );
+  if (conversation !== 0) return conversation;
+  return left.sequence - right.sequence;
 }
 
 function compareEvents(left: HistoricalEvent, right: HistoricalEvent): number {
