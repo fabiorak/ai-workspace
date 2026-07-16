@@ -949,13 +949,16 @@ describe("GUI server project onboarding", () => {
       "/profile-context/preview",
       "/pseudonymization/preview",
     );
-    const mappingKeyHex = "29".repeat(32);
+    const mappingPassphrase = "synthetic http custody passphrase";
     const pseudonymizationResponse = await api(pseudonymizationPath, {
       method: "POST",
       body: JSON.stringify({
         ...request,
         policy: { path: policyPath },
-        mappingKeyHex,
+        keyCustody: {
+          mode: "PASSPHRASE_WRAPPING",
+          passphrase: mappingPassphrase,
+        },
         review: {
           schemaVersion: 1,
           mappingSetId: "http-mapping-1",
@@ -987,7 +990,7 @@ describe("GUI server project onboarding", () => {
     assert.equal(pseudonymization.mapping.encryptedAtRest, true);
     assert.match(pseudonymization.effect, /NOT_AUTHORIZED/u);
     assert.equal(
-      JSON.stringify(pseudonymization).includes(mappingKeyHex),
+      JSON.stringify(pseudonymization).includes(mappingPassphrase),
       false,
     );
     assert.equal(JSON.stringify(pseudonymization).includes(root), false);

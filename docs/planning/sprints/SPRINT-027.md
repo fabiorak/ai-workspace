@@ -4,7 +4,7 @@
 
 **Milestone:** M5 privacy-ready beta, key-custody decision increment
 
-**Status:** planned
+**Status:** completed
 
 **Cadence:** two-week timebox
 

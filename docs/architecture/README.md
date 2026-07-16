@@ -125,7 +125,11 @@ scope metadata is authenticated as additional data; nonce and authentication
 tag are stored beside ciphertext, while original selected values remain inside
 the encrypted canonical mapping. `apps/web` exposes one authenticated scoped
 action that verifies a save/read/restore round trip and returns neither mapping
-plaintext, key, nor path. Key generation, persistence, recovery, rotation,
+plaintext, key, passphrase, nor path. ADR-0022 adds
+`integrations/local-key-custody`: it generates one random mapping key per new
+mapping set and stores only a separately authenticated, scrypt-derived
+passphrase-wrapped envelope. Offline recovery requires both encrypted stores
+and the passphrase. Key export, passphrase change, existing-mapping rotation,
 network, model delivery, permission, and execution remain outside the graph.
 
 The implemented local persistence baseline now consists of:
@@ -143,8 +147,11 @@ The implemented local persistence baseline now consists of:
   source-hash binding, explicit target/rationale, a store-wide owner-token
   lock, restrictive modes, atomic publication, and no evidence mutation;
 - separate schema-v1 encrypted pseudonym mapping documents with authenticated
-  scope metadata, fresh nonces, explicit volatile keys, owner-token locking,
+  scope metadata, fresh nonces, in-memory keys, owner-token locking,
   restrictive modes, flushed atomic publication, and no source mutation.
+- separate schema-v1 immutable key-custody envelopes with exact scrypt
+  parameters, fresh salt and nonce, authenticated mapping-set scope,
+  restrictive modes, owner-token locking, and atomic publication.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported

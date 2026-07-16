@@ -88,8 +88,9 @@ identifiers, and user-authored content remain in their original language.
 15. After that review, **Reversible privacy transformation** accepts exact item
     hashes and UTF-8 byte ranges, shows inert pseudonymized content, persists
     only an authenticated encrypted mapping, and verifies local byte-exact
-    restoration. Its volatile key is never returned and the form field is
-    cleared after the attempt. This remains manual, `CONFIDENTIAL`, and
+    restoration. A random per-mapping key is retained only in a separate
+    passphrase-wrapped local envelope; neither secret is returned and the
+    passphrase field is cleared after the attempt. This remains manual, `CONFIDENTIAL`, and
     non-authorizing; it is not complete PII detection or model delivery.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty search

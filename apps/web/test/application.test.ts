@@ -351,7 +351,10 @@ describe("GUI application facade", () => {
         model: "model-balanced",
         task: "synthetic-review",
         policy: { path: policyPath },
-        mappingKeyHex: "17".repeat(32),
+        keyCustody: {
+          mode: "PASSPHRASE_WRAPPING",
+          passphrase: "synthetic application passphrase",
+        },
         review: {
           schemaVersion: 1,
           mappingSetId: "synthetic-mapping-1",
@@ -377,8 +380,14 @@ describe("GUI application facade", () => {
       assert.equal(pseudonymized.mapping.encryptedAtRest, true);
       assert.match(pseudonymized.effect, /NOT_AUTHORIZED/u);
       assert.equal(
-        JSON.stringify(pseudonymized).includes("17".repeat(32)),
+        JSON.stringify(pseudonymized).includes(
+          "synthetic application passphrase",
+        ),
         false,
+      );
+      assert.equal(
+        pseudonymized.mapping.keyCustody,
+        "PASSPHRASE_WRAPPED_LOCAL",
       );
       assert.equal(JSON.stringify(pseudonymized).includes(root), false);
       await assert.rejects(

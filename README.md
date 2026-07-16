@@ -237,8 +237,9 @@ The current GUI also provides:
   overrides declarations while preserving existing ingestion behavior.
 - exact-hash, user-reviewed UTF-8 span pseudonymization with deterministic
   inert aliases, byte-exact local restoration, and a separate AES-256-GCM
-  authenticated mapping store; the volatile key remains user-custodied and no
-  result authorizes model delivery.
+  authenticated mapping store; a per-mapping random key is held in a separate
+  passphrase-wrapped local custody envelope and no result authorizes model
+  delivery.
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
@@ -256,7 +257,7 @@ contracts and limitations. The [General Inbox guide](docs/user-guide/general-inb
 documents project-free capture and search. The [privacy preflight guide](docs/user-guide/privacy-preflight.md)
 explains policy inputs, decisions, recovery, and why reviewable is not
 authorization. The [reversible privacy transformation guide](docs/user-guide/reversible-privacy-transformation.md)
-documents reviewed spans, encrypted mappings, volatile key custody, exact
+documents reviewed spans, encrypted mappings, passphrase-wrapped key custody, exact
 restore, and current limitations.
 
 The development-only [selector continuity evidence report](docs/development/selector-continuity-evidence-retention.md)

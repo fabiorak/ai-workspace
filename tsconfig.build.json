@@ -25,6 +25,7 @@
     { "path": "./integrations/local-project-registry/tsconfig.build.json" },
     { "path": "./integrations/local-privacy-policy/tsconfig.build.json" },
     { "path": "./integrations/local-privacy-mapping/tsconfig.build.json" },
+    { "path": "./integrations/local-key-custody/tsconfig.build.json" },
     { "path": "./integrations/local-session-ingestion/tsconfig.build.json" },
     { "path": "./apps/cli/tsconfig.build.json" }
   ]

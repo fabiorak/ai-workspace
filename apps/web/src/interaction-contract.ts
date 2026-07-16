@@ -370,9 +370,9 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         effect:
           "Persists authenticated ciphertext only; source evidence and Context Packs remain unchanged and nothing is sent or executed.",
         prerequisites:
-          "Complete the exact privacy inputs, review item hashes and UTF-8 byte ranges, choose a new mapping-set identity, and provide a volatile 32-byte key.",
+          "Complete the exact privacy inputs, review item hashes and UTF-8 byte ranges, choose a new mapping-set identity, and provide a local custody passphrase.",
         recovery:
-          "No source evidence changed and no data was sent. Correct the exact reviewed plan or key and retry with a new mapping-set identity.",
+          "No source evidence changed and no data was sent. Preserve existing encrypted state, correct the exact reviewed plan or custody passphrase, and retry with a new mapping-set identity when creation already occurred.",
         mutates: true,
       }),
     ),

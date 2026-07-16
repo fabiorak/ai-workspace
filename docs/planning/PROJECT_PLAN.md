@@ -808,9 +808,12 @@ nonces, scope-bound metadata, restrictive modes, owner locking, and atomic
 publication. The bilingual GUI verifies byte-exact restore locally; it returns
 no mapping plaintext, key, or path and creates no delivery authority.
 
-[Sprint 27](sprints/SPRINT-027.md) is planned from Sprint 26's principal
-residual risk: explicit volatile hexadecimal keys prove the cryptographic
-boundary but are not routine key custody. A predeclared cross-platform corpus
-will compare volatile import, OS credential-store, and passphrase-wrapping
-candidates before an ADR or production rollout. Network recovery, delivery,
-models, execution, and real credentials remain excluded.
+[Sprint 27](sprints/SPRINT-027.md) completed the local custody decision. A
+predeclared cross-platform corpus rejected raw volatile import and OS
+credential stores, then accepted ADR-0022's dependency-free passphrase-wrapped
+boundary after two deterministic synthetic runs. The GUI now generates one
+random key per mapping set and persists it only inside a separate authenticated
+custody envelope; schema-v1 mapping ciphertext remains migration-free. Offline
+recovery requires both encrypted directories and the passphrase. Network
+recovery, export, delivery, models, execution, and real credentials remain
+excluded.

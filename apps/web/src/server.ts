@@ -656,12 +656,14 @@ export async function startGuiServer(
             typeof body.model !== "string" ||
             !body.model.trim() ||
             !record(body.review) ||
-            typeof body.mappingKeyHex !== "string"
+            !record(body.keyCustody) ||
+            body.keyCustody.mode !== "PASSPHRASE_WRAPPING" ||
+            typeof body.keyCustody.passphrase !== "string"
           )
             return reject(
               response,
               400,
-              "Select the exact profile, instruction sources, policy, model, reviewed span plan, and a volatile 32-byte local mapping key.",
+              "Select the exact profile, instruction sources, policy, model, reviewed span plan, and local passphrase-wrapping custody.",
             );
           return json(
             response,
@@ -682,7 +684,10 @@ export async function startGuiServer(
               model: body.model,
               ...(body.task === undefined ? {} : { task: body.task as string }),
               review: body.review as never,
-              mappingKeyHex: body.mappingKeyHex,
+              keyCustody: {
+                mode: "PASSPHRASE_WRAPPING",
+                passphrase: body.keyCustody.passphrase,
+              },
             }),
           );
         }

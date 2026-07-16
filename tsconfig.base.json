@@ -75,6 +75,9 @@
       "@ai-workspace/local-privacy-mapping": [
         "./integrations/local-privacy-mapping/src/index.ts"
       ],
+      "@ai-workspace/local-key-custody": [
+        "./integrations/local-key-custody/src/index.ts"
+      ],
       "@ai-workspace/session-ingestion": [
         "./packages/session-ingestion/src/index.ts"
       ]

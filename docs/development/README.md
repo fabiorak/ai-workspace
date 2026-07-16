@@ -125,6 +125,14 @@ encrypted persistence. Tests must use fictional values and explicit synthetic
 32-byte keys; never add real mappings, keys, identity data, paths, or generated
 ciphertext artifacts to the repository.
 
+Sprint 27 freezes the custody scenarios and gates in
+[Local Mapping Key Custody Corpus](local-mapping-key-custody-corpus.md) and
+keeps deterministic results separate in
+[Local Mapping Key Custody Observations](local-mapping-key-custody-observations.md).
+`integrations/local-key-custody` owns only bounded passphrase-wrapped key
+envelopes. Tests use synthetic passphrases and random temporary keys; never
+probe or create real credential-store records or report host/user identity.
+
 ## Architecture decisions
 
 Material decisions are recorded in `docs/adr/`. New ADRs use the next numeric

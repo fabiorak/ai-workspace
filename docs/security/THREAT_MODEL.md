@@ -487,19 +487,30 @@ delivery boundary.
 - wrong keys, ciphertext/tag/metadata modification, temporary state, unsafe
   modes, bounds, corruption, and incomplete restore fail without partial
   output or selected-value echo;
-- the GUI key is accepted only for the local action, is not returned or placed
-  in browser-local state, and its form value is cleared after each attempt;
+- ADR-0022 generates an independent random mapping key per mapping set and
+  stores it only inside a separate AES-256-GCM custody envelope; scrypt uses a
+  fresh salt and fixed bounded parameters, and authenticated metadata binds
+  the envelope to its exact mapping-set identity;
+- custody envelopes use private modes, bounded canonical validation,
+  owner-token locking, flushed atomic publication, and fail closed for wrong
+  passphrases, tampering, unsupported parameters, incomplete state, or unsafe
+  permissions without changing existing mapping ciphertext;
+- the GUI passphrase is accepted only for the local action, is not returned or
+  placed in browser-local state, and its form value is cleared after each
+  attempt; plaintext mapping and wrapping keys exist only in process memory;
 - a successful round trip remains local review evidence and does not change
   classification, preflight result, permission, model availability, routing,
   delivery, or execution.
 
-Residual risk: the alpha delegates key generation, strength, storage, backup,
-recovery, reuse, and rotation to the user. A lost key makes mappings
-irrecoverable; a copied or reused key increases exposure. The browser field and
-process memory briefly contain it. Sprint 27 is planned to evaluate an explicit
-cross-platform custody boundary before routine use. A local process with the
-same user privileges may still read process memory or replace files despite
-filesystem modes and authentication checks.
+Residual risk: passphrase quality and offline retention remain user
+responsibilities. Losing either the passphrase or custody envelope makes the
+mapping irrecoverable; copying both encrypted stores enables offline guessing,
+and the minimum length plus memory-hard KDF cannot make a weak passphrase
+strong. The browser field and process memory briefly contain the passphrase,
+and process memory briefly contains plaintext keys. A local process with the
+same user privileges may read memory or replace files despite filesystem modes
+and authentication checks. There is no passphrase reset, escrow, export,
+sharing, synchronization, cloud recovery, or existing-mapping re-encryption.
 
 ## Review triggers
 

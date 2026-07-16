@@ -131,9 +131,11 @@ coverage.
 Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping
 metadata, and reversible mappings remain `CONFIDENTIAL`. Pseudonymization does
 not lower source classification and is not anonymization. Original values are
-retained only inside a separate AES-256-GCM authenticated mapping ciphertext;
-the explicit 32-byte key is volatile caller input and is never persisted or
-returned. Canonical evidence and Context Packs remain byte-unchanged.
+retained only inside a separate AES-256-GCM authenticated mapping ciphertext.
+The random 32-byte mapping key is persisted only as authenticated ciphertext
+inside a separate passphrase-wrapped custody envelope; plaintext keys and
+passphrases are volatile caller-process data and are never returned. Canonical
+evidence and Context Packs remain byte-unchanged.
 
 The first implementation performs no automatic PII detection and grants no
 model permission. Unknown or unreviewed content retains its existing class and

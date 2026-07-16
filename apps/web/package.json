@@ -37,6 +37,7 @@
     "@ai-workspace/local-general-project-link": "0.0.0",
     "@ai-workspace/local-handoffs": "0.0.0",
     "@ai-workspace/local-instructions": "0.0.0",
+    "@ai-workspace/local-key-custody": "0.0.0",
     "@ai-workspace/local-privacy-policy": "0.0.0",
     "@ai-workspace/local-privacy-mapping": "0.0.0",
     "@ai-workspace/local-session-ingestion": "0.0.0",

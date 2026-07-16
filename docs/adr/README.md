@@ -42,3 +42,4 @@ Status: proposed | accepted | superseded
 
 - [ADR-0020: Use separate immutable General-to-project links](0020-use-separate-immutable-general-project-links.md)
 - [ADR-0021: Use reviewed spans and encrypted local pseudonym mappings](0021-use-reviewed-spans-and-encrypted-local-pseudonym-mappings.md)
+- [ADR-0022: Use passphrase-wrapped local mapping keys](0022-use-passphrase-wrapped-local-mapping-keys.md)
