@@ -270,6 +270,13 @@ exact counts, local timing observations, and `NO_CHANGE` index decision. Run
 `npm run measure:general-links` to reproduce it; no normal workspace state,
 runtime API, GUI behavior, index, delivery, or execution path is added.
 
+The development-only [entity candidate discovery report](docs/development/entity-candidate-discovery-observations.md)
+records Sprint 28's frozen bilingual exact-span corpus and deterministic
+decision. Exact configured aliases pass only as candidates for later explicit
+review; standard syntax and the combined candidate require refinement. Run
+`npm run measure:entity-candidates` to reproduce the aggregate result. No
+recognizer is exported to the GUI, transformation, mapping, or delivery path.
+
 The Project Registry can register and inspect local non-bare Git repositories
 from the CLI. It records an opaque project identifier,
 canonical path, branch, HEAD revision, sanitized origin URL, and worktree state

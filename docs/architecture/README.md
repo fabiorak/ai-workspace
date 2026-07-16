@@ -184,6 +184,15 @@ known-item misses, sub-threshold timing, and less than 2.4% pressure on every
 bound. Decision `NO_CHANGE` retains canonical scans; no index ADR, package,
 facade, GUI route, background task, or semantic boundary was added.
 
+Sprint 28 likewise adds no production edge. Its development-only script owns
+bounded standard-syntax and exact-alias candidate adapters plus a fixed
+English/Italian exact UTF-8 corpus. It imports the existing Restricted detector
+only for regression equivalence, emits aggregate non-echoing measurements, and
+has no export from `packages/privacy-gateway`. Two identical runs classify
+exact aliases `ADOPT_FOR_REVIEW` and standard/combined candidates `REFINE`.
+Any production review surface still requires an ADR, explicit user review, and
+a new facade/GUI boundary; no candidate reaches transformation or delivery.
+
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while
 the local adapter derives current state from append-only logical operations.

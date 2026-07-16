@@ -202,13 +202,18 @@ Inputs intended for external models should be able to pass through reversible,
 best-effort pseudonymization plus independent policy and secret-detection
 controls.
 
-The first implemented E7 slice is deliberately narrower: a local read-only
-preflight compares one exact profile-governed Context Pack with one
-project/model-scoped, digest-pinned policy. Unknown items default to
-`CONFIDENTIAL`; narrow high-confidence restricted patterns always block. The
-result is inspectable `BLOCKED` or `REVIEWABLE_NOT_AUTHORIZED` evidence and
-does not provide pseudonymization, complete PII detection, model access,
-permission, delivery, or execution.
+The implemented E7 slices provide a local read-only preflight, explicitly
+reviewed UTF-8 spans, reversible inert pseudonyms, separate AES-256-GCM
+mappings, and random keys held in passphrase-protected custody envelopes.
+Canonical evidence and Context Packs remain unchanged; no result provides
+model access, permission, delivery, or execution.
+
+Sprint 28 also measures deterministic candidates for future review assistance,
+development-only, against a synthetic bilingual corpus. Exact configured
+aliases pass as `ADOPT_FOR_REVIEW`; standard syntax and the union remain
+`REFINE` because of a telephone false positive in code. No recognizer is
+exposed to the GUI or transformation, and complete PII detection is not
+claimed.
 
 ### 3.6 Reusable automation
 

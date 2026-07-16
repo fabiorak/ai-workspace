@@ -298,6 +298,24 @@ Baseline controls:
 - encrypt pseudonymization maps and other designated sensitive stores;
 - document backup and deletion behavior before persistent user data ships.
 
+### Entity candidate inference
+
+Threats:
+
+- a heuristic suggestion is mistaken for verified identity or complete PII
+  coverage;
+- matched values leak through reports, errors, snapshots, or fixture names;
+- a false-positive span is transformed without explicit review.
+
+Baseline controls:
+
+- keep Sprint 28 recognizers and corpus development-only with synthetic data;
+- report only aggregate counts, hashes, gates, and decisions;
+- score exact item/type/UTF-8 ranges and retain adversarial false positives;
+- keep candidate suggestions distinct from `USER_REVIEWED` spans;
+- require a later ADR, bilingual review surface, and explicit confirmation
+  before any candidate can reach the existing transformation contract.
+
 ## Security requirements for upcoming epics
 
 - **E1:** canonical path validation and repository-boundary tests;

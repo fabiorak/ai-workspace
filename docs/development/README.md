@@ -9,6 +9,8 @@ Measurement reports:
 - [Context Pack schema-v2 source-table rollout](context-pack-source-table-rollout.md)
 - [Profile context selector measurement](context-selector-measurement.md)
 - [Selector continuity evidence retention](selector-continuity-evidence-retention.md)
+- [Reviewed entity candidate discovery corpus](entity-candidate-discovery-corpus.md)
+- [Reviewed entity candidate discovery observations](entity-candidate-discovery-observations.md)
 
 ## Prerequisites
 
@@ -132,6 +134,18 @@ keeps deterministic results separate in
 `integrations/local-key-custody` owns only bounded passphrase-wrapped key
 envelopes. Tests use synthetic passphrases and random temporary keys; never
 probe or create real credential-store records or report host/user identity.
+
+## Entity candidate discovery measurement
+
+Sprint 28 freezes its synthetic English/Italian exact-span ground truth and
+decision gates in the
+[Entity Candidate Discovery Corpus](entity-candidate-discovery-corpus.md).
+Run `npm run measure:entity-candidates` to reproduce two development-only runs.
+The aggregate [observations](entity-candidate-discovery-observations.md) accept
+exact configured aliases only as future review suggestions and require further
+refinement for standard syntax and combined candidates. No recognizer is
+exported to production or connected to the facade, GUI, mapping, or delivery
+graph.
 
 ## Architecture decisions
 

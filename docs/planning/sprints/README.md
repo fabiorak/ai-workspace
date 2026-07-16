@@ -31,4 +31,6 @@ results separately from future forecasts in the project plan.
 - [Sprint 24 — Link General Evidence to a Project Explicitly](SPRINT-024.md) — completed
 - [Sprint 25 — Measure General Link Retrieval Scale](SPRINT-025.md) — completed
 - [Sprint 26 — Preview Reversible Privacy Transformation](SPRINT-026.md) — completed
-- [Sprint 27 — Decide Local Mapping Key Custody](SPRINT-027.md) — planned
+- [Sprint 27 — Decide Local Mapping Key Custody](SPRINT-027.md) — completed
+- [Sprint 28 — Measure Reviewed Entity Candidate Discovery](SPRINT-028.md) — completed
+- [Sprint 29 — Review Exact Alias Suggestions Explicitly](SPRINT-029.md) — planned

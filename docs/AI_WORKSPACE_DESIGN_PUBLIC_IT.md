@@ -205,13 +205,18 @@ Ogni input destinato a un modello esterno deve poter attraversare una pipeline
 di pseudonimizzazione reversibile best-effort e controlli indipendenti di
 policy e secret detection.
 
-La prima slice E7 implementata è intenzionalmente più stretta: un preflight
-locale in sola lettura confronta un Context Pack esatto governato dal profilo
-con una policy project/model-scoped e digest-pinned. Gli elementi sconosciuti
-diventano `CONFIDENTIAL`; i pattern restricted ad alta confidenza bloccano
-sempre. Il risultato è evidenza ispezionabile `BLOCKED` o
-`REVIEWABLE_NOT_AUTHORIZED` e non fornisce pseudonimizzazione, rilevamento PII
-completo, accesso al modello, permesso, consegna o esecuzione.
+Le slice E7 implementate forniscono un preflight locale in sola lettura, span
+UTF-8 revisionati esplicitamente, pseudonimi inerti reversibili, mapping
+AES-256-GCM separati e chiavi casuali custodite in envelope protetti da
+passphrase. Evidenza e Context Pack canonici non cambiano; nessun risultato
+fornisce accesso al modello, permesso, consegna o esecuzione.
+
+Sprint 28 misura inoltre, solo in sviluppo e su un corpus sintetico bilingue,
+candidati deterministici per assistere una futura revisione. Gli alias esatti
+configurati superano il corpus come `ADOPT_FOR_REVIEW`; la sintassi standard e
+l'unione restano `REFINE` per un falso positivo telefonico nel codice. Nessun
+recognizer è esposto alla GUI o alla trasformazione, e non viene rivendicato un
+rilevamento PII completo.
 
 ### 3.6 Riutilizzo degli strumenti
 

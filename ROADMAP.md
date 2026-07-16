@@ -3,9 +3,9 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 26](docs/planning/sprints/SPRINT-026.md) are complete.
-[Sprint 27](docs/planning/sprints/SPRINT-027.md) is planned to decide local
-mapping-key custody and recovery from a predeclared cross-platform corpus.
+Sprint 0 through [Sprint 28](docs/planning/sprints/SPRINT-028.md) are complete.
+[Sprint 29](docs/planning/sprints/SPRINT-029.md) is planned as an ADR-first
+review surface for exact, explicitly configured alias suggestions only.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -108,13 +108,23 @@ REFERENCE runs produced identical counts, zero known-item misses, sub-threshold
 latency and less than 2.4% pressure on every production bound. Decision
 `NO_CHANGE` retains JSON scans and creates no index ADR.
 
-[Sprint 26](docs/planning/sprints/SPRINT-026.md) completes the next bounded E7
+[Sprint 26](docs/planning/sprints/SPRINT-026.md) completed the next bounded E7
 slice. Exact-hash user-reviewed UTF-8 spans produce deterministic inert aliases
 while preserving all unselected bytes. A separate local adapter stores only
 AES-256-GCM authenticated ciphertext with fresh nonces, private modes, owner
 locking, atomic publication, and explicit volatile key custody. The bilingual
 GUI verifies byte-exact restoration without changing evidence or authorizing
 network, model, delivery, permission, or execution behavior.
+
+[Sprint 27](docs/planning/sprints/SPRINT-027.md) completed passphrase-wrapped
+local custody for random per-mapping keys while retaining mapping schema-v1 and
+byte-exact recovery. [Sprint 28](docs/planning/sprints/SPRINT-028.md) then
+measured deterministic entity candidates without a production consumer. Exact
+aliases achieved 100% precision and recall on the frozen corpus and are
+recommended only for explicit review; standard syntax and the union remain
+`REFINE` after a telephone false positive in source-code-like text. Sprint 29
+must keep each match `SUGGESTED_NOT_REVIEWED` until explicit current-hash
+confirmation, and adds no automatic transformation or delivery.
 
 ## 1. Project Memory
 

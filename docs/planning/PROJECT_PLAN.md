@@ -440,6 +440,8 @@ must be adjusted using evidence from completed increments.
 | Sprint 25 | E0, E3        | Measure General link retrieval scale                    |
 | Sprint 26 | E0, E7        | Preview reversible privacy transformation               |
 | Sprint 27 | E0, E7        | Decide local mapping key custody                        |
+| Sprint 28 | E0, E7        | Measure reviewed entity candidate discovery             |
+| Sprint 29 | E0, E7        | Review exact alias suggestions explicitly               |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -513,6 +515,21 @@ one digest-pinned model data policy. Unknown items default to `CONFIDENTIAL`
 and high-confidence `RESTRICTED` patterns always block. The bilingual GUI
 exposes decisions and recovery without model access, pseudonymization,
 encrypted mappings, persistence, routing, or execution.
+Sprint 23 added bounded project-free General question capture and literal
+search without model response. Sprint 24 added immutable explicit General-to-
+project provenance links, and Sprint 25 measured their canonical scan path;
+the resulting `NO_CHANGE` decision retained bounded JSON without an index.
+Sprint 26 added exact reviewed-span pseudonymization, separate authenticated
+encrypted mappings, and byte-exact local restoration without delivery.
+Sprint 27 selected passphrase-wrapped random mapping keys after a frozen
+cross-platform custody comparison, retired raw hexadecimal key entry, and
+preserved mapping schema-v1 compatibility. Sprint 28 measured deterministic
+entity candidates development-only: exact aliases passed as
+`ADOPT_FOR_REVIEW`, while standard syntax and the union remain `REFINE` because
+telephone precision fell to 50% on source-code-like text. Sprint 29 is planned
+as an ADR-first rollout of exact alias suggestions only, kept
+`SUGGESTED_NOT_REVIEWED` until explicit current-hash confirmation creates the
+unchanged `USER_REVIEWED` contract. It adds no delivery authority.
 
 ## 9. Agile operating model
 
@@ -817,3 +834,13 @@ custody envelope; schema-v1 mapping ciphertext remains migration-free. Offline
 recovery requires both encrypted directories and the passphrase. Network
 recovery, export, delivery, models, execution, and real credentials remain
 excluded.
+
+[Sprint 28](sprints/SPRINT-028.md) completed the development-only entity
+candidate measurement. Two deterministic runs over eight synthetic bilingual
+items and 12 exact spans gave exact aliases 4 TP, 0 FP, and 0 FN, earning
+`ADOPT_FOR_REVIEW`. Standard syntax and the union remain `REFINE` because a
+valid telephone-shaped source-code literal reduced `PHONE` precision to 50%.
+No recognizer, facade, GUI, persistence, transformation, or delivery boundary
+was added. [Sprint 29](sprints/SPRINT-029.md) is planned as an ADR-first,
+exact-alias-only review surface with explicit current-hash confirmation into
+unchanged `USER_REVIEWED` spans.
