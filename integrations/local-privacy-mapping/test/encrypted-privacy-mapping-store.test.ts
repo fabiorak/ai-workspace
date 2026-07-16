@@ -13,7 +13,9 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   type PseudonymMapping,
+  type PseudonymMappingV2,
   validatePseudonymMapping,
+  validatePseudonymMappingV2,
 } from "@ai-workspace/privacy-gateway";
 import {
   EncryptedPrivacyMappingStore,
@@ -42,6 +44,17 @@ const mapping: PseudonymMapping = validatePseudonymMapping({
       originalBase64: Buffer.from("fictional-value").toString("base64"),
     },
   ],
+});
+const mappingV2: PseudonymMappingV2 = validatePseudonymMappingV2({
+  ...mapping,
+  schemaVersion: 2,
+  mappingSetId: "mapping-2",
+  entries: mapping.entries.map((entry) => ({
+    ...entry,
+    entityType: "PROJECT",
+    pseudonym: "[[AW_PROJECT_0123456789ABCDEF]]",
+    transformedByteEnd: 36,
+  })),
 });
 
 test("stores separate authenticated ciphertext privately and reads it with the explicit key", async () => {
@@ -78,6 +91,25 @@ test("uses fresh nonces and ciphertext for identical plaintext in separate store
     await readFile(join(firstHome, "privacy-mappings", firstName), "utf8"),
     await readFile(join(secondHome, "privacy-mappings", secondName), "utf8"),
   );
+});
+
+test("coexists with explicit schema-v2 mappings and authenticates their version", async () => {
+  const home = join(tmpdir(), `aiw-private-map-v2-${crypto.randomUUID()}`);
+  const store = new EncryptedPrivacyMappingStore(home, key);
+  await store.save(mappingV2);
+  assert.deepEqual(await store.read(mappingV2.mappingSetId), mappingV2);
+  const directory = join(home, "privacy-mappings");
+  const name = (await readdir(directory))[0]!;
+  const path = join(directory, name);
+  const document = JSON.parse(await readFile(path, "utf8")) as {
+    metadata: { mappingSchemaVersion: number };
+  };
+  assert.equal(document.metadata.mappingSchemaVersion, 2);
+  document.metadata.mappingSchemaVersion = 1;
+  await writeFile(path, `${JSON.stringify(document, null, 2)}\n`, {
+    mode: 0o600,
+  });
+  await assert.rejects(() => store.read(mappingV2.mappingSetId));
 });
 
 test("fails closed for wrong keys, tampering, unsafe permissions, temporary state, and owner locks", async () => {

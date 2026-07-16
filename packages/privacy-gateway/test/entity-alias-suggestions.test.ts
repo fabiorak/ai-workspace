@@ -3,6 +3,7 @@ import test from "node:test";
 import type { ExpandedContextPackPreview } from "@ai-workspace/context-builder";
 import {
   CustomerAliasSuggestionError,
+  suggestEntityAliases,
   suggestCustomerAliases,
 } from "../src/index.ts";
 
@@ -135,4 +136,23 @@ test("rejects project, duplicate, malformed Unicode, control, and overlaps witho
       ],
     }),
   );
+});
+
+test("suggests exact customer and project aliases without echoing dictionary values", () => {
+  const report = suggestEntityAliases({
+    modelId: "model-balanced",
+    contextPack: packet("Customer Cedar works on Project Quartz."),
+    dictionary: [
+      { entityType: "PROJECT", alias: "Project Quartz" },
+      { entityType: "CUSTOMER", alias: "Customer Cedar" },
+    ],
+  });
+  assert.deepEqual(
+    report.suggestions.map((entry) => entry.entityType),
+    ["CUSTOMER", "PROJECT"],
+  );
+  assert.equal(report.schemaVersion, 2);
+  assert.equal(report.accounting.customerEntries, 1);
+  assert.equal(report.accounting.projectEntries, 1);
+  assert.equal(JSON.stringify(report).includes("Quartz"), false);
 });

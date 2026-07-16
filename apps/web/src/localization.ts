@@ -65,8 +65,8 @@ const EN = {
   previewProfileContext: "Compose profile and Context Pack read-only",
   privacyPreflight: "Preview model privacy policy",
   previewPrivacyPreflight: "Run privacy preflight read-only",
-  customerAliasSuggestions: "Review exact customer-alias suggestions",
-  previewCustomerAliases: "Preview customer suggestions",
+  customerAliasSuggestions: "Review exact customer/project alias suggestions",
+  previewCustomerAliases: "Preview entity suggestions",
   confirmCustomerAliases: "Confirm selected current-hash ranges",
   contextSelectorReport: "Measure profile context selectors",
   previewContextSelectors: "Preview selector measurement read-only",
@@ -124,13 +124,13 @@ const EN = {
   privacyPreflightReady:
     "Privacy preflight {result} for {model} under policy {policy}: {allowed} allowed, {blocked} blocked, {defaulted} defaulted, {restricted} restricted. Review hashes and recovery; nothing was sent or authorized.",
   customerAliasWarning:
-    "Exact, case-sensitive CUSTOMER aliases only. The dictionary is transient and never persisted. Every result starts SUGGESTED_NOT_REVIEWED and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.",
+    "Exact, case-sensitive CUSTOMER and PROJECT aliases only. The dictionary is transient and never persisted. Every result starts SUGGESTED_NOT_REVIEWED and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.",
   customerAliasInput:
-    "Synthetic customer aliases, one exact case variant per line",
+    "Synthetic aliases, one typed line such as CUSTOMER: Cedar Demo or PROJECT: Quartz Demo",
   customerAliasEmpty:
-    "Reuse the exact privacy inputs above and enter transient synthetic customer aliases.",
+    "Reuse the exact privacy inputs above and enter typed transient synthetic aliases.",
   customerAliasReady:
-    "{count} exact customer suggestion(s) ready. All are unselected and not reviewed.",
+    "{count} exact entity suggestion(s) ready. All are unselected and not reviewed.",
   customerAliasSelectOne: "Select at least one current-hash suggestion.",
   customerAliasConfirmed:
     "{count} suggestion(s) explicitly confirmed into the transient reviewed-span form. Transformation remains a separate action.",
@@ -336,8 +336,9 @@ const IT = {
   previewProfileContext: "Componi profilo e Context Pack in sola lettura",
   privacyPreflight: "Anteprima policy privacy del modello",
   previewPrivacyPreflight: "Esegui preflight privacy in sola lettura",
-  customerAliasSuggestions: "Revisiona suggerimenti alias cliente esatti",
-  previewCustomerAliases: "Anteprima suggerimenti cliente",
+  customerAliasSuggestions:
+    "Revisiona suggerimenti alias cliente/progetto esatti",
+  previewCustomerAliases: "Anteprima suggerimenti entità",
   confirmCustomerAliases: "Conferma gli intervalli current-hash selezionati",
   contextSelectorReport: "Misura i selector context del profilo",
   previewContextSelectors: "Anteprima misurazione selector in sola lettura",
@@ -397,12 +398,13 @@ const IT = {
   privacyPreflightReady:
     "Preflight privacy {result} per {model} con policy {policy}: {allowed} consentiti, {blocked} bloccati, {defaulted} predefiniti, {restricted} restricted. Esamina hash e recovery; nulla è stato inviato o autorizzato.",
   customerAliasWarning:
-    "Solo alias CUSTOMER esatti e case-sensitive. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce SUGGESTED_NOT_REVIEWED e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
-  customerAliasInput: "Alias cliente sintetici, una variante esatta per riga",
+    "Solo alias CUSTOMER e PROJECT esatti e case-sensitive. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce SUGGESTED_NOT_REVIEWED e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
+  customerAliasInput:
+    "Alias sintetici, una riga tipizzata come CUSTOMER: Cedar Demo o PROJECT: Quartz Demo",
   customerAliasEmpty:
-    "Riusa gli input privacy esatti sopra e inserisci alias cliente sintetici transitori.",
+    "Riusa gli input privacy esatti sopra e inserisci alias sintetici transitori tipizzati.",
   customerAliasReady:
-    "{count} suggerimenti cliente esatti pronti. Sono tutti deselezionati e non revisionati.",
+    "{count} suggerimenti entità esatti pronti. Sono tutti deselezionati e non revisionati.",
   customerAliasSelectOne: "Seleziona almeno un suggerimento current-hash.",
   customerAliasConfirmed:
     "{count} suggerimenti confermati esplicitamente nel form transitorio degli span revisionati. La trasformazione resta un'azione separata.",

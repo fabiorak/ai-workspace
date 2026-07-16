@@ -223,6 +223,14 @@ Pseudonymization remains a separate action. `PROJECT` aliases require the
 planned schema-v2 compatibility boundary with permanent v1 reads and no
 implicit migration.
 
+Sprint 30 completes that boundary through ADR-0024. Exact configured
+`CUSTOMER` and `PROJECT` aliases remain transient, non-echoing, unselected
+review suggestions. Confirming any project span selects a separate schema-v2
+review and mapping; customer-only reviews continue to use schema v1. Versioned
+readers preserve exact permanent v1 behavior, v2 mappings authenticate their
+schema and scope, custody envelopes remain schema v1, and no state is migrated
+or re-encrypted.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

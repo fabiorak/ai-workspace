@@ -637,7 +637,7 @@ export async function startGuiServer(
           );
         }
         const customerAliasPreview =
-          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/customer-alias-suggestions\/preview$/u.exec(
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/(?:customer|entity)-alias-suggestions\/preview$/u.exec(
             url.pathname,
           );
         if (customerAliasPreview !== null) {
@@ -669,14 +669,15 @@ export async function startGuiServer(
             !body.dictionary.every(
               (entry) =>
                 record(entry) &&
-                entry.entityType === "CUSTOMER" &&
+                (entry.entityType === "CUSTOMER" ||
+                  entry.entityType === "PROJECT") &&
                 typeof entry.alias === "string",
             )
           )
             return reject(
               response,
               400,
-              "Select the exact profile, instruction sources, policy, model, and at least one transient synthetic customer alias.",
+              "Select the exact profile, instruction sources, policy, model, and at least one typed transient synthetic customer or project alias.",
             );
           return json(
             response,
@@ -697,7 +698,7 @@ export async function startGuiServer(
               model: body.model,
               ...(body.task === undefined ? {} : { task: body.task as string }),
               dictionary: body.dictionary as readonly {
-                entityType: "CUSTOMER";
+                entityType: "CUSTOMER" | "PROJECT";
                 alias: string;
               }[],
             }),

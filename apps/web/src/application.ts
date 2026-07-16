@@ -82,12 +82,16 @@ import {
 import {
   evaluatePrivacyPreflight,
   pseudonymizeContextPack,
+  pseudonymizeContextPackV2,
   restorePseudonymizedItems,
-  suggestCustomerAliases,
-  type CustomerAliasEntry,
-  type CustomerAliasSuggestionReport,
+  restorePseudonymizedItemsV2,
+  suggestEntityAliases,
+  type EntityAliasEntry,
+  type EntityAliasSuggestionReport,
   type PseudonymReview,
+  type PseudonymReviewV2,
   type PseudonymizationPreview,
+  type PseudonymizationPreviewV2,
   type PrivacyPreflightReport,
 } from "@ai-workspace/privacy-gateway";
 import {
@@ -231,7 +235,7 @@ export type GuiPrivacyPreflightPreview = Readonly<{
 }>;
 export type GuiPseudonymizationInput = GuiPrivacyPreflightInput &
   Readonly<{
-    review: PseudonymReview;
+    review: PseudonymReview | PseudonymReviewV2;
     keyCustody: Readonly<{
       mode: "PASSPHRASE_WRAPPING";
       passphrase: string;
@@ -240,22 +244,23 @@ export type GuiPseudonymizationInput = GuiPrivacyPreflightInput &
 export type GuiPseudonymizationPreview = Readonly<{
   policy: LocalModelDataPolicyInspection;
   preflight: PrivacyPreflightReport;
-  transformation: PseudonymizationPreview;
+  transformation: PseudonymizationPreview | PseudonymizationPreviewV2;
   mapping: Readonly<{
     persisted: true;
     restorationVerified: true;
     mappingSetId: string;
+    schemaVersion: 1 | 2;
     encryptedAtRest: true;
     keyCustody: "PASSPHRASE_WRAPPED_LOCAL";
   }>;
   effect: "LOCAL_REVIEW_AND_ENCRYPTED_MAPPING_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
 }>;
 export type GuiCustomerAliasSuggestionInput = GuiPrivacyPreflightInput &
-  Readonly<{ dictionary: readonly CustomerAliasEntry[] }>;
+  Readonly<{ dictionary: readonly EntityAliasEntry[] }>;
 export type GuiCustomerAliasSuggestionPreview = Readonly<{
   policy: LocalModelDataPolicyInspection;
   preflight: PrivacyPreflightReport;
-  suggestions: CustomerAliasSuggestionReport;
+  suggestions: EntityAliasSuggestionReport;
   effect: "LOCAL_SUGGESTIONS_NOT_REVIEWED_TRANSFORMED_AUTHORIZED_OR_DELIVERED";
 }>;
 export type GuiContextSelectorPreviewInput = Readonly<{
@@ -970,7 +975,7 @@ export class GuiApplication {
         modelId: input.model,
         contextPack: composition.contextPack,
       });
-      const suggestions = suggestCustomerAliases({
+      const suggestions = suggestEntityAliases({
         modelId: input.model,
         contextPack: composition.contextPack,
         dictionary: input.dictionary,
@@ -982,7 +987,7 @@ export class GuiApplication {
         effect:
           "LOCAL_SUGGESTIONS_NOT_REVIEWED_TRANSFORMED_AUTHORIZED_OR_DELIVERED" as const,
       });
-    }, "Keep the exact handoff, reviewed profile and instruction sources, model policy, and transient synthetic customer aliases; correct the highlighted input and preview again. No alias was persisted or reviewed.");
+    }, "Keep the exact handoff, reviewed profile and instruction sources, model policy, and transient synthetic customer/project aliases; correct the highlighted input and preview again. No alias was persisted or reviewed.");
   }
 
   public async previewPseudonymization(
@@ -1002,11 +1007,18 @@ export class GuiApplication {
       });
       const validationKey = crypto.getRandomValues(new Uint8Array(32));
       try {
-        pseudonymizeContextPack({
-          review: input.review,
-          contextPack: composition.contextPack,
-          key: validationKey,
-        });
+        if (input.review.schemaVersion === 1)
+          pseudonymizeContextPack({
+            review: input.review,
+            contextPack: composition.contextPack,
+            key: validationKey,
+          });
+        else
+          pseudonymizeContextPackV2({
+            review: input.review,
+            contextPack: composition.contextPack,
+            key: validationKey,
+          });
       } finally {
         validationKey.fill(0);
       }
@@ -1016,11 +1028,18 @@ export class GuiApplication {
         input.keyCustody.passphrase,
       );
       try {
-        const transformed = pseudonymizeContextPack({
-          review: input.review,
-          contextPack: composition.contextPack,
-          key,
-        });
+        const transformed =
+          input.review.schemaVersion === 1
+            ? pseudonymizeContextPack({
+                review: input.review,
+                contextPack: composition.contextPack,
+                key,
+              })
+            : pseudonymizeContextPackV2({
+                review: input.review,
+                contextPack: composition.contextPack,
+                key,
+              });
         const store = new EncryptedPrivacyMappingStore(
           this.#workspaceHome,
           key,
@@ -1035,10 +1054,24 @@ export class GuiApplication {
             this.#workspaceHome,
             unlocked,
           ).read(input.review.mappingSetId);
-          const restored = restorePseudonymizedItems({
-            mapping: persisted,
-            items: transformed.preview.items,
-          });
+          const restored =
+            persisted.schemaVersion === 1 &&
+            transformed.mapping.schemaVersion === 1
+              ? restorePseudonymizedItems({
+                  mapping: persisted,
+                  items: transformed.preview.items,
+                })
+              : persisted.schemaVersion === 2 &&
+                  transformed.mapping.schemaVersion === 2
+                ? restorePseudonymizedItemsV2({
+                    mapping: persisted,
+                    items: transformed.preview.items,
+                  })
+                : (() => {
+                    throw new Error(
+                      "The encrypted mapping schema changed during local round-trip verification.",
+                    );
+                  })();
           if (restored.length !== transformed.preview.items.length)
             throw new Error(
               "The encrypted mapping did not verify a complete local round trip.",
@@ -1054,6 +1087,7 @@ export class GuiApplication {
             persisted: true as const,
             restorationVerified: true as const,
             mappingSetId: input.review.mappingSetId,
+            schemaVersion: input.review.schemaVersion,
             encryptedAtRest: true as const,
             keyCustody: "PASSPHRASE_WRAPPED_LOCAL" as const,
           }),

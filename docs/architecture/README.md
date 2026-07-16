@@ -202,6 +202,15 @@ schema-v1 review form. `PROJECT` remains excluded pending the planned v2
 review/mapping compatibility corpus; schema-v1 mapping and custody-envelope
 contracts are unchanged.
 
+ADR-0024 adds a separate mapping/review schema v2 for confirmed `PROJECT`
+spans. Customer-only reviews continue to write schema v1; any confirmed project
+span selects v2 explicitly. Version-dispatched readers retain permanent v1
+bytes and reject downgrade, mixed-version identity, incoherent entity tokens,
+and unsupported versions. New v2 encrypted mapping documents authenticate the
+mapping schema with their exact scope; mapping-set identities remain immutable
+and distinct. The independent passphrase-wrapped custody envelope remains
+schema v1 and no state is migrated or re-encrypted.
+
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while
 the local adapter derives current state from append-only logical operations.

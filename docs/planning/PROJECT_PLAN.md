@@ -442,7 +442,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 27 | E0, E7        | Decide local mapping key custody                        |
 | Sprint 28 | E0, E7        | Measure reviewed entity candidate discovery             |
 | Sprint 29 | E0, E7        | Review exact alias suggestions explicitly               |
-| Sprint 30 | E0, E7        | Plan reviewed project aliases with schema v2            |
+| Sprint 30 | E0, E7        | Add reviewed project aliases with schema v2             |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -527,10 +527,13 @@ cross-platform custody comparison, retired raw hexadecimal key entry, and
 preserved mapping schema-v1 compatibility. Sprint 28 measured deterministic
 entity candidates development-only: exact aliases passed as
 `ADOPT_FOR_REVIEW`, while standard syntax and the union remain `REFINE` because
-telephone precision fell to 50% on source-code-like text. Sprint 29 is planned
-as an ADR-first rollout of exact alias suggestions only, kept
+telephone precision fell to 50% on source-code-like text. Sprint 29 accepted
+ADR-0023 and rolled out exact customer-alias suggestions only, kept
 `SUGGESTED_NOT_REVIEWED` until explicit current-hash confirmation creates the
-unchanged `USER_REVIEWED` contract. It adds no delivery authority.
+unchanged `USER_REVIEWED` contract. Sprint 30 then accepted ADR-0024 after an
+executable compatibility corpus and added explicit project spans through
+mapping schema v2 with permanent v1 reads. Neither increment adds delivery
+authority.
 
 ## 9. Agile operating model
 
@@ -852,3 +855,11 @@ pseudonymization action. `PROJECT` remains excluded because schema v1 cannot
 represent it without a contract change. Sprint 30 is planned to freeze v1/v2
 compatibility evidence before ADR-0024 and any explicit project-alias schema-v2
 writer, while retaining permanent v1 reads and no implicit migration.
+
+Sprint 30 completed that compatibility increment. The frozen synthetic corpus
+preceded ADR-0024 and production changes, retained exact schema-v1 review,
+mapping, transformation, and restoration bytes, and fixed deterministic v2
+project bytes plus downgrade and authentication gates. Confirmed project spans
+now use explicit schema v2; customer-only reviews remain v1. Both versions use
+distinct immutable mapping-set identities and the unchanged schema-v1 custody
+envelope without migration, re-encryption, delivery, network, or execution.

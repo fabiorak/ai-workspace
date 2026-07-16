@@ -3,9 +3,10 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 29](docs/planning/sprints/SPRINT-029.md) are complete.
-[Sprint 30](docs/planning/sprints/SPRINT-030.md) is planned as the evidence- and
-ADR-gated schema-v2 compatibility boundary for reviewed `PROJECT` aliases.
+Sprint 0 through [Sprint 30](docs/planning/sprints/SPRINT-030.md) are complete.
+Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
+reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
+byte-identical v1 reads and no implicit migration.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -133,6 +134,14 @@ the unchanged schema-v1 review form; pseudonymization remains a separate
 action. `PROJECT` is rejected rather than coerced to `OTHER`. Sprint 30 must
 freeze v1/v2 compatibility evidence before ADR-0024 or any v2 production code,
 retain permanent v1 reads, and perform no implicit migration.
+
+Sprint 30 froze those compatibility gates before ADR-0024 and production code.
+Exact `CUSTOMER` and `PROJECT` dictionaries now produce non-echoing unreviewed
+suggestions; confirmation selects schema v2 only when a `PROJECT` span is
+present. Mapping v1 remains byte-identical and permanently readable, mapping
+v2 authenticates its exact schema and scope, and both versions coexist under
+distinct immutable mapping-set identities with the unchanged custody-envelope
+schema v1. No migration, delivery, model, network, or execution path was added.
 
 ## 1. Project Memory
 

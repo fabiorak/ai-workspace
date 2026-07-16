@@ -316,12 +316,13 @@ Baseline controls:
 - require a later ADR, bilingual review surface, and explicit confirmation
   before any candidate can reach the existing transformation contract.
 
-ADR-0023 accepts exact customer aliases only. The production dictionary is
+ADR-0023 accepts exact customer aliases and ADR-0024 adds exact project aliases
+through an explicit schema-v2 boundary. The production dictionary is
 request-scoped and non-persistent; responses omit alias and matched text, every
-candidate starts `SUGGESTED_NOT_REVIEWED`, and individual confirmation only
-populates the existing transient schema-v1 review form. Project aliases fail
-closed until a separately accepted schema-v2 review/mapping boundary preserves
-permanent v1 reads without implicit migration.
+candidate starts `SUGGESTED_NOT_REVIEWED`, and individual confirmation chooses
+schema v2 only when a `PROJECT` span is present. Schema-v1 reads remain
+permanent and byte-identical; downgrade, mixed-version identity, unsupported
+versions, entity-token disagreement, and implicit migration fail closed.
 
 ## Security requirements for upcoming epics
 
@@ -506,6 +507,9 @@ delivery boundary.
   AES-256-GCM authenticated ciphertext using a fresh 96-bit nonce;
 - authenticated additional data binds schema, mapping set, project, Work Item,
   handoff, and model so metadata tampering or cross-scope replay fails;
+- schema-v2 mapping ciphertext additionally authenticates the exact mapping
+  schema version; legacy v1 ciphertext remains unchanged and version-dispatched
+  readers reject downgrade or mixed-version state;
 - the adapter requires `0700` directory and `0600` document modes, an exclusive
   owner-token lock, flushed temporary writes, atomic rename, immutable mapping
   identity, complete-state reads, and non-owner lock preservation;

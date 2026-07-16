@@ -11,6 +11,7 @@ Measurement reports:
 - [Selector continuity evidence retention](selector-continuity-evidence-retention.md)
 - [Reviewed entity candidate discovery corpus](entity-candidate-discovery-corpus.md)
 - [Reviewed entity candidate discovery observations](entity-candidate-discovery-observations.md)
+- [Privacy mapping schema-v2 compatibility corpus](privacy-schema-v2-compatibility-corpus.md)
 
 ## Prerequisites
 
@@ -134,6 +135,13 @@ keeps deterministic results separate in
 `integrations/local-key-custody` owns only bounded passphrase-wrapped key
 envelopes. Tests use synthetic passphrases and random temporary keys; never
 probe or create real credential-store records or report host/user identity.
+
+Sprint 30 freezes exact schema-v1 bytes, deterministic schema-v2 project
+bytes, mixed read/restore, downgrade, scope, and authenticated-version gates in
+the [Privacy Mapping Schema-v2 Compatibility Corpus](privacy-schema-v2-compatibility-corpus.md).
+Run `node --test packages/privacy-gateway/test/privacy-schema-v2-compatibility.test.ts`
+after building workspace packages. Schema-v1 fixtures are permanent; never
+rewrite them to resemble v2 or substitute real customer/project data.
 
 ## Entity candidate discovery measurement
 

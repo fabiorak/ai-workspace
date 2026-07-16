@@ -18,7 +18,8 @@ import {
 import { join } from "node:path";
 import {
   validatePseudonymMapping,
-  type PseudonymMapping,
+  validatePseudonymMappingV2,
+  type VersionedPseudonymMapping,
 } from "@ai-workspace/privacy-gateway";
 
 const MAX_DOCUMENT_BYTES = 256 * 1024;
@@ -26,7 +27,7 @@ const DOCUMENT = /^mapping_[a-f0-9]{64}\.json$/u;
 const BASE64 =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
 
-type Metadata = Readonly<{
+type MetadataV1 = Readonly<{
   schemaVersion: 1;
   algorithm: "AES-256-GCM";
   mappingSetId: string;
@@ -35,6 +36,17 @@ type Metadata = Readonly<{
   handoffId: string;
   modelId: string;
 }>;
+type MetadataV2 = Readonly<{
+  schemaVersion: 1;
+  mappingSchemaVersion: 2;
+  algorithm: "AES-256-GCM";
+  mappingSetId: string;
+  projectId: string;
+  workItemId: string;
+  handoffId: string;
+  modelId: string;
+}>;
+type Metadata = MetadataV1 | MetadataV2;
 
 export class LocalPrivacyMappingError extends Error {
   public constructor(
@@ -56,8 +68,8 @@ export class EncryptedPrivacyMappingStore {
     this.#key = Buffer.from(key);
   }
 
-  public async save(mapping: PseudonymMapping): Promise<void> {
-    const validated = validatePseudonymMapping(mapping);
+  public async save(mapping: VersionedPseudonymMapping): Promise<void> {
+    const validated = validateMapping(mapping);
     await this.#locked(async () => {
       const names = await this.#names();
       this.#validateNames(names);
@@ -70,7 +82,7 @@ export class EncryptedPrivacyMappingStore {
     });
   }
 
-  public async read(mappingSetId: string): Promise<PseudonymMapping> {
+  public async read(mappingSetId: string): Promise<VersionedPseudonymMapping> {
     if (!validText(mappingSetId)) throw storageError();
     let names: string[];
     try {
@@ -160,16 +172,29 @@ export class EncryptedPrivacyMappingStore {
   }
 }
 
-function encrypt(mapping: PseudonymMapping, key: Buffer): string {
-  const metadata: Metadata = Object.freeze({
-    schemaVersion: 1,
-    algorithm: "AES-256-GCM",
-    mappingSetId: mapping.mappingSetId,
-    projectId: mapping.projectId,
-    workItemId: mapping.workItemId,
-    handoffId: mapping.handoffId,
-    modelId: mapping.modelId,
-  });
+function encrypt(mapping: VersionedPseudonymMapping, key: Buffer): string {
+  const metadata: Metadata = Object.freeze(
+    mapping.schemaVersion === 1
+      ? {
+          schemaVersion: 1 as const,
+          algorithm: "AES-256-GCM" as const,
+          mappingSetId: mapping.mappingSetId,
+          projectId: mapping.projectId,
+          workItemId: mapping.workItemId,
+          handoffId: mapping.handoffId,
+          modelId: mapping.modelId,
+        }
+      : {
+          schemaVersion: 1 as const,
+          mappingSchemaVersion: 2 as const,
+          algorithm: "AES-256-GCM" as const,
+          mappingSetId: mapping.mappingSetId,
+          projectId: mapping.projectId,
+          workItemId: mapping.workItemId,
+          handoffId: mapping.handoffId,
+          modelId: mapping.modelId,
+        },
+  );
   const aad = Buffer.from(JSON.stringify(metadata), "utf8");
   const nonce = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, nonce);
@@ -178,7 +203,7 @@ function encrypt(mapping: PseudonymMapping, key: Buffer): string {
   const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
   return `${JSON.stringify({ metadata, nonce: nonce.toString("base64"), ciphertext: ciphertext.toString("base64"), authenticationTag: cipher.getAuthTag().toString("base64") }, null, 2)}\n`;
 }
-function decrypt(content: string, key: Buffer): PseudonymMapping {
+function decrypt(content: string, key: Buffer): VersionedPseudonymMapping {
   try {
     const value: unknown = JSON.parse(content);
     if (
@@ -190,15 +215,6 @@ function decrypt(content: string, key: Buffer): PseudonymMapping {
         "nonce",
       ]) ||
       !record(value.metadata) ||
-      !exactKeys(value.metadata, [
-        "algorithm",
-        "handoffId",
-        "mappingSetId",
-        "modelId",
-        "projectId",
-        "schemaVersion",
-        "workItemId",
-      ]) ||
       value.metadata.schemaVersion !== 1 ||
       value.metadata.algorithm !== "AES-256-GCM" ||
       !validText(value.metadata.mappingSetId) ||
@@ -212,6 +228,35 @@ function decrypt(content: string, key: Buffer): PseudonymMapping {
       !BASE64.test(value.nonce) ||
       !BASE64.test(value.ciphertext) ||
       !BASE64.test(value.authenticationTag)
+    )
+      throw storageError();
+    const mappingSchemaVersion =
+      value.metadata.mappingSchemaVersion === undefined
+        ? 1
+        : value.metadata.mappingSchemaVersion;
+    if (
+      (mappingSchemaVersion === 1 &&
+        !exactKeys(value.metadata, [
+          "algorithm",
+          "handoffId",
+          "mappingSetId",
+          "modelId",
+          "projectId",
+          "schemaVersion",
+          "workItemId",
+        ])) ||
+      (mappingSchemaVersion === 2 &&
+        !exactKeys(value.metadata, [
+          "algorithm",
+          "handoffId",
+          "mappingSchemaVersion",
+          "mappingSetId",
+          "modelId",
+          "projectId",
+          "schemaVersion",
+          "workItemId",
+        ])) ||
+      (mappingSchemaVersion !== 1 && mappingSchemaVersion !== 2)
     )
       throw storageError();
     if (`${JSON.stringify(value, null, 2)}\n` !== content) throw storageError();
@@ -228,9 +273,10 @@ function decrypt(content: string, key: Buffer): PseudonymMapping {
       decipher.update(ciphertext),
       decipher.final(),
     ]).toString("utf8");
-    const mapping = validatePseudonymMapping(JSON.parse(plaintext));
+    const mapping = validateMapping(JSON.parse(plaintext));
     if (
       `${JSON.stringify(mapping)}\n` !== plaintext ||
+      mapping.schemaVersion !== mappingSchemaVersion ||
       mapping.mappingSetId !== metadata.mappingSetId ||
       mapping.projectId !== metadata.projectId ||
       mapping.workItemId !== metadata.workItemId ||
@@ -243,6 +289,12 @@ function decrypt(content: string, key: Buffer): PseudonymMapping {
     if (error instanceof LocalPrivacyMappingError) throw error;
     throw storageError(error);
   }
+}
+function validateMapping(value: unknown): VersionedPseudonymMapping {
+  if (!record(value)) throw storageError();
+  if (value.schemaVersion === 1) return validatePseudonymMapping(value);
+  if (value.schemaVersion === 2) return validatePseudonymMappingV2(value);
+  throw storageError();
 }
 function documentName(id: string): string {
   return `mapping_${createHash("sha256").update(id, "utf8").digest("hex")}.json`;

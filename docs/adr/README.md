@@ -44,3 +44,4 @@ Status: proposed | accepted | superseded
 - [ADR-0021: Use reviewed spans and encrypted local pseudonym mappings](0021-use-reviewed-spans-and-encrypted-local-pseudonym-mappings.md)
 - [ADR-0022: Use passphrase-wrapped local mapping keys](0022-use-passphrase-wrapped-local-mapping-keys.md)
 - [ADR-0023: Use transient exact customer-alias suggestions](0023-use-transient-exact-customer-alias-suggestions.md)
+- [ADR-0024: Use additive schema-v2 project pseudonym mappings](0024-use-additive-schema-v2-project-pseudonym-mappings.md)

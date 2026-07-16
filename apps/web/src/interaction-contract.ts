@@ -361,17 +361,17 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
     ),
     screen(
       "CUSTOMER_ALIAS_REVIEW",
-      "Exact customer-alias review",
-      "Preview transient exact customer ranges and confirm them individually without treating a suggestion as reviewed truth.",
+      "Exact customer/project alias review",
+      "Preview transient exact customer or project ranges and confirm them individually without treating a suggestion as reviewed truth.",
       action({
         id: "preview-customer-aliases",
-        label: "Preview customer suggestions",
+        label: "Preview entity suggestions",
         description:
-          "Recompose the exact profile-governed Context Pack and match only explicit case-sensitive CUSTOMER aliases.",
+          "Recompose the exact profile-governed Context Pack and match only explicit case-sensitive CUSTOMER or PROJECT aliases.",
         effect:
           "Returns non-echoing SUGGESTED_NOT_REVIEWED metadata without persistence, transformation, delivery, or execution.",
         prerequisites:
-          "Inspect one immutable handoff, complete the exact privacy inputs, and enter a transient synthetic customer dictionary.",
+          "Inspect one immutable handoff, complete the exact privacy inputs, and enter a typed transient synthetic customer/project dictionary.",
         mutates: false,
       }),
     ),
@@ -385,7 +385,7 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         description:
           "Replace reviewed values with deterministic inert aliases and verify the separate encrypted mapping through a complete local round trip.",
         effect:
-          "Persists authenticated ciphertext only; source evidence and Context Packs remain unchanged and nothing is sent or executed.",
+          "Persists authenticated schema-v1 or explicit schema-v2 ciphertext only; source evidence and Context Packs remain unchanged and nothing is sent or executed.",
         prerequisites:
           "Complete the exact privacy inputs, review item hashes and UTF-8 byte ranges, choose a new mapping-set identity, and provide a local custody passphrase.",
         recovery:

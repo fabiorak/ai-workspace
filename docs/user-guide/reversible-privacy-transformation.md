@@ -10,21 +10,23 @@ First run and inspect the model privacy preflight for the selected project,
 Work Item, immutable handoff, profile, instruction sources, model, and policy.
 The transformation form reuses those exact inputs.
 
-Sprint 29 can first propose exact, case-sensitive synthetic `CUSTOMER` aliases.
-Enter one explicit case variant per line. The dictionary is used only for that
-request and is never persisted. Every match starts
+The GUI can first propose exact, case-sensitive synthetic `CUSTOMER` and
+`PROJECT` aliases. Enter one typed case variant per line, for example
+`CUSTOMER: Cedar Demo` or `PROJECT: Quartz Demo`. The dictionary is used only
+for that request and is never persisted. Every match starts
 `SUGGESTED_NOT_REVIEWED`, remains unselected by default, and shows its current
 item/hash-bound UTF-8 range. Select and confirm individual matches to populate
 the reviewed-span form; transformation still requires the separate action
-below. `PROJECT` aliases require the planned schema-v2 compatibility boundary
-and are rejected in the current schema-v1 journey.
+below. A customer-only review remains schema v1; confirming any `PROJECT` span
+selects schema v2 explicitly.
 
 For each value to transform, provide:
 
 - the included Context Pack item ID;
 - its exact lowercase content SHA-256;
 - a non-empty start-inclusive/end-exclusive UTF-8 byte range;
-- `PERSON`, `CUSTOMER`, `EMAIL`, `BUSINESS_IDENTIFIER`, or `OTHER`.
+- `PERSON`, `CUSTOMER`, `EMAIL`, `BUSINESS_IDENTIFIER`, or `OTHER` in schema
+  v1; schema v2 also accepts `PROJECT`.
 
 Also choose a new mapping-set identity and enter a custody passphrase containing
 16 through 1,024 UTF-8 bytes. The local process generates an independent random
@@ -38,6 +40,12 @@ Both encrypted directories plus the passphrase are required after a workspace
 move. Losing either the envelope or passphrase is irrecoverable. There is no
 cloud recovery, export, synchronization, passphrase reset, or recovery from
 ciphertext alone.
+
+Schema-v1 and schema-v2 mappings use distinct immutable mapping-set identities
+and can coexist. Older v1-only software must fail closed on v2 state: preserve
+both encrypted directories without rewriting them and return to compatible
+software. There is no automatic upgrade, downgrade, migration, or
+re-encryption.
 
 ## Read the result
 
@@ -63,8 +71,8 @@ returns no key and leaves existing encrypted state untouched.
 
 ## Important limitations
 
-Customer suggestions are review assistance, not verified identity. Standard
-syntax, project aliases, automatic selection, correction memory, and complete
+Customer and project suggestions are review assistance, not verified identity.
+Standard syntax, automatic selection, correction memory, and complete
 PII/secret detection are not implemented. Pseudonymized content remains
 `CONFIDENTIAL` and pseudonymization is
 not anonymization, permission, model availability, delivery, or execution.

@@ -226,6 +226,14 @@ nel form di revisione schema-v1 esistente. La pseudonimizzazione resta
 un'azione separata. Gli alias `PROJECT` richiedono il boundary di compatibilità
 schema v2 pianificato, con letture v1 permanenti e nessuna migrazione implicita.
 
+Sprint 30 completa quel boundary tramite ADR-0024. Gli alias configurati esatti
+`CUSTOMER` e `PROJECT` restano suggerimenti di revisione transitori, non
+riecheggianti e deselezionati. La conferma di uno span progetto seleziona un
+documento di review e mapping schema v2 separato; le review solo cliente
+continuano a usare schema v1. I reader versionati conservano il comportamento
+v1 permanente ed esatto, i mapping v2 autenticano schema e scope, gli envelope
+di custodia restano schema v1 e nessuno stato viene migrato o ricifrato.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

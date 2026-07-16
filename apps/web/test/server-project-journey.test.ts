@@ -949,7 +949,7 @@ describe("GUI server project onboarding", () => {
     assert.ok(customerAlias);
     const suggestionPath = path.replace(
       "/profile-context/preview",
-      "/customer-alias-suggestions/preview",
+      "/entity-alias-suggestions/preview",
     );
     const suggestionResponse = await api(suggestionPath, {
       method: "POST",
@@ -967,7 +967,7 @@ describe("GUI server project onboarding", () => {
           contentSha256: string;
           byteStart: number;
           byteEnd: number;
-          entityType: "CUSTOMER";
+          entityType: "CUSTOMER" | "PROJECT";
           state: string;
         }[];
       };
@@ -981,7 +981,7 @@ describe("GUI server project onboarding", () => {
       false,
     );
     assert.match(suggestionPreview.effect, /NOT_REVIEWED/u);
-    const rejectedProjectAlias = await api(suggestionPath, {
+    const projectAliasResponse = await api(suggestionPath, {
       method: "POST",
       body: JSON.stringify({
         ...request,
@@ -989,9 +989,17 @@ describe("GUI server project onboarding", () => {
         dictionary: [{ entityType: "PROJECT", alias: customerAlias }],
       }),
     });
-    assert.equal(rejectedProjectAlias.status, 400);
+    assert.equal(projectAliasResponse.status, 200);
+    const projectAliasPreview = (await projectAliasResponse.json()) as {
+      suggestions: {
+        suggestions: typeof suggestionPreview.suggestions.suggestions;
+      };
+    };
+    const [confirmedProjectSuggestion] =
+      projectAliasPreview.suggestions.suggestions;
+    assert.equal(confirmedProjectSuggestion?.entityType, "PROJECT");
     assert.equal(
-      (await rejectedProjectAlias.text()).includes(customerAlias),
+      JSON.stringify(projectAliasPreview).includes(customerAlias),
       false,
     );
     const pseudonymizationPath = path.replace(
@@ -1030,17 +1038,62 @@ describe("GUI server project onboarding", () => {
     });
     assert.equal(pseudonymizationResponse.status, 201);
     const pseudonymization = (await pseudonymizationResponse.json()) as {
-      mapping: { restorationVerified: boolean; encryptedAtRest: boolean };
+      mapping: {
+        restorationVerified: boolean;
+        encryptedAtRest: boolean;
+        schemaVersion: number;
+      };
       effect: string;
     };
     assert.equal(pseudonymization.mapping.restorationVerified, true);
     assert.equal(pseudonymization.mapping.encryptedAtRest, true);
+    assert.equal(pseudonymization.mapping.schemaVersion, 1);
     assert.match(pseudonymization.effect, /NOT_AUTHORIZED/u);
     assert.equal(
       JSON.stringify(pseudonymization).includes(mappingPassphrase),
       false,
     );
     assert.equal(JSON.stringify(pseudonymization).includes(root), false);
+    assert.ok(confirmedProjectSuggestion);
+    const projectPassphrase = "synthetic project custody passphrase";
+    const projectPseudonymizationResponse = await api(pseudonymizationPath, {
+      method: "POST",
+      body: JSON.stringify({
+        ...request,
+        policy: { path: policyPath },
+        keyCustody: {
+          mode: "PASSPHRASE_WRAPPING",
+          passphrase: projectPassphrase,
+        },
+        review: {
+          schemaVersion: 2,
+          mappingSetId: "http-mapping-2",
+          projectId,
+          workItemId: work.id,
+          handoffId: handoff.id,
+          modelId: "model-balanced",
+          attribution: "USER_REVIEWED",
+          selections: [
+            {
+              itemId: confirmedProjectSuggestion.itemId,
+              contentSha256: confirmedProjectSuggestion.contentSha256,
+              byteStart: confirmedProjectSuggestion.byteStart,
+              byteEnd: confirmedProjectSuggestion.byteEnd,
+              entityType: confirmedProjectSuggestion.entityType,
+            },
+          ],
+        },
+      }),
+    });
+    assert.equal(projectPseudonymizationResponse.status, 201);
+    const projectPseudonymization =
+      (await projectPseudonymizationResponse.json()) as typeof pseudonymization;
+    assert.equal(projectPseudonymization.mapping.schemaVersion, 2);
+    assert.equal(projectPseudonymization.mapping.restorationVerified, true);
+    assert.equal(
+      JSON.stringify(projectPseudonymization).includes(projectPassphrase),
+      false,
+    );
     const wrongModelPolicy = await api(privacyPath, {
       method: "POST",
       body: JSON.stringify({

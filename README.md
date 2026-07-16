@@ -240,10 +240,10 @@ The current GUI also provides:
   authenticated mapping store; a per-mapping random key is held in a separate
   passphrase-wrapped local custody envelope and no result authorizes model
   delivery;
-- transient exact `CUSTOMER` alias suggestions that remain
+- transient exact `CUSTOMER` and `PROJECT` alias suggestions that remain
   `SUGGESTED_NOT_REVIEWED` until individual current-hash confirmation; the
-  dictionary is not persisted, project aliases remain schema-v2 planning, and
-  transformation stays separate.
+  dictionary is not persisted, confirmed project spans use additive mapping
+  schema v2 with permanent v1 reads, and transformation stays separate.
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
