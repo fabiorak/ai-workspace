@@ -316,6 +316,13 @@ Baseline controls:
 - require a later ADR, bilingual review surface, and explicit confirmation
   before any candidate can reach the existing transformation contract.
 
+ADR-0023 accepts exact customer aliases only. The production dictionary is
+request-scoped and non-persistent; responses omit alias and matched text, every
+candidate starts `SUGGESTED_NOT_REVIEWED`, and individual confirmation only
+populates the existing transient schema-v1 review form. Project aliases fail
+closed until a separately accepted schema-v2 review/mapping boundary preserves
+permanent v1 reads without implicit migration.
+
 ## Security requirements for upcoming epics
 
 - **E1:** canonical path validation and repository-boundary tests;

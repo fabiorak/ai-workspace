@@ -17,6 +17,7 @@ export type GuiJourneyStep =
   | "CONTEXT_PACK"
   | "PROFILE_CONTEXT"
   | "CONTEXT_SELECTOR_REPORT"
+  | "CUSTOMER_ALIAS_REVIEW"
   | "PRIVACY_TRANSFORMATION";
 export type GuiState =
   | "FIRST_RUN"
@@ -359,6 +360,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
       }),
     ),
     screen(
+      "CUSTOMER_ALIAS_REVIEW",
+      "Exact customer-alias review",
+      "Preview transient exact customer ranges and confirm them individually without treating a suggestion as reviewed truth.",
+      action({
+        id: "preview-customer-aliases",
+        label: "Preview customer suggestions",
+        description:
+          "Recompose the exact profile-governed Context Pack and match only explicit case-sensitive CUSTOMER aliases.",
+        effect:
+          "Returns non-echoing SUGGESTED_NOT_REVIEWED metadata without persistence, transformation, delivery, or execution.",
+        prerequisites:
+          "Inspect one immutable handoff, complete the exact privacy inputs, and enter a transient synthetic customer dictionary.",
+        mutates: false,
+      }),
+    ),
+    screen(
       "PRIVACY_TRANSFORMATION",
       "Reversible privacy transformation",
       "Apply explicitly reviewed exact UTF-8 spans, persist only an authenticated encrypted mapping, and verify local restoration without delivery authority.",
@@ -448,7 +465,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 19)
+  if (steps.size !== 20)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

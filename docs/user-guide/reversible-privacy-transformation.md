@@ -10,6 +10,15 @@ First run and inspect the model privacy preflight for the selected project,
 Work Item, immutable handoff, profile, instruction sources, model, and policy.
 The transformation form reuses those exact inputs.
 
+Sprint 29 can first propose exact, case-sensitive synthetic `CUSTOMER` aliases.
+Enter one explicit case variant per line. The dictionary is used only for that
+request and is never persisted. Every match starts
+`SUGGESTED_NOT_REVIEWED`, remains unselected by default, and shows its current
+item/hash-bound UTF-8 range. Select and confirm individual matches to populate
+the reviewed-span form; transformation still requires the separate action
+below. `PROJECT` aliases require the planned schema-v2 compatibility boundary
+and are rejected in the current schema-v1 journey.
+
 For each value to transform, provide:
 
 - the included Context Pack item ID;
@@ -54,8 +63,10 @@ returns no key and leaves existing encrypted state untouched.
 
 ## Important limitations
 
-Spans are manually reviewed; there is no automatic or complete PII/secret
-detection. Pseudonymized content remains `CONFIDENTIAL` and pseudonymization is
+Customer suggestions are review assistance, not verified identity. Standard
+syntax, project aliases, automatic selection, correction memory, and complete
+PII/secret detection are not implemented. Pseudonymized content remains
+`CONFIDENTIAL` and pseudonymization is
 not anonymization, permission, model availability, delivery, or execution.
 Canonical evidence and Context Packs are never modified.
 

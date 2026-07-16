@@ -65,6 +65,9 @@ const EN = {
   previewProfileContext: "Compose profile and Context Pack read-only",
   privacyPreflight: "Preview model privacy policy",
   previewPrivacyPreflight: "Run privacy preflight read-only",
+  customerAliasSuggestions: "Review exact customer-alias suggestions",
+  previewCustomerAliases: "Preview customer suggestions",
+  confirmCustomerAliases: "Confirm selected current-hash ranges",
   contextSelectorReport: "Measure profile context selectors",
   previewContextSelectors: "Preview selector measurement read-only",
   noExecution:
@@ -120,6 +123,17 @@ const EN = {
     "Inspect an immutable handoff, then provide one profile, its exact instruction sources, one allowed model, and one same-project model data policy.",
   privacyPreflightReady:
     "Privacy preflight {result} for {model} under policy {policy}: {allowed} allowed, {blocked} blocked, {defaulted} defaulted, {restricted} restricted. Review hashes and recovery; nothing was sent or authorized.",
+  customerAliasWarning:
+    "Exact, case-sensitive CUSTOMER aliases only. The dictionary is transient and never persisted. Every result starts SUGGESTED_NOT_REVIEWED and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.",
+  customerAliasInput:
+    "Synthetic customer aliases, one exact case variant per line",
+  customerAliasEmpty:
+    "Reuse the exact privacy inputs above and enter transient synthetic customer aliases.",
+  customerAliasReady:
+    "{count} exact customer suggestion(s) ready. All are unselected and not reviewed.",
+  customerAliasSelectOne: "Select at least one current-hash suggestion.",
+  customerAliasConfirmed:
+    "{count} suggestion(s) explicitly confirmed into the transient reviewed-span form. Transformation remains a separate action.",
   contextSelectorWarning:
     "Experiment only: selectors map only to documented handoff sections. Objective, repository, next action, and source references form a non-excludable safety floor. This report does not change Context Builder policy.",
   contextSelectorVocabulary:
@@ -322,6 +336,9 @@ const IT = {
   previewProfileContext: "Componi profilo e Context Pack in sola lettura",
   privacyPreflight: "Anteprima policy privacy del modello",
   previewPrivacyPreflight: "Esegui preflight privacy in sola lettura",
+  customerAliasSuggestions: "Revisiona suggerimenti alias cliente esatti",
+  previewCustomerAliases: "Anteprima suggerimenti cliente",
+  confirmCustomerAliases: "Conferma gli intervalli current-hash selezionati",
   contextSelectorReport: "Misura i selector context del profilo",
   previewContextSelectors: "Anteprima misurazione selector in sola lettura",
   noExecution:
@@ -379,6 +396,16 @@ const IT = {
     "Esamina un handoff immutabile, poi fornisci un profilo, le sue sorgenti istruzioni esatte, un modello consentito e una policy dati modello dello stesso progetto.",
   privacyPreflightReady:
     "Preflight privacy {result} per {model} con policy {policy}: {allowed} consentiti, {blocked} bloccati, {defaulted} predefiniti, {restricted} restricted. Esamina hash e recovery; nulla è stato inviato o autorizzato.",
+  customerAliasWarning:
+    "Solo alias CUSTOMER esatti e case-sensitive. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce SUGGESTED_NOT_REVIEWED e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
+  customerAliasInput: "Alias cliente sintetici, una variante esatta per riga",
+  customerAliasEmpty:
+    "Riusa gli input privacy esatti sopra e inserisci alias cliente sintetici transitori.",
+  customerAliasReady:
+    "{count} suggerimenti cliente esatti pronti. Sono tutti deselezionati e non revisionati.",
+  customerAliasSelectOne: "Seleziona almeno un suggerimento current-hash.",
+  customerAliasConfirmed:
+    "{count} suggerimenti confermati esplicitamente nel form transitorio degli span revisionati. La trasformazione resta un'azione separata.",
   contextSelectorWarning:
     "Solo esperimento: i selector mappano esclusivamente sezioni handoff documentate. Obiettivo, repository, prossima azione e riferimenti sorgente formano un safety floor non escludibile. Il report non cambia la policy del Context Builder.",
   contextSelectorVocabulary:

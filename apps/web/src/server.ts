@@ -636,6 +636,73 @@ export async function startGuiServer(
             }),
           );
         }
+        const customerAliasPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/customer-alias-suggestions\/preview$/u.exec(
+            url.pathname,
+          );
+        if (customerAliasPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            !record(body.profile) ||
+            typeof body.profile.path !== "string" ||
+            (body.profile.expectedDigest !== undefined &&
+              typeof body.profile.expectedDigest !== "string") ||
+            !record(body.policy) ||
+            typeof body.policy.path !== "string" ||
+            (body.policy.expectedDigest !== undefined &&
+              typeof body.policy.expectedDigest !== "string") ||
+            !Array.isArray(body.bundles) ||
+            body.bundles.length < 1 ||
+            !body.bundles.every(
+              (bundle) =>
+                record(bundle) &&
+                typeof bundle.path === "string" &&
+                (bundle.expectedDigest === undefined ||
+                  typeof bundle.expectedDigest === "string"),
+            ) ||
+            typeof body.model !== "string" ||
+            !body.model.trim() ||
+            !optionalString(body.task) ||
+            !Array.isArray(body.dictionary) ||
+            body.dictionary.length < 1 ||
+            !body.dictionary.every(
+              (entry) =>
+                record(entry) &&
+                entry.entityType === "CUSTOMER" &&
+                typeof entry.alias === "string",
+            )
+          )
+            return reject(
+              response,
+              400,
+              "Select the exact profile, instruction sources, policy, model, and at least one transient synthetic customer alias.",
+            );
+          return json(
+            response,
+            200,
+            await application.previewCustomerAliasSuggestions({
+              projectId: decodeURIComponent(customerAliasPreview[1]!),
+              workItemId: decodeURIComponent(customerAliasPreview[2]!),
+              handoffId: decodeURIComponent(customerAliasPreview[3]!),
+              profile: body.profile as {
+                path: string;
+                expectedDigest?: string;
+              },
+              policy: body.policy as { path: string; expectedDigest?: string },
+              bundles: body.bundles as readonly {
+                path: string;
+                expectedDigest?: string;
+              }[],
+              model: body.model,
+              ...(body.task === undefined ? {} : { task: body.task as string }),
+              dictionary: body.dictionary as readonly {
+                entityType: "CUSTOMER";
+                alias: string;
+              }[],
+            }),
+          );
+        }
         const pseudonymizationPreview =
           /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/pseudonymization\/preview$/u.exec(
             url.pathname,

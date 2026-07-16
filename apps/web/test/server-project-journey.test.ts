@@ -945,6 +945,55 @@ describe("GUI server project onboarding", () => {
     assert.match(privacy.effect, /NOT_AUTHORIZED/u);
     assert.equal(JSON.stringify(privacy).includes(root), false);
     const reviewedItem = value.contextPack.included[0]!;
+    const customerAlias = /[A-Za-z]{4,}/u.exec(reviewedItem.content)?.[0];
+    assert.ok(customerAlias);
+    const suggestionPath = path.replace(
+      "/profile-context/preview",
+      "/customer-alias-suggestions/preview",
+    );
+    const suggestionResponse = await api(suggestionPath, {
+      method: "POST",
+      body: JSON.stringify({
+        ...request,
+        policy: { path: policyPath },
+        dictionary: [{ entityType: "CUSTOMER", alias: customerAlias }],
+      }),
+    });
+    assert.equal(suggestionResponse.status, 200);
+    const suggestionPreview = (await suggestionResponse.json()) as {
+      suggestions: {
+        suggestions: {
+          itemId: string;
+          contentSha256: string;
+          byteStart: number;
+          byteEnd: number;
+          entityType: "CUSTOMER";
+          state: string;
+        }[];
+      };
+      effect: string;
+    };
+    const [confirmedSuggestion] = suggestionPreview.suggestions.suggestions;
+    assert.ok(confirmedSuggestion);
+    assert.equal(confirmedSuggestion.state, "SUGGESTED_NOT_REVIEWED");
+    assert.equal(
+      JSON.stringify(suggestionPreview).includes(customerAlias),
+      false,
+    );
+    assert.match(suggestionPreview.effect, /NOT_REVIEWED/u);
+    const rejectedProjectAlias = await api(suggestionPath, {
+      method: "POST",
+      body: JSON.stringify({
+        ...request,
+        policy: { path: policyPath },
+        dictionary: [{ entityType: "PROJECT", alias: customerAlias }],
+      }),
+    });
+    assert.equal(rejectedProjectAlias.status, 400);
+    assert.equal(
+      (await rejectedProjectAlias.text()).includes(customerAlias),
+      false,
+    );
     const pseudonymizationPath = path.replace(
       "/profile-context/preview",
       "/pseudonymization/preview",
@@ -969,13 +1018,11 @@ describe("GUI server project onboarding", () => {
           attribution: "USER_REVIEWED",
           selections: [
             {
-              itemId: reviewedItem.id,
-              contentSha256: createHash("sha256")
-                .update(reviewedItem.content, "utf8")
-                .digest("hex"),
-              byteStart: 0,
-              byteEnd: 1,
-              entityType: "OTHER",
+              itemId: confirmedSuggestion.itemId,
+              contentSha256: confirmedSuggestion.contentSha256,
+              byteStart: confirmedSuggestion.byteStart,
+              byteEnd: confirmedSuggestion.byteEnd,
+              entityType: confirmedSuggestion.entityType,
             },
           ],
         },

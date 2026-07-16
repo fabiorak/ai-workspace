@@ -442,6 +442,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 27 | E0, E7        | Decide local mapping key custody                        |
 | Sprint 28 | E0, E7        | Measure reviewed entity candidate discovery             |
 | Sprint 29 | E0, E7        | Review exact alias suggestions explicitly               |
+| Sprint 30 | E0, E7        | Plan reviewed project aliases with schema v2            |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -841,6 +842,13 @@ items and 12 exact spans gave exact aliases 4 TP, 0 FP, and 0 FN, earning
 `ADOPT_FOR_REVIEW`. Standard syntax and the union remain `REFINE` because a
 valid telephone-shaped source-code literal reduced `PHONE` precision to 50%.
 No recognizer, facade, GUI, persistence, transformation, or delivery boundary
-was added. [Sprint 29](sprints/SPRINT-029.md) is planned as an ADR-first,
-exact-alias-only review surface with explicit current-hash confirmation into
-unchanged `USER_REVIEWED` spans.
+was added by that measurement.
+
+Sprint 29 accepted ADR-0023 and delivered transient exact `CUSTOMER` alias
+suggestions only. Responses are non-echoing and remain
+`SUGGESTED_NOT_REVIEWED`; the bilingual GUI requires individual current-hash
+confirmation into unchanged schema-v1 reviewed spans before the separate
+pseudonymization action. `PROJECT` remains excluded because schema v1 cannot
+represent it without a contract change. Sprint 30 is planned to freeze v1/v2
+compatibility evidence before ADR-0024 and any explicit project-alias schema-v2
+writer, while retaining permanent v1 reads and no implicit migration.

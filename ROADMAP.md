@@ -3,9 +3,9 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 28](docs/planning/sprints/SPRINT-028.md) are complete.
-[Sprint 29](docs/planning/sprints/SPRINT-029.md) is planned as an ADR-first
-review surface for exact, explicitly configured alias suggestions only.
+Sprint 0 through [Sprint 29](docs/planning/sprints/SPRINT-029.md) are complete.
+[Sprint 30](docs/planning/sprints/SPRINT-030.md) is planned as the evidence- and
+ADR-gated schema-v2 compatibility boundary for reviewed `PROJECT` aliases.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -122,9 +122,17 @@ byte-exact recovery. [Sprint 28](docs/planning/sprints/SPRINT-028.md) then
 measured deterministic entity candidates without a production consumer. Exact
 aliases achieved 100% precision and recall on the frozen corpus and are
 recommended only for explicit review; standard syntax and the union remain
-`REFINE` after a telephone false positive in source-code-like text. Sprint 29
-must keep each match `SUGGESTED_NOT_REVIEWED` until explicit current-hash
-confirmation, and adds no automatic transformation or delivery.
+`REFINE` after a telephone false positive in source-code-like text. That result
+required every future match to remain `SUGGESTED_NOT_REVIEWED` until explicit
+current-hash confirmation, with no automatic transformation or delivery.
+
+Sprint 29 accepted ADR-0023 and rolled out only exact `CUSTOMER` aliases through
+a transient, non-echoing `SUGGESTED_NOT_REVIEWED` boundary. The bilingual GUI
+leaves every current-hash range unselected until individual confirmation into
+the unchanged schema-v1 review form; pseudonymization remains a separate
+action. `PROJECT` is rejected rather than coerced to `OTHER`. Sprint 30 must
+freeze v1/v2 compatibility evidence before ADR-0024 or any v2 production code,
+retain permanent v1 reads, and perform no implicit migration.
 
 ## 1. Project Memory
 

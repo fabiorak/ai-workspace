@@ -218,6 +218,14 @@ l'unione restano `REFINE` per un falso positivo telefonico nel codice. Nessun
 recognizer è esposto alla GUI o alla trasformazione, e non viene rivendicato un
 rilevamento PII completo.
 
+Sprint 29 espone soltanto alias `CUSTOMER` configurati esatti tramite una
+superficie locale di revisione transitoria. I suggerimenti contengono hash
+correnti e intervalli UTF-8, non alias o testo corrispondente, restano
+`SUGGESTED_NOT_REVIEWED` e sono deselezionati fino alla conferma individuale
+nel form di revisione schema-v1 esistente. La pseudonimizzazione resta
+un'azione separata. Gli alias `PROJECT` richiedono il boundary di compatibilità
+schema v2 pianificato, con letture v1 permanenti e nessuna migrazione implicita.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

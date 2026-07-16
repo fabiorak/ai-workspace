@@ -83,6 +83,9 @@ import {
   evaluatePrivacyPreflight,
   pseudonymizeContextPack,
   restorePseudonymizedItems,
+  suggestCustomerAliases,
+  type CustomerAliasEntry,
+  type CustomerAliasSuggestionReport,
   type PseudonymReview,
   type PseudonymizationPreview,
   type PrivacyPreflightReport,
@@ -246,6 +249,14 @@ export type GuiPseudonymizationPreview = Readonly<{
     keyCustody: "PASSPHRASE_WRAPPED_LOCAL";
   }>;
   effect: "LOCAL_REVIEW_AND_ENCRYPTED_MAPPING_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
+}>;
+export type GuiCustomerAliasSuggestionInput = GuiPrivacyPreflightInput &
+  Readonly<{ dictionary: readonly CustomerAliasEntry[] }>;
+export type GuiCustomerAliasSuggestionPreview = Readonly<{
+  policy: LocalModelDataPolicyInspection;
+  preflight: PrivacyPreflightReport;
+  suggestions: CustomerAliasSuggestionReport;
+  effect: "LOCAL_SUGGESTIONS_NOT_REVIEWED_TRANSFORMED_AUTHORIZED_OR_DELIVERED";
 }>;
 export type GuiContextSelectorPreviewInput = Readonly<{
   projectId: string;
@@ -944,6 +955,34 @@ export class GuiApplication {
       () => this.#previewPrivacyPreflight(input),
       "Keep the explicit handoff, reviewed profile, exact instruction sources, allowed model, and digest-pinned same-project policy; correct the incompatible selection and preview again. No data was sent.",
     );
+  }
+
+  public async previewCustomerAliasSuggestions(
+    input: GuiCustomerAliasSuggestionInput,
+  ): Promise<GuiCustomerAliasSuggestionPreview> {
+    return this.#run(async () => {
+      const [composition, policy] = await Promise.all([
+        this.#previewProfileContext(input),
+        new LocalModelDataPolicyReader().read(input.projectId, input.policy),
+      ]);
+      const preflight = evaluatePrivacyPreflight({
+        policy: policy.policy,
+        modelId: input.model,
+        contextPack: composition.contextPack,
+      });
+      const suggestions = suggestCustomerAliases({
+        modelId: input.model,
+        contextPack: composition.contextPack,
+        dictionary: input.dictionary,
+      });
+      return Object.freeze({
+        policy,
+        preflight,
+        suggestions,
+        effect:
+          "LOCAL_SUGGESTIONS_NOT_REVIEWED_TRANSFORMED_AUTHORIZED_OR_DELIVERED" as const,
+      });
+    }, "Keep the exact handoff, reviewed profile and instruction sources, model policy, and transient synthetic customer aliases; correct the highlighted input and preview again. No alias was persisted or reviewed.");
   }
 
   public async previewPseudonymization(

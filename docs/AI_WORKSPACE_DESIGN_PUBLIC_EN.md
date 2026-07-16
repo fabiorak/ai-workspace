@@ -215,6 +215,14 @@ aliases pass as `ADOPT_FOR_REVIEW`; standard syntax and the union remain
 exposed to the GUI or transformation, and complete PII detection is not
 claimed.
 
+Sprint 29 exposes only exact configured `CUSTOMER` aliases through a transient
+local review surface. Suggestions contain current hashes and UTF-8 ranges, not
+alias or matched text, remain `SUGGESTED_NOT_REVIEWED`, and are unselected until
+individual confirmation into the existing schema-v1 review form.
+Pseudonymization remains a separate action. `PROJECT` aliases require the
+planned schema-v2 compatibility boundary with permanent v1 reads and no
+implicit migration.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

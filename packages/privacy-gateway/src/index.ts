@@ -5,6 +5,7 @@ import type {
 } from "@ai-workspace/context-builder";
 
 export * from "./pseudonymization.ts";
+export * from "./entity-alias-suggestions.ts";
 
 export const MODEL_DATA_POLICY_SCHEMA_VERSION = 1;
 export const PRIVACY_PREFLIGHT_EFFECT =

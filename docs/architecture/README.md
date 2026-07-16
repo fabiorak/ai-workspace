@@ -193,6 +193,15 @@ exact aliases `ADOPT_FOR_REVIEW` and standard/combined candidates `REFINE`.
 Any production review surface still requires an ADR, explicit user review, and
 a new facade/GUI boundary; no candidate reaches transformation or delivery.
 
+ADR-0023 adds only that narrow boundary for exact `CUSTOMER` aliases. The
+provider-neutral privacy-gateway contract consumes a transient bounded
+dictionary and the recomposed exact Context Pack, then returns non-echoing
+current-hash UTF-8 ranges as `SUGGESTED_NOT_REVIEWED`. The loopback facade and
+GUI keep candidates unselected and confirmation only prepares the existing
+schema-v1 review form. `PROJECT` remains excluded pending the planned v2
+review/mapping compatibility corpus; schema-v1 mapping and custody-envelope
+contracts are unchanged.
+
 Active memory remains separate from historical evidence and artifacts. Its
 provider-neutral lifecycle is implemented in `packages/active-memory`, while
 the local adapter derives current state from append-only logical operations.
