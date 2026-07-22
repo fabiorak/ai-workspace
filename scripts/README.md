@@ -35,3 +35,12 @@ only synthetic labels, digests, counts, documented capability booleans, and
 decisions. See the [Responses corpus](../docs/development/openai-responses-qualification-corpus.md),
 [Codex corpus](../docs/development/codex-headless-qualification-corpus.md), and
 [observations](../docs/development/openai-transport-qualification-observations.md).
+
+`npm run measure:anthropic-messages` and `npm run measure:claude-headless` run
+the Sprint 35 qualification corpora twice. The first models bounded Messages
+serialization and typed events; the second uses two deterministic fake Claude
+Code profiles and never launches the installed executable. Neither command
+reads authentication, opens a socket, incurs cost, or returns content. See the
+[Messages corpus](../docs/development/anthropic-messages-qualification-corpus.md),
+[Claude corpus](../docs/development/claude-headless-qualification-corpus.md),
+and [observations](../docs/development/anthropic-transport-qualification-observations.md).

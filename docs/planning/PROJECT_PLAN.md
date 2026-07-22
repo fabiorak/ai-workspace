@@ -447,6 +447,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 32 | E0, E7        | Record privacy preflight decisions locally              |
 | Sprint 33 | E0, E7        | Decide single-use delivery authorization                |
 | Sprint 34 | E0, E7        | Qualify OpenAI Responses and Codex headless transports  |
+| Sprint 35 | E0, E7        | Qualify Anthropic Messages and Claude Code headless     |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -574,6 +575,14 @@ process cases, but exact model-visible input isolation is not established;
 decision `SEPARATE_AGENT_BOUNDARY` removes it from the E7 fallback path. No
 ADR-0027, credential, network, production adapter, model call, response,
 routing, delivery, fallback, or execution was added.
+
+Sprint 35 completed second-provider qualification without a live call.
+Anthropic Messages passed 19/19 deterministic protocol cases but remains
+`EVIDENCE_ONLY` because create idempotency and post-timeout retrieval are not
+documented. Claude Code passed 14/14 fake-process cases: bare is
+`API_EQUIVALENT_NOT_FALLBACK`, while managed login is a
+`SEPARATE_AGENT_BOUNDARY`. No ADR-0027, credential, network, real subprocess,
+model call, response, routing, delivery, fallback, or execution was added.
 
 ## 9. Agile operating model
 
@@ -932,3 +941,9 @@ are not documented. Codex closes `SEPARATE_AGENT_BOUNDARY` because its agent
 context cannot prove exact reviewed-input isolation. No live probe, ADR-0027,
 credential, network, model call, response, production adapter, GUI delivery, or
 execution path was added.
+
+[Sprint 35](sprints/SPRINT-035.md) completed the second-provider qualification.
+Anthropic Messages closed `EVIDENCE_ONLY` after 19/19 offline cases. Claude
+Code bare closed `API_EQUIVALENT_NOT_FALLBACK`, while managed login closed
+`SEPARATE_AGENT_BOUNDARY`, after 14/14 fake-process cases. No live call, ADR,
+production adapter, provider routing, fallback, or GUI action was added.

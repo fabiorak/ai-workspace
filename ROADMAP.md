@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 34](docs/planning/sprints/SPRINT-034.md) are complete.
+Sprint 0 through [Sprint 35](docs/planning/sprints/SPRINT-035.md) are complete.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.
@@ -30,6 +30,12 @@ remain ambiguous, so its decision is `EVIDENCE_ONLY`. The 10/10 Codex headless
 process corpus closes `SEPARATE_AGENT_BOUNDARY` because coding-agent context
 cannot prove exact reviewed-input isolation. No ADR-0027 or production surface
 is added.
+[Sprint 35](docs/planning/sprints/SPRINT-035.md) applied the same offline
+qualification to Anthropic. Messages passed 19/19 local protocol cases but
+remains `EVIDENCE_ONLY` because safe create replay and post-timeout retrieval
+are not documented. Claude Code passed 14/14 fake-process cases: bare mode is
+`API_EQUIVALENT_NOT_FALLBACK`, while managed login is a
+`SEPARATE_AGENT_BOUNDARY`. No live provider or executable was invoked.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -188,6 +194,11 @@ not yet supply a documented exactly-once or safely repeatable create boundary.
 `codex exec` is not a model-delivery fallback; any future use belongs behind a
 separate agent-execution boundary. M5 remains incomplete and no live probe was
 run.
+
+Sprint 35 confirms that Anthropic Messages has the same unresolved
+post-exposure boundary. Claude Code bare cannot replace missing API
+credentials, and managed-login headless remains an agent-execution candidate
+rather than model delivery. M5 remains incomplete and no live probe was run.
 
 ## 1. Project Memory
 

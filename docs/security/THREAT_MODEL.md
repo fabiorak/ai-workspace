@@ -627,6 +627,28 @@ Codex or a model, or returns synthetic content in receipts/errors. A future live
 probe requires separate authorization, synthetic-only input, process-scoped
 credentials, cost bounds, sanitization, and an updated threat model.
 
+## Sprint 35 Anthropic and Claude transport qualification
+
+The offline Messages harness binds synthetic system and transformed-input
+digests to a fixed Anthropic version, reviewed model, bounded output, and zero
+tools. It rejects altered bytes before exposure and treats stream loss, 429,
+529, malformed events, and duplicate create after possible exposure as
+ambiguous. Request and message identifiers are not inferred to be idempotency
+keys, so no automatic post-exposure retry is authorized.
+
+The fake Claude process harness separates `--bare` API authentication from
+managed-login authentication and fixes safe mode, no tools, no persistence,
+empty setting sources, strict MCP configuration, permission denial, structured
+output, reviewed model, and a cost ceiling. Unexpected tool, MCP, plugin, retry,
+result, output-size, exit, timeout, or process-tree state fails closed. Bare
+mode does not solve missing API credentials; managed login does not prove that
+coding-agent instructions and context are absent from model-visible input.
+
+Neither harness reads auth/configuration, opens a socket, launches Claude, or
+returns content in receipts/errors. A live probe requires separate approval,
+synthetic input, process-scoped credential injection, fixed cost, isolated
+state, non-echo sanitization, and cleanup proof.
+
 ## Review triggers
 
 Review and update this model when:

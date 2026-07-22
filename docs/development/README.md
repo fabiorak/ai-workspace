@@ -179,6 +179,16 @@ reproduce the offline results. Responses closes `EVIDENCE_ONLY`; Codex closes
 `SEPARATE_AGENT_BOUNDARY`. Neither command uses credentials, network, Codex, or
 a model, and neither contract is exported from production code.
 
+Sprint 35 applies the same boundary to the second provider family through the
+[Anthropic Messages corpus](anthropic-messages-qualification-corpus.md),
+[Claude headless corpus](claude-headless-qualification-corpus.md), and combined
+[observations](anthropic-transport-qualification-observations.md). Run
+`npm run measure:anthropic-messages` and `npm run measure:claude-headless` to
+reproduce the offline results. Messages closes `EVIDENCE_ONLY`; bare Claude is
+`API_EQUIVALENT_NOT_FALLBACK`; managed-login Claude remains a
+`SEPARATE_AGENT_BOUNDARY`. No credential, network, real executable, or model is
+used.
+
 ## Entity candidate discovery measurement
 
 Sprint 28 freezes its synthetic English/Italian exact-span ground truth and

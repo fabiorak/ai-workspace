@@ -187,6 +187,15 @@ request correlation is not documented create idempotency. Codex is classified
 cannot prove exact reviewed-input isolation. Neither harness is exported;
 network, auth, subprocess, application, API, and GUI graphs remain unchanged.
 
+Sprint 35 adds a second-provider qualification without adding a production
+component. A test-owned Messages protocol harness binds exact system and user
+digests to fixed API version, output bound, and zero tools; missing create
+idempotency leaves its decision `EVIDENCE_ONLY`. A fake Claude Code port keeps
+bare API authentication separate from managed login. Bare is
+`API_EQUIVALENT_NOT_FALLBACK`; managed login is a
+`SEPARATE_AGENT_BOUNDARY`. No harness is exported and no application, network,
+credential, subprocess, routing, fallback, or GUI graph changes.
+
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
 events remain untrusted historical evidence and do not enter active memory or

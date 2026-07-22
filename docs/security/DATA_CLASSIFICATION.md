@@ -150,6 +150,15 @@ storage. Request and response bodies, bearer credentials, Codex auth files,
 mapping plaintext, keys, and passphrases remain forbidden from qualification
 evidence.
 
+Sprint 35 adds no production Anthropic or Claude data. Its test-only attempt,
+header-name, event-count, process, and identifier digests would be
+`CONFIDENTIAL` if tied to a real workspace. API keys, setup tokens, OAuth and
+keychain state, account IDs, provider request/message IDs, Claude settings,
+init events, stderr, prompts, system instructions, and model output require an
+explicit classification before runtime use. Credential values, auth exports,
+request/response bodies, mapping plaintext, keys, and passphrases remain
+forbidden from qualification evidence.
+
 ## Implemented reversible transformation
 
 Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping

@@ -263,6 +263,14 @@ instructions and tools cannot prove that only reviewed bytes are model-visible.
 No live probe, ADR-0027, credential, model call, response, delivery, or execution
 surface is added.
 
+Sprint 35 applies the qualification boundary to Anthropic and Claude without
+contacting them. A 19-case Messages corpus passes local bounded protocol gates
+but remains `EVIDENCE_ONLY` because create idempotency and post-timeout
+retrieval are not documented. A 14-case fake Claude Code corpus separates bare
+API authentication (`API_EQUIVALENT_NOT_FALLBACK`) from managed login
+(`SEPARATE_AGENT_BOUNDARY`). No live probe, credential, production adapter,
+model call, response, routing, fallback, delivery, or execution is added.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

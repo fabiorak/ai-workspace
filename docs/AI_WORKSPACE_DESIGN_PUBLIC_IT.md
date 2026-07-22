@@ -269,6 +269,15 @@ istruzioni e tool dell'agente di coding non provano che solo i byte revisionati
 siano visibili al modello. Non vengono aggiunti probe live, ADR-0027,
 credenziali, chiamate modello, risposte, delivery o esecuzione.
 
+Sprint 35 applica il confine di qualifica ad Anthropic e Claude senza
+contattarli. Un corpus Messages di 19 casi supera i gate locali bounded ma
+resta `EVIDENCE_ONLY`, perché idempotenza della create e recupero dopo timeout
+non sono documentati. Un corpus Claude Code finto di 14 casi separa
+l'autenticazione API bare (`API_EQUIVALENT_NOT_FALLBACK`) dal login gestito
+(`SEPARATE_AGENT_BOUNDARY`). Non vengono aggiunti probe live, credenziali,
+adapter di produzione, chiamate modello, risposte, routing, fallback, delivery
+o esecuzione.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

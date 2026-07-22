@@ -31,6 +31,8 @@
     "measure:delivery-authorization": "node scripts/model-delivery-authorization-measurement.ts",
     "measure:openai-responses": "node scripts/openai-responses-qualification-measurement.ts",
     "measure:codex-headless": "node scripts/codex-headless-qualification-measurement.ts",
+    "measure:anthropic-messages": "node scripts/anthropic-messages-qualification-measurement.ts",
+    "measure:claude-headless": "node scripts/claude-headless-qualification-measurement.ts",
     "test": "node --test apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "test:watch": "node --test --watch apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "typecheck": "tsc --noEmit --pretty false"
