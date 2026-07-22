@@ -589,6 +589,23 @@ information. A same-user process may observe memory or replace files despite
 filesystem modes. Fixed capacity blocks new reports until explicit recovery;
 there is no automatic retention or archive.
 
+## Sprint 33 delivery-authorization evidence
+
+The development-only authorization corpus binds one explicit synthetic intent
+to exact audit, policy, profile, model, scope, mapping, expiry, and transformed
+request digests. Its in-memory consumer rejects blocked, stale, missing,
+altered, expired, replayed, concurrent, and cross-scoped cases before exposing
+bytes to a synthetic adapter.
+
+This is not a production control. Failure after byte exposure has an ambiguous
+external outcome even when local state is consumed, and a mock receipt cannot
+prove provider acceptance after a process crash. Decision `EVIDENCE_ONLY`
+therefore adds no persisted grant, bearer token, provider, credential, endpoint,
+network, model call, response, retry, routing, delivery, or execution surface.
+A future provider-specific threat model must cover idempotency, timeouts,
+acceptance receipts, cancellation, replay, and crash recovery before network
+access is authorized.
+
 ## Review triggers
 
 Review and update this model when:

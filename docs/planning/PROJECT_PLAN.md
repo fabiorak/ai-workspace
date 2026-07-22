@@ -445,6 +445,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 30 | E0, E7        | Add reviewed project aliases with schema v2             |
 | Sprint 31 | E0, E7        | Validate safe pseudonymized output restoration          |
 | Sprint 32 | E0, E7        | Record privacy preflight decisions locally              |
+| Sprint 33 | E0, E7        | Decide single-use delivery authorization                |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -553,6 +554,16 @@ require verified append/reread before a report is returned and are visible in a
 bounded bilingual read-only viewer. Transformation/restoration audit,
 retention, export, models, delivery, routing, permissions, and execution remain
 outside the increment.
+
+Sprint 33 completed the next evidence-first E7 boundary. Its frozen 22-case
+corpus rejected transient confirmation and reusable persisted grants. A
+transaction-coupled single-use candidate bound exact preflight audit,
+policy/profile/model/scope, transformed-request digest, mapping identity, and
+expiry while preventing local replay and concurrent consumption. External
+outcome remained unknowable after byte exposure, so the decision is
+`EVIDENCE_ONLY`, ADR-0027 was not created, and no production provider,
+credential, network, model invocation, response capture, routing, delivery, or
+execution path was added.
 
 ## 9. Agile operating model
 
@@ -896,3 +907,10 @@ accepted ADR-0026. Verified append/reread precedes report return; project-scoped
 list/detail views remain read-only. It adds no transformation/restoration audit,
 retention, export, model, network, delivery, routing, permission, or execution
 path.
+
+[Sprint 33](sprints/SPRINT-033.md) completed its frozen authorization, replay,
+expiry, and crash corpus with 22/22 expected cases and zero errors. Local
+single-use consumption passed, but provider outcome after byte exposure stayed
+ambiguous; decision `EVIDENCE_ONLY` adds no ADR-0027 or production surface. A
+future provider sprint must begin with concrete idempotency, acceptance-receipt,
+timeout, retry, cancellation, and crash-recovery semantics.

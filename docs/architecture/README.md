@@ -171,6 +171,14 @@ privacy actions remain unaudited. Read-only list/detail routes are authenticated
 and project-scoped. The store has no dependency on active memory, history,
 artifacts, mappings, custody, model, network, or delivery components.
 
+Sprint 33 adds no production architecture component. A test-only provider-neutral
+intent, in-memory single-use store, and synthetic adapter measure exact binding,
+expiry, replay, concurrency, and crash windows. The `EVIDENCE_ONLY` decision
+rejects an ADR and production export because external acceptance becomes
+unknowable after byte exposure without a concrete provider idempotency and
+receipt protocol. Existing application, API, GUI, persistence, privacy,
+mapping, custody, restoration, and audit graphs remain unchanged.
+
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
 events remain untrusted historical evidence and do not enter active memory or

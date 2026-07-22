@@ -17,3 +17,12 @@ ground truth. Output contains aggregate counts, hashes, gates, and decisions,
 never matched text. It changes no runtime package export, GUI, facade, mapping,
 policy, delivery, or execution path. See the frozen
 [corpus](../docs/development/entity-candidate-discovery-corpus.md).
+
+`npm run measure:delivery-authorization` runs the Sprint 33 frozen
+development-only authorization corpus twice. It uses only test-owned synthetic
+intent metadata, an in-memory single-use store, and a synthetic adapter; it
+opens no socket and accepts no endpoint, credential, real prompt, or response.
+The `EVIDENCE_ONLY` result adds no production export, ADR, GUI action, provider,
+network, model call, delivery, or execution path. See the frozen
+[corpus](../docs/development/model-delivery-authorization-corpus.md) and
+[observations](../docs/development/model-delivery-authorization-observations.md).

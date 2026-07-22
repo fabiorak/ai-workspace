@@ -246,6 +246,14 @@ or blocked decisions before report return and the bilingual GUI exposes bounded
 read-only list/detail views. Transformation, restoration, models, and delivery
 remain excluded.
 
+Sprint 33 completes the next evidence-first boundary before model access. A
+frozen 22-case replay/expiry/crash corpus rejects transient confirmation and
+reusable grants. Transaction-coupled single use binds exact audited provenance
+and transformed bytes and prevents local replay, but provider outcome after
+byte exposure remains unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027,
+production provider, credential, network, model call, response, routing,
+delivery, or execution surface.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

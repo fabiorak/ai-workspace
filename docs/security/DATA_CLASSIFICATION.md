@@ -134,6 +134,13 @@ mappings, secrets, prompts, responses, or restored output. Audit metadata and
 digests remain correlatable and are not a classification downgrade or delivery
 authority.
 
+Sprint 33 does not add a production authorization record or change data
+classification. Its synthetic test-only intent contains metadata and digests
+that would be `CONFIDENTIAL` if persisted in a real workspace. Exact request
+content, item hashes, mappings, secrets, credentials, prompts, and responses
+remain forbidden from authorization metadata. Any future transport design must
+classify provider receipts and idempotency material before storage is selected.
+
 ## Implemented reversible transformation
 
 Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping

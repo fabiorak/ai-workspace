@@ -251,6 +251,15 @@ restituzione del report e la GUI bilingue espone viste bounded di lista e
 dettaglio in sola lettura. Trasformazione, restore, modelli e delivery restano
 esclusi.
 
+Sprint 33 completa il successivo boundary evidence-first prima dell'accesso ai
+modelli. Un corpus congelato di 22 casi su replay, scadenza e crash rifiuta
+conferma transitoria e grant riutilizzabili. Il single-use accoppiato alla
+transazione lega provenance auditata e byte trasformati esatti e impedisce il
+replay locale, ma l'esito del provider dopo l'esposizione dei byte resta
+inconoscibile. La decisione `EVIDENCE_ONLY` non aggiunge ADR-0027, provider di
+produzione, credenziali, rete, chiamate modello, risposte, routing, delivery o
+esecuzione.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

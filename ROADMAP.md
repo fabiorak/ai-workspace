@@ -17,6 +17,12 @@ frozen non-content corpus passed. Valid explicit privacy-preflight decisions
 are now recorded in a separate bounded append-only local store and exposed in a
 read-only bilingual project viewer. Audit failure blocks report return; models,
 delivery, routing, permissions, and execution remain excluded.
+[Sprint 33](docs/planning/sprints/SPRINT-033.md) completed a frozen 22-case
+authorization, replay, expiry, and crash corpus. Local transaction-coupled
+single-use consumption passed, but provider outcome after byte exposure stayed
+unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027, production grant,
+provider, credential, network, model call, response, delivery, routing, or
+execution surface.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -163,6 +169,12 @@ Sprint 32 must keep audit evidence separate from ordinary logs, content,
 mappings, prompts, and responses. Only valid preflight decisions are eligible;
 transformation/restoration audit, deletion, export, retention automation,
 external anchoring, model access, and delivery remain later boundaries.
+
+Sprint 33 did not turn `REVIEWABLE_NOT_AUTHORIZED` into an implicit send path.
+Exact transformed-request binding, intent, expiry, replay, concurrency, and
+pre-exposure blocking passed in the synthetic adapter, while post-exposure
+crashes remained ambiguous. Provider integration remains a later explicitly
+authorized boundary with concrete protocol evidence.
 
 ## 1. Project Memory
 

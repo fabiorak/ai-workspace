@@ -160,6 +160,16 @@ explicit preflight decisions after verified append/reread; no complete report,
 content, item hash, path, detected value, secret, mapping, prompt, response, or
 restored output is retained.
 
+Sprint 33 freezes the exact authorization-intent metadata, 60-second expiry,
+single-use replay rules, and before/after-exposure crash matrix in the
+[Model-delivery Authorization Corpus](model-delivery-authorization-corpus.md).
+Run `npm run measure:delivery-authorization` to reproduce the deterministic
+[observations](model-delivery-authorization-observations.md). The result is
+`EVIDENCE_ONLY`: local transaction-coupled consumption passes, but external
+outcome after byte exposure is unknowable without a concrete provider protocol.
+The contract and adapter remain test-only; no ADR-0027 or production surface is
+added.
+
 ## Entity candidate discovery measurement
 
 Sprint 28 freezes its synthetic English/Italian exact-span ground truth and

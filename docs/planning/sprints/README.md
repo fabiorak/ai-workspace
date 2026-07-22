@@ -37,3 +37,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 30 — Plan Reviewed Project Aliases with Schema v2](SPRINT-030.md) — completed
 - [Sprint 31 — Validate Safe Pseudonymized Output Restoration](SPRINT-031.md) — completed
 - [Sprint 32 — Record Privacy Preflight Decisions Locally](SPRINT-032.md) — completed
+- [Sprint 33 — Decide the Enforceable Model-Delivery Authorization Boundary](SPRINT-033.md) — completed
