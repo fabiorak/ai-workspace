@@ -170,6 +170,15 @@ outcome after byte exposure is unknowable without a concrete provider protocol.
 The contract and adapter remain test-only; no ADR-0027 or production surface is
 added.
 
+Sprint 34 qualifies concrete OpenAI candidates through the frozen
+[Responses corpus](openai-responses-qualification-corpus.md),
+[Codex headless corpus](codex-headless-qualification-corpus.md), and combined
+[observations](openai-transport-qualification-observations.md). Run
+`npm run measure:openai-responses` and `npm run measure:codex-headless` to
+reproduce the offline results. Responses closes `EVIDENCE_ONLY`; Codex closes
+`SEPARATE_AGENT_BOUNDARY`. Neither command uses credentials, network, Codex, or
+a model, and neither contract is exported from production code.
+
 ## Entity candidate discovery measurement
 
 Sprint 28 freezes its synthetic English/Italian exact-span ground truth and

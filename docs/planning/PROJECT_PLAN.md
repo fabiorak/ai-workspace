@@ -446,6 +446,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 31 | E0, E7        | Validate safe pseudonymized output restoration          |
 | Sprint 32 | E0, E7        | Record privacy preflight decisions locally              |
 | Sprint 33 | E0, E7        | Decide single-use delivery authorization                |
+| Sprint 34 | E0, E7        | Qualify OpenAI Responses and Codex headless transports  |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -564,6 +565,15 @@ outcome remained unknowable after byte exposure, so the decision is
 `EVIDENCE_ONLY`, ADR-0027 was not created, and no production provider,
 credential, network, model invocation, response capture, routing, delivery, or
 execution path was added.
+
+Sprint 34 completed concrete OpenAI qualification without a live call. The
+Responses protocol corpus passed 13/13 cases, but documented request IDs support
+reconciliation rather than create idempotency; decision `EVIDENCE_ONLY` retains
+the after-exposure ambiguity. The Codex fake-executable corpus passed 10/10
+process cases, but exact model-visible input isolation is not established;
+decision `SEPARATE_AGENT_BOUNDARY` removes it from the E7 fallback path. No
+ADR-0027, credential, network, production adapter, model call, response,
+routing, delivery, fallback, or execution was added.
 
 ## 9. Agile operating model
 
@@ -914,3 +924,11 @@ single-use consumption passed, but provider outcome after byte exposure stayed
 ambiguous; decision `EVIDENCE_ONLY` adds no ADR-0027 or production surface. A
 future provider sprint must begin with concrete idempotency, acceptance-receipt,
 timeout, retry, cancellation, and crash-recovery semantics.
+
+[Sprint 34](sprints/SPRINT-034.md) completed that provider-specific
+qualification with 13/13 Responses and 10/10 Codex headless cases. Responses
+remains `EVIDENCE_ONLY` because create idempotency and exactly-once acceptance
+are not documented. Codex closes `SEPARATE_AGENT_BOUNDARY` because its agent
+context cannot prove exact reviewed-input isolation. No live probe, ADR-0027,
+credential, network, model call, response, production adapter, GUI delivery, or
+execution path was added.

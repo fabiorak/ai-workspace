@@ -179,6 +179,14 @@ unknowable after byte exposure without a concrete provider idempotency and
 receipt protocol. Existing application, API, GUI, persistence, privacy,
 mapping, custody, restoration, and audit graphs remain unchanged.
 
+Sprint 34 also adds no production architecture component. Two test-owned
+qualification harnesses measure the documented OpenAI Responses protocol and a
+fake `codex exec` process port. Responses remains `EVIDENCE_ONLY` because
+request correlation is not documented create idempotency. Codex is classified
+`SEPARATE_AGENT_BOUNDARY` because its instructions, tools, and agent context
+cannot prove exact reviewed-input isolation. Neither harness is exported;
+network, auth, subprocess, application, API, and GUI graphs remain unchanged.
+
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
 events remain untrusted historical evidence and do not enter active memory or

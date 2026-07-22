@@ -254,6 +254,15 @@ byte exposure remains unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027,
 production provider, credential, network, model call, response, routing,
 delivery, or execution surface.
 
+Sprint 34 qualifies OpenAI-specific candidates without contacting them. A
+13-case offline Responses corpus confirms bounded stateless serialization but
+finds no documented create-idempotency or exactly-once guarantee, so the result
+remains `EVIDENCE_ONLY`. A 10-case fake `codex exec` corpus validates a bounded
+headless process shape but classifies it `SEPARATE_AGENT_BOUNDARY`: coding-agent
+instructions and tools cannot prove that only reviewed bytes are model-visible.
+No live probe, ADR-0027, credential, model call, response, delivery, or execution
+surface is added.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

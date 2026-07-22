@@ -141,6 +141,15 @@ content, item hashes, mappings, secrets, credentials, prompts, and responses
 remain forbidden from authorization metadata. Any future transport design must
 classify provider receipts and idempotency material before storage is selected.
 
+Sprint 34 adds no production transport data. Its test-only attempt metadata,
+request/response ID digests, event counts, and process digests would be
+`CONFIDENTIAL` if associated with a real workspace. Provider request IDs,
+client request IDs, response IDs, Codex thread IDs, account/project identifiers,
+auth state, stderr, and model output require classification before any runtime
+storage. Request and response bodies, bearer credentials, Codex auth files,
+mapping plaintext, keys, and passphrases remain forbidden from qualification
+evidence.
+
 ## Implemented reversible transformation
 
 Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping

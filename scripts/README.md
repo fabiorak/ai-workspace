@@ -26,3 +26,12 @@ The `EVIDENCE_ONLY` result adds no production export, ADR, GUI action, provider,
 network, model call, delivery, or execution path. See the frozen
 [corpus](../docs/development/model-delivery-authorization-corpus.md) and
 [observations](../docs/development/model-delivery-authorization-observations.md).
+
+`npm run measure:openai-responses` and `npm run measure:codex-headless` run the
+Sprint 34 qualification corpora twice. Both are offline and credential-free.
+The first uses a synthetic Responses protocol adapter; the second uses a
+deterministic fake executable port and never launches Codex. Results contain
+only synthetic labels, digests, counts, documented capability booleans, and
+decisions. See the [Responses corpus](../docs/development/openai-responses-qualification-corpus.md),
+[Codex corpus](../docs/development/codex-headless-qualification-corpus.md), and
+[observations](../docs/development/openai-transport-qualification-observations.md).

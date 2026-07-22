@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 32](docs/planning/sprints/SPRINT-032.md) are complete.
+Sprint 0 through [Sprint 34](docs/planning/sprints/SPRINT-034.md) are complete.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.
@@ -23,6 +23,13 @@ single-use consumption passed, but provider outcome after byte exposure stayed
 unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027, production grant,
 provider, credential, network, model call, response, delivery, routing, or
 execution surface.
+[Sprint 34](docs/planning/sprints/SPRINT-034.md) qualified concrete OpenAI
+surfaces without invoking them. Responses passed 13/13 offline protocol cases,
+but request IDs do not document create idempotency and post-exposure outcomes
+remain ambiguous, so its decision is `EVIDENCE_ONLY`. The 10/10 Codex headless
+process corpus closes `SEPARATE_AGENT_BOUNDARY` because coding-agent context
+cannot prove exact reviewed-input isolation. No ADR-0027 or production surface
+is added.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -175,6 +182,12 @@ Exact transformed-request binding, intent, expiry, replay, concurrency, and
 pre-exposure blocking passed in the synthetic adapter, while post-exposure
 crashes remained ambiguous. Provider integration remains a later explicitly
 authorized boundary with concrete protocol evidence.
+
+Sprint 34 confirms that OpenAI Responses remains the primary candidate but does
+not yet supply a documented exactly-once or safely repeatable create boundary.
+`codex exec` is not a model-delivery fallback; any future use belongs behind a
+separate agent-execution boundary. M5 remains incomplete and no live probe was
+run.
 
 ## 1. Project Memory
 

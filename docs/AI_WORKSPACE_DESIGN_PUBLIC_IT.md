@@ -260,6 +260,15 @@ inconoscibile. La decisione `EVIDENCE_ONLY` non aggiunge ADR-0027, provider di
 produzione, credenziali, rete, chiamate modello, risposte, routing, delivery o
 esecuzione.
 
+Sprint 34 qualifica candidati OpenAI specifici senza contattarli. Un corpus
+Responses offline di 13 casi conferma serializzazione bounded e stateless, ma
+non trova garanzie documentate di idempotenza della create o exactly-once;
+l'esito resta `EVIDENCE_ONLY`. Un corpus finto `codex exec` di 10 casi valida la
+forma bounded del processo headless ma lo classifica `SEPARATE_AGENT_BOUNDARY`:
+istruzioni e tool dell'agente di coding non provano che solo i byte revisionati
+siano visibili al modello. Non vengono aggiunti probe live, ADR-0027,
+credenziali, chiamate modello, risposte, delivery o esecuzione.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

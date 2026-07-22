@@ -606,6 +606,27 @@ A future provider-specific threat model must cover idempotency, timeouts,
 acceptance receipts, cancellation, replay, and crash recovery before network
 access is authorized.
 
+## Sprint 34 OpenAI transport qualification
+
+The offline Responses harness binds one synthetic transformed digest to fixed
+`store:false`, no-background, zero-tool request semantics and rejects altered,
+stateful, agentic, malformed, or credential-incomplete candidates. It retains
+only digests and counts. The official `X-Client-Request-Id` reconciliation
+mechanism is not treated as idempotency: timeouts or malformed receipts after
+possible exposure remain ambiguous and never trigger automatic retry.
+
+The Codex harness fixes ephemeral, read-only, approval-never, JSONL,
+ignore-config/rules, output-schema, and isolated-repository arguments. Fake
+command/file events, malformed or oversized streams, nonzero exits, incomplete
+turns, altered argv, and killed timeouts fail closed. These flags do not remove
+Codex product instructions, repository instruction discovery, reasoning, or
+tool-capable agent semantics, so Codex is not accepted as E7 model delivery.
+
+Neither harness loads bearer material or auth files, opens a socket, invokes
+Codex or a model, or returns synthetic content in receipts/errors. A future live
+probe requires separate authorization, synthetic-only input, process-scoped
+credentials, cost bounds, sanitization, and an updated threat model.
+
 ## Review triggers
 
 Review and update this model when:
