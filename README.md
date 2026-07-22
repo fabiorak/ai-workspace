@@ -247,6 +247,9 @@ The current GUI also provides:
 - strict local restoration of exact mapping-owned v1/v2 pseudonyms in bounded
   arbitrary output, with all-output blocking for altered or foreign tokens and
   no response persistence, model access, delivery, routing, or execution;
+- a separate bounded per-project non-content audit for valid privacy-preflight
+  decisions, with atomic verified append, hash chaining, read-only bilingual
+  inspection, and no report/content/item-hash/path/secret retention;
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or

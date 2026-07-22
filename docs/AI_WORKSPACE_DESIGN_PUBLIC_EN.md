@@ -238,6 +238,14 @@ incorrect or partial blocked output. A bounded local inspector restores only
 mapping-owned v1/v2 tokens after complete validation; models, response capture,
 delivery, routing, permissions, and execution remain excluded.
 
+Sprint 32 completes the evidence-first privacy-decision audit through ADR-0026.
+The frozen synthetic corpus accepted minimum non-content provenance, canonical
+bytes, hash chaining, a fixed 1,000-event project bound, and fail-closed
+publication/reread. A separate append-only local store records valid reviewable
+or blocked decisions before report return and the bilingual GUI exposes bounded
+read-only list/detail views. Transformation, restoration, models, and delivery
+remain excluded.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

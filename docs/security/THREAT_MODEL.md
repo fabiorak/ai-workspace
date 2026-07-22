@@ -564,6 +564,31 @@ compromised browser can observe them. Exact token ownership does not establish
 complete output safety, response authenticity, correct model behavior, privacy
 policy approval, or secret/PII completeness.
 
+## Implemented E7 privacy-decision audit controls
+
+- ADR-0026 records only successfully evaluated explicit preflight decisions
+  after validation and before returning their report;
+- events contain minimum scope/policy provenance, aggregate counts, and
+  canonical report digest, never content, item hashes, detected values, paths,
+  reports, mappings, secrets, prompts, responses, or restored output;
+- a separate per-project aggregate enforces private modes, exact canonical
+  schema, fixed 1,000-event capacity, monotonic revisions, unique IDs,
+  predecessor hashes, deterministic ordering, and cross-scope rejection;
+- owner-token locks, flushed temporary writes, atomic replacement, directory
+  flush, and exact reread verification fail closed without partial report;
+- incomplete, corrupt, noncanonical, unsafe-mode, stale-lock, capacity, cursor,
+  and concurrent-write failures return generic recovery without rejected input
+  or local paths;
+- authenticated loopback list/detail routes expose bounded read-only evidence
+  and no mutation, export, search, or retention controls.
+
+Residual risk: the chain detects internal corruption, gaps, and reordering but,
+without an external anchor, cannot prove that a privileged actor did not replace
+or truncate the whole store. Metadata and digests remain correlatable local
+information. A same-user process may observe memory or replace files despite
+filesystem modes. Fixed capacity blocks new reports until explicit recovery;
+there is no automatic retention or archive.
+
 ## Review triggers
 
 Review and update this model when:

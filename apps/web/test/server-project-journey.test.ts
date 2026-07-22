@@ -934,6 +934,7 @@ describe("GUI server project onboarding", () => {
         accounting: { defaultedItems: number; evaluatedItems: number };
         effect: string;
       };
+      auditEvent: { eventId: string; eventHash: string };
       effect: string;
     };
     assert.equal(privacy.policy.sourceName, "gui-model-data-policy.json");
@@ -944,6 +945,24 @@ describe("GUI server project onboarding", () => {
       privacy.preflight.accounting.evaluatedItems,
     );
     assert.match(privacy.effect, /NOT_AUTHORIZED/u);
+    const auditListResponse = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/privacy-audit?limit=1`,
+    );
+    assert.equal(auditListResponse.status, 200);
+    const auditList = (await auditListResponse.json()) as {
+      events: { eventId: string }[];
+      total: number;
+    };
+    assert.equal(auditList.total, 1);
+    assert.equal(auditList.events[0]?.eventId, privacy.auditEvent.eventId);
+    const auditDetailResponse = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/privacy-audit/${encodeURIComponent(privacy.auditEvent.eventId)}`,
+    );
+    assert.equal(auditDetailResponse.status, 200);
+    assert.equal(
+      ((await auditDetailResponse.json()) as { eventHash: string }).eventHash,
+      privacy.auditEvent.eventHash,
+    );
     assert.equal(JSON.stringify(privacy).includes(root), false);
     const reviewedItem = value.contextPack.included[0]!;
     const customerAlias = /[A-Za-z]{4,}/u.exec(reviewedItem.content)?.[0];

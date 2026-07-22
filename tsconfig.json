@@ -57,8 +57,12 @@
       "@ai-workspace/privacy-gateway": [
         "./packages/privacy-gateway/src/index.ts"
       ],
+      "@ai-workspace/privacy-audit": ["./packages/privacy-audit/src/index.ts"],
       "@ai-workspace/local-privacy-policy": [
         "./integrations/local-privacy-policy/src/index.ts"
+      ],
+      "@ai-workspace/local-privacy-audit": [
+        "./integrations/local-privacy-audit/src/index.ts"
       ],
       "@ai-workspace/local-privacy-mapping": [
         "./integrations/local-privacy-mapping/src/index.ts"

@@ -151,6 +151,15 @@ Run `npm run measure:output-restoration` to reproduce the deterministic
 whole-token restoration is production eligible; the known-only baseline stays
 harness-only.
 
+Sprint 32 freezes the non-content privacy-decision audit schema, synthetic
+reviewable/blocked cases, canonical bytes, chaining, fixed 1,000-event bound,
+and failure matrix in the [Privacy Decision Audit Corpus](privacy-audit-corpus.md).
+Run `npm run measure:privacy-audit` to reproduce the deterministic
+[observations](privacy-audit-observations.md). Production records only valid
+explicit preflight decisions after verified append/reread; no complete report,
+content, item hash, path, detected value, secret, mapping, prompt, response, or
+restored output is retained.
+
 ## Entity candidate discovery measurement
 
 Sprint 28 freezes its synthetic English/Italian exact-span ground truth and

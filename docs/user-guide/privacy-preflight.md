@@ -40,7 +40,21 @@ policy; never copy a detected value into logs or issues.
 policy. It is not model availability, permission, routing, anonymization,
 delivery, execution, or proof of complete secret/PII detection.
 
-The preview is transient. It creates no policy registry, decision record,
-audit record, network request, model call, or runtime authority. A separate
-explicit reviewed-span action can create an encrypted reversible mapping; it
-does not change this preflight result or authorize delivery.
+The complete report remains transient. Every successfully evaluated explicit
+preflight first creates exactly one verified event in a separate local
+project-scoped non-content audit. If append, validation, capacity, locking,
+publication, or reread fails, no report is returned. Malformed requests and
+failures before a valid decision create no event.
+
+Open **Privacy decision audit / Audit delle decisioni privacy** after selecting
+a project to inspect newest-first events and safe details. The viewer is
+read-only and bounded; it offers no delete, correction, export, search, or
+retention controls. Events show scope, policy identity/version/digest, decision,
+aggregate counts, report/event/predecessor hashes, and UTC time. The chain can
+detect internal gaps, corruption, and reordering, but cannot prove against
+privileged whole-store replacement or truncation.
+
+The preflight creates no policy registry, network request, model call, or
+runtime authority. A separate explicit reviewed-span action can create an
+encrypted reversible mapping; it does not change this preflight result or
+authorize delivery.

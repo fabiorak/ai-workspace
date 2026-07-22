@@ -85,6 +85,41 @@ export async function startGuiServer(
         return send(response, "text/javascript; charset=utf-8", APP_JS);
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
+      if (request.method === "GET") {
+        const privacyAuditEvent =
+          /^\/api\/projects\/([^/]+)\/privacy-audit\/([^/]+)$/u.exec(
+            url.pathname,
+          );
+        if (privacyAuditEvent !== null)
+          return json(
+            response,
+            200,
+            await application.showPrivacyAuditEvent(
+              decodeURIComponent(privacyAuditEvent[1]!),
+              decodeURIComponent(privacyAuditEvent[2]!),
+            ),
+          );
+        const privacyAuditList =
+          /^\/api\/projects\/([^/]+)\/privacy-audit$/u.exec(url.pathname);
+        if (privacyAuditList !== null) {
+          const limit = optionalLimit(
+            url.searchParams.get("limit"),
+            "Privacy audit page",
+          );
+          const cursor = url.searchParams.get("cursor");
+          return json(
+            response,
+            200,
+            await application.listPrivacyAudit(
+              decodeURIComponent(privacyAuditList[1]!),
+              {
+                ...(limit === undefined ? {} : { limit }),
+                ...(cursor === null ? {} : { cursor }),
+              },
+            ),
+          );
+        }
+      }
       if (
         request.method === "GET" &&
         url.pathname === "/api/general/conversations"
@@ -1146,10 +1181,13 @@ function optionalEnum(
     throw new Error(`Choose a documented ${label}.`);
   return value;
 }
-function optionalLimit(value: string | null): number | undefined {
+function optionalLimit(
+  value: string | null,
+  label = "Memory",
+): number | undefined {
   if (value === null) return undefined;
   const limit = Number(value);
   if (!Number.isInteger(limit) || limit < 1 || limit > 100)
-    throw new Error("Memory limit must be an integer from 1 to 100.");
+    throw new Error(`${label} limit must be an integer from 1 to 100.`);
   return limit;
 }

@@ -39,11 +39,13 @@
     "@ai-workspace/local-instructions": "0.0.0",
     "@ai-workspace/local-key-custody": "0.0.0",
     "@ai-workspace/local-privacy-policy": "0.0.0",
+    "@ai-workspace/local-privacy-audit": "0.0.0",
     "@ai-workspace/local-privacy-mapping": "0.0.0",
     "@ai-workspace/local-session-ingestion": "0.0.0",
     "@ai-workspace/local-work-items": "0.0.0",
     "@ai-workspace/project-registry": "0.0.0",
     "@ai-workspace/privacy-gateway": "0.0.0",
+    "@ai-workspace/privacy-audit": "0.0.0",
     "@ai-workspace/session-ingestion": "0.0.0"
   }
 }

@@ -18,6 +18,7 @@ export type GuiJourneyStep =
   | "PROFILE_CONTEXT"
   | "CONTEXT_SELECTOR_REPORT"
   | "CUSTOMER_ALIAS_REVIEW"
+  | "PRIVACY_AUDIT"
   | "PRIVACY_TRANSFORMATION"
   | "PRIVACY_OUTPUT_RESTORATION";
 export type GuiState =
@@ -377,6 +378,23 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
       }),
     ),
     screen(
+      "PRIVACY_AUDIT",
+      "Privacy decision audit",
+      "Inspect bounded project-scoped non-content evidence for valid privacy-preflight decisions without mutation or export.",
+      action({
+        id: "refresh-privacy-audit",
+        label: "Refresh privacy decision audit",
+        description:
+          "Load verified events newest first and open one event's safe provenance and hash-chain detail.",
+        effect:
+          "Reads the separate local audit only; it cannot delete, edit, correct, export, search, authorize, deliver, or execute.",
+        prerequisites: "Select one registered project.",
+        recovery:
+          "Preserve the audit files, resolve the reported lock, permission, capacity, or integrity issue, then retry without partial results.",
+        mutates: false,
+      }),
+    ),
+    screen(
       "PRIVACY_TRANSFORMATION",
       "Reversible privacy transformation",
       "Apply explicitly reviewed exact UTF-8 spans, persist only an authenticated encrypted mapping, and verify local restoration without delivery authority.",
@@ -484,7 +502,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 21)
+  if (steps.size !== 22)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

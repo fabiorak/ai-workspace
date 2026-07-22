@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/local-privacy-audit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Bounded atomic local JSON privacy decision audit store",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/privacy-audit": "0.0.0"
+  }
+}

@@ -64,7 +64,7 @@ const EN = {
   profileContext: "Compose profile-governed context",
   previewProfileContext: "Compose profile and Context Pack read-only",
   privacyPreflight: "Preview model privacy policy",
-  previewPrivacyPreflight: "Run privacy preflight read-only",
+  previewPrivacyPreflight: "Run and record privacy preflight",
   customerAliasSuggestions: "Review exact customer/project alias suggestions",
   previewCustomerAliases: "Preview entity suggestions",
   confirmCustomerAliases: "Confirm selected current-hash ranges",
@@ -116,13 +116,13 @@ const EN = {
   profileContextReady:
     "Profile {profile} composed for {model}: {sources} declared sources, {rules} effective rules, Context Pack schema {schema}. Review provenance, budgets, included items, and omissions below.",
   privacyPreflightWarning:
-    "Required review boundary: every included item is classified for one explicit model policy. Unknown items default to CONFIDENTIAL and high-confidence restricted patterns always block. REVIEWABLE_NOT_AUTHORIZED is not permission or delivery, and detection is not complete PII coverage.",
+    "Required review boundary: every included item is classified for one explicit model policy. Unknown items default to CONFIDENTIAL. Every valid decision is recorded in the separate local non-content audit before its report is returned. REVIEWABLE_NOT_AUTHORIZED is not permission or delivery, and detection is not complete PII coverage.",
   privacyPolicyPath: "Reviewed schema-v1 model data policy path",
   privacyPolicyDigest: "Expected policy SHA-256 digest (optional pin)",
   privacyPreflightEmpty:
     "Inspect an immutable handoff, then provide one profile, its exact instruction sources, one allowed model, and one same-project model data policy.",
   privacyPreflightReady:
-    "Privacy preflight {result} for {model} under policy {policy}: {allowed} allowed, {blocked} blocked, {defaulted} defaulted, {restricted} restricted. Review hashes and recovery; nothing was sent or authorized.",
+    "Privacy preflight {result} for {model} under policy {policy}: {allowed} allowed, {blocked} blocked, {defaulted} defaulted, {restricted} restricted. The local non-content audit was verified; nothing was sent or authorized.",
   customerAliasWarning:
     "Exact, case-sensitive CUSTOMER and PROJECT aliases only. The dictionary is transient and never persisted. Every result starts SUGGESTED_NOT_REVIEWED and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.",
   customerAliasInput:
@@ -335,7 +335,7 @@ const IT = {
   profileContext: "Componi contesto governato dal profilo",
   previewProfileContext: "Componi profilo e Context Pack in sola lettura",
   privacyPreflight: "Anteprima policy privacy del modello",
-  previewPrivacyPreflight: "Esegui preflight privacy in sola lettura",
+  previewPrivacyPreflight: "Esegui e registra il preflight privacy",
   customerAliasSuggestions:
     "Revisiona suggerimenti alias cliente/progetto esatti",
   previewCustomerAliases: "Anteprima suggerimenti entità",
@@ -390,13 +390,13 @@ const IT = {
   profileContextReady:
     "Profilo {profile} composto per {model}: {sources} sorgenti dichiarate, {rules} regole effettive, Context Pack schema {schema}. Esamina provenance, budget, elementi inclusi e omissioni.",
   privacyPreflightWarning:
-    "Boundary di revisione obbligatorio: ogni elemento incluso viene classificato per una policy modello esplicita. Gli elementi sconosciuti diventano CONFIDENTIAL e i pattern restricted ad alta confidenza bloccano sempre. REVIEWABLE_NOT_AUTHORIZED non è permesso o consegna e il rilevamento non copre tutta la PII.",
+    "Boundary di revisione obbligatorio: ogni elemento incluso viene classificato per una policy modello esplicita. Gli elementi sconosciuti diventano CONFIDENTIAL. Ogni decisione valida viene registrata nell'audit locale separato e senza contenuto prima di restituire il report. REVIEWABLE_NOT_AUTHORIZED non è permesso o consegna e il rilevamento non copre tutta la PII.",
   privacyPolicyPath: "Percorso policy dati modello schema v1 revisionata",
   privacyPolicyDigest: "Digest SHA-256 atteso della policy (pin facoltativo)",
   privacyPreflightEmpty:
     "Esamina un handoff immutabile, poi fornisci un profilo, le sue sorgenti istruzioni esatte, un modello consentito e una policy dati modello dello stesso progetto.",
   privacyPreflightReady:
-    "Preflight privacy {result} per {model} con policy {policy}: {allowed} consentiti, {blocked} bloccati, {defaulted} predefiniti, {restricted} restricted. Esamina hash e recovery; nulla è stato inviato o autorizzato.",
+    "Preflight privacy {result} per {model} con policy {policy}: {allowed} consentiti, {blocked} bloccati, {defaulted} predefiniti, {restricted} restricted. L'audit locale senza contenuto è stato verificato; nulla è stato inviato o autorizzato.",
   customerAliasWarning:
     "Solo alias CUSTOMER e PROJECT esatti e case-sensitive. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce SUGGESTED_NOT_REVIEWED e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
   customerAliasInput:

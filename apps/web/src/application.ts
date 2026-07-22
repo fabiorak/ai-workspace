@@ -60,6 +60,7 @@ import {
 } from "@ai-workspace/local-privacy-policy";
 import { PassphraseKeyCustody } from "@ai-workspace/local-key-custody";
 import { EncryptedPrivacyMappingStore } from "@ai-workspace/local-privacy-mapping";
+import { JsonPrivacyAuditStore } from "@ai-workspace/local-privacy-audit";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
 import {
   JsonActiveMemoryStore,
@@ -96,6 +97,12 @@ import {
   type OutputRestorationReport,
   type PrivacyPreflightReport,
 } from "@ai-workspace/privacy-gateway";
+import {
+  PrivacyDecisionAudit,
+  digestCanonical,
+  type PrivacyAuditEvent,
+  type PrivacyAuditPage,
+} from "@ai-workspace/privacy-audit";
 import {
   SessionIngestion,
   type SessionEventType,
@@ -233,7 +240,8 @@ export type GuiPrivacyPreflightPreview = Readonly<{
   selection: ProfileInstructionSelection;
   policy: LocalModelDataPolicyInspection;
   preflight: PrivacyPreflightReport;
-  effect: "READ_ONLY_NOT_AUTHORIZED_PERSISTED_DELIVERED_OR_EXECUTED";
+  auditEvent: PrivacyAuditEvent;
+  effect: "LOCAL_AUDITED_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
 }>;
 export type GuiPseudonymizationInput = GuiPrivacyPreflightInput &
   Readonly<{
@@ -309,6 +317,7 @@ export class GuiApplication {
   readonly #memory: ActiveMemory;
   readonly #workItems: WorkItems;
   readonly #handoffs: Handoffs;
+  readonly #privacyAudit: PrivacyDecisionAudit;
   readonly #previewInstructions: (
     input: GuiInstructionPreviewInput,
   ) => Promise<EffectiveInstructions>;
@@ -415,6 +424,11 @@ export class GuiApplication {
       ids: randomUUID,
       clock: () => new Date(),
     });
+    this.#privacyAudit = new PrivacyDecisionAudit({
+      store: new JsonPrivacyAuditStore(dependencies.workspaceHome),
+      ids: randomUUID,
+      clock: () => new Date(),
+    });
     const instructionReader = new LocalInstructionBundleReader();
     const agentProfileReader = new LocalAgentProfileReader();
     const modelDataPolicyReader = new LocalModelDataPolicyReader();
@@ -510,13 +524,26 @@ export class GuiApplication {
         modelId: input.model,
         contextPack: composition.contextPack,
       });
+      const auditEvent = await this.#privacyAudit.record({
+        projectId: preflight.projectId,
+        workItemId: preflight.workItemId,
+        handoffId: preflight.handoffId,
+        modelId: preflight.modelId,
+        policyId: preflight.policy.id,
+        policyVersion: preflight.policy.version,
+        policyDigest: policy.sourceDigest,
+        contextPackSchemaVersion: composition.contextPack.schemaVersion,
+        decision: preflight.overallResult,
+        counts: preflight.accounting,
+        preflightReportDigest: digestCanonical(preflight),
+      });
       return Object.freeze({
         profile: composition.profile,
         selection: composition.selection,
         policy,
         preflight,
-        effect:
-          "READ_ONLY_NOT_AUTHORIZED_PERSISTED_DELIVERED_OR_EXECUTED" as const,
+        auditEvent,
+        effect: "LOCAL_AUDITED_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED" as const,
       });
     };
     this.#sampleSessionPath = dependencies.sampleSessionPath;
@@ -971,6 +998,36 @@ export class GuiApplication {
       () => this.#previewPrivacyPreflight(input),
       "Keep the explicit handoff, reviewed profile, exact instruction sources, allowed model, and digest-pinned same-project policy; correct the incompatible selection and preview again. No data was sent.",
     );
+  }
+
+  public async listPrivacyAudit(
+    projectId: string,
+    query: Readonly<{ limit?: number; cursor?: string }> = {},
+  ): Promise<PrivacyAuditPage> {
+    return this.#run(async () => {
+      if (
+        !(await this.#listRegisteredProjects()).some(
+          (project) => project.id === projectId,
+        )
+      )
+        throw new Error("The privacy-audit project is not registered locally.");
+      return this.#privacyAudit.list(projectId, query);
+    }, "Preserve the local audit files, resolve the reported lock, permission, capacity, or integrity issue, then reload the project audit.");
+  }
+
+  public async showPrivacyAuditEvent(
+    projectId: string,
+    eventId: string,
+  ): Promise<PrivacyAuditEvent> {
+    return this.#run(async () => {
+      if (
+        !(await this.#listRegisteredProjects()).some(
+          (project) => project.id === projectId,
+        )
+      )
+        throw new Error("The privacy-audit project is not registered locally.");
+      return this.#privacyAudit.show(projectId, eventId);
+    }, "Return to the project audit list and select an existing event after resolving any local integrity issue.");
   }
 
   public async previewCustomerAliasSuggestions(

@@ -152,6 +152,10 @@ The implemented local persistence baseline now consists of:
 - separate schema-v1 immutable key-custody envelopes with exact scrypt
   parameters, fresh salt and nonce, authenticated mapping-set scope,
   restrictive modes, owner-token locking, and atomic publication.
+- separate per-project schema-v1 privacy-decision audit aggregates with minimum
+  non-content provenance, fixed bounds, monotonic revisions, predecessor
+  hashes, owner-token locking, private modes, atomic publication, and verified
+  reread before a valid preflight report can return.
 
 ADR-0025 adds a separate pure arbitrary-output restoration boundary in
 `packages/privacy-gateway`. It validates one complete bounded UTF-8 value
@@ -159,6 +163,13 @@ against one authenticated version-dispatched mapping before constructing any
 restored content. The loopback facade supplies URL scope and the mapping-owned
 model, while encrypted mapping and custody adapters remain unchanged. Candidate
 and restored output are never persisted or delivered.
+
+ADR-0026 adds `packages/privacy-audit` as the provider-neutral event and use-case
+boundary and `integrations/local-privacy-audit` as its bounded local adapter.
+The GUI application records only its explicit valid preflight action; other
+privacy actions remain unaudited. Read-only list/detail routes are authenticated
+and project-scoped. The store has no dependency on active memory, history,
+artifacts, mappings, custody, model, network, or delivery components.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported

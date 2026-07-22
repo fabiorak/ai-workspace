@@ -444,6 +444,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 29 | E0, E7        | Review exact alias suggestions explicitly               |
 | Sprint 30 | E0, E7        | Add reviewed project aliases with schema v2             |
 | Sprint 31 | E0, E7        | Validate safe pseudonymized output restoration          |
+| Sprint 32 | E0, E7        | Record privacy preflight decisions locally              |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -542,6 +543,15 @@ all-or-nothing restoration and rejected the known-only baseline for production
 after it produced two partial anomaly cases. ADR-0025 enables only a bounded
 bilingual local inspector. Model access, delivery, response capture, routing,
 permission, execution, audit persistence, migration, and re-encryption remain
+outside the increment.
+
+Sprint 32 completed the evidence-first policy-audit increment. Its frozen
+synthetic corpus defined minimum non-content provenance, canonical bytes,
+hash-chain semantics, the fixed 1,000-event project bound, failures, and
+recovery before ADR-0026 and persistence. Valid privacy-preflight decisions now
+require verified append/reread before a report is returned and are visible in a
+bounded bilingual read-only viewer. Transformation/restoration audit,
+retention, export, models, delivery, routing, permissions, and execution remain
 outside the increment.
 
 ## 9. Agile operating model
@@ -879,3 +889,10 @@ restores, nine complete integrity blocks, one no-token result, zero incorrect
 cases, and zero partial blocked outputs. ADR-0025 adds a bounded bilingual
 inspector with authenticated mapping custody and no model, network, delivery,
 response capture, routing, permission, or execution path.
+
+[Sprint 32](sprints/SPRINT-032.md) completed the separate bounded append-only
+non-content audit for valid privacy-preflight decisions after its frozen corpus
+accepted ADR-0026. Verified append/reread precedes report return; project-scoped
+list/detail views remain read-only. It adds no transformation/restoration audit,
+retention, export, model, network, delivery, routing, permission, or execution
+path.

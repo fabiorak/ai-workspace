@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 31](docs/planning/sprints/SPRINT-031.md) are complete.
+Sprint 0 through [Sprint 32](docs/planning/sprints/SPRINT-032.md) are complete.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.
@@ -12,6 +12,11 @@ evidence. Strict whole-token validation now restores exact mapping-owned values
 in a bounded local inspector and blocks the complete result on unknown or
 altered placeholders. It introduces no model access, response capture,
 delivery, routing, permission, or execution.
+[Sprint 32](docs/planning/sprints/SPRINT-032.md) accepted ADR-0026 after its
+frozen non-content corpus passed. Valid explicit privacy-preflight decisions
+are now recorded in a separate bounded append-only local store and exposed in a
+read-only bilingual project viewer. Audit failure blocks report return; models,
+delivery, routing, permissions, and execution remain excluded.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -153,6 +158,11 @@ reusing position-based Context Pack restoration. The frozen corpus produced
 three exact restores, nine complete blocks, one no-token result, zero errors,
 and zero partial blocked outputs. ADR-0025 authorizes only strict local
 inspection; v1/v2 mapping and custody contracts remain unchanged.
+
+Sprint 32 must keep audit evidence separate from ordinary logs, content,
+mappings, prompts, and responses. Only valid preflight decisions are eligible;
+transformation/restoration audit, deletion, export, retention automation,
+external anchoring, model access, and delivery remain later boundaries.
 
 ## 1. Project Memory
 

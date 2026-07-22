@@ -30,6 +30,7 @@ describe("GUI interaction contract", () => {
         "PROFILE_CONTEXT",
         "CONTEXT_SELECTOR_REPORT",
         "CUSTOMER_ALIAS_REVIEW",
+        "PRIVACY_AUDIT",
         "PRIVACY_TRANSFORMATION",
         "PRIVACY_OUTPUT_RESTORATION",
       ],

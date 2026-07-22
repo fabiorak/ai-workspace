@@ -242,6 +242,15 @@ bounded ripristina soltanto token v1/v2 posseduti dal mapping dopo la validazion
 completa; modelli, acquisizione di risposte, delivery, routing, permessi ed
 esecuzione restano esclusi.
 
+Sprint 32 completa tramite ADR-0026 l'audit evidence-first delle decisioni
+privacy. Il corpus sintetico congelato accetta provenance minima senza
+contenuto, byte canonici, chain hash, il limite fisso di 1.000 eventi per
+progetto e pubblicazione/rilettura fail-closed. Uno store locale append-only
+separato registra le decisioni valide reviewable o blocked prima della
+restituzione del report e la GUI bilingue espone viste bounded di lista e
+dettaglio in sola lettura. Trasformazione, restore, modelli e delivery restano
+esclusi.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

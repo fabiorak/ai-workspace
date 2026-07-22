@@ -340,6 +340,45 @@ describe("GUI application facade", () => {
         "synthetic-model-data-policy.json",
       );
       assert.equal(privacy.selection.target.model, privacy.preflight.modelId);
+      assert.equal(privacy.auditEvent.projectId, project.id);
+      assert.equal(privacy.auditEvent.preflightReportDigest.length, 64);
+      assert.equal(privacy.auditEvent.eventHash.length, 64);
+      assert.deepEqual(
+        (await app.listPrivacyAudit(project.id)).events.map(
+          (event) => event.eventId,
+        ),
+        [privacy.auditEvent.eventId],
+      );
+      assert.deepEqual(
+        await app.showPrivacyAuditEvent(project.id, privacy.auditEvent.eventId),
+        privacy.auditEvent,
+      );
+      await assert.rejects(
+        app.listPrivacyAudit("foreign-project"),
+        /not registered locally/u,
+      );
+      const repeatedPrivacy = await app.previewPrivacyPreflight({
+        projectId: project.id,
+        workItemId: work.id,
+        handoffId: handoff.id,
+        profile: { path: fixture.profilePath },
+        bundles: fixture.bundlePaths.map((path) => ({ path })),
+        model: "model-balanced",
+        task: "synthetic-review",
+        policy: { path: policyPath },
+      });
+      assert.notEqual(
+        repeatedPrivacy.auditEvent.eventId,
+        privacy.auditEvent.eventId,
+      );
+      assert.equal(
+        repeatedPrivacy.auditEvent.preflightReportDigest,
+        privacy.auditEvent.preflightReportDigest,
+      );
+      assert.equal(
+        repeatedPrivacy.auditEvent.predecessorEventHash,
+        privacy.auditEvent.eventHash,
+      );
       assert.equal(JSON.stringify(privacy).includes(root), false);
       const reviewedItem = value.contextPack.included[0]!;
       const pseudonymized = await app.previewPseudonymization({
@@ -429,6 +468,23 @@ describe("GUI application facade", () => {
           policy: { path: policyPath },
         }),
         /selected model|incompatible/u,
+      );
+      assert.equal((await app.listPrivacyAudit(project.id)).total, 2);
+      await writeFile(
+        join(root, "home", "privacy-audit", "incomplete.tmp"),
+        "synthetic incomplete state",
+      );
+      await assert.rejects(
+        app.previewPrivacyPreflight({
+          projectId: project.id,
+          workItemId: work.id,
+          handoffId: handoff.id,
+          profile: { path: fixture.profilePath },
+          bundles: fixture.bundlePaths.map((path) => ({ path })),
+          model: "model-balanced",
+          policy: { path: policyPath },
+        }),
+        /privacy decision audit is unavailable|integrity-invalid/u,
       );
       const selectorPreview = await app.previewContextSelectors({
         projectId: project.id,

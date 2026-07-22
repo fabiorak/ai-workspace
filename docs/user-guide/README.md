@@ -12,6 +12,7 @@
 - [Compose profile-governed instructions and context](profile-governed-context.md)
 - [Measure profile context selectors](context-selector-measurement.md)
 - [Preview a model privacy policy](privacy-preflight.md)
+- [Inspect locally recorded privacy decisions](privacy-preflight.md#read-the-result)
 - [Preview a reversible privacy transformation](reversible-privacy-transformation.md)
 - [Restore pseudonyms in bounded local output](pseudonymized-output-restoration.md)
 

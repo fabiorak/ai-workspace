@@ -46,3 +46,4 @@ Status: proposed | accepted | superseded
 - [ADR-0023: Use transient exact customer-alias suggestions](0023-use-transient-exact-customer-alias-suggestions.md)
 - [ADR-0024: Use additive schema-v2 project pseudonym mappings](0024-use-additive-schema-v2-project-pseudonym-mappings.md)
 - [ADR-0025: Use strict local pseudonymized output restoration](0025-use-strict-local-pseudonymized-output-restoration.md)
+- [ADR-0026: Use a bounded local non-content privacy decision audit](0026-use-a-bounded-local-non-content-privacy-decision-audit.md)

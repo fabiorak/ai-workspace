@@ -126,6 +126,14 @@ content or grants permission. `USER_CONFIGURED` records attribution only, and
 the narrow detector is not complete secret, PII, identity, or regulatory-data
 coverage.
 
+Valid preflight decisions now create a separate local `CONFIDENTIAL` audit
+event before their report returns. The event contains only minimum identifiers,
+policy and schema provenance, aggregate counts, and digests. It does not copy
+Context Pack content, per-item hashes, detector values, paths, reports,
+mappings, secrets, prompts, responses, or restored output. Audit metadata and
+digests remain correlatable and are not a classification downgrade or delivery
+authority.
+
 ## Implemented reversible transformation
 
 Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping
