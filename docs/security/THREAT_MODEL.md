@@ -649,6 +649,30 @@ returns content in receipts/errors. A live probe requires separate approval,
 synthetic input, process-scoped credential injection, fixed cost, isolated
 state, non-echo sanitization, and cleanup proof.
 
+## Sprint 36 bounded OpenAI attempt semantics
+
+The offline test-owned harness claims the only application-level create right
+before invoking a fake OpenAI adapter. Replay, concurrency, simulated crash,
+restart, duplicate completion, late callbacks, malformed/mismatched receipts,
+and inspection cannot increase an authorization above one create or schedule a
+retry. Unfinished exposure or acknowledgement recovers conservatively as
+`UNKNOWN_AFTER_EXPOSURE`; this can abandon a request that never left the
+process but prevents automatic duplication.
+
+Canonical attempt snapshots are exact, bounded, and non-content. They retain
+only validated scope/state/revision fields and digests. Inspection cannot send,
+retry, reuse authorization, or convert uncertainty into provider truth. A
+deliberate future create requires a new authorization and explicit acceptance
+of duplicate-processing and cost risk.
+
+ADR-0027 does not prove provider exactly-once processing and adds no production
+store, adapter, credential, socket, OpenAI request, model call, response, GUI,
+routing, fallback, delivery, or execution. A future persistence implementation
+must make the exposure claim durable before a provider call and remain safe
+against rollback, truncation, corruption, same-user tampering, and crash. A
+live conformance probe remains separately authorized and cannot prove
+undocumented idempotency.
+
 ## Review triggers
 
 Review and update this model when:

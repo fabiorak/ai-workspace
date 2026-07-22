@@ -36,6 +36,13 @@ decisions. See the [Responses corpus](../docs/development/openai-responses-quali
 [Codex corpus](../docs/development/codex-headless-qualification-corpus.md), and
 [observations](../docs/development/openai-transport-qualification-observations.md).
 
+`npm run measure:openai-at-most-once` runs the frozen Sprint 36 bounded
+at-most-once OpenAI attempt corpus twice. It exercises only synthetic test-owned
+state, restart, concurrency, receipt, and warning evidence. It opens no socket,
+reads no credential, invokes no model, captures no response, and creates no
+production store. See the
+[corpus](../docs/development/openai-at-most-once-attempt-corpus.md).
+
 `npm run measure:anthropic-messages` and `npm run measure:claude-headless` run
 the Sprint 35 qualification corpora twice. The first models bounded Messages
 serialization and typed events; the second uses two deterministic fake Claude

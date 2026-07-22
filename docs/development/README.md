@@ -189,6 +189,15 @@ reproduce the offline results. Messages closes `EVIDENCE_ONLY`; bare Claude is
 `SEPARATE_AGENT_BOUNDARY`. No credential, network, real executable, or model is
 used.
 
+Sprint 36 freezes the OpenAI application-level attempt state machine, restart,
+replay, concurrency, receipt, inspection, and fresh-warning gates in the
+[bounded at-most-once corpus](openai-at-most-once-attempt-corpus.md). Run
+`npm run measure:openai-at-most-once` to reproduce the deterministic
+[observations](openai-at-most-once-attempt-observations.md). ADR-0027 accepts
+only the explicit `UNKNOWN_AFTER_EXPOSURE` and no-automatic-retry semantics for
+a future prototype. The harness/store remain test-only and add no live probe,
+credential, network, response, production persistence, GUI, or delivery path.
+
 ## Entity candidate discovery measurement
 
 Sprint 28 freezes its synthetic English/Italian exact-span ground truth and

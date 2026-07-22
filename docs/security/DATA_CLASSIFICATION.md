@@ -159,6 +159,15 @@ explicit classification before runtime use. Credential values, auth exports,
 request/response bodies, mapping plaintext, keys, and passphrases remain
 forbidden from qualification evidence.
 
+Sprint 36 adds no production attempt record. Its test-only canonical state,
+scope digests, provider/client identifier digests, output digest, revision, and
+exposure count would be `CONFIDENTIAL` if associated with a real workspace.
+ADR-0027 permits only an allowlisted non-content prototype direction; request
+or response bodies, transformed text, item hashes, mappings, keys, passphrases,
+credentials, unrestricted headers, account data, error bodies, endpoints, and
+private paths remain forbidden. `UNKNOWN_AFTER_EXPOSURE` is evidence quality,
+not a data-class downgrade or provider-truth claim.
+
 ## Implemented reversible transformation
 
 Reviewed entity spans, aliases, pseudonymized Context Pack content, mapping

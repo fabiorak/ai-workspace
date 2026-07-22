@@ -196,6 +196,14 @@ bare API authentication separate from managed login. Bare is
 `SEPARATE_AGENT_BOUNDARY`. No harness is exported and no application, network,
 credential, subprocess, routing, fallback, or GUI graph changes.
 
+Sprint 36 also changes no production graph. A test-owned OpenAI attempt store,
+fake create adapter, and canonical snapshot harness measure the ADR-0027
+application-level at-most-once state machine. The local exposure claim precedes
+the fake adapter call; unfinished exposure/acknowledgement recovers as
+`UNKNOWN_AFTER_EXPOSURE` and cannot resend. The accepted semantics do not
+export the store or adapter and add no persistence, network, credential,
+response, application, API, GUI, routing, fallback, or execution edge.
+
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported
 events remain untrusted historical evidence and do not enter active memory or

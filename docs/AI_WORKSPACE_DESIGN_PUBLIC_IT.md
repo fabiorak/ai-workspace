@@ -278,6 +278,15 @@ l'autenticazione API bare (`API_EQUIVALENT_NOT_FALLBACK`) dal login gestito
 adapter di produzione, chiamate modello, risposte, routing, fallback, delivery
 o esecuzione.
 
+Sprint 36 accetta ADR-0027 dopo che un corpus OpenAI offline congelato di 28
+casi passa con zero errori, al massimo una create applicativa per
+autorizzazione, `UNKNOWN_AFTER_EXPOSURE` esplicito attraverso crash/riavvio e
+zero retry. Ogni eventuale create successiva richiede una nuova autorizzazione
+e un avviso sul rischio di duplicazione e costo. Le semantiche accettate restano
+solo test e non provano exactly-once lato provider. Non vengono aggiunti probe
+live, credenziali, store/adapter produttivi, chiamate modello, risposte, GUI,
+routing, fallback, delivery o esecuzione; M5 resta incompleto.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

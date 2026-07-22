@@ -448,6 +448,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 33 | E0, E7        | Decide single-use delivery authorization                |
 | Sprint 34 | E0, E7        | Qualify OpenAI Responses and Codex headless transports  |
 | Sprint 35 | E0, E7        | Qualify Anthropic Messages and Claude Code headless     |
+| Sprint 36 | E0, E7        | Decide bounded at-most-once OpenAI attempt semantics    |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -583,6 +584,14 @@ documented. Claude Code passed 14/14 fake-process cases: bare is
 `API_EQUIVALENT_NOT_FALLBACK`, while managed login is a
 `SEPARATE_AGENT_BOUNDARY`. No ADR-0027, credential, network, real subprocess,
 model call, response, routing, delivery, fallback, or execution was added.
+
+Sprint 36 completed the offline OpenAI Responses ambiguous-outcome increment.
+Its frozen 28-case corpus produced zero errors, at most one application-level
+create per authorization, explicit `UNKNOWN_AFTER_EXPOSURE` across crash and
+restart, and zero retry. ADR-0027 accepts only these bounded prototype
+semantics, including fresh warned authorization for a deliberate later create.
+No live probe, credential, production adapter/store, response handling, GUI
+action, routing, fallback, or execution was added.
 
 ## 9. Agile operating model
 
@@ -947,3 +956,9 @@ Anthropic Messages closed `EVIDENCE_ONLY` after 19/19 offline cases. Claude
 Code bare closed `API_EQUIVALENT_NOT_FALLBACK`, while managed login closed
 `SEPARATE_AGENT_BOUNDARY`, after 14/14 fake-process cases. No live call, ADR,
 production adapter, provider routing, fallback, or GUI action was added.
+
+[Sprint 36](sprints/SPRINT-036.md) accepted ADR-0027 after 28/28 offline cases
+proved a truthful bounded at-most-once application-level attempt contract.
+Possible post-exposure loss remains `UNKNOWN_AFTER_EXPOSURE`, no retry is
+scheduled, and a deliberate future create requires fresh warned authorization.
+The harness/store remain test-only; no live probe or production surface exists.

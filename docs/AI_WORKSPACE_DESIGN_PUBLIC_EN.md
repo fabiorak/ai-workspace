@@ -271,6 +271,15 @@ API authentication (`API_EQUIVALENT_NOT_FALLBACK`) from managed login
 (`SEPARATE_AGENT_BOUNDARY`). No live probe, credential, production adapter,
 model call, response, routing, fallback, delivery, or execution is added.
 
+Sprint 36 accepts ADR-0027 after a frozen 28-case offline OpenAI attempt corpus
+passes with zero errors, at most one application-level create per
+authorization, explicit `UNKNOWN_AFTER_EXPOSURE` across crash/restart, and zero
+retry. Any deliberate later create requires fresh authorization and a
+duplicate-processing/cost warning. The accepted semantics are test-only and do
+not prove provider exactly-once behavior. No live probe, credential, production
+store/adapter, model call, response, GUI, routing, fallback, delivery, or
+execution is added; M5 remains incomplete.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.

@@ -30,6 +30,7 @@
     "measure:privacy-audit": "node scripts/privacy-audit-measurement.ts",
     "measure:delivery-authorization": "node scripts/model-delivery-authorization-measurement.ts",
     "measure:openai-responses": "node scripts/openai-responses-qualification-measurement.ts",
+    "measure:openai-at-most-once": "node scripts/openai-at-most-once-attempt-measurement.ts",
     "measure:codex-headless": "node scripts/codex-headless-qualification-measurement.ts",
     "measure:anthropic-messages": "node scripts/anthropic-messages-qualification-measurement.ts",
     "measure:claude-headless": "node scripts/claude-headless-qualification-measurement.ts",

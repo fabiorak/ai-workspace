@@ -3,7 +3,13 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 35](docs/planning/sprints/SPRINT-035.md) are complete.
+Sprint 0 through [Sprint 36](docs/planning/sprints/SPRINT-036.md) are complete.
+[Sprint 36](docs/planning/sprints/SPRINT-036.md) accepted ADR-0027 after its
+28-case offline corpus proved at most one application-level OpenAI create per
+authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and
+zero retries. The decision is prototype semantics only: no live call,
+credential, production adapter/store, response, GUI action, routing, fallback,
+or execution was added.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.
@@ -199,6 +205,13 @@ Sprint 35 confirms that Anthropic Messages has the same unresolved
 post-exposure boundary. Claude Code bare cannot replace missing API
 credentials, and managed-login headless remains an agent-execution candidate
 rather than model delivery. M5 remains incomplete and no live probe was run.
+
+Sprint 36 makes that ambiguity a truthful bounded prototype contract through
+ADR-0027: one automatic application-level exposure per authorization,
+`UNKNOWN_AFTER_EXPOSURE` for inconclusive outcomes, no retry, and fresh warned
+authorization before any deliberate later attempt. The test-only decision does
+not prove provider exactly-once behavior or complete M5. A live probe still
+requires separate explicit approval.
 
 ## 1. Project Memory
 
