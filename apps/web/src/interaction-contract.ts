@@ -18,7 +18,8 @@ export type GuiJourneyStep =
   | "PROFILE_CONTEXT"
   | "CONTEXT_SELECTOR_REPORT"
   | "CUSTOMER_ALIAS_REVIEW"
-  | "PRIVACY_TRANSFORMATION";
+  | "PRIVACY_TRANSFORMATION"
+  | "PRIVACY_OUTPUT_RESTORATION";
 export type GuiState =
   | "FIRST_RUN"
   | "RETURNING"
@@ -393,6 +394,24 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         mutates: true,
       }),
     ),
+    screen(
+      "PRIVACY_OUTPUT_RESTORATION",
+      "Strict local output restoration",
+      "Validate every AI Workspace-shaped placeholder before restoring exact mapping-owned values in bounded local output.",
+      action({
+        id: "inspect-pseudonymized-output",
+        label: "Validate and restore locally",
+        description:
+          "Unlock one existing encrypted mapping and inspect one bounded local candidate output through strict whole-token validation.",
+        effect:
+          "Returns restored content only after complete validation; nothing is persisted, delivered, routed, authorized, or executed.",
+        prerequisites:
+          "Inspect the originating handoff and provide its exact mapping-set identity, local custody passphrase, and pseudonymized output.",
+        recovery:
+          "Preserve encrypted state, verify the originating project, Work Item, handoff, mapping identity, and passphrase, then retry without altered placeholders.",
+        mutates: false,
+      }),
+    ),
   ],
 );
 
@@ -465,7 +484,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 20)
+  if (steps.size !== 21)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

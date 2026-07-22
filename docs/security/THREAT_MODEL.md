@@ -541,6 +541,29 @@ same user privileges may read memory or replace files despite filesystem modes
 and authentication checks. There is no passphrase reset, escrow, export,
 sharing, synchronization, cloud recovery, or existing-mapping re-encryption.
 
+## Implemented E7 local output-restoration controls
+
+- ADR-0025 separates arbitrary output from existing position-based Context
+  Pack restoration and requires one authenticated version-dispatched mapping;
+- project, Work Item, handoff, mapping-set, and mapping-owned model scope match
+  before scanning; callers cannot override schema or model;
+- every `[[AW`-shaped construct is validated before replacement, and unknown,
+  altered, foreign, conflicting, malformed, or oversized input blocks the
+  complete output without partial restored content;
+- known whole tokens may repeat or reorder, while all non-token UTF-8 bytes are
+  preserved exactly;
+- the loopback request remains under the 32-KiB body bound and the GUI limits
+  candidate input to 30,000 characters;
+- candidate and restored output are not persisted, logged, audited, delivered,
+  or added to memory/history/artifacts; passphrase fields clear after attempts;
+- decisions, failures, and recovery remain non-authorizing and non-echoing.
+
+Residual risk: candidate text, restored originals, passphrases, and mapping keys
+exist briefly in browser or process memory. A same-user local process or
+compromised browser can observe them. Exact token ownership does not establish
+complete output safety, response authenticity, correct model behavior, privacy
+policy approval, or secret/PII completeness.
+
 ## Review triggers
 
 Review and update this model when:

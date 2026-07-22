@@ -59,6 +59,11 @@ back for a complete byte-exact local restoration. It never returns selected
 original values, mapping plaintext, the mapping key, passphrase, or a local
 path. The passphrase field is cleared after every attempt.
 
+An existing mapping can later be used in the separate
+[strict local output inspector](pseudonymized-output-restoration.md). That
+inspector validates arbitrary text as a new all-or-nothing boundary; it does
+not reuse this exact position-based Context Pack restore contract.
+
 The separate mapping document uses AES-256-GCM authenticated encryption, a
 fresh nonce, scope-bound metadata, private filesystem modes, owner locking,
 flushed atomic publication, and bounded canonical validation. Wrong keys,

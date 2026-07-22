@@ -81,6 +81,7 @@ import {
 } from "@ai-workspace/project-registry";
 import {
   evaluatePrivacyPreflight,
+  inspectPseudonymizedOutput,
   pseudonymizeContextPack,
   pseudonymizeContextPackV2,
   restorePseudonymizedItems,
@@ -92,6 +93,7 @@ import {
   type PseudonymReviewV2,
   type PseudonymizationPreview,
   type PseudonymizationPreviewV2,
+  type OutputRestorationReport,
   type PrivacyPreflightReport,
 } from "@ai-workspace/privacy-gateway";
 import {
@@ -255,6 +257,15 @@ export type GuiPseudonymizationPreview = Readonly<{
   }>;
   effect: "LOCAL_REVIEW_AND_ENCRYPTED_MAPPING_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
 }>;
+export type GuiOutputRestorationInput = Readonly<{
+  projectId: string;
+  workItemId: string;
+  handoffId: string;
+  mappingSetId: string;
+  passphrase: string;
+  output: string;
+}>;
+export type GuiOutputRestorationPreview = OutputRestorationReport;
 export type GuiCustomerAliasSuggestionInput = GuiPrivacyPreflightInput &
   Readonly<{ dictionary: readonly EntityAliasEntry[] }>;
 export type GuiCustomerAliasSuggestionPreview = Readonly<{
@@ -1098,6 +1109,42 @@ export class GuiApplication {
         key.fill(0);
       }
     }, "No source evidence changed and no data was sent. Keep the reviewed exact hashes and UTF-8 byte ranges, use a new mapping-set identity, verify the local custody passphrase, and retry.");
+  }
+
+  public async inspectPseudonymizedOutput(
+    input: GuiOutputRestorationInput,
+  ): Promise<GuiOutputRestorationPreview> {
+    return this.#run(async () => {
+      if (
+        !(await this.#listRegisteredProjects()).some(
+          (project) => project.id === input.projectId,
+        )
+      )
+        throw new Error(
+          "The output-restoration project is not registered locally.",
+        );
+      const custody = new PassphraseKeyCustody(this.#workspaceHome);
+      const key = await custody.unlock(input.mappingSetId, input.passphrase);
+      try {
+        const mapping = await new EncryptedPrivacyMappingStore(
+          this.#workspaceHome,
+          key,
+        ).read(input.mappingSetId);
+        return inspectPseudonymizedOutput({
+          mapping,
+          scope: {
+            mappingSetId: input.mappingSetId,
+            projectId: input.projectId,
+            workItemId: input.workItemId,
+            handoffId: input.handoffId,
+            modelId: mapping.modelId,
+          },
+          output: input.output,
+        });
+      } finally {
+        key.fill(0);
+      }
+    }, "No output was persisted or delivered. Preserve the encrypted mapping and custody envelope, select the exact originating project, Work Item, handoff, and mapping-set identity, verify the passphrase, and retry without altered placeholders.");
   }
 
   async #run<T>(operation: () => Promise<T>, recovery: string): Promise<T> {

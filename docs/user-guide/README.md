@@ -13,6 +13,7 @@
 - [Measure profile context selectors](context-selector-measurement.md)
 - [Preview a model privacy policy](privacy-preflight.md)
 - [Preview a reversible privacy transformation](reversible-privacy-transformation.md)
+- [Restore pseudonyms in bounded local output](pseudonymized-output-restoration.md)
 
 Installation and workflow documentation will expand with each usable vertical
 slice.

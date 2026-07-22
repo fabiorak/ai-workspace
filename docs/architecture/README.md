@@ -146,12 +146,19 @@ The implemented local persistence baseline now consists of:
 - separate schema-v1 immutable General-to-project link documents with exact
   source-hash binding, explicit target/rationale, a store-wide owner-token
   lock, restrictive modes, atomic publication, and no evidence mutation;
-- separate schema-v1 encrypted pseudonym mapping documents with authenticated
+- separate schema-v1/v2 encrypted pseudonym mapping documents with authenticated
   scope metadata, fresh nonces, in-memory keys, owner-token locking,
   restrictive modes, flushed atomic publication, and no source mutation.
 - separate schema-v1 immutable key-custody envelopes with exact scrypt
   parameters, fresh salt and nonce, authenticated mapping-set scope,
   restrictive modes, owner-token locking, and atomic publication.
+
+ADR-0025 adds a separate pure arbitrary-output restoration boundary in
+`packages/privacy-gateway`. It validates one complete bounded UTF-8 value
+against one authenticated version-dispatched mapping before constructing any
+restored content. The loopback facade supplies URL scope and the mapping-owned
+model, while encrypted mapping and custody adapters remain unchanged. Candidate
+and restored output are never persisted or delivered.
 
 Session ingestion contracts are provider-neutral. The first Codex adapter
 translates one controlled JSONL subset at the integration boundary. Imported

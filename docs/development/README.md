@@ -143,6 +143,14 @@ Run `node --test packages/privacy-gateway/test/privacy-schema-v2-compatibility.t
 after building workspace packages. Schema-v1 fixtures are permanent; never
 rewrite them to resemble v2 or substitute real customer/project data.
 
+Sprint 31 freezes arbitrary-output v1/v2 token integrity, scope, anomaly, and
+all-or-nothing gates in the
+[Pseudonymized Output Restoration Corpus](privacy-output-restoration-corpus.md).
+Run `npm run measure:output-restoration` to reproduce the deterministic
+[observations](privacy-output-restoration-observations.md). Only strict
+whole-token restoration is production eligible; the known-only baseline stays
+harness-only.
+
 ## Entity candidate discovery measurement
 
 Sprint 28 freezes its synthetic English/Italian exact-span ground truth and

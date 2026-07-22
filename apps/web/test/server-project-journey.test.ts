@@ -109,6 +109,7 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /grant no runtime permission/u);
     assert.match(html, /Preview a bounded Context Pack/u);
     assert.match(html, /No translation service is used/u);
+    assert.match(html, /Strict local output restoration/u);
     assert.match(html, /role="alert"/u);
     assert.equal(/https?:\/\/(?!127\.0\.0\.1)/u.test(html), false);
     const script = await (
@@ -1038,6 +1039,7 @@ describe("GUI server project onboarding", () => {
     });
     assert.equal(pseudonymizationResponse.status, 201);
     const pseudonymization = (await pseudonymizationResponse.json()) as {
+      transformation: { selections: { pseudonym: string }[] };
       mapping: {
         restorationVerified: boolean;
         encryptedAtRest: boolean;
@@ -1054,6 +1056,50 @@ describe("GUI server project onboarding", () => {
       false,
     );
     assert.equal(JSON.stringify(pseudonymization).includes(root), false);
+    const outputPseudonym =
+      pseudonymization.transformation.selections[0]!.pseudonym;
+    const outputRestorationPath = path.replace(
+      "/profile-context/preview",
+      "/output-restoration/preview",
+    );
+    const outputRestorationResponse = await api(outputRestorationPath, {
+      method: "POST",
+      body: JSON.stringify({
+        mappingSetId: "http-mapping-1",
+        passphrase: mappingPassphrase,
+        output: `Synthetic local output: ${outputPseudonym}.`,
+      }),
+    });
+    assert.equal(outputRestorationResponse.status, 200);
+    const outputRestoration = (await outputRestorationResponse.json()) as {
+      decision: string;
+      restoredTokens: number;
+      restoredContent: string | null;
+      effect: string;
+    };
+    assert.equal(outputRestoration.decision, "RESTORABLE_LOCAL_EVIDENCE");
+    assert.equal(outputRestoration.restoredTokens, 1);
+    assert.equal(
+      outputRestoration.restoredContent?.includes(outputPseudonym),
+      false,
+    );
+    assert.match(outputRestoration.effect, /NOT_AUTHORIZED/u);
+    const alteredCanary = "[[AW_OTHER_FFFFFFFFFFFFFFFF]]";
+    const alteredResponse = await api(outputRestorationPath, {
+      method: "POST",
+      body: JSON.stringify({
+        mappingSetId: "http-mapping-1",
+        passphrase: mappingPassphrase,
+        output: `${outputPseudonym} ${alteredCanary}`,
+      }),
+    });
+    const altered = (await alteredResponse.json()) as {
+      decision: string;
+      restoredContent: null;
+    };
+    assert.equal(altered.decision, "BLOCKED_INTEGRITY_FAILURE");
+    assert.equal(altered.restoredContent, null);
+    assert.equal(JSON.stringify(altered).includes(alteredCanary), false);
     assert.ok(confirmedProjectSuggestion);
     const projectPassphrase = "synthetic project custody passphrase";
     const projectPseudonymizationResponse = await api(pseudonymizationPath, {

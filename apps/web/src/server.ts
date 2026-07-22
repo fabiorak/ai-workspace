@@ -759,6 +759,38 @@ export async function startGuiServer(
             }),
           );
         }
+        const outputRestorationPreview =
+          /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/output-restoration\/preview$/u.exec(
+            url.pathname,
+          );
+        if (outputRestorationPreview !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.mappingSetId !== "string" ||
+            !body.mappingSetId.trim() ||
+            typeof body.passphrase !== "string" ||
+            typeof body.output !== "string" ||
+            !body.output
+          )
+            return reject(
+              response,
+              400,
+              "Select one existing mapping-set identity, its local custody passphrase, and bounded pseudonymized output.",
+            );
+          return json(
+            response,
+            200,
+            await application.inspectPseudonymizedOutput({
+              projectId: decodeURIComponent(outputRestorationPreview[1]!),
+              workItemId: decodeURIComponent(outputRestorationPreview[2]!),
+              handoffId: decodeURIComponent(outputRestorationPreview[3]!),
+              mappingSetId: body.mappingSetId,
+              passphrase: body.passphrase,
+              output: body.output,
+            }),
+          );
+        }
         const contextSelectorPreview =
           /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs\/([^/]+)\/context-selectors\/preview$/u.exec(
             url.pathname,

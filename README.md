@@ -243,7 +243,10 @@ The current GUI also provides:
 - transient exact `CUSTOMER` and `PROJECT` alias suggestions that remain
   `SUGGESTED_NOT_REVIEWED` until individual current-hash confirmation; the
   dictionary is not persisted, confirmed project spans use additive mapping
-  schema v2 with permanent v1 reads, and transformation stays separate.
+  schema v2 with permanent v1 reads, and transformation stays separate;
+- strict local restoration of exact mapping-owned v1/v2 pseudonyms in bounded
+  arbitrary output, with all-output blocking for altered or foreign tokens and
+  no response persistence, model access, delivery, routing, or execution;
 
 All these surfaces are local and inspectable. Imported evidence remains
 `UNTRUSTED`; curated state and profile declarations remain `USER_CURATED` or
@@ -262,7 +265,9 @@ documents project-free capture and search. The [privacy preflight guide](docs/us
 explains policy inputs, decisions, recovery, and why reviewable is not
 authorization. The [reversible privacy transformation guide](docs/user-guide/reversible-privacy-transformation.md)
 documents reviewed spans, encrypted mappings, passphrase-wrapped key custody, exact
-restore, and current limitations.
+restore, and current limitations. The [local output restoration guide](docs/user-guide/pseudonymized-output-restoration.md)
+documents strict whole-token validation, all-output blocking, transient restored
+content, and the absence of model or delivery authority.
 
 The development-only [selector continuity evidence report](docs/development/selector-continuity-evidence-retention.md)
 records the fixed Sprint 21 corpus, exact results, and `no change` decisions. It

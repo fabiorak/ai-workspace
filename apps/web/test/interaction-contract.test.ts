@@ -31,6 +31,7 @@ describe("GUI interaction contract", () => {
         "CONTEXT_SELECTOR_REPORT",
         "CUSTOMER_ALIAS_REVIEW",
         "PRIVACY_TRANSFORMATION",
+        "PRIVACY_OUTPUT_RESTORATION",
       ],
     );
     assert.equal(

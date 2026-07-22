@@ -234,6 +234,14 @@ continuano a usare schema v1. I reader versionati conservano il comportamento
 v1 permanente ed esatto, i mapping v2 autenticano schema e scope, gli envelope
 di custodia restano schema v1 e nessuno stato viene migrato o ricifrato.
 
+Sprint 31 completa tramite ADR-0025 un boundary separato per output arbitrari.
+Il corpus sintetico bilingue accetta il ripristino rigoroso di token interi dopo
+tre restore esatti, nove blocchi completi, un risultato senza token e nessun
+output errato o parzialmente ripristinato nei casi bloccati. Un inspector locale
+bounded ripristina soltanto token v1/v2 posseduti dal mapping dopo la validazione
+completa; modelli, acquisizione di risposte, delivery, routing, permessi ed
+esecuzione restano esclusi.
+
 ### 3.6 Riutilizzo degli strumenti
 
 Gli script creati per automatizzare attività ripetitive devono essere catalogati e recuperabili senza chiedere nuovamente al modello di generarli.

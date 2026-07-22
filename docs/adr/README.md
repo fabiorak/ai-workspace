@@ -45,3 +45,4 @@ Status: proposed | accepted | superseded
 - [ADR-0022: Use passphrase-wrapped local mapping keys](0022-use-passphrase-wrapped-local-mapping-keys.md)
 - [ADR-0023: Use transient exact customer-alias suggestions](0023-use-transient-exact-customer-alias-suggestions.md)
 - [ADR-0024: Use additive schema-v2 project pseudonym mappings](0024-use-additive-schema-v2-project-pseudonym-mappings.md)
+- [ADR-0025: Use strict local pseudonymized output restoration](0025-use-strict-local-pseudonymized-output-restoration.md)

@@ -3,10 +3,15 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 30](docs/planning/sprints/SPRINT-030.md) are complete.
+Sprint 0 through [Sprint 31](docs/planning/sprints/SPRINT-031.md) are complete.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.
+Sprint 31 accepted ADR-0025 after frozen synthetic v1/v2 output-integrity
+evidence. Strict whole-token validation now restores exact mapping-owned values
+in a bounded local inspector and blocks the complete result on unknown or
+altered placeholders. It introduces no model access, response capture,
+delivery, routing, permission, or execution.
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
@@ -142,6 +147,12 @@ present. Mapping v1 remains byte-identical and permanently readable, mapping
 v2 authenticates its exact schema and scope, and both versions coexist under
 distinct immutable mapping-set identities with the unchanged custody-envelope
 schema v1. No migration, delivery, model, network, or execution path was added.
+
+Sprint 31 treats arbitrary output as a new integrity boundary rather than
+reusing position-based Context Pack restoration. The frozen corpus produced
+three exact restores, nine complete blocks, one no-token result, zero errors,
+and zero partial blocked outputs. ADR-0025 authorizes only strict local
+inspection; v1/v2 mapping and custody contracts remain unchanged.
 
 ## 1. Project Memory
 

@@ -390,6 +390,34 @@ describe("GUI application facade", () => {
         "PASSPHRASE_WRAPPED_LOCAL",
       );
       assert.equal(JSON.stringify(pseudonymized).includes(root), false);
+      const outputPseudonym =
+        pseudonymized.transformation.selections[0]!.pseudonym;
+      const restoredOutput = await app.inspectPseudonymizedOutput({
+        projectId: project.id,
+        workItemId: work.id,
+        handoffId: handoff.id,
+        mappingSetId: pseudonymized.mapping.mappingSetId,
+        passphrase: "synthetic application passphrase",
+        output: `Synthetic result: ${outputPseudonym}.`,
+      });
+      assert.equal(restoredOutput.decision, "RESTORABLE_LOCAL_EVIDENCE");
+      assert.equal(restoredOutput.restoredTokens, 1);
+      assert.equal(
+        restoredOutput.restoredContent?.includes(outputPseudonym),
+        false,
+      );
+      assert.match(restoredOutput.effect, /NOT_AUTHORIZED/u);
+      await assert.rejects(
+        app.inspectPseudonymizedOutput({
+          projectId: project.id,
+          workItemId: work.id,
+          handoffId: "foreign-handoff",
+          mappingSetId: pseudonymized.mapping.mappingSetId,
+          passphrase: "synthetic application passphrase",
+          output: `Synthetic result: ${outputPseudonym}.`,
+        }),
+        /malformed, oversized, incompatible, or cross-scoped/u,
+      );
       await assert.rejects(
         app.previewPrivacyPreflight({
           projectId: project.id,

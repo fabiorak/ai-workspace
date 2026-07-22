@@ -35,3 +35,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 28 — Measure Reviewed Entity Candidate Discovery](SPRINT-028.md) — completed
 - [Sprint 29 — Review Exact Alias Suggestions Explicitly](SPRINT-029.md) — completed
 - [Sprint 30 — Plan Reviewed Project Aliases with Schema v2](SPRINT-030.md) — completed
+- [Sprint 31 — Validate Safe Pseudonymized Output Restoration](SPRINT-031.md) — completed

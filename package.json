@@ -26,6 +26,7 @@
     "lint": "eslint .",
     "measure:entity-candidates": "node scripts/entity-candidate-measurement.ts",
     "measure:general-links": "node scripts/general-link-scale-measurement.ts",
+    "measure:output-restoration": "node scripts/output-restoration-measurement.ts",
     "test": "node --test apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "test:watch": "node --test --watch apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "typecheck": "tsc --noEmit --pretty false"

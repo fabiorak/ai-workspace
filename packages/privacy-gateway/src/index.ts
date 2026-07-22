@@ -8,6 +8,18 @@ export * from "./pseudonymization.ts";
 export * from "./pseudonymization-v2.ts";
 export * from "./entity-alias-suggestions.ts";
 export * from "./entity-alias-suggestions-v2.ts";
+export {
+  inspectPseudonymizedOutput,
+  OUTPUT_RESTORATION_EFFECT,
+  OUTPUT_RESTORATION_MAX_BYTES,
+  OutputRestorationError,
+  type OutputRestorationDecision,
+  type OutputRestorationPolicy,
+  type OutputRestorationReason,
+  type OutputRestorationReport,
+  type OutputRestorationScope,
+} from "./output-restoration.ts";
+export * from "./output-restoration-measurement.ts";
 
 export const MODEL_DATA_POLICY_SCHEMA_VERSION = 1;
 export const PRIVACY_PREFLIGHT_EFFECT =

@@ -443,6 +443,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 28 | E0, E7        | Measure reviewed entity candidate discovery             |
 | Sprint 29 | E0, E7        | Review exact alias suggestions explicitly               |
 | Sprint 30 | E0, E7        | Add reviewed project aliases with schema v2             |
+| Sprint 31 | E0, E7        | Validate safe pseudonymized output restoration          |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -534,6 +535,14 @@ unchanged `USER_REVIEWED` contract. Sprint 30 then accepted ADR-0024 after an
 executable compatibility corpus and added explicit project spans through
 mapping schema v2 with permanent v1 reads. Neither increment adds delivery
 authority.
+
+Sprint 31 completed the evidence-first output-restoration safety increment.
+The frozen synthetic bilingual corpus accepted strict whole-token,
+all-or-nothing restoration and rejected the known-only baseline for production
+after it produced two partial anomaly cases. ADR-0025 enables only a bounded
+bilingual local inspector. Model access, delivery, response capture, routing,
+permission, execution, audit persistence, migration, and re-encryption remain
+outside the increment.
 
 ## 9. Agile operating model
 
@@ -863,3 +872,10 @@ project bytes plus downgrade and authentication gates. Confirmed project spans
 now use explicit schema v2; customer-only reviews remain v1. Both versions use
 distinct immutable mapping-set identities and the unchanged schema-v1 custody
 envelope without migration, re-encryption, delivery, network, or execution.
+
+[Sprint 31](sprints/SPRINT-031.md) completed that separate local
+output-restoration contract. Thirteen frozen v1/v2 cases produced three exact
+restores, nine complete integrity blocks, one no-token result, zero incorrect
+cases, and zero partial blocked outputs. ADR-0025 adds a bounded bilingual
+inspector with authenticated mapping custody and no model, network, delivery,
+response capture, routing, permission, or execution path.

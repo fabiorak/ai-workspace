@@ -231,6 +231,13 @@ readers preserve exact permanent v1 behavior, v2 mappings authenticate their
 schema and scope, custody envelopes remain schema v1, and no state is migrated
 or re-encrypted.
 
+Sprint 31 completes a separate arbitrary-output boundary through ADR-0025. The
+frozen synthetic bilingual corpus accepts strict whole-token restoration after
+three exact restores, nine complete blocks, one no-token result, and no
+incorrect or partial blocked output. A bounded local inspector restores only
+mapping-owned v1/v2 tokens after complete validation; models, response capture,
+delivery, routing, permissions, and execution remain excluded.
+
 ### 3.6 Reusable automation
 
 Scripts and procedures created during sessions should be cataloged and reused instead of regenerated through new model calls.
