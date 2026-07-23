@@ -12,6 +12,7 @@ coverage/
 
 # Framework and tool caches
 .cache/
+.codegraph/
 .tokensave/
 .turbo/
 .nx/

@@ -3,13 +3,18 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 36](docs/planning/sprints/SPRINT-036.md) are complete.
+Sprint 0 through [Sprint 37](docs/planning/sprints/SPRINT-037.md) are complete.
 [Sprint 36](docs/planning/sprints/SPRINT-036.md) accepted ADR-0027 after its
 28-case offline corpus proved at most one application-level OpenAI create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and
 zero retries. The decision is prototype semantics only: no live call,
 credential, production adapter/store, response, GUI action, routing, fallback,
 or execution was added.
+[Sprint 37](docs/planning/sprints/SPRINT-037.md) qualified the durable,
+non-content attempt evidence required before a future adapter call. Its 29-case
+offline corpus passed with zero retries and accepted only a dedicated
+test-owned JSON candidate. It does not authorize credentials, network, model
+delivery, a production store, or a user-facing surface.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.

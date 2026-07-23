@@ -41,3 +41,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 34 — Qualify OpenAI Responses and Codex Headless Transports](SPRINT-034.md) — completed
 - [Sprint 35 — Qualify Anthropic Messages and Claude Code Headless Transports](SPRINT-035.md) — completed
 - [Sprint 36 — Decide Bounded At-Most-Once OpenAI Attempt Semantics](SPRINT-036.md) — completed
+- [Sprint 37 — Qualify Durable Attempt Evidence Persistence](SPRINT-037.md) — completed

@@ -449,6 +449,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 34 | E0, E7        | Qualify OpenAI Responses and Codex headless transports  |
 | Sprint 35 | E0, E7        | Qualify Anthropic Messages and Claude Code headless     |
 | Sprint 36 | E0, E7        | Decide bounded at-most-once OpenAI attempt semantics    |
+| Sprint 37 | E0, E7        | Qualify durable attempt evidence persistence            |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -962,3 +963,12 @@ proved a truthful bounded at-most-once application-level attempt contract.
 Possible post-exposure loss remains `UNKNOWN_AFTER_EXPOSURE`, no retry is
 scheduled, and a deliberate future create requires fresh warned authorization.
 The harness/store remain test-only; no live probe or production surface exists.
+
+[Sprint 37](sprints/SPRINT-037.md) completed the next narrow E7 boundary. Its
+29-case offline corpus qualified a dedicated test-owned non-content JSON store:
+the exposure claim becomes atomically published and reread-verified before a
+fake adapter invocation, while crash, restart, corruption, concurrency, and
+capacity failure remain fail-closed without retry. Decision
+`ADOPT_TEST_ONLY_DURABLE_ATTEMPT_EVIDENCE` adds no credential, network,
+production store, provider adapter, response, model delivery, GUI, routing,
+fallback, or execution surface.

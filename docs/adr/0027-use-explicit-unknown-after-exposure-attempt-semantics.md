@@ -76,3 +76,20 @@ be complete.
 - a happy-path live probe can validate transport conformance but cannot upgrade
   undocumented idempotency or crash-recovery guarantees;
 - M5 remains incomplete and no production model access exists.
+
+## Subsequent evidence
+
+Sprint 37 qualified a dependency-free, dedicated, test-owned JSON persistence
+candidate against 29 frozen offline cases. Atomic publication and verified
+reread make an exposure claim restart-visible before fake adapter invocation;
+post-publication interruption recovers as `UNKNOWN_AFTER_EXPOSURE`, while
+pre-publication failure invokes no adapter. Replay, concurrency, corruption,
+capacity, malformed state, late callbacks, and duplicate authorization remain
+fail-closed with zero scheduled retries.
+
+The canonical corpus SHA-256 is
+`4a60e9e260916a9f165ae7d82381f821a62a6a4daf348785ba4371e5f32992bd`;
+decision `ADOPT_TEST_ONLY_DURABLE_ATTEMPT_EVIDENCE` does not change this ADR's
+production boundary. No production store, credentials, network, provider
+adapter, response handling, GUI action, delivery, routing, fallback, or
+execution is authorized.
