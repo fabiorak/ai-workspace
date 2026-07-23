@@ -48,3 +48,4 @@ Status: proposed | accepted | superseded
 - [ADR-0025: Use strict local pseudonymized output restoration](0025-use-strict-local-pseudonymized-output-restoration.md)
 - [ADR-0026: Use a bounded local non-content privacy decision audit](0026-use-a-bounded-local-non-content-privacy-decision-audit.md)
 - [ADR-0027: Use explicit unknown-after-exposure attempt semantics](0027-use-explicit-unknown-after-exposure-attempt-semantics.md)
+- [ADR-0028: Use a separate local model-attempt evidence store](0028-use-separate-local-model-attempt-store.md)

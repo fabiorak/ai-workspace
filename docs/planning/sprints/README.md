@@ -42,3 +42,5 @@ results separately from future forecasts in the project plan.
 - [Sprint 35 — Qualify Anthropic Messages and Claude Code Headless Transports](SPRINT-035.md) — completed
 - [Sprint 36 — Decide Bounded At-Most-Once OpenAI Attempt Semantics](SPRINT-036.md) — completed
 - [Sprint 37 — Qualify Durable Attempt Evidence Persistence](SPRINT-037.md) — completed
+- [Sprint 38 — Adopt Production Durable Attempt Evidence Storage](SPRINT-038.md) — completed
+- [Sprint 39 — Introduce the Graphical Workspace Dashboard](SPRINT-039.md) — completed

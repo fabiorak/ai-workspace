@@ -450,6 +450,8 @@ must be adjusted using evidence from completed increments.
 | Sprint 35 | E0, E7        | Qualify Anthropic Messages and Claude Code headless     |
 | Sprint 36 | E0, E7        | Decide bounded at-most-once OpenAI attempt semantics    |
 | Sprint 37 | E0, E7        | Qualify durable attempt evidence persistence            |
+| Sprint 38 | E0, E7        | Adopt production durable attempt evidence storage       |
+| Sprint 39 | E0, E1-E7     | Introduce the graphical workspace dashboard             |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -972,3 +974,14 @@ capacity failure remain fail-closed without retry. Decision
 `ADOPT_TEST_ONLY_DURABLE_ATTEMPT_EVIDENCE` adds no credential, network,
 production store, provider adapter, response, model delivery, GUI, routing,
 fallback, or execution surface.
+
+[Sprint 38](sprints/SPRINT-038.md) adopted the next internal M5 boundary through
+ADR-0028: a provider-neutral production attempt contract and dedicated local
+adapter preserve Sprint 37 durability without adding credentials, network,
+provider calls, routes, CLI commands, GUI actions, or delivery.
+
+[Sprint 39](sprints/SPRINT-039.md) completed the next GUI-first product
+increment. The homepage now provides a bilingual, accessible graphical
+dashboard derived on demand from authoritative local stores. Semantic HTML and
+CSS provide textual equivalents for every visual without a chart dependency,
+remote asset, telemetry, or model-delivery claim.

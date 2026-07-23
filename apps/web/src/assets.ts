@@ -17,6 +17,48 @@ export function shellHtml(csrfToken: string) {
   <header><p class="eyebrow" data-i18n="headerTagline">Local-first control plane</p><h1>AI Workspace</h1><p data-i18n="headerPrivacy">Your project data stays on this computer. This guided alpha makes no external requests.</p><label for="gui-language" data-i18n="language">Language / Lingua</label><select id="gui-language"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></header>
   <nav aria-label="Journey progress"><ol class="progress"><li aria-current="step" data-i18n="progressProject">1. Project</li><li data-i18n="progressSample">2. Safe sample</li><li data-i18n="progressSearch">3. Search</li><li data-i18n="progressSource">4. Inspect source</li></ol></nav>
   <main id="main" tabindex="-1">
+    <section aria-labelledby="dashboard-heading" id="dashboard">
+      <h2 id="dashboard-heading" tabindex="-1" data-i18n="dashboard">Workspace overview</h2>
+      <p data-i18n="dashboardIntro">Read-only local summary. Every value comes from an authoritative store; no telemetry or model request is used.</p>
+      <button id="dashboard-refresh" type="button">Refresh overview / Aggiorna panoramica</button>
+      <div id="dashboard-status" role="status" aria-live="polite">Loading workspace overview…</div>
+      <div class="dashboard-grid">
+        <article class="dashboard-card">
+          <h3 data-i18n="dashboardProjects">Projects and Git attention</h3>
+          <p class="dashboard-value" id="dashboard-project-total">0</p>
+          <p id="dashboard-project-text">No projects registered.</p>
+          <div class="dashboard-track" aria-hidden="true"><span id="dashboard-project-bar"></span></div>
+          <a href="#projects">Open projects / Apri progetti</a>
+        </article>
+        <article class="dashboard-card">
+          <h3 data-i18n="dashboardWork">Work Item lifecycle</h3>
+          <p class="dashboard-value" id="dashboard-work-total">0</p>
+          <p id="dashboard-work-text">No Work Items.</p>
+          <div class="dashboard-track" aria-hidden="true"><span id="dashboard-work-bar"></span></div>
+          <a href="#work-items">Open Work Items / Apri Work Item</a>
+        </article>
+        <article class="dashboard-card">
+          <h3 data-i18n="dashboardMemory">Active memory verification</h3>
+          <p class="dashboard-value" id="dashboard-memory-total">0</p>
+          <p id="dashboard-memory-text">No active memory.</p>
+          <div class="dashboard-track" aria-hidden="true"><span id="dashboard-memory-bar"></span></div>
+          <a href="#memory">Open memory / Apri memoria</a>
+        </article>
+        <article class="dashboard-card">
+          <h3 data-i18n="dashboardPrivacy">Privacy decisions</h3>
+          <p class="dashboard-value" id="dashboard-privacy-total">0</p>
+          <p id="dashboard-privacy-text">No audited decisions.</p>
+          <div class="dashboard-track" aria-hidden="true"><span id="dashboard-privacy-bar"></span></div>
+          <a href="#privacy-audit">Open audit / Apri audit</a>
+        </article>
+        <article class="dashboard-card dashboard-card-wide">
+          <h3 data-i18n="dashboardDelivery">Model delivery</h3>
+          <p class="status-unavailable" data-i18n="dashboardUnavailable">Unavailable: no provider delivery surface exists. Nothing can be sent.</p>
+        </article>
+      </div>
+      <p id="dashboard-coverage" class="help">Coverage is loading.</p>
+      <p id="dashboard-error" class="error" role="alert"></p>
+    </section>
     <section aria-labelledby="welcome-heading" id="welcome">
       <h2 id="welcome-heading" tabindex="-1" data-i18n="welcome">Start with one local project</h2>
       <p data-i18n="welcomeRegistration">Registering stores bounded Git metadata locally. It does not copy or modify repository files.</p>
@@ -255,6 +297,13 @@ button:focus-visible, input:focus-visible, [tabindex="-1"]:focus { outline: 4px 
 .error { font-weight: 700; }
 .project-card { border-block-start: 1px solid var(--border); padding-block: .75rem; }
 .result-card { border-block-start: 1px solid var(--border); padding-block: .75rem; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+.dashboard-card { border: 1px solid var(--border); border-radius: .65rem; padding: 1rem; margin: 0; }
+.dashboard-card-wide { grid-column: 1 / -1; }
+.dashboard-value { font-size: 2rem; font-weight: 800; margin-block: .25rem; }
+.dashboard-track { block-size: .65rem; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin-block: .75rem; }
+.dashboard-track span { display: block; block-size: 100%; inline-size: 0; background: var(--accent); }
+.status-unavailable { border-inline-start: .35rem solid var(--border); padding-inline-start: .75rem; font-weight: 700; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--border); padding: .75rem; max-height: 30rem; overflow: auto; }
 .skip-link { position: absolute; transform: translateY(-200%); }
 .skip-link:focus { position: static; transform: none; }
@@ -319,13 +368,44 @@ export const APP_JS = `
   let customerAliasSuggestions = [];
   const selectedHandoffMemoryIds = new Set();
   const text = (element, value) => { element.textContent = value; };
-  document.getElementById("gui-language").addEventListener("change", (event) => { locale = supported.has(event.target.value) ? event.target.value : "en"; localStorage.setItem(localeKey, locale); applyLocale(); });
+  document.getElementById("gui-language").addEventListener("change", (event) => { locale = supported.has(event.target.value) ? event.target.value : "en"; localStorage.setItem(localeKey, locale); applyLocale(); loadDashboard(); });
   const api = async (path, options = {}) => {
     const response = await fetch(path, { ...options, headers: { "Content-Type": "application/json", "X-AI-Workspace-CSRF": csrf, ...(options.headers || {}) } });
     const value = await response.json();
     if (!response.ok) throw new Error(value.message + " " + value.recovery);
     return value;
   };
+  const setDashboardBar = (id, numerator, denominator) => {
+    const percent = denominator === 0 ? 0 : Math.round((numerator / denominator) * 100);
+    document.getElementById(id).style.inlineSize = Math.max(0, Math.min(100, percent)) + "%";
+  };
+  const loadDashboard = async () => {
+    const dashboardStatus = document.getElementById("dashboard-status");
+    const dashboardError = document.getElementById("dashboard-error");
+    text(dashboardError, "");
+    try {
+      const value = await api("/api/dashboard");
+      const workTotal = Object.values(value.workItems).reduce((sum, count) => sum + count, 0);
+      text(document.getElementById("dashboard-project-total"), String(value.projects.total));
+      text(document.getElementById("dashboard-project-text"), locale === "it" ? value.projects.clean + " puliti · " + value.projects.attention + " richiedono attenzione" : value.projects.clean + " clean · " + value.projects.attention + " need attention");
+      setDashboardBar("dashboard-project-bar", value.projects.attention, value.projects.total);
+      text(document.getElementById("dashboard-work-total"), String(workTotal));
+      text(document.getElementById("dashboard-work-text"), "PROPOSED " + value.workItems.proposed + " · ACTIVE " + value.workItems.active + " · BLOCKED " + value.workItems.blocked + " · COMPLETED " + value.workItems.completed);
+      setDashboardBar("dashboard-work-bar", value.workItems.active + value.workItems.blocked, workTotal);
+      text(document.getElementById("dashboard-memory-total"), String(value.memory.active));
+      text(document.getElementById("dashboard-memory-text"), locale === "it" ? value.memory.verified + " verificate · " + value.memory.unverified + " non verificate" : value.memory.verified + " verified · " + value.memory.unverified + " unverified");
+      setDashboardBar("dashboard-memory-bar", value.memory.verified, value.memory.sampled);
+      text(document.getElementById("dashboard-privacy-total"), String(value.privacy.total));
+      text(document.getElementById("dashboard-privacy-text"), "REVIEWABLE_NOT_AUTHORIZED " + value.privacy.reviewable + " · BLOCKED " + value.privacy.blocked);
+      setDashboardBar("dashboard-privacy-bar", value.privacy.blocked, value.privacy.total);
+      text(document.getElementById("dashboard-coverage"), (locale === "it" ? "Copertura: " : "Coverage: ") + value.coverage.availableProjects + "/" + value.projects.total + (locale === "it" ? " progetti disponibili; memoria limitata a 100 elementi e audit a 100 eventi per progetto. Aggiornato " : " projects available; memory limited to 100 items and audit to 100 events per project. Updated ") + value.asOf + ".");
+      text(dashboardStatus, locale === "it" ? "Panoramica locale aggiornata. Sola lettura." : "Local overview updated. Read-only.");
+    } catch (cause) {
+      text(dashboardStatus, locale === "it" ? "La panoramica richiede attenzione." : "The overview needs attention.");
+      text(dashboardError, cause.message);
+    }
+  };
+  document.getElementById("dashboard-refresh").addEventListener("click", loadDashboard);
   const selectProject = (project, focusNext = true) => { selectedProject = project.id; sessionStorage.setItem("aiw-project", project.id); text(guidance, message("selectedProject")); importSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; text(importStatus, message("readyImport", { name: project.name })); loadMemory(); loadWork(); loadPrivacyAudit(true); if (focusNext) nextStep.focus(); };
   const renderProjects = (projects) => {
     registeredProjects = new Map(projects.map((project) => [project.id, project]));
@@ -349,7 +429,7 @@ export const APP_JS = `
       article.append(select, inspect); list.append(article);
     }
   };
-  const loadProjects = async () => { try { renderProjects(await api("/api/projects")); } catch (cause) { text(status, "Projects could not be loaded."); text(error, cause.message); } };
+  const loadProjects = async () => { try { renderProjects(await api("/api/projects")); await loadDashboard(); } catch (cause) { text(status, "Projects could not be loaded."); text(error, cause.message); } };
   const loadPrivacyAudit = async (reset = false) => {
     const auditStatus = document.getElementById("privacy-audit-status");
     const auditError = document.getElementById("privacy-audit-error");

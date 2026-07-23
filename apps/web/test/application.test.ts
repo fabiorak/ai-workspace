@@ -518,6 +518,41 @@ async function writeProfileCompositionFixtures(
     profilePath,
     JSON.stringify(buildSyntheticAgentProfile(projectId), null, 2),
   );
+
+  it("summarizes authoritative local state without model availability", async () =>
+    withFixture(async ({ app, repository }) => {
+      const empty = await app.dashboard();
+      assert.equal(empty.projects.total, 0);
+      assert.equal(empty.modelDelivery.status, "UNAVAILABLE");
+
+      const project = await app.registerProject(repository);
+      await app.importSample(project.id);
+      const eventId = (
+        await app.search({ projectId: project.id, text: "test" })
+      ).results[0]!.eventId;
+      await app.addMemory({
+        projectId: project.id,
+        type: "DECISION",
+        content: "Synthetic dashboard memory.",
+        sourceEventIds: [eventId],
+      });
+      await app.createWorkItem({
+        projectId: project.id,
+        objective: "Exercise the synthetic dashboard.",
+        sourceEventIds: [eventId],
+      });
+
+      const dashboard = await app.dashboard();
+      assert.equal(dashboard.projects.total, 1);
+      assert.equal(dashboard.memory.active, 1);
+      assert.equal(dashboard.workItems.proposed, 1);
+      assert.equal(dashboard.coverage.availableProjects, 1);
+      assert.equal(
+        dashboard.effect,
+        "READ_ONLY_LOCAL_AGGREGATE_NO_TELEMETRY_OR_MODEL_ACCESS",
+      );
+      assert.equal(JSON.stringify(dashboard).includes(repository), false);
+    }));
   const selectorProfilePath = join(root, "selector-profile.json");
   const profile = buildSyntheticAgentProfile(projectId);
   await writeFile(

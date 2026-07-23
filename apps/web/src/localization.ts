@@ -26,6 +26,16 @@ const EN = {
   agentProfile: "Inspect an agent and skill profile",
   context: "Preview a bounded Context Pack",
   capabilities: "Product capability map",
+  dashboard: "Workspace overview",
+  dashboardIntro:
+    "Read-only local summary. Every value comes from an authoritative store; no telemetry or model request is used.",
+  dashboardProjects: "Projects and Git attention",
+  dashboardWork: "Work Item lifecycle",
+  dashboardMemory: "Active memory verification",
+  dashboardPrivacy: "Privacy decisions",
+  dashboardDelivery: "Model delivery",
+  dashboardUnavailable:
+    "Unavailable: no provider delivery surface exists. Nothing can be sent.",
   register: "Register this project",
   selectProject: "Select {name}",
   refreshGit: "Refresh Git inspection",
@@ -297,6 +307,16 @@ const IT = {
   agentProfile: "Ispeziona un profilo agente e skill",
   context: "Anteprima di un Context Pack bounded",
   capabilities: "Mappa delle funzionalità del prodotto",
+  dashboard: "Panoramica del workspace",
+  dashboardIntro:
+    "Riepilogo locale in sola lettura. Ogni valore proviene da uno store autorevole; non usa telemetria né richieste a modelli.",
+  dashboardProjects: "Progetti e attenzione Git",
+  dashboardWork: "Ciclo di vita dei Work Item",
+  dashboardMemory: "Verifica della memoria attiva",
+  dashboardPrivacy: "Decisioni privacy",
+  dashboardDelivery: "Invio ai modelli",
+  dashboardUnavailable:
+    "Non disponibile: non esiste alcuna superficie di invio al provider. Nulla può essere inviato.",
   register: "Registra questo progetto",
   selectProject: "Seleziona {name}",
   refreshGit: "Aggiorna ispezione Git",

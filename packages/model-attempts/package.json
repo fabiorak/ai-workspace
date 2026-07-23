@@ -1,0 +1,20 @@
+{
+  "name": "@ai-workspace/model-attempts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Provider-neutral non-content model attempt evidence contracts",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

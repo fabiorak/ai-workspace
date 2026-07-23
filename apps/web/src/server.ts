@@ -85,6 +85,8 @@ export async function startGuiServer(
         return send(response, "text/javascript; charset=utf-8", APP_JS);
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
+      if (request.method === "GET" && url.pathname === "/api/dashboard")
+        return json(response, 200, await application.dashboard());
       if (request.method === "GET") {
         const privacyAuditEvent =
           /^\/api\/projects\/([^/]+)\/privacy-audit\/([^/]+)$/u.exec(

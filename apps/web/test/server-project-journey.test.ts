@@ -85,6 +85,10 @@ describe("GUI server project onboarding", () => {
       /default-src 'none'/u,
     );
     assert.match(html, /Skip to the guided workflow/u);
+    assert.match(html, /id="dashboard"/u);
+    assert.match(html, /Workspace overview/u);
+    assert.match(html, /dashboard-grid/u);
+    assert.match(html, /no provider delivery surface exists/iu);
     assert.match(html, /aria-live="polite"/u);
     assert.match(html, /Register this project/u);
     assert.match(html, /English\/Italian GUI/u);
@@ -137,6 +141,18 @@ describe("GUI server project onboarding", () => {
     assert.equal(script.includes("innerHTML"), false);
     assert.match(style, /max-width: 38rem/u);
     assert.match(style, /prefers-reduced-motion/u);
+    assert.match(style, /dashboard-card/u);
+    const dashboard = (await (await api("/api/dashboard")).json()) as {
+      projects: { total: number };
+      modelDelivery: { status: string };
+      effect: string;
+    };
+    assert.equal(dashboard.projects.total, 0);
+    assert.equal(dashboard.modelDelivery.status, "UNAVAILABLE");
+    assert.equal(
+      dashboard.effect,
+      "READ_ONLY_LOCAL_AGGREGATE_NO_TELEMETRY_OR_MODEL_ACCESS",
+    );
     const secondBootstrap = await fetch(server.bootstrapUrl, {
       redirect: "manual",
     });

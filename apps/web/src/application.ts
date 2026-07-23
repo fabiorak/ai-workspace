@@ -118,6 +118,38 @@ export type GuiProject = Readonly<{
   registeredAt: string;
   lastInspectedAt: string;
 }>;
+
+export type GuiDashboard = Readonly<{
+  schemaVersion: 1;
+  asOf: string;
+  projects: Readonly<{ total: number; clean: number; attention: number }>;
+  general: Readonly<{ conversations: number; questions: number }>;
+  memory: Readonly<{
+    active: number;
+    verified: number;
+    unverified: number;
+    sampled: number;
+    truncated: boolean;
+  }>;
+  workItems: Readonly<{
+    proposed: number;
+    active: number;
+    blocked: number;
+    completed: number;
+  }>;
+  privacy: Readonly<{ reviewable: number; blocked: number; total: number }>;
+  coverage: Readonly<{
+    availableProjects: number;
+    unavailableProjects: number;
+    memoryLimitPerProject: 100;
+    privacyLimitPerProject: 100;
+  }>;
+  modelDelivery: Readonly<{
+    status: "UNAVAILABLE";
+    reason: "NO_PROVIDER_DELIVERY_SURFACE";
+  }>;
+  effect: "READ_ONLY_LOCAL_AGGREGATE_NO_TELEMETRY_OR_MODEL_ACCESS";
+}>;
 export type GuiImportReport = Readonly<{
   projectId: string;
   sessionId: string;
@@ -555,6 +587,107 @@ export class GuiApplication {
       "Check local workspace permissions, then retry loading projects.",
     );
   }
+  public async dashboard(): Promise<GuiDashboard> {
+    return this.#run(async () => {
+      const [registered, conversations] = await Promise.all([
+        this.#registry.list(),
+        this.#general.list(),
+      ]);
+      const summaries = await Promise.all(
+        registered.map(async (project) => {
+          try {
+            const [memory, workItems, privacy] = await Promise.all([
+              this.#memory.list({ projectId: project.id, limit: 100 }),
+              this.#workItems.list(project.id),
+              this.#privacyAudit.list(project.id, { limit: 100 }),
+            ]);
+            return Object.freeze({
+              available: true as const,
+              memory,
+              workItems,
+              privacy,
+            });
+          } catch {
+            return Object.freeze({ available: false as const });
+          }
+        }),
+      );
+      const available = summaries.filter(
+        (
+          summary,
+        ): summary is Extract<
+          (typeof summaries)[number],
+          { available: true }
+        > => summary.available,
+      );
+      const memoryItems = available.flatMap((summary) => summary.memory.items);
+      const workItems = available.flatMap((summary) => summary.workItems);
+      const auditEvents = available.flatMap(
+        (summary) => summary.privacy.events,
+      );
+      const countWork = (status: WorkItem["status"]) =>
+        workItems.filter((item) => item.status === status).length;
+      return Object.freeze({
+        schemaVersion: 1,
+        asOf: new Date().toISOString(),
+        projects: Object.freeze({
+          total: registered.length,
+          clean: registered.filter((project) => !project.isDirty).length,
+          attention: registered.filter((project) => project.isDirty).length,
+        }),
+        general: Object.freeze({
+          conversations: conversations.length,
+          questions: conversations.reduce(
+            (total, conversation) => total + conversation.events.length,
+            0,
+          ),
+        }),
+        memory: Object.freeze({
+          active: memoryItems.filter((item) => item.validity === "ACTIVE")
+            .length,
+          verified: memoryItems.filter(
+            (item) => item.verification === "VERIFIED",
+          ).length,
+          unverified: memoryItems.filter(
+            (item) => item.verification === "UNVERIFIED",
+          ).length,
+          sampled: memoryItems.length,
+          truncated: available.some(
+            (summary) => summary.memory.nextCursor !== null,
+          ),
+        }),
+        workItems: Object.freeze({
+          proposed: countWork("PROPOSED"),
+          active: countWork("ACTIVE"),
+          blocked: countWork("BLOCKED"),
+          completed: countWork("COMPLETED"),
+        }),
+        privacy: Object.freeze({
+          reviewable: auditEvents.filter(
+            (event) => event.decision === "REVIEWABLE_NOT_AUTHORIZED",
+          ).length,
+          blocked: auditEvents.filter((event) => event.decision === "BLOCKED")
+            .length,
+          total: available.reduce(
+            (total, summary) => total + summary.privacy.total,
+            0,
+          ),
+        }),
+        coverage: Object.freeze({
+          availableProjects: available.length,
+          unavailableProjects: summaries.length - available.length,
+          memoryLimitPerProject: 100,
+          privacyLimitPerProject: 100,
+        }),
+        modelDelivery: Object.freeze({
+          status: "UNAVAILABLE",
+          reason: "NO_PROVIDER_DELIVERY_SURFACE",
+        }),
+        effect: "READ_ONLY_LOCAL_AGGREGATE_NO_TELEMETRY_OR_MODEL_ACCESS",
+      });
+    }, "Preserve local stores, inspect cards marked unavailable, then reload the dashboard.");
+  }
+
   public async registerProject(path: string): Promise<GuiProject> {
     return this.#run(
       async () => projectView(await this.#registry.register(path)),

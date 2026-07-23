@@ -3,7 +3,7 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
-Sprint 0 through [Sprint 37](docs/planning/sprints/SPRINT-037.md) are complete.
+Sprint 0 through [Sprint 39](docs/planning/sprints/SPRINT-039.md) are complete.
 [Sprint 36](docs/planning/sprints/SPRINT-036.md) accepted ADR-0027 after its
 28-case offline corpus proved at most one application-level OpenAI create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and
@@ -15,6 +15,13 @@ non-content attempt evidence required before a future adapter call. Its 29-case
 offline corpus passed with zero retries and accepted only a dedicated
 test-owned JSON candidate. It does not authorize credentials, network, model
 delivery, a production store, or a user-facing surface.
+[Sprint 38](docs/planning/sprints/SPRINT-038.md) adopted the provider-neutral
+production persistence boundary through ADR-0028 without adding credentials,
+network, provider calls, routes, GUI actions, or delivery.
+[Sprint 39](docs/planning/sprints/SPRINT-039.md) introduced a bilingual,
+accessible graphical homepage dashboard. It derives bounded read-only summaries
+from authoritative local stores and uses semantic HTML and CSS rather than a
+charting dependency.
 Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
 reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
 byte-identical v1 reads and no implicit migration.

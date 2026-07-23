@@ -146,18 +146,20 @@ deliberately narrow and is not suitable for production data.
 The GUI provides English and Italian presentation and guides the user through a
 local, inspectable workflow:
 
-1. capture a project-free question in General Inbox or register a local Git
+1. read the graphical homepage dashboard for workspace health, coverage, and
+   the next area requiring attention;
+2. capture a project-free question in General Inbox or register a local Git
    repository;
-2. import bundled fictional evidence, search it, and inspect its verified
+3. import bundled fictional evidence, search it, and inspect its verified
    source;
-3. curate source-linked active memory and manage a Work Item;
-4. preview and create an immutable handoff, then inspect drift and prepare a
+4. curate source-linked active memory and manage a Work Item;
+5. preview and create an immutable handoff, then inspect drift and prepare a
    successor;
-5. inspect effective instructions, agent profiles, and deterministic bounded
+6. inspect effective instructions, agent profiles, and deterministic bounded
    Context Packs without installing or executing them;
-6. preview privacy policy decisions and reviewed reversible
+7. preview privacy policy decisions and reviewed reversible
    pseudonymization;
-7. inspect strict local output restoration and the separate non-content privacy
+8. inspect strict local output restoration and the separate non-content privacy
    decision audit.
 
 Imported evidence remains visibly `UNTRUSTED`. Curated state remains explicitly
@@ -168,6 +170,7 @@ Start with the
 [GUI-first journey guide](docs/user-guide/gui-first-journey.md). Focused guides
 cover:
 
+- [the graphical workspace dashboard](docs/user-guide/workspace-dashboard.md);
 - [project registration](docs/user-guide/project-registry.md),
   [session ingestion](docs/user-guide/session-ingestion.md), and
   [historical search](docs/user-guide/historical-search.md);
