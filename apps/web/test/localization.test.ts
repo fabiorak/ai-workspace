@@ -54,6 +54,9 @@ describe("GUI localization contract", () => {
     assert.match(GUI_CATALOGS.it.projectDirectoryHelp, /registrazione/u);
     assert.match(GUI_CATALOGS.it.projectEffect, /Effetto/u);
     assert.equal(GUI_CATALOGS.it.progressSource, "4. Esamina sorgente");
+    assert.equal(GUI_CATALOGS.it.navSettings, "Impostazioni");
+    assert.equal(GUI_CATALOGS.it.navSystem, "Stato sistema");
+    assert.match(GUI_CATALOGS.it.scriptsUnavailable, /Nessun runner/u);
     assert.equal(GUI_CATALOGS.it.trust, "Attendibilità:");
     assert.equal(
       guiMessage("it", "readyImport", { name: "ai-workspace" }),

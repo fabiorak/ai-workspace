@@ -22,6 +22,13 @@ content-type, and body bounds are checked before state changes. Imported
 evidence is rendered as inert text. ADR-0015 records this reversible alpha
 boundary and its desktop and packaging revisit triggers.
 
+The presentation remains one dependency-free local application but now exposes
+a routed multi-page shell. Fragment routes and a persistent responsive sidebar
+organize existing facade workflows without adding a framework, remote asset,
+daemon, or second source of truth. Dashboard charts are CSS renderings of the
+same bounded textual aggregates; Settings stores only locale in browser-local
+storage, and unavailable pages do not imply runtime authority.
+
 The same facade now exposes the provider-neutral active-memory lifecycle to the
 GUI. Presentation and HTTP layers do not reconstruct domain rules: all
 same-project provenance, active-only listing, optimistic versions, terminal

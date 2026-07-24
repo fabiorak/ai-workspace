@@ -14,46 +14,76 @@ export function shellHtml(csrfToken: string) {
 </head>
 <body>
   <a class="skip-link" href="#main" data-i18n="skip">Skip to the guided workflow</a>
-  <header><p class="eyebrow" data-i18n="headerTagline">Local-first control plane</p><h1>AI Workspace</h1><p data-i18n="headerPrivacy">Your project data stays on this computer. This guided alpha makes no external requests.</p><label for="gui-language" data-i18n="language">Language / Lingua</label><select id="gui-language"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></header>
-  <nav aria-label="Journey progress"><ol class="progress"><li aria-current="step" data-i18n="progressProject">1. Project</li><li data-i18n="progressSample">2. Safe sample</li><li data-i18n="progressSearch">3. Search</li><li data-i18n="progressSource">4. Inspect source</li></ol></nav>
-  <main id="main" tabindex="-1">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#/dashboard" aria-label="AI Workspace dashboard">
+        <span class="brand-mark" aria-hidden="true">AW</span>
+        <span><strong>AI Workspace</strong><small data-i18n="headerTagline">Local-first control plane</small></span>
+      </a>
+      <nav class="primary-nav" aria-label="Workspace">
+        <p class="nav-label" data-i18n="navOverview">Overview</p>
+        <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">⌂</span><span data-i18n="navDashboard">Dashboard</span></a>
+        <p class="nav-label" data-i18n="navWork">Workspace</p>
+        <a href="#/projects" data-route="projects"><span aria-hidden="true">◇</span><span data-i18n="navProjects">Projects</span></a>
+        <a href="#/evidence" data-route="evidence"><span aria-hidden="true">⌕</span><span data-i18n="navEvidence">Evidence</span></a>
+        <a href="#/memory" data-route="memory"><span aria-hidden="true">◉</span><span data-i18n="navMemory">Active memory</span></a>
+        <a href="#/work" data-route="work"><span aria-hidden="true">✓</span><span data-i18n="navContinuity">Work &amp; handoffs</span></a>
+        <a href="#/privacy" data-route="privacy"><span aria-hidden="true">◈</span><span data-i18n="navPrivacy">Privacy</span></a>
+        <p class="nav-label" data-i18n="navManage">Manage</p>
+        <a href="#/scripts" data-route="scripts"><span aria-hidden="true">⌘</span><span data-i18n="navScripts">Scripts</span><span class="nav-badge" data-i18n="navSoon">Soon</span></a>
+        <a href="#/settings" data-route="settings"><span aria-hidden="true">⚙</span><span data-i18n="navSettings">Settings</span></a>
+        <a href="#/system" data-route="system"><span aria-hidden="true">●</span><span data-i18n="navSystem">System status</span></a>
+      </nav>
+      <div class="locality-card">
+        <span class="locality-dot" aria-hidden="true"></span>
+        <div><strong data-i18n="localOnly">Local only</strong><small data-i18n="localOnlyDetail">No telemetry or external requests</small></div>
+      </div>
+    </aside>
+    <div class="workspace-shell">
+      <header class="topbar">
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">☰</span><span class="visually-hidden" data-i18n="openMenu">Open navigation</span></button>
+        <div>
+          <p class="eyebrow" id="page-eyebrow" data-i18n="headerTagline">Local-first control plane</p>
+          <h1 id="page-title" data-i18n="navDashboard">Dashboard</h1>
+        </div>
+        <div class="topbar-state"><span class="status-dot" aria-hidden="true"></span><span data-i18n="privateWorkspace">Private workspace</span></div>
+      </header>
+      <main id="main" tabindex="-1">
     <section aria-labelledby="dashboard-heading" id="dashboard">
-      <h2 id="dashboard-heading" tabindex="-1" data-i18n="dashboard">Workspace overview</h2>
-      <p data-i18n="dashboardIntro">Read-only local summary. Every value comes from an authoritative store; no telemetry or model request is used.</p>
-      <button id="dashboard-refresh" type="button">Refresh overview / Aggiorna panoramica</button>
-      <div id="dashboard-status" role="status" aria-live="polite">Loading workspace overview…</div>
+      <div class="dashboard-hero">
+        <div><p class="eyebrow" data-i18n="dashboardEyebrow">Workspace pulse</p><h2 id="dashboard-heading" tabindex="-1" data-i18n="dashboard">Workspace overview</h2>
+        <p data-i18n="dashboardIntro">Read-only local summary. Every value comes from an authoritative store; no telemetry or model request is used.</p></div>
+        <button id="dashboard-refresh" type="button" class="button-secondary" data-i18n="refreshDashboard">Refresh overview</button>
+      </div>
+      <div id="dashboard-status" class="inline-status" role="status" aria-live="polite">Loading workspace overview…</div>
       <div class="dashboard-grid">
         <article class="dashboard-card">
-          <h3 data-i18n="dashboardProjects">Projects and Git attention</h3>
-          <p class="dashboard-value" id="dashboard-project-total">0</p>
+          <div class="card-heading"><div><p class="card-kicker" data-i18n="dashboardProjectsKicker">Repository health</p><h3 data-i18n="dashboardProjects">Projects and Git attention</h3></div><div class="ring-chart" id="dashboard-project-ring" aria-hidden="true"><span id="dashboard-project-total">0</span></div></div>
           <p id="dashboard-project-text">No projects registered.</p>
           <div class="dashboard-track" aria-hidden="true"><span id="dashboard-project-bar"></span></div>
-          <a href="#projects">Open projects / Apri progetti</a>
+          <a class="card-link" href="#/projects" data-i18n="openProjects">Open projects</a>
         </article>
         <article class="dashboard-card">
-          <h3 data-i18n="dashboardWork">Work Item lifecycle</h3>
-          <p class="dashboard-value" id="dashboard-work-total">0</p>
+          <div class="card-heading"><div><p class="card-kicker" data-i18n="dashboardWorkKicker">Continuity flow</p><h3 data-i18n="dashboardWork">Work Item lifecycle</h3></div><div class="ring-chart ring-chart-cyan" id="dashboard-work-ring" aria-hidden="true"><span id="dashboard-work-total">0</span></div></div>
           <p id="dashboard-work-text">No Work Items.</p>
           <div class="dashboard-track" aria-hidden="true"><span id="dashboard-work-bar"></span></div>
-          <a href="#work-items">Open Work Items / Apri Work Item</a>
+          <a class="card-link" href="#/work" data-i18n="openWork">Open Work Items</a>
         </article>
         <article class="dashboard-card">
-          <h3 data-i18n="dashboardMemory">Active memory verification</h3>
-          <p class="dashboard-value" id="dashboard-memory-total">0</p>
+          <div class="card-heading"><div><p class="card-kicker" data-i18n="dashboardMemoryKicker">Knowledge quality</p><h3 data-i18n="dashboardMemory">Active memory verification</h3></div><div class="ring-chart ring-chart-violet" id="dashboard-memory-ring" aria-hidden="true"><span id="dashboard-memory-total">0</span></div></div>
           <p id="dashboard-memory-text">No active memory.</p>
           <div class="dashboard-track" aria-hidden="true"><span id="dashboard-memory-bar"></span></div>
-          <a href="#memory">Open memory / Apri memoria</a>
+          <a class="card-link" href="#/memory" data-i18n="openMemory">Open memory</a>
         </article>
         <article class="dashboard-card">
-          <h3 data-i18n="dashboardPrivacy">Privacy decisions</h3>
-          <p class="dashboard-value" id="dashboard-privacy-total">0</p>
+          <div class="card-heading"><div><p class="card-kicker" data-i18n="dashboardPrivacyKicker">Decision boundary</p><h3 data-i18n="dashboardPrivacy">Privacy decisions</h3></div><div class="ring-chart ring-chart-amber" id="dashboard-privacy-ring" aria-hidden="true"><span id="dashboard-privacy-total">0</span></div></div>
           <p id="dashboard-privacy-text">No audited decisions.</p>
           <div class="dashboard-track" aria-hidden="true"><span id="dashboard-privacy-bar"></span></div>
-          <a href="#privacy-audit">Open audit / Apri audit</a>
+          <a class="card-link" href="#/privacy" data-i18n="openPrivacy">Open privacy center</a>
         </article>
-        <article class="dashboard-card dashboard-card-wide">
-          <h3 data-i18n="dashboardDelivery">Model delivery</h3>
-          <p class="status-unavailable" data-i18n="dashboardUnavailable">Unavailable: no provider delivery surface exists. Nothing can be sent.</p>
+        <article class="dashboard-card dashboard-card-wide boundary-card">
+          <div class="boundary-icon" aria-hidden="true">⛨</div><div><p class="card-kicker" data-i18n="dashboardBoundaryKicker">Safety boundary</p><h3 data-i18n="dashboardDelivery">Model delivery</h3>
+          <p class="status-unavailable" data-i18n="dashboardUnavailable">Unavailable: no provider delivery surface exists. Nothing can be sent.</p></div>
         </article>
       </div>
       <p id="dashboard-coverage" class="help">Coverage is loading.</p>
@@ -266,48 +296,185 @@ export function shellHtml(csrfToken: string) {
       <button id="artifact-back" type="button">Return to canonical event</button>
       <p id="artifact-error" class="error" role="alert"></p>
     </section>
-    <section aria-labelledby="capabilities-heading">
+    <section aria-labelledby="settings-heading" id="settings">
+      <p class="eyebrow" data-i18n="settingsEyebrow">Workspace preferences</p>
+      <h2 id="settings-heading" tabindex="-1" data-i18n="settingsTitle">Settings</h2>
+      <p data-i18n="settingsIntro">Presentation preferences stay in this browser and never leave this computer.</p>
+      <div class="settings-grid">
+        <article class="setting-card"><div><h3 data-i18n="language">Language / Lingua</h3><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></div><select id="gui-language" aria-label="Language / Lingua"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select></article>
+        <article class="setting-card"><div><h3 data-i18n="appearanceTitle">Appearance</h3><p class="help" data-i18n="appearanceBody">AI Workspace follows your operating-system light or dark theme and reduced-motion preference.</p></div><span class="setting-value" id="appearance-value" data-i18n="systemManaged">System managed</span></article>
+        <article class="setting-card"><div><h3 data-i18n="privacyTitle">Local preference storage</h3><p class="help" data-i18n="privacyBody">Only the language preference is stored in local browser storage. It contains no workspace content.</p></div><span class="setting-value" data-i18n="browserOnly">Browser only</span></article>
+      </div>
+    </section>
+    <section aria-labelledby="scripts-heading" id="scripts">
+      <div class="empty-state-icon" aria-hidden="true">⌘</div>
+      <p class="eyebrow" data-i18n="scriptsEyebrow">Automation workspace</p>
+      <h2 id="scripts-heading" tabindex="-1" data-i18n="scriptsTitle">Scripts</h2>
+      <p data-i18n="scriptsIntro">This area is reserved for reviewed local automations when an execution contract exists.</p>
+      <p class="notice" data-i18n="scriptsUnavailable">Not available yet. No script runner, command execution, scheduler, or hidden automation is active.</p>
+    </section>
+    <section aria-labelledby="system-heading" id="system-status">
+      <p class="eyebrow" data-i18n="systemEyebrow">Runtime boundaries</p>
+      <h2 id="system-heading" tabindex="-1" data-i18n="systemTitle">System status</h2>
+      <div class="system-grid">
+        <article><span class="health-dot health-good" aria-hidden="true"></span><div><h3 data-i18n="localHostTitle">Local host</h3><p data-i18n="localHostBody">Running on authenticated loopback with restrictive browser security headers.</p></div></article>
+        <article><span class="health-dot health-good" aria-hidden="true"></span><div><h3 data-i18n="storesTitle">Authoritative stores</h3><p id="system-project-coverage" data-i18n="storesPending">Coverage loads with the dashboard.</p></div></article>
+        <article><span class="health-dot health-muted" aria-hidden="true"></span><div><h3 data-i18n="deliveryTitle">Provider delivery</h3><p data-i18n="dashboardUnavailable">Unavailable: no provider delivery surface exists. Nothing can be sent.</p></div></article>
+      </div>
+      <p id="system-updated" class="help"></p>
+    </section>
+    <section aria-labelledby="capabilities-heading" id="capabilities">
       <h2 id="capabilities-heading" data-i18n="capabilities">Product capability map</h2>
       <ul><li><strong>Available now:</strong> English/Italian GUI, Projects, safe sample import, history search, source inspection, active memory, Work Items, immutable handoffs, and effective-instruction preview.</li><li><strong>Not active:</strong> Agents, models, tools, external network, handoff evaluation, instruction enforcement, and instruction execution.</li></ul>
     </section>
-  </main>
-  <footer><p>CLI is optional for automation and diagnostics. This journey does not require command knowledge or a manual.</p></footer>
+      </main>
+      <footer><p>AI Workspace · <span data-i18n="footerLocal">Local-first, private by design</span></p></footer>
+    </div>
+  </div>
 </body>
 </html>`;
 }
 
 export const APP_CSS = `
-:root { font-family: system-ui, sans-serif; line-height: 1.5; color-scheme: light dark; --accent: #0b6bcb; --border: #77808a; }
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  color-scheme: light dark;
+  --canvas: #f4f7fb;
+  --surface: #ffffff;
+  --surface-soft: #f7f9fc;
+  --ink: #132238;
+  --muted: #617086;
+  --border: #dce3ed;
+  --accent: #3468f5;
+  --accent-strong: #234dcc;
+  --cyan: #19a9c5;
+  --violet: #8758df;
+  --amber: #e59b28;
+  --good: #23a36d;
+  --danger: #ca4459;
+  --sidebar: #101a2d;
+  --sidebar-ink: #f3f6fb;
+  --sidebar-muted: #98a8c0;
+  --shadow: 0 18px 45px rgba(33, 48, 76, .08);
+}
 * { box-sizing: border-box; }
-body { margin: 0; max-width: 76rem; margin-inline: auto; padding: 1rem; }
-header, nav, main, footer { margin-block: 1rem; }
-section { border: 1px solid var(--border); border-radius: .75rem; padding: 1rem; margin-block: 1rem; }
-.eyebrow { font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-.progress { display: flex; flex-wrap: wrap; gap: .75rem; padding: 0; list-style: none; }
-.progress li { border: 1px solid var(--border); border-radius: 999px; padding: .35rem .7rem; }
-.progress [aria-current] { border-width: 3px; font-weight: 700; }
-label { display: block; font-weight: 700; }
-input, select, textarea { width: min(100%, 48rem); padding: .7rem; font: inherit; display: block; margin-block-end: .75rem; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 20rem; background: var(--canvas); color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+a { color: var(--accent-strong); }
+.app-shell { min-height: 100vh; display: grid; grid-template-columns: 17.5rem minmax(0, 1fr); }
+.sidebar { position: sticky; inset-block-start: 0; height: 100vh; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.35rem 1rem; overflow-y: auto; color: var(--sidebar-ink); background: radial-gradient(circle at 10% 0%, #20365e 0, transparent 30%), var(--sidebar); }
+.brand { display: flex; align-items: center; gap: .75rem; padding: .3rem .5rem; color: inherit; text-decoration: none; }
+.brand-mark { display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border: 1px solid rgba(255,255,255,.22); border-radius: .8rem; background: linear-gradient(135deg, #608cff, #7554e8); box-shadow: 0 9px 24px rgba(52,104,245,.3); font-size: .78rem; font-weight: 900; letter-spacing: .04em; }
+.brand strong, .brand small { display: block; }
+.brand strong { font-size: 1.02rem; letter-spacing: -.02em; }
+.brand small { color: var(--sidebar-muted); font-size: .72rem; }
+.primary-nav { display: grid; gap: .24rem; }
+.primary-nav a { min-height: 2.75rem; display: grid; grid-template-columns: 1.35rem 1fr auto; align-items: center; gap: .65rem; padding: .62rem .72rem; border-radius: .72rem; color: var(--sidebar-muted); text-decoration: none; font-size: .9rem; font-weight: 650; transition: color .18s ease, background .18s ease, transform .18s ease; }
+.primary-nav a:hover { color: var(--sidebar-ink); background: rgba(255,255,255,.07); transform: translateX(.12rem); }
+.primary-nav a[aria-current="page"] { color: #fff; background: linear-gradient(100deg, rgba(82,125,250,.28), rgba(82,125,250,.08)); box-shadow: inset 3px 0 #6f96ff; }
+.primary-nav a > span:first-child { font-size: 1.05rem; text-align: center; }
+.nav-label { margin: 1rem .72rem .25rem; color: #71829c; font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.nav-label:first-child { margin-block-start: 0; }
+.nav-badge { padding: .12rem .4rem; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; font-size: .62rem; font-weight: 800; text-transform: uppercase; }
+.locality-card { margin-block-start: auto; display: flex; align-items: center; gap: .7rem; padding: .85rem; border: 1px solid rgba(255,255,255,.09); border-radius: .8rem; background: rgba(255,255,255,.04); }
+.locality-card strong, .locality-card small { display: block; }
+.locality-card strong { font-size: .8rem; }
+.locality-card small { color: var(--sidebar-muted); font-size: .68rem; }
+.locality-dot, .status-dot { inline-size: .56rem; block-size: .56rem; flex: 0 0 auto; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 .25rem rgba(35,163,109,.13); }
+.workspace-shell { min-width: 0; }
+.topbar { min-height: 5.4rem; display: flex; align-items: center; gap: 1rem; padding: 1rem clamp(1rem, 3vw, 3rem); border-block-end: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 92%, transparent); }
+.topbar h1 { margin: 0; font-size: clamp(1.35rem, 2.5vw, 1.8rem); letter-spacing: -.035em; }
+.eyebrow, .card-kicker { margin: 0 0 .22rem; color: var(--accent); font-size: .7rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+.topbar .eyebrow { color: var(--muted); font-size: .62rem; }
+.topbar-state { margin-inline-start: auto; display: flex; align-items: center; gap: .55rem; padding: .45rem .75rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: .75rem; font-weight: 700; }
+.menu-toggle { display: none; }
+main { width: min(100%, 94rem); margin-inline: auto; padding: clamp(1rem, 3vw, 3rem); }
+section { margin-block: 0 1.5rem; padding: clamp(1rem, 2.6vw, 2rem); border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); box-shadow: var(--shadow); }
+section.route-hidden { display: none !important; }
+section > h2 { margin-block-start: 0; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.035em; }
+.dashboard-hero { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block-end: 1.25rem; }
+.dashboard-hero h2 { margin: 0; font-size: clamp(2rem, 5vw, 3.35rem); line-height: 1.05; letter-spacing: -.06em; }
+.dashboard-hero p:not(.eyebrow) { max-width: 46rem; margin-block-end: 0; color: var(--muted); }
+.inline-status { margin-block: .25rem 1.25rem; color: var(--muted); font-size: .82rem; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.dashboard-card { min-height: 15rem; display: flex; flex-direction: column; margin: 0; padding: 1.25rem; border: 1px solid var(--border); border-radius: .9rem; background: linear-gradient(145deg, var(--surface), var(--surface-soft)); box-shadow: 0 9px 25px rgba(38,54,85,.045); transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+.dashboard-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 32%, var(--border)); box-shadow: 0 16px 34px rgba(38,54,85,.09); }
+.dashboard-card-wide { grid-column: 1 / -1; min-height: auto; }
+.card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.card-heading h3, .boundary-card h3 { margin: 0; font-size: 1rem; letter-spacing: -.02em; }
+.dashboard-card > p { color: var(--muted); font-size: .82rem; }
+.ring-chart { --chart-value: 0; --chart-color: var(--accent); position: relative; inline-size: 4.25rem; block-size: 4.25rem; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(var(--chart-color) calc(var(--chart-value) * 1%), color-mix(in srgb, var(--border) 65%, transparent) 0); }
+.ring-chart::before { content: ""; position: absolute; inset: .42rem; border-radius: 50%; background: var(--surface); }
+.ring-chart span { position: relative; z-index: 1; font-size: 1.35rem; font-weight: 850; letter-spacing: -.05em; }
+.ring-chart-cyan { --chart-color: var(--cyan); }
+.ring-chart-violet { --chart-color: var(--violet); }
+.ring-chart-amber { --chart-color: var(--amber); }
+.dashboard-track { block-size: .42rem; margin-block: auto .85rem; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--border) 72%, transparent); }
+.dashboard-track span { display: block; block-size: 100%; inline-size: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #7858e8); transition: inline-size .35s ease; }
+.card-link { align-self: flex-start; font-size: .78rem; font-weight: 800; text-decoration: none; }
+.card-link::after { content: " →"; }
+.boundary-card { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; min-height: 7rem; background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface)); }
+.boundary-icon, .empty-state-icon { display: grid; place-items: center; inline-size: 3rem; block-size: 3rem; border-radius: .8rem; color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); font-size: 1.3rem; }
+.status-unavailable { margin-block-end: 0; color: var(--muted); }
+.button-secondary, button { display: inline-block; margin-block: .75rem; padding: .68rem 1rem; border: 0; border-radius: .62rem; background: var(--accent); color: #fff; font-weight: 780; cursor: pointer; transition: background .18s ease, transform .18s ease; }
+button:hover { background: var(--accent-strong); transform: translateY(-1px); }
+.button-secondary { border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+.button-secondary:hover { background: var(--surface-soft); }
+label { display: block; margin-block-start: .7rem; font-weight: 750; }
+input, select, textarea { width: min(100%, 48rem); display: block; margin-block: .28rem .75rem; padding: .72rem .82rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--surface); color: var(--ink); }
+textarea { min-height: 6rem; resize: vertical; }
 input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: .5rem; }
-fieldset { max-width: 48rem; margin-block: .75rem; }
-button { display: inline-block; margin-block: .75rem; padding: .65rem 1rem; font: inherit; font-weight: 700; cursor: pointer; }
-button:focus-visible, input:focus-visible, [tabindex="-1"]:focus { outline: 4px solid #f0a500; outline-offset: 3px; }
-.help, .effect { max-width: 68ch; }
-.notice { border-inline-start: .4rem solid var(--accent); padding-inline-start: .8rem; }
-.error { font-weight: 700; }
-.project-card { border-block-start: 1px solid var(--border); padding-block: .75rem; }
-.result-card { border-block-start: 1px solid var(--border); padding-block: .75rem; }
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
-.dashboard-card { border: 1px solid var(--border); border-radius: .65rem; padding: 1rem; margin: 0; }
-.dashboard-card-wide { grid-column: 1 / -1; }
-.dashboard-value { font-size: 2rem; font-weight: 800; margin-block: .25rem; }
-.dashboard-track { block-size: .65rem; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin-block: .75rem; }
-.dashboard-track span { display: block; block-size: 100%; inline-size: 0; background: var(--accent); }
-.status-unavailable { border-inline-start: .35rem solid var(--border); padding-inline-start: .75rem; font-weight: 700; }
-pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--border); padding: .75rem; max-height: 30rem; overflow: auto; }
-.skip-link { position: absolute; transform: translateY(-200%); }
-.skip-link:focus { position: static; transform: none; }
-@media (max-width: 38rem) { body { padding: .5rem; } .progress { display: block; } .progress li { margin-block: .4rem; } button { width: 100%; } }
+fieldset { max-width: 48rem; margin-block: .75rem; border: 1px solid var(--border); border-radius: .7rem; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex="-1"]:focus { outline: 3px solid #f0a500; outline-offset: 3px; }
+.help, .effect { max-width: 70ch; color: var(--muted); }
+.notice { padding: .8rem 1rem; border-inline-start: .3rem solid var(--accent); border-radius: 0 .55rem .55rem 0; background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.error { color: var(--danger); font-weight: 750; }
+.project-card, .result-card { margin-block: .8rem; padding: 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface-soft); }
+.settings-grid { display: grid; gap: .8rem; }
+.setting-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(10rem, 16rem); align-items: center; gap: 1rem; padding: 1.1rem; border: 1px solid var(--border); border-radius: .8rem; }
+.setting-card h3, .setting-card p { margin-block: 0 .25rem; }
+.setting-card select { margin: 0; width: 100%; }
+.setting-value { justify-self: end; padding: .4rem .65rem; border-radius: 999px; background: var(--surface-soft); color: var(--muted); font-size: .78rem; font-weight: 750; }
+#scripts { min-height: 28rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#scripts.route-hidden { display: none; }
+#scripts .notice { max-width: 42rem; text-align: start; }
+.system-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+.system-grid article { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--surface-soft); }
+.system-grid h3, .system-grid p { margin: 0; }
+.system-grid h3 { font-size: .9rem; }
+.system-grid p { margin-block-start: .25rem; color: var(--muted); font-size: .78rem; }
+.health-dot { inline-size: .62rem; block-size: .62rem; flex: 0 0 auto; margin-block-start: .3rem; border-radius: 50%; }
+.health-good { background: var(--good); box-shadow: 0 0 0 .23rem rgba(35,163,109,.12); }
+.health-muted { background: var(--muted); box-shadow: 0 0 0 .23rem color-mix(in srgb, var(--muted) 12%, transparent); }
+pre { max-height: 30rem; overflow: auto; padding: .9rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--surface-soft); white-space: pre-wrap; overflow-wrap: anywhere; }
+footer { padding: 0 clamp(1rem, 3vw, 3rem) 2rem; color: var(--muted); font-size: .75rem; }
+.skip-link { position: fixed; z-index: 100; inset-block-start: .5rem; inset-inline-start: .5rem; transform: translateY(-200%); padding: .6rem; border-radius: .4rem; background: var(--surface); }
+.skip-link:focus { transform: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (prefers-color-scheme: dark) {
+  :root { --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --sidebar: #0a101c; --shadow: 0 18px 45px rgba(0,0,0,.2); }
+  .ring-chart::before { background: var(--surface); }
+}
+@media (max-width: 64rem) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; z-index: 50; inset: 0 auto 0 0; inline-size: min(18rem, 86vw); transform: translateX(-105%); box-shadow: 1rem 0 3rem rgba(0,0,0,.3); transition: transform .22s ease; }
+  body.menu-open .sidebar { transform: translateX(0); }
+  .menu-toggle { display: inline-grid; place-items: center; inline-size: 2.7rem; block-size: 2.7rem; margin: 0; padding: 0; }
+  .topbar { position: sticky; z-index: 40; inset-block-start: 0; }
+}
+@media (max-width: 44rem) {
+  main { padding: .75rem; }
+  .topbar { padding: .8rem; }
+  .topbar-state { display: none; }
+  .dashboard-hero { align-items: stretch; flex-direction: column; gap: .5rem; }
+  .dashboard-grid, .system-grid { grid-template-columns: 1fr; }
+  .dashboard-card-wide { grid-column: auto; }
+  .setting-card { grid-template-columns: 1fr; }
+  .setting-value { justify-self: start; }
+  button { width: 100%; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
 `;
 
@@ -368,7 +535,71 @@ export const APP_JS = `
   let customerAliasSuggestions = [];
   const selectedHandoffMemoryIds = new Set();
   const text = (element, value) => { element.textContent = value; };
-  document.getElementById("gui-language").addEventListener("change", (event) => { locale = supported.has(event.target.value) ? event.target.value : "en"; localStorage.setItem(localeKey, locale); applyLocale(); loadDashboard(); });
+  const pageSections = Object.freeze({
+    dashboard: ["dashboard"],
+    projects: ["welcome", "projects", "next-step", "import"],
+    evidence: ["general-inbox", "search", "event-detail", "artifact-detail"],
+    memory: ["memory", "memory-detail"],
+    work: ["work-items", "work-detail", "handoff-builder", "handoff-detail"],
+    privacy: ["context-pack", "privacy-audit"],
+    scripts: ["scripts"],
+    settings: ["settings"],
+    system: ["system-status", "instructions", "agent-profile", "capabilities"],
+  });
+  const pageTitleKeys = Object.freeze({
+    dashboard: "navDashboard",
+    projects: "navProjects",
+    evidence: "navEvidence",
+    memory: "navMemory",
+    work: "navContinuity",
+    privacy: "navPrivacy",
+    scripts: "navScripts",
+    settings: "navSettings",
+    system: "navSystem",
+  });
+  const pageForSection = new Map(Object.entries(pageSections).flatMap(([page, ids]) => ids.map((id) => [id, page])));
+  const currentPage = () => {
+    const candidate = location.hash.startsWith("#/") ? location.hash.slice(2).split("/")[0] : "";
+    return Object.hasOwn(pageSections, candidate) ? candidate : "dashboard";
+  };
+  const renderRoute = (focusMain = false) => {
+    const page = currentPage();
+    document.body.classList.remove("menu-open");
+    document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
+    for (const section of document.querySelectorAll("main > section")) section.classList.toggle("route-hidden", !pageSections[page].includes(section.id));
+    for (const link of document.querySelectorAll("[data-route]")) {
+      if (link.dataset.route === page) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    }
+    text(document.getElementById("page-title"), message(pageTitleKeys[page]));
+    document.title = message(pageTitleKeys[page]) + " · AI Workspace";
+    if (focusMain) document.getElementById("main").focus();
+    if (page === "dashboard") loadDashboard();
+  };
+  const openPage = (page, focusMain = true) => {
+    const nextHash = "#/" + page;
+    if (location.hash === nextHash) renderRoute(focusMain);
+    else {
+      location.hash = nextHash;
+      if (focusMain) queueMicrotask(() => document.getElementById("main").focus());
+    }
+  };
+  document.getElementById("menu-toggle").addEventListener("click", (event) => {
+    const open = document.body.classList.toggle("menu-open");
+    event.currentTarget.setAttribute("aria-expanded", String(open));
+  });
+  addEventListener("hashchange", () => renderRoute(false));
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href^="#"]:not([href^="#/"])');
+    if (!link) return;
+    const targetId = link.getAttribute("href").slice(1);
+    const page = pageForSection.get(targetId);
+    if (!page) return;
+    event.preventDefault();
+    openPage(page, false);
+    queueMicrotask(() => document.getElementById(targetId)?.focus());
+  });
+  document.getElementById("gui-language").addEventListener("change", (event) => { locale = supported.has(event.target.value) ? event.target.value : "en"; localStorage.setItem(localeKey, locale); applyLocale(); renderRoute(false); loadDashboard(); });
   const api = async (path, options = {}) => {
     const response = await fetch(path, { ...options, headers: { "Content-Type": "application/json", "X-AI-Workspace-CSRF": csrf, ...(options.headers || {}) } });
     const value = await response.json();
@@ -378,6 +609,8 @@ export const APP_JS = `
   const setDashboardBar = (id, numerator, denominator) => {
     const percent = denominator === 0 ? 0 : Math.round((numerator / denominator) * 100);
     document.getElementById(id).style.inlineSize = Math.max(0, Math.min(100, percent)) + "%";
+    const ring = document.getElementById(id.replace("-bar", "-ring"));
+    if (ring) ring.style.setProperty("--chart-value", String(Math.max(0, Math.min(100, percent))));
   };
   const loadDashboard = async () => {
     const dashboardStatus = document.getElementById("dashboard-status");
@@ -399,6 +632,8 @@ export const APP_JS = `
       text(document.getElementById("dashboard-privacy-text"), "REVIEWABLE_NOT_AUTHORIZED " + value.privacy.reviewable + " · BLOCKED " + value.privacy.blocked);
       setDashboardBar("dashboard-privacy-bar", value.privacy.blocked, value.privacy.total);
       text(document.getElementById("dashboard-coverage"), (locale === "it" ? "Copertura: " : "Coverage: ") + value.coverage.availableProjects + "/" + value.projects.total + (locale === "it" ? " progetti disponibili; memoria limitata a 100 elementi e audit a 100 eventi per progetto. Aggiornato " : " projects available; memory limited to 100 items and audit to 100 events per project. Updated ") + value.asOf + ".");
+      text(document.getElementById("system-project-coverage"), (locale === "it" ? "Disponibili " : "Available ") + value.coverage.availableProjects + "/" + value.projects.total + (locale === "it" ? " progetti; " : " projects; ") + value.coverage.unavailableProjects + (locale === "it" ? " richiedono attenzione." : " need attention."));
+      text(document.getElementById("system-updated"), (locale === "it" ? "Ultimo snapshot locale: " : "Latest local snapshot: ") + value.asOf + ".");
       text(dashboardStatus, locale === "it" ? "Panoramica locale aggiornata. Sola lettura." : "Local overview updated. Read-only.");
     } catch (cause) {
       text(dashboardStatus, locale === "it" ? "La panoramica richiede attenzione." : "The overview needs attention.");
@@ -463,7 +698,7 @@ export const APP_JS = `
   document.getElementById("import-sample").addEventListener("click", async () => {
     if (!selectedProject) { text(importError, "Select a registered project first."); document.getElementById("projects-heading").focus(); return; }
     text(importError, ""); text(importStatus, "Importing the reviewed synthetic session locally…");
-    try { const report = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/import-sample", { method: "POST", body: "{}" }); text(importStatus, report.effect + " Added " + report.addedEvents + ", unchanged " + report.existingEvents + ", total " + report.totalEvents + ". " + report.nextAction); text(guidance, "Safe sample ready. Continue to Search project history."); searchSection.hidden = false; document.getElementById("search-heading").focus(); }
+    try { const report = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/import-sample", { method: "POST", body: "{}" }); text(importStatus, report.effect + " Added " + report.addedEvents + ", unchanged " + report.existingEvents + ", total " + report.totalEvents + ". " + report.nextAction); text(guidance, "Safe sample ready. Continue to Search project history."); searchSection.hidden = false; openPage("evidence", false); queueMicrotask(() => document.getElementById("search-heading").focus()); }
     catch (cause) { text(importStatus, "Sample import needs attention."); text(importError, cause.message); document.getElementById("import-sample").focus(); }
   });
   const renderGeneral = (conversations) => {
@@ -505,7 +740,7 @@ export const APP_JS = `
   const renderHandoffMemoryOptions = (items) => { const options = document.getElementById("handoff-memory-options"); options.replaceChildren(); const activeIds = new Set(items.map((item) => item.id)); for (const id of selectedHandoffMemoryIds) if (!activeIds.has(id)) selectedHandoffMemoryIds.delete(id); if (items.length === 0) { const empty = document.createElement("p"); text(empty, "No ACTIVE memory is available. The handoff will record an explicit empty selection."); options.append(empty); return; } for (const item of items) { const label = document.createElement("label"); const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.value = item.id; checkbox.checked = selectedHandoffMemoryIds.has(item.id); checkbox.addEventListener("change", () => { if (checkbox.checked) selectedHandoffMemoryIds.add(item.id); else selectedHandoffMemoryIds.delete(item.id); reviewedHandoffInput = null; document.getElementById("handoff-create").hidden = true; }); const description = document.createTextNode(item.type + " · " + item.verification + " · " + item.content); label.append(checkbox, description); options.append(label); } };
   const loadMemory = async () => { if (!selectedProject) return; text(memoryError, ""); text(memoryStatus, message("loadingMemory")); memoryList.replaceChildren(); const validity = document.getElementById("memory-validity").value; const parameters = new URLSearchParams({ limit: "20" }); if (validity) parameters.set("validity", validity); try { const page = await api(memoryPath() + "?" + parameters); if (!validity) renderHandoffMemoryOptions(page.items); text(memoryStatus, page.items.length === 0 ? message("noMatchingMemory") : message("showingMemory", { count: String(page.items.length) }) + (page.nextCursor ? " " + message("moreMemory") : "")); for (const item of page.items) { const article = document.createElement("article"); article.className = "memory-card"; const heading = document.createElement("h3"); text(heading, item.type + " · " + item.validity); const content = document.createElement("p"); text(content, item.content); const state = document.createElement("p"); text(state, item.curation + " · " + item.verification + " · " + item.confidence + " · version " + item.version); const inspect = document.createElement("button"); inspect.type = "button"; text(inspect, message("inspectMemory")); inspect.addEventListener("click", () => showMemory(item.id)); article.append(heading, content, state, inspect); memoryList.append(article); } } catch (cause) { text(memoryStatus, message("memoryAttention")); text(memoryError, cause.message); } };
   const showMemory = async (memoryId) => { try { const item = await api(memoryPath() + "/" + encodeURIComponent(memoryId)); selectedMemory = item.id; const metadata = document.getElementById("memory-metadata"); metadata.replaceChildren(); for (const [label, content] of [["Type", item.type], ["Curation", item.curation], ["Validity", item.validity], ["Verification", item.verification], ["Confidence", item.confidence], ["Version", String(item.version)], ["Created", item.createdAt]]) { const term = document.createElement("dt"); text(term, label); const detail = document.createElement("dd"); text(detail, content); metadata.append(term, detail); } text(document.getElementById("memory-detail-content"), item.content); const sources = document.getElementById("memory-sources"); sources.replaceChildren(); for (const source of item.sources) { const entry = document.createElement("li"); text(entry, "UNTRUSTED event " + source.eventId + " · " + source.eventType + " · position " + source.sourcePosition); sources.append(entry); } const terminal = item.validity !== "ACTIVE"; document.getElementById("memory-verify-form").hidden = terminal || item.verification === "VERIFIED"; document.getElementById("memory-supersede-form").hidden = terminal; document.getElementById("memory-invalidate-form").hidden = terminal; memoryDetail.hidden = false; document.getElementById("memory-detail-heading").focus(); } catch (cause) { text(memoryError, cause.message); } };
-  document.getElementById("use-memory-source").addEventListener("click", () => { if (!selectedEvent) return; memorySection.hidden = false; text(document.getElementById("memory-source-status"), "Selected UNTRUSTED canonical event " + selectedEvent + " as provenance for the next explicit memory action."); document.getElementById("memory-heading").focus(); });
+  document.getElementById("use-memory-source").addEventListener("click", () => { if (!selectedEvent) return; memorySection.hidden = false; text(document.getElementById("memory-source-status"), "Selected UNTRUSTED canonical event " + selectedEvent + " as provenance for the next explicit memory action."); openPage("memory", false); queueMicrotask(() => document.getElementById("memory-heading").focus()); });
   document.getElementById("memory-add-form").addEventListener("submit", async (event) => { event.preventDefault(); if (!selectedProject || !selectedEvent) { text(memoryError, "Inspect an event and select it as memory evidence first."); return; } try { const item = await api(memoryPath(), { method: "POST", body: JSON.stringify({ type: document.getElementById("memory-type").value, content: document.getElementById("memory-content").value, sourceEventIds: sourceIds() }) }); document.getElementById("memory-content").value = ""; text(memoryStatus, "Created " + item.type + " as ACTIVE, UNVERIFIED, UNASSESSED USER_CURATED memory."); await loadMemory(); await showMemory(item.id); } catch (cause) { text(memoryError, cause.message); document.getElementById("memory-content").focus(); } });
   document.getElementById("memory-filter-form").addEventListener("submit", (event) => { event.preventDefault(); loadMemory(); });
   const transition = async (action, field, property) => { const detailError = document.getElementById("memory-detail-error"); if (!selectedMemory || !selectedEvent) { text(detailError, "Select canonical evidence before this lifecycle action."); return; } try { const value = document.getElementById(field).value; const result = await api(memoryPath() + "/" + encodeURIComponent(selectedMemory) + "/" + action, { method: "POST", body: JSON.stringify({ [property]: value, sourceEventIds: sourceIds() }) }); document.getElementById(field).value = ""; const item = result.replacement || result; await loadMemory(); await showMemory(item.id); } catch (cause) { text(detailError, cause.message); document.getElementById(field).focus(); } };
@@ -539,6 +774,8 @@ export const APP_JS = `
   document.getElementById("context-selector-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("context-selector-error"); const content = document.getElementById("context-selector-content"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { text(error, message("contextSelectorEmpty")); return; } const path = document.getElementById("context-selector-profile-path").value.trim(); const expectedDigest = document.getElementById("context-selector-profile-digest").value.trim(); try { const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/context-selectors/preview", { method: "POST", body: JSON.stringify({ profile: { path, ...(expectedDigest ? { expectedDigest } : {}) } }) }); const measured = value.report.cases[0]; const budget = measured.budgets[0]; text(document.getElementById("context-selector-status"), message("contextSelectorReady", { selected: String(measured.selectedCandidateBytes), baseline: String(measured.baselineCandidateBytes), reduction: String(measured.reductionPercentFromBaseline), loss: String(measured.safetyFloorLossCount), fit: budget.selectorPolicyFits ? "YES" : "NO" })); text(content, JSON.stringify(value, null, 2)); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; text(error, cause.message); document.getElementById("context-selector-profile-path").focus(); } });
   if (selectedProject) { importSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; text(importStatus, message("returningImport")); loadMemory(); loadWork(); loadPrivacyAudit(true); }
   applyLocale();
+  if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/dashboard");
+  renderRoute(false);
   loadGeneral();
   loadProjects();
 })();

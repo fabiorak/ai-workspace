@@ -1,8 +1,16 @@
-# Workspace dashboard
+# Workspace navigation and dashboard
 
-The GUI homepage opens with a read-only graphical overview of the local
-workspace. It is designed to answer “what needs attention?” before you enter a
-specific workflow.
+The GUI opens as a local multi-page workspace. A persistent sidebar separates
+overview, project evidence, active memory, continuity, privacy, preferences,
+and system boundaries so that each workflow has a clear home. On narrow
+screens, use the menu button to reveal the same navigation.
+
+Routes use local URL fragments such as `#/dashboard`, `#/projects`, and
+`#/privacy`. Changing pages does not contact a server outside AI Workspace,
+discard form state, or change domain data.
+
+The Dashboard page provides a read-only graphical overview designed to answer
+“what needs attention?” before you enter a specific workflow.
 
 The dashboard shows:
 
@@ -15,12 +23,13 @@ The dashboard shows:
 
 Every card uses an authoritative local store. The dashboard is calculated on
 demand and is not persisted as a second source of truth. It sends no telemetry
-and makes no model or network request.
+and makes no model or external network request.
 
 ## Read the bars and totals
 
-Bars are visual summaries only. The same values are always printed as text, so
-color or graphics are not required to understand the state.
+Ring charts and bars are visual summaries only. The same values are always
+printed as text, so color or graphics are not required to understand the
+state.
 
 - Project attention is the proportion of registered projects whose last Git
   inspection recorded a dirty worktree.
@@ -43,3 +52,13 @@ GUI workflow exist.
 No charting service or remote asset is used. The visuals use repository-native
 HTML, CSS, and local SVG-compatible primitives under the existing restrictive
 content security policy.
+
+## Supporting pages
+
+- **Settings** contains real browser-local presentation preferences. Language
+  is the only persisted preference; appearance and reduced motion follow the
+  operating system.
+- **Scripts** is an explicit empty state. It does not imply that a runner,
+  scheduler, command executor, or automation permission exists.
+- **System status** reports the loopback host boundary, authoritative-store
+  coverage, and provider-delivery unavailability.
