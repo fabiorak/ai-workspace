@@ -44,3 +44,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 37 — Qualify Durable Attempt Evidence Persistence](SPRINT-037.md) — completed
 - [Sprint 38 — Adopt Production Durable Attempt Evidence Storage](SPRINT-038.md) — completed
 - [Sprint 39 — Introduce the Graphical Workspace Dashboard](SPRINT-039.md) — completed
+- [Sprint 40 — Establish Local Provider Credential Custody](SPRINT-040.md) — planned

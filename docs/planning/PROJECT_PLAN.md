@@ -452,6 +452,7 @@ must be adjusted using evidence from completed increments.
 | Sprint 37 | E0, E7        | Qualify durable attempt evidence persistence            |
 | Sprint 38 | E0, E7        | Adopt production durable attempt evidence storage       |
 | Sprint 39 | E0, E1-E7     | Introduce the graphical workspace dashboard             |
+| Sprint 40 | E0, E7        | Establish local provider credential custody             |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -985,3 +986,12 @@ increment. The homepage now provides a bilingual, accessible graphical
 dashboard derived on demand from authoritative local stores. Semantic HTML and
 CSS provide textual equivalents for every visual without a chart dependency,
 remote asset, telemetry, or model-delivery claim.
+
+[Sprint 40](sprints/SPRINT-040.md) is planned as the next narrow M5 boundary.
+It will compare local credential-custody candidates with frozen synthetic
+evidence, record an ADR before production code, separate non-secret provider
+configuration from secret custody, and deliver complete bilingual GUI
+configuration, replacement, removal, and recovery guidance. Credential
+consumption, network access, provider authentication, request construction,
+model delivery, responses, routing, fallback, and execution remain outside the
+sprint.

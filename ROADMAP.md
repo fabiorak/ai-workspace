@@ -4,6 +4,10 @@ This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
 Sprint 0 through [Sprint 39](docs/planning/sprints/SPRINT-039.md) are complete.
+[Sprint 40](docs/planning/sprints/SPRINT-040.md) is planned to establish the
+next narrow M5 boundary: evidence-led local provider credential custody and
+GUI-first configuration without credential consumption, network access,
+provider authentication, model delivery, or execution.
 [Sprint 36](docs/planning/sprints/SPRINT-036.md) accepted ADR-0027 after its
 28-case offline corpus proved at most one application-level OpenAI create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and
