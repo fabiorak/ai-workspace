@@ -6,7 +6,7 @@
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 33 completed with `EVIDENCE_ONLY`; no ADR-0027 or
 production delivery surface exists

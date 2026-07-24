@@ -3,7 +3,7 @@
 **Primary epic:** E4 — Handoff and Cross-agent Resume hardening  
 **Milestone:** post-M3 evidence increment  
 **Status:** completed
-**Cadence:** two-week timebox  
+**Cadence:** scope-bounded increment (no timebox)  
 **Dependency:** Sprint 5 and M3 completed
 
 ## Sprint goal

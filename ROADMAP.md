@@ -3,11 +3,34 @@
 This roadmap summarizes the current design direction. Scope and ordering may
 change as the architecture is validated.
 
+## Closed decisions
+
+These questions are decided. They are recorded here so that they are not
+reopened without new evidence that invalidates the accepted decision.
+
+- **Model delivery guarantee.** Closed by
+  [ADR-0027](docs/adr/0027-use-explicit-unknown-after-exposure-attempt-semantics.md).
+  AI Workspace provides application-level at-most-once exposure per
+  authorization, reports `UNKNOWN_AFTER_EXPOSURE` when the provider outcome is
+  not observable, and performs zero automatic retries. Provider-side
+  exactly-once processing is not claimed, is not required, and is not a
+  prerequisite for M5. Earlier sprint notes that describe the boundary as
+  unresolved describe the state before ADR-0027.
+- **Attempt persistence boundary.** Closed by
+  [ADR-0028](docs/adr/0028-use-separate-local-model-attempt-store.md): a
+  separate provider-neutral local attempt store, not an extension of session or
+  memory documents.
+
 Sprint 0 through [Sprint 39](docs/planning/sprints/SPRINT-039.md) are complete.
 [Sprint 40](docs/planning/sprints/SPRINT-040.md) is planned to establish the
-next narrow M5 boundary: evidence-led local provider credential custody and
-GUI-first configuration without credential consumption, network access,
-provider authentication, model delivery, or execution.
+next narrow M5 boundary: environment-only provider credential input and
+GUI-first non-secret status, without persisting any secret and without
+credential consumption, network access, provider authentication, model
+delivery, or execution.
+[Sprint 41](docs/planning/sprints/SPRINT-041.md) is planned to make the product
+usable on real local agent sessions through explicit user-selected ingestion of
+the maintainer's own Claude Code transcripts, so that product decisions can be
+based on real use instead of synthetic fixtures alone.
 [Sprint 36](docs/planning/sprints/SPRINT-036.md) accepted ADR-0027 after its
 28-case offline corpus proved at most one application-level OpenAI create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and

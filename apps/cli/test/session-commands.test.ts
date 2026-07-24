@@ -25,6 +25,10 @@ const claudeFixturePath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../../integrations/claude-code/test/fixtures/synthetic-session.jsonl",
 );
+const localClaudeFixturePath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../integrations/claude-code/test/fixtures/synthetic-local-session.jsonl",
+);
 const extensionRecord =
   '{"recordType":"event","eventType":"agent_message","timestamp":"2026-01-15T09:00:09.000Z","payload":{"text":"Synthetic follow-up."}}\n';
 
@@ -115,7 +119,8 @@ describe("session CLI workflow", () => {
 
   it("imports only the explicit synthetic Claude Code subset", async () => {
     const help = await runSuccessfulCli(["session", "import", "--help"]);
-    assert.match(help.stdout, /synthetic-only/u);
+    assert.match(help.stdout, /Reviewed synthetic Claude Code JSONL subset/u);
+    assert.match(help.stdout, /claude-code-local {2}Real local Claude Code/u);
     const imported = await runSuccessfulCli([
       "session",
       "import",
@@ -133,6 +138,75 @@ describe("session CLI workflow", () => {
     };
     assert.equal(report.session.sourceType, "claude-code");
     assert.equal(report.addedEvents, 5);
+  });
+
+  it("discovers and imports a real local Claude Code transcript", async () => {
+    const transcriptDirectory = join(temporaryRoot, "transcripts");
+    const transcriptPath = join(transcriptDirectory, "local-session.jsonl");
+    await mkdir(transcriptDirectory, { recursive: true });
+    await copyFile(localClaudeFixturePath, transcriptPath);
+    await writeFile(
+      join(transcriptDirectory, "notes.txt"),
+      "not a transcript\n",
+      "utf8",
+    );
+
+    const discoverHelp = await runSuccessfulCli([
+      "session",
+      "discover",
+      "--help",
+    ]);
+    assert.match(discoverHelp.stdout, /filesystem metadata only/u);
+
+    const discovered = await runSuccessfulCli([
+      "session",
+      "discover",
+      transcriptDirectory,
+      "--json",
+    ]);
+    const candidates = JSON.parse(discovered.stdout) as readonly {
+      fileName: string;
+      byteLength: number;
+    }[];
+    assert.deepEqual(
+      candidates.map((candidate) => candidate.fileName),
+      ["local-session.jsonl"],
+    );
+    assert.ok((candidates[0]?.byteLength ?? 0) > 0);
+
+    const imported = await runSuccessfulCli([
+      "session",
+      "import",
+      "--project",
+      projectId,
+      "--source",
+      "claude-code-local",
+      "--file",
+      transcriptPath,
+      "--json",
+    ]);
+    const report = JSON.parse(imported.stdout) as {
+      session: { sourceType: string };
+      addedEvents: number;
+      skippedRecords: readonly { reason: string; count: number }[];
+    };
+    assert.equal(report.session.sourceType, "claude-code-local");
+    assert.equal(report.addedEvents, 10);
+    assert.equal(report.skippedRecords.length, 5);
+
+    const printed = await runSuccessfulCli([
+      "session",
+      "import",
+      "--project",
+      projectId,
+      "--source",
+      "claude-code-local",
+      "--file",
+      transcriptPath,
+    ]);
+    assert.match(printed.stdout, /Records not converted: 5/u);
+    assert.match(printed.stdout, /BLANK_LINE: 1/u);
+    assert.match(printed.stdout, /Events added: 0/u);
   });
 
   it("adds only an append-only source extension", async () => {

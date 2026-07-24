@@ -6,7 +6,7 @@
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 32 completed; ADR-0017 and ADR-0021 through ADR-0026
 accepted

@@ -114,7 +114,9 @@ are ignored by Git, and must not be copied into public issues or fixtures.
 ## Current limitations
 
 - input files must be selected explicitly; Codex directories are not scanned;
-- only the documented synthetic fixture-backed schema is supported;
+- this page covers the documented Codex schema only. To import your own real
+  Claude Code transcripts, see
+  [importing your own local transcripts](local-transcripts.md);
 - multi-process imports for the same session fail while a lock is held;
 - a stale lock requires manual removal after confirming no importer is active;
 - failed session commits can leave immutable, unreferenced artifacts;

@@ -9,6 +9,10 @@ import {
   type VerifyMemoryInput,
 } from "@ai-workspace/active-memory";
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
+import {
+  ClaudeCodeLocalSessionDiscovery,
+  ClaudeCodeLocalSessionSourceAdapter,
+} from "@ai-workspace/claude-code-adapter";
 import { WorkItems, type WorkItem } from "@ai-workspace/core";
 import {
   buildContextPack,
@@ -158,6 +162,19 @@ export type GuiImportReport = Readonly<{
   addedEvents: number;
   existingEvents: number;
   totalEvents: number;
+  skippedRecords: readonly Readonly<{ reason: string; count: number }>[];
+  effect: string;
+  nextAction: string;
+}>;
+export type GuiTranscriptCandidate = Readonly<{
+  filePath: string;
+  fileName: string;
+  byteLength: number;
+  modifiedAt: string;
+}>;
+export type GuiTranscriptDiscovery = Readonly<{
+  directory: string;
+  candidates: readonly GuiTranscriptCandidate[];
   effect: string;
   nextAction: string;
 }>;
@@ -342,6 +359,8 @@ export class GuiApplicationError extends Error {
 export class GuiApplication {
   readonly #registry: ProjectRegistry;
   readonly #ingestion: SessionIngestion;
+  readonly #localIngestion: SessionIngestion;
+  readonly #transcriptDiscovery: ClaudeCodeLocalSessionDiscovery;
   readonly #history: HistoricalSearch;
   readonly #general: GeneralConversations;
   readonly #generalLinks: GeneralProjectLinks;
@@ -401,6 +420,16 @@ export class GuiApplication {
       sessionStore: new JsonSessionStore(dependencies.workspaceHome),
       projects,
     });
+    // A real local transcript is read by its own tolerant adapter (ADR-0029), so
+    // the reviewed synthetic corpus keeps being read exactly as before.
+    this.#localIngestion = new SessionIngestion({
+      sourceAdapter: new ClaudeCodeLocalSessionSourceAdapter(),
+      screen: new HighConfidenceRestrictedDataScreen(),
+      artifactStore: new FileArtifactStore(dependencies.workspaceHome),
+      sessionStore: new JsonSessionStore(dependencies.workspaceHome),
+      projects,
+    });
+    this.#transcriptDiscovery = new ClaudeCodeLocalSessionDiscovery();
     const generalStore = new JsonGeneralConversationStore(
       dependencies.workspaceHome,
     );
@@ -714,6 +743,7 @@ export class GuiApplication {
         addedEvents: report.addedEvents,
         existingEvents: report.existingEvents,
         totalEvents: report.totalEvents,
+        skippedRecords: report.skippedRecords,
         effect:
           report.addedEvents === 0
             ? "The sample was already imported; canonical events and artifacts were unchanged."
@@ -721,6 +751,54 @@ export class GuiApplication {
         nextAction: "Search this project's UNTRUSTED historical evidence.",
       });
     }, "Keep the selected project, review the synthetic-only warning, and retry the safe sample import.");
+  }
+  public async discoverTranscripts(
+    directory: string,
+  ): Promise<GuiTranscriptDiscovery> {
+    return this.#run(async () => {
+      const candidates = await this.#transcriptDiscovery.discover(directory);
+      return Object.freeze({
+        directory,
+        candidates: Object.freeze(
+          candidates.map((candidate) =>
+            Object.freeze({
+              filePath: candidate.filePath,
+              fileName: candidate.fileName,
+              byteLength: candidate.byteLength,
+              modifiedAt: candidate.modifiedAt,
+            }),
+          ),
+        ),
+        effect:
+          candidates.length === 0
+            ? "No transcript file was found; nothing was read."
+            : "Only file names, sizes, and modification times were read; no transcript was opened.",
+        nextAction: "Select one transcript and import it into a project.",
+      });
+    }, "Name an existing readable directory that holds .jsonl transcripts, then list it again.");
+  }
+  public async importLocalTranscript(
+    projectId: string,
+    filePath: string,
+  ): Promise<GuiImportReport> {
+    return this.#run(async () => {
+      const report = await this.#localIngestion.import(projectId, filePath);
+      return Object.freeze({
+        projectId,
+        sessionId: report.session.id,
+        sourceName: basename(filePath),
+        trust: "UNTRUSTED" as const,
+        addedEvents: report.addedEvents,
+        existingEvents: report.existingEvents,
+        totalEvents: report.totalEvents,
+        skippedRecords: report.skippedRecords,
+        effect:
+          report.addedEvents === 0
+            ? "This transcript was already imported; canonical events and artifacts were unchanged."
+            : "Canonical events and immutable artifacts were added locally; nothing was transmitted.",
+        nextAction: "Search this project's UNTRUSTED historical evidence.",
+      });
+    }, "Keep the selected project, check that the transcript is still readable and unchanged before its imported records, and retry.");
   }
   public async search(input: GuiSearchInput): Promise<GuiSearchReport> {
     return this.#run(async () => {

@@ -6,7 +6,7 @@
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 38 completed; existing GUI remains local-only,
 bilingual, authenticated, and self-contained

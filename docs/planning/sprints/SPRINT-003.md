@@ -3,7 +3,7 @@
 **Epics:** E2 — Session and Artifact Ingestion; E3 — Memory and Historical Search  
 **Milestone:** M2 — Searchable project history  
 **Status:** completed  
-**Cadence:** two-week timebox  
+**Cadence:** scope-bounded increment (no timebox)  
 **Completed:** 2026-07-10
 
 ## Sprint goal

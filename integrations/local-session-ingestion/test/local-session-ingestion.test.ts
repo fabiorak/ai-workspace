@@ -119,6 +119,43 @@ test("retains every legacy restricted-data category and error shape", () => {
     );
 });
 
+test("screens content larger than one detector window in every position", () => {
+  const screen = new HighConfidenceRestrictedDataScreen();
+  const filler = "conversation text that contains nothing restricted.\n";
+  const bulk = filler.repeat(30_000);
+
+  assert.equal(bulk.length > 1_000_000, true);
+  assert.doesNotThrow(() =>
+    screen.assertAllowed(Buffer.from(bulk, "utf8"), "session source"),
+  );
+
+  const canary = `sk-${"a".repeat(20)}`;
+  const positions = [0, 260_000, 520_000, bulk.length];
+
+  for (const position of positions)
+    assert.throws(
+      () =>
+        screen.assertAllowed(
+          Buffer.from(
+            `${bulk.slice(0, position)}${canary}${bulk.slice(position)}`,
+            "utf8",
+          ),
+          "session source",
+        ),
+      /provider-api-key/u,
+      `undetected at character ${position}`,
+    );
+});
+
+test("screens an empty payload without treating it as restricted", () => {
+  assert.doesNotThrow(() =>
+    new HighConfidenceRestrictedDataScreen().assertAllowed(
+      new Uint8Array(),
+      "session source",
+    ),
+  );
+});
+
 function makeSession(payloads: readonly string[]): ImportedSession {
   const sessionId = `session_${"a".repeat(64)}`;
   const artifactId = `artifact://sha256/${"c".repeat(64)}`;

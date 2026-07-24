@@ -7,7 +7,7 @@ evidence increment
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 35 completed; OpenAI Responses remains the primary
 model-transport candidate; Sprint 33 authorization and Sprint 34 transport

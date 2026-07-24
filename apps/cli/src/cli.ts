@@ -3,7 +3,11 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 import { CodexSessionSourceAdapter } from "@ai-workspace/codex-adapter";
-import { ClaudeCodeSessionSourceAdapter } from "@ai-workspace/claude-code-adapter";
+import {
+  ClaudeCodeLocalSessionDiscovery,
+  ClaudeCodeLocalSessionSourceAdapter,
+  ClaudeCodeSessionSourceAdapter,
+} from "@ai-workspace/claude-code-adapter";
 import { GitRepositoryInspector } from "@ai-workspace/git-adapter";
 import {
   HistoricalSearch,
@@ -25,9 +29,11 @@ import {
 import {
   SessionIngestion,
   SESSION_EVENT_TYPES,
+  type DiscoveredSessionFile,
   type ImportedSession,
   type SessionEventType,
   type SessionImportReport,
+  type SessionSourceAdapter,
 } from "@ai-workspace/session-ingestion";
 
 import {
@@ -308,7 +314,7 @@ async function runSessionCommand(
     case "import": {
       const options = parseSessionImportOptions(argumentsAfterCommand);
 
-      if (options.source !== "codex" && options.source !== "claude-code") {
+      if (!isSupportedSessionSource(options.source)) {
         throw new CliUsageError(
           `Unsupported session source '${options.source}'`,
         );
@@ -319,6 +325,25 @@ async function runSessionCommand(
         options.source,
       ).import(options.project, options.file);
       dependencies.stdout(formatSessionImport(report, json));
+      return 0;
+    }
+    case "discover": {
+      const [directory, ...extraArguments] = argumentsAfterCommand;
+
+      if (directory === undefined || directory.startsWith("--")) {
+        throw new CliUsageError(
+          "session discover requires the directory that holds the transcripts",
+        );
+      }
+
+      if (extraArguments.length > 0) {
+        throw new CliUsageError("session discover accepts only a directory");
+      }
+
+      const candidates = await new ClaudeCodeLocalSessionDiscovery().discover(
+        directory,
+      );
+      dependencies.stdout(formatDiscoveredSessions(candidates, json));
       return 0;
     }
     case "inspect": {
@@ -356,9 +381,32 @@ function createRegistry(environment: CliEnvironment): ProjectRegistry {
   });
 }
 
+const SESSION_SOURCES = ["codex", "claude-code", "claude-code-local"] as const;
+
+type SessionSourceName = (typeof SESSION_SOURCES)[number];
+
+function isSupportedSessionSource(source: string): source is SessionSourceName {
+  return SESSION_SOURCES.includes(source as SessionSourceName);
+}
+
+function createSessionSourceAdapter(
+  source: SessionSourceName,
+): SessionSourceAdapter {
+  if (source === "codex") {
+    return new CodexSessionSourceAdapter();
+  }
+
+  // `claude-code` reads the reviewed synthetic corpus only. `claude-code-local`
+  // reads a real local transcript and reports what it did not convert
+  // (ADR-0029).
+  return source === "claude-code"
+    ? new ClaudeCodeSessionSourceAdapter()
+    : new ClaudeCodeLocalSessionSourceAdapter();
+}
+
 function createSessionIngestion(
   environment: CliEnvironment,
-  source: "codex" | "claude-code",
+  source: SessionSourceName,
 ): SessionIngestion {
   const workspaceHome =
     environment.AI_WORKSPACE_HOME ?? join(homedir(), ".ai-workspace");
@@ -367,10 +415,7 @@ function createSessionIngestion(
   );
 
   return new SessionIngestion({
-    sourceAdapter:
-      source === "codex"
-        ? new CodexSessionSourceAdapter()
-        : new ClaudeCodeSessionSourceAdapter(),
+    sourceAdapter: createSessionSourceAdapter(source),
     screen: new HighConfidenceRestrictedDataScreen(),
     artifactStore: new FileArtifactStore(workspaceHome),
     sessionStore: new JsonSessionStore(workspaceHome),
@@ -607,8 +652,42 @@ function formatSessionImport(
     `Events already present: ${report.existingEvents}`,
     `Events total: ${report.totalEvents}`,
     `Source artifact: ${terminalText(report.session.latestSourceArtifact.id)}`,
+    ...formatSkippedRecords(report.skippedRecords),
     "",
   ].join("\n");
+}
+
+function formatSkippedRecords(
+  skipped: SessionImportReport["skippedRecords"],
+): readonly string[] {
+  if (skipped.length === 0) {
+    return ["Records not converted: none"];
+  }
+
+  return [
+    `Records not converted: ${skipped.reduce((total, entry) => total + entry.count, 0)}`,
+    ...skipped.map((entry) => `  ${entry.reason}: ${entry.count}`),
+  ];
+}
+
+function formatDiscoveredSessions(
+  candidates: readonly DiscoveredSessionFile[],
+  json: boolean,
+): string {
+  if (json) {
+    return `${JSON.stringify(candidates, null, 2)}\n`;
+  }
+
+  if (candidates.length === 0) {
+    return "No transcript files found in that directory.\n";
+  }
+
+  return `${candidates
+    .map(
+      (candidate) =>
+        `${candidate.modifiedAt}  ${String(candidate.byteLength).padStart(10, " ")}  ${terminalText(candidate.fileName)}`,
+    )
+    .join("\n")}\n`;
 }
 
 function formatSession(session: ImportedSession, json: boolean): string {
@@ -802,17 +881,41 @@ Content is bounded, terminal-safe, visibly UNTRUSTED, and never executed.
   }
 
   if (topic === "session import") {
-    return `Import a controlled synthetic JSONL session
+    return `Import one JSONL session from an explicit local file
 
 Usage:
-  ai-workspace session import --project <project-id> --source <codex|claude-code> --file <path> [--json]
+  ai-workspace session import --project <project-id> --source <codex|claude-code|claude-code-local> --file <path> [--json]
 
 First try:
   npm run cli -- session import --project <project-id> --source codex --file integrations/codex/test/fixtures/session.jsonl
 
-The file must exist and match the supported schema. Run project list to find a
-project ID. Private or production transcripts are not yet supported safely.
-Claude Code support is pre-release, narrow, synthetic-only, and never discovers live provider state.
+Sources:
+  codex              Reviewed synthetic Codex JSONL subset
+  claude-code        Reviewed synthetic Claude Code JSONL subset
+  claude-code-local  Real local Claude Code transcript (ADR-0029)
+
+The file must exist and match the selected source. Run project list to find a
+project ID. Nothing is discovered automatically and nothing is transmitted.
+
+With claude-code-local the reader tolerates real transcript shapes and reports
+every record it did not convert, so a partial import cannot look complete. An
+import is refused in full when high-confidence restricted data is detected, and
+nothing is written in that case.
+`;
+  }
+
+  if (topic === "session discover") {
+    return `List Claude Code transcripts in one directory you name
+
+Usage:
+  ai-workspace session discover <directory> [--json]
+
+Only files ending in .jsonl are listed, the directory is not searched
+recursively, there is no default location, and no candidate is opened: path,
+name, size, and modification time come from filesystem metadata only.
+
+Then import one of them explicitly:
+  npm run cli -- session import --project <project-id> --source claude-code-local --file <path>
 `;
   }
 
@@ -828,12 +931,16 @@ Start here:
   4. Follow the suggested history show and artifact show commands.
   5. Curate selected evidence as active memory:
      npm run cli -- memory add --project <project-id> --type constraint --content "Synthetic constraint" --source-event <event-id>
+  6. Use it on your own work: list your real Claude Code transcripts and import one:
+     npm run cli -- session discover <directory>
+     npm run cli -- session import --project <project-id> --source claude-code-local --file <path>
 
 Usage:
   ai-workspace project register <path> [--json]
   ai-workspace project list [--json]
   ai-workspace project inspect <project-id> [--json]
-  ai-workspace session import --project <project-id> --source codex --file <path> [--json]
+  ai-workspace session discover <directory> [--json]
+  ai-workspace session import --project <project-id> --source <codex|claude-code|claude-code-local> --file <path> [--json]
   ai-workspace session inspect <session-id> [--json]
   ai-workspace history search <text> --project <project-id> [options] [--json]
   ai-workspace history show <event-id> --project <project-id> [--json]
@@ -845,6 +952,7 @@ Usage:
   ai-workspace help
 
 Contextual help:
+  ai-workspace session discover --help
   ai-workspace session import --help
   ai-workspace history search --help
   ai-workspace history show --help

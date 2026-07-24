@@ -113,6 +113,7 @@ export class SessionIngestion {
       addedEvents: newEvents.length,
       existingEvents: existingCount,
       totalEvents: session.events.length,
+      skippedRecords: Object.freeze([...(source.skippedRecords ?? [])]),
     });
   }
 
@@ -193,6 +194,24 @@ export class SessionIngestion {
           `The session source has invalid ordering at record ${index + 1}`,
         );
       }
+    }
+
+    const reasons = new Set<string>();
+
+    for (const skipped of source.skippedRecords ?? []) {
+      if (skipped.reason.trim().length === 0 || reasons.has(skipped.reason)) {
+        throw new SessionImportError(
+          "The session source reported an empty or duplicated skip reason",
+        );
+      }
+
+      if (!Number.isSafeInteger(skipped.count) || skipped.count < 1) {
+        throw new SessionImportError(
+          `The session source reported an invalid skipped count for '${skipped.reason}'`,
+        );
+      }
+
+      reasons.add(skipped.reason);
     }
   }
 

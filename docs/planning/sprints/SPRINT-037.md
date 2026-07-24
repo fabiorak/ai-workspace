@@ -7,7 +7,7 @@ increment
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 36 completed and ADR-0027 accepted; the bounded
 at-most-once implementation remains test-only and no provider adapter,

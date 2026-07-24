@@ -3,7 +3,7 @@
 **Epics:** E0 — Product and engineering foundation; E1 — Project Registry  
 **Milestone:** M1 — Local project catalog  
 **Status:** completed  
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 **Completed:** 2026-07-10
 
 ## Sprint goal

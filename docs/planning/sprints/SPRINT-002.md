@@ -3,7 +3,7 @@
 **Epics:** E1 — Project Registry; E2 — Session and Artifact Ingestion  
 **Milestone:** M2 — Searchable project history (first ingestion slice)  
 **Status:** completed  
-**Cadence:** two-week timebox  
+**Cadence:** scope-bounded increment (no timebox)  
 **Completed:** 2026-07-10
 
 ## Sprint goal

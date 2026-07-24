@@ -1,9 +1,12 @@
 # Packages
 
-Reusable modules for the modular monolith live here. Initial domain boundaries
-include core work items, project and session management, search, memory,
-context building, privacy, model and agent adapters, tools, artifacts,
-telemetry, instructions, policies, agents, and skills.
+Reusable modules for the modular monolith live here. Only implemented packages
+have a directory: a domain boundary earns a package when its public contract is
+defined by an increment, not when it is first imagined. Anticipated future
+boundaries — tool registry, model routing, agent adapters, telemetry, policy
+engine, skill registry — are described in the
+[long-term vision](../docs/AI_WORKSPACE_VISION_LONG_TERM_EN.md) and will be
+created by the increment that implements them.
 
 Implemented packages:
 
@@ -33,6 +36,9 @@ Implemented packages:
   deterministic non-authorizing Context Pack preflight reports, plus
   exact-hash reviewed-span pseudonymization and byte-exact restoration
   contracts;
-
-Other directories remain placeholders until their public contracts are defined
-through implementation and ADRs.
+- `privacy-audit/` owns the bounded non-content local privacy decision audit
+  contracts;
+- `model-attempts/` owns the provider-neutral bounded model attempt state
+  machine and its persistence ports;
+- `context-builder/` owns deterministic budgeted Context Pack composition and
+  its schema-versioned canonical representation;

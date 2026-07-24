@@ -120,6 +120,21 @@ export function shellHtml(csrfToken: string) {
       <div id="import-status" role="status" aria-live="polite">Select a project to enable the safe sample.</div>
       <p id="import-error" class="error" role="alert"></p>
     </section>
+    <section aria-labelledby="transcripts-heading" id="transcripts" hidden>
+      <h2 id="transcripts-heading" tabindex="-1" data-i18n="transcripts">Import your own Claude Code sessions</h2>
+      <p data-i18n="transcriptsIntro">Name the directory that holds your Claude Code transcripts, then import one file into the selected project. Listing a directory reads names, sizes, and modification times only; no transcript is opened until you import it.</p>
+      <p class="notice"><strong data-i18n="trust">Trust:</strong> <span data-i18n="transcriptsTrustBody">the transcript is read locally and stored as UNTRUSTED evidence. Nothing is executed and nothing is sent over a network. An import that contains high-confidence restricted data is blocked completely, and nothing is written.</span></p>
+      <form id="transcript-discover-form">
+        <label for="transcript-directory" data-i18n="transcriptDirectory">Transcript directory</label>
+        <p id="transcript-directory-help" class="help" data-i18n="transcriptDirectoryHelp">Enter one existing directory. It is not searched recursively and no location is guessed.</p>
+        <input id="transcript-directory" required aria-describedby="transcript-directory-help transcript-error" autocomplete="off" spellcheck="false">
+        <button type="submit" data-i18n="transcriptDiscover">List transcripts</button>
+        <p class="effect" data-i18n="transcriptDiscoverEffect">Effect: reads file names, sizes, and modification times only. No transcript is opened.</p>
+      </form>
+      <div id="transcript-status" role="status" aria-live="polite" data-i18n="transcriptStatusIdle">Select a project, then list a transcript directory.</div>
+      <div id="transcript-list" aria-label="Discovered transcripts"></div>
+      <p id="transcript-error" class="error" role="alert"></p>
+    </section>
     <section aria-labelledby="general-heading" id="general-inbox">
       <h2 id="general-heading" tabindex="-1">General Inbox / Posta generale</h2>
       <p class="notice"><strong>Destination / Destinazione: GENERAL.</strong> Local persistence only: no model request, assistant answer, tool execution, active-memory promotion, Context Pack inclusion, or delivery occurs. Solo persistenza locale: nessuna risposta AI.</p>
@@ -498,6 +513,10 @@ export const APP_JS = `
   const importSection = document.getElementById("import");
   const importStatus = document.getElementById("import-status");
   const importError = document.getElementById("import-error");
+  const transcriptSection = document.getElementById("transcripts");
+  const transcriptStatus = document.getElementById("transcript-status");
+  const transcriptList = document.getElementById("transcript-list");
+  const transcriptError = document.getElementById("transcript-error");
   const generalStatus = document.getElementById("general-status");
   const generalError = document.getElementById("general-error");
   const generalList = document.getElementById("general-list");
@@ -537,7 +556,7 @@ export const APP_JS = `
   const text = (element, value) => { element.textContent = value; };
   const pageSections = Object.freeze({
     dashboard: ["dashboard"],
-    projects: ["welcome", "projects", "next-step", "import"],
+    projects: ["welcome", "projects", "next-step", "import", "transcripts"],
     evidence: ["general-inbox", "search", "event-detail", "artifact-detail"],
     memory: ["memory", "memory-detail"],
     work: ["work-items", "work-detail", "handoff-builder", "handoff-detail"],
@@ -641,7 +660,7 @@ export const APP_JS = `
     }
   };
   document.getElementById("dashboard-refresh").addEventListener("click", loadDashboard);
-  const selectProject = (project, focusNext = true) => { selectedProject = project.id; sessionStorage.setItem("aiw-project", project.id); text(guidance, message("selectedProject")); importSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; text(importStatus, message("readyImport", { name: project.name })); loadMemory(); loadWork(); loadPrivacyAudit(true); if (focusNext) nextStep.focus(); };
+  const selectProject = (project, focusNext = true) => { selectedProject = project.id; sessionStorage.setItem("aiw-project", project.id); text(guidance, message("selectedProject")); importSection.hidden = false; transcriptSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; text(importStatus, message("readyImport", { name: project.name })); loadMemory(); loadWork(); loadPrivacyAudit(true); if (focusNext) nextStep.focus(); };
   const renderProjects = (projects) => {
     registeredProjects = new Map(projects.map((project) => [project.id, project]));
     for (const selectId of ["general-link-project", "search-associated-project"]) {
@@ -700,6 +719,34 @@ export const APP_JS = `
     text(importError, ""); text(importStatus, "Importing the reviewed synthetic session locally…");
     try { const report = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/import-sample", { method: "POST", body: "{}" }); text(importStatus, report.effect + " Added " + report.addedEvents + ", unchanged " + report.existingEvents + ", total " + report.totalEvents + ". " + report.nextAction); text(guidance, "Safe sample ready. Continue to Search project history."); searchSection.hidden = false; openPage("evidence", false); queueMicrotask(() => document.getElementById("search-heading").focus()); }
     catch (cause) { text(importStatus, "Sample import needs attention."); text(importError, cause.message); document.getElementById("import-sample").focus(); }
+  });
+  const renderTranscripts = (discovery) => {
+    transcriptList.replaceChildren();
+    if (discovery.candidates.length === 0) { text(transcriptStatus, message("transcriptNone")); return; }
+    text(transcriptStatus, message("transcriptFound", { count: String(discovery.candidates.length) }));
+    for (const candidate of discovery.candidates) {
+      const article = document.createElement("article"); article.className = "result-card";
+      const heading = document.createElement("h3"); text(heading, candidate.fileName); article.append(heading);
+      const details = document.createElement("p"); text(details, candidate.modifiedAt + " · " + candidate.byteLength + " bytes"); article.append(details);
+      const button = document.createElement("button"); button.type = "button"; text(button, message("transcriptImport"));
+      button.addEventListener("click", async () => {
+        if (!selectedProject) { text(transcriptError, message("transcriptNoProject")); document.getElementById("projects-heading").focus(); return; }
+        text(transcriptError, ""); text(transcriptStatus, message("transcriptImporting"));
+        try {
+          const report = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/import-transcript", { method: "POST", body: JSON.stringify({ filePath: candidate.filePath }) });
+          const skipped = report.skippedRecords.reduce((total, entry) => total + entry.count, 0);
+          text(transcriptStatus, report.effect + " " + message("transcriptCounts", { added: String(report.addedEvents), unchanged: String(report.existingEvents), total: String(report.totalEvents), skipped: String(skipped) }) + (skipped === 0 ? "" : " " + report.skippedRecords.map((entry) => entry.reason + " × " + entry.count).join(", ")));
+          searchSection.hidden = false;
+        } catch (cause) { text(transcriptStatus, message("transcriptAttention")); text(transcriptError, cause.message); button.focus(); }
+      });
+      article.append(button); transcriptList.append(article);
+    }
+  };
+  document.getElementById("transcript-discover-form").addEventListener("submit", async (event) => {
+    event.preventDefault(); text(transcriptError, ""); text(transcriptStatus, message("transcriptListing"));
+    const input = document.getElementById("transcript-directory");
+    try { renderTranscripts(await api("/api/transcripts/discover", { method: "POST", body: JSON.stringify({ directory: input.value }) })); }
+    catch (cause) { transcriptList.replaceChildren(); text(transcriptStatus, message("transcriptAttention")); text(transcriptError, cause.message); input.focus(); }
   });
   const renderGeneral = (conversations) => {
     generalList.replaceChildren();
@@ -772,7 +819,7 @@ export const APP_JS = `
   document.getElementById("pseudonymization-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("pseudonymization-error"); const content = document.getElementById("pseudonymization-content"); const passphraseField = document.getElementById("pseudonym-passphrase"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { text(error, "Inspect one immutable handoff first / Esamina prima un handoff immutabile."); return; } try { const profilePath = document.getElementById("privacy-profile-path").value.trim(); const profileDigest = document.getElementById("privacy-profile-digest").value.trim(); const policyPath = document.getElementById("privacy-policy-path").value.trim(); const policyDigest = document.getElementById("privacy-policy-digest").value.trim(); const paths = document.getElementById("privacy-bundles").value.split(/\\r?\\n/u).map((value) => value.trim()).filter(Boolean); const model = document.getElementById("privacy-model").value.trim(); const task = document.getElementById("privacy-task").value.trim(); const selections = JSON.parse(document.getElementById("pseudonym-selections").value); const schemaVersion = selections.some((entry) => entry && entry.entityType === "PROJECT") ? 2 : 1; const review = { schemaVersion, mappingSetId: document.getElementById("pseudonym-mapping-id").value.trim(), projectId: selectedProject, workItemId: selectedWork, handoffId: selectedHandoff, modelId: model, attribution: "USER_REVIEWED", selections }; const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/pseudonymization/preview", { method: "POST", body: JSON.stringify({ profile: { path: profilePath, ...(profileDigest ? { expectedDigest: profileDigest } : {}) }, policy: { path: policyPath, ...(policyDigest ? { expectedDigest: policyDigest } : {}) }, bundles: paths.map((path) => ({ path })), model, ...(task ? { task } : {}), review, keyCustody: { mode: document.getElementById("pseudonym-custody-mode").value, passphrase: passphraseField.value } }) }); const counts = value.transformation.accounting; text(document.getElementById("pseudonymization-status"), "Verified local round trip / Round trip locale verificato: schema v" + value.mapping.schemaVersion + ", " + counts.reviewedSelections + " reviewed selection(s), " + counts.transformedItems + " transformed item(s), mapping " + value.mapping.mappingSetId + " stored as authenticated ciphertext with passphrase-wrapped local custody. Not authorized or delivered / Non autorizzato né inviato."); text(content, JSON.stringify(value, null, 2)); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; text(error, cause.message); document.getElementById("pseudonym-selections").focus(); } finally { passphraseField.value = ""; } });
   document.getElementById("output-restoration-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("output-restoration-error"); const content = document.getElementById("output-restoration-content"); const passphraseField = document.getElementById("output-restoration-passphrase"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { text(error, "Inspect the originating handoff first / Ispeziona prima l'handoff di origine."); return; } try { const mappingSetId = document.getElementById("output-restoration-mapping-id").value.trim(); const output = document.getElementById("output-restoration-candidate").value; const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/output-restoration/preview", { method: "POST", body: JSON.stringify({ mappingSetId, passphrase: passphraseField.value, output }) }); text(document.getElementById("output-restoration-status"), "Decision / Decisione: " + value.decision + "; schema v" + value.mappingSchemaVersion + "; restored tokens / token ripristinati: " + value.restoredTokens + "; anomalies / anomalie: " + value.anomalyCount + ". Local only, not authorized or delivered / Solo locale, non autorizzato né inviato."); text(content, value.restoredContent === null ? JSON.stringify({ ...value, restoredContent: null }, null, 2) : value.restoredContent); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; text(error, cause.message); document.getElementById("output-restoration-mapping-id").focus(); } finally { passphraseField.value = ""; } });
   document.getElementById("context-selector-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("context-selector-error"); const content = document.getElementById("context-selector-content"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { text(error, message("contextSelectorEmpty")); return; } const path = document.getElementById("context-selector-profile-path").value.trim(); const expectedDigest = document.getElementById("context-selector-profile-digest").value.trim(); try { const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/context-selectors/preview", { method: "POST", body: JSON.stringify({ profile: { path, ...(expectedDigest ? { expectedDigest } : {}) } }) }); const measured = value.report.cases[0]; const budget = measured.budgets[0]; text(document.getElementById("context-selector-status"), message("contextSelectorReady", { selected: String(measured.selectedCandidateBytes), baseline: String(measured.baselineCandidateBytes), reduction: String(measured.reductionPercentFromBaseline), loss: String(measured.safetyFloorLossCount), fit: budget.selectorPolicyFits ? "YES" : "NO" })); text(content, JSON.stringify(value, null, 2)); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; text(error, cause.message); document.getElementById("context-selector-profile-path").focus(); } });
-  if (selectedProject) { importSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; text(importStatus, message("returningImport")); loadMemory(); loadWork(); loadPrivacyAudit(true); }
+  if (selectedProject) { importSection.hidden = false; transcriptSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; text(importStatus, message("returningImport")); loadMemory(); loadWork(); loadPrivacyAudit(true); }
   applyLocale();
   if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/dashboard");
   renderRoute(false);

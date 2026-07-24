@@ -49,3 +49,4 @@ Status: proposed | accepted | superseded
 - [ADR-0026: Use a bounded local non-content privacy decision audit](0026-use-a-bounded-local-non-content-privacy-decision-audit.md)
 - [ADR-0027: Use explicit unknown-after-exposure attempt semantics](0027-use-explicit-unknown-after-exposure-attempt-semantics.md)
 - [ADR-0028: Use a separate local model-attempt evidence store](0028-use-separate-local-model-attempt-store.md)
+- [ADR-0029: Ingest real local agent transcripts through a tolerant adapter](0029-ingest-real-local-agent-transcripts-through-a-tolerant-adapter.md)

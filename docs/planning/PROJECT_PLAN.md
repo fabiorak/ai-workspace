@@ -58,7 +58,23 @@ does not support it directly must be justified, time-boxed, or deferred.
    effect, prerequisites, trust, progress, and recovery inline. First use must
    succeed without reading manuals or memorizing CLI commands. The CLI remains
    supported for automation, diagnostics, tests, and advanced workflows.
-10. **GUI delivery accountability:** every new user-facing capability includes
+10. **Calibrated evidence:** the kind of evidence must match the kind of
+    decision. An irreversible technical decision — persistence format, protocol
+    semantics, cryptographic scope, delivery guarantee — requires a frozen
+    synthetic corpus and an ADR before production code, because a wrong choice
+    is expensive to undo and cannot be validated by opinion. A product decision
+    — whether a capability is useful, whether an interface is understandable,
+    whether a saving is real — requires evidence from actual use of the product,
+    because no synthetic corpus can prove that a human benefits. Substituting
+    one for the other is a planning defect: synthetic rigour applied to a
+    product question produces confident work on an unvalidated premise.
+11. **Dogfooding as the product-evidence source:** AI Workspace is developed
+    with AI agent sessions, so the project is its own first real user. Real-use
+    evidence for product decisions is obtained by using AI Workspace on this
+    repository's own sessions. Any capability the maintainers need but bypass
+    with a hand-written file is a signal that the product does not yet deliver
+    that capability.
+12. **GUI delivery accountability:** every new user-facing capability includes
     a GUI delivery plan in the same sprint or records an explicit, temporary,
     reviewed exception. Empty, loading, error, returning, accessibility, and
     no-manual onboarding states are product acceptance, not documentation work.
@@ -407,8 +423,10 @@ search, context, provenance, and handoff model.
 
 ## 8. Initial sprint sequence
 
-The default cadence is a two-week sprint. The sequence below is a forecast and
-must be adjusted using evidence from completed increments.
+Sprints are scope-bounded increments without a timebox: a sprint ends when its
+committed backlog is demonstrable and its verification gate passes, not after a
+fixed number of days. The sequence below is a forecast and must be adjusted
+using evidence from completed increments.
 
 | Sprint    | Primary epics | Demonstrable outcome                                    |
 | --------- | ------------- | ------------------------------------------------------- |
@@ -452,7 +470,8 @@ must be adjusted using evidence from completed increments.
 | Sprint 37 | E0, E7        | Qualify durable attempt evidence persistence            |
 | Sprint 38 | E0, E7        | Adopt production durable attempt evidence storage       |
 | Sprint 39 | E0, E1-E7     | Introduce the graphical workspace dashboard             |
-| Sprint 40 | E0, E7        | Establish local provider credential custody             |
+| Sprint 40 | E0, E7        | Read provider credentials from the environment only     |
+| Sprint 41 | E0, E2        | Ingest the maintainer's own real Claude Code sessions   |
 
 Planning after M3 will use Core MVP evidence to refine Sprint 6 onward and
 prioritize E5 through E10. The default epic order remains E5, E6, E7, E8, E9,
@@ -601,7 +620,9 @@ action, routing, fallback, or execution was added.
 
 ### Cadence
 
-- two-week sprints;
+- scope-bounded sprints with no timebox: a sprint closes when its committed
+  backlog is demonstrable and its verification gate passes, so several sprints
+  may close on the same day and a single sprint may span several days;
 - sprint planning at the start of each sprint;
 - backlog refinement at least once during the sprint;
 - a working-product review and demonstration at sprint end;
@@ -715,6 +736,8 @@ must be labeled as estimates.
 | Provider coupling leaks into the domain              | Enforce adapter boundaries and test with a second provider early         |
 | Premature plugin execution creates security exposure | Defer execution until capability controls and sandboxing exist           |
 | Document support dilutes the code MVP                | Reuse core abstractions, but schedule document workflows after M3        |
+| The product thesis stays unvalidated by real use     | Dogfood AI Workspace on this repository's own agent sessions from M5 on  |
+| Documented plan claims drift from observable reality | Correct false plan statements explicitly and record the correction       |
 
 ## 13. Governance and plan maintenance
 
@@ -729,6 +752,38 @@ must be labeled as estimates.
   intentionally excluded from Git.
 - Update this plan when milestone scope, epic ordering, or the delivery model
   changes; do not rewrite completed history to match a new forecast.
+- A documented claim that was never true is a defect, not history: correct it in
+  place and record the correction below, so the plan stays auditable without
+  restating past outcomes.
+
+### Recorded plan corrections
+
+- **Cadence (Sprint 40 timeframe).** Sprints 0 to 39 and this plan described a
+  "two-week timebox". No sprint was ever timeboxed: the 41 planned sprint
+  records were produced across nine working days, several closing on the same
+  day. The label was replaced everywhere with the observed model, a
+  scope-bounded increment with no timebox. Sprint outcomes, reviews, and
+  retrospectives were not modified.
+- **Provider delivery guarantee (Sprint 40 timeframe).** The at-most-once
+  versus exactly-once question is closed by
+  [ADR-0027](../adr/0027-use-explicit-unknown-after-exposure-attempt-semantics.md):
+  application-level
+  at-most-once with `UNKNOWN_AFTER_EXPOSURE` and zero automatic retry. It is not
+  an open question and must not be reopened without new evidence that
+  invalidates that ADR.
+- **Delivery order (Sprint 40 and 41).** Sprint 41 was numbered after Sprint 40
+  but delivered before it. Sprint 40 prepares provider credential supply, and
+  every decision behind it would otherwise still rest on synthetic fixtures
+  only, so the dogfooding capability had to exist first: evidence about how real
+  sessions are used must precede work that widens the credential surface.
+  Numbering follows when a sprint was planned; this correction records that the
+  numbering is not the delivery sequence here.
+- **Ingestion posture (Sprint 41).** The earlier synthetic-only ingestion stance
+  is superseded by
+  [ADR-0029](../adr/0029-ingest-real-local-agent-transcripts-through-a-tolerant-adapter.md).
+  Real local transcripts are read through a separate tolerant adapter and source
+  type; the reviewed synthetic corpus and its narrow adapter are unchanged, and
+  the repository still contains synthetic fixtures only.
 
 ## 14. Current execution state
 
@@ -987,11 +1042,27 @@ dashboard derived on demand from authoritative local stores. Semantic HTML and
 CSS provide textual equivalents for every visual without a chart dependency,
 remote asset, telemetry, or model-delivery claim.
 
-[Sprint 40](sprints/SPRINT-040.md) is planned as the next narrow M5 boundary.
-It will compare local credential-custody candidates with frozen synthetic
-evidence, record an ADR before production code, separate non-secret provider
-configuration from secret custody, and deliver complete bilingual GUI
-configuration, replacement, removal, and recovery guidance. Credential
-consumption, network access, provider authentication, request construction,
-model delivery, responses, routing, fallback, and execution remain outside the
-sprint.
+[Sprint 40](sprints/SPRINT-040.md) is planned as the next narrow M5 boundary and
+now follows Sprint 41, rescoped to environment-only credential supply. AI Workspace will report whether
+a provider credential is visible to the current process and will hold none: no
+persistence, no encryption, no custody schema, no custody ADR, and no secret
+input in the browser. Local custody is deferred until a credential is actually
+consumed, because only then can evidence about its required lifetime exist.
+Credential consumption, network access, provider authentication, request
+construction, model delivery, responses, routing, fallback, and execution remain
+outside the sprint.
+
+[Sprint 41](sprints/SPRINT-041.md) completed and closed the dogfooding gap
+recorded in delivery principle 11, and was delivered before Sprint 40. Every
+product decision until then had been validated with synthetic fixtures, and the
+maintainers still kept session continuity in a hand-written file that the product
+was built to generate. The sprint added explicit, user-selected, read-only
+ingestion of real local Claude Code transcripts through a tolerant adapter behind
+the existing provider-neutral port, plus metadata-only discovery of one named
+non-recursive directory, in the GUI and the CLI. Search, active memory, Context
+Packs, and handoffs can now be exercised against real evidence. Records that are
+not conversation turns are counted and reported by reason, so partial reading
+cannot be mistaken for complete reading. It added no automatic discovery, no
+upload, no network access, and no model call, and it committed no real
+transcript. [ADR-0029](../adr/0029-ingest-real-local-agent-transcripts-through-a-tolerant-adapter.md)
+records the reversal of the synthetic-only ingestion posture.

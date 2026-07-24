@@ -3,7 +3,7 @@
 **Primary epic:** E5 — Instruction, Agent, and Skill Management  
 **Milestone:** M4 — Controlled context beta, first boundary increment  
 **Status:** completed
-**Cadence:** two-week timebox  
+**Cadence:** scope-bounded increment (no timebox)  
 **Dependency:** Sprint 6 completed
 
 ## Sprint goal

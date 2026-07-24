@@ -4,6 +4,7 @@
 - [Understand the graphical workspace dashboard](workspace-dashboard.md)
 - [Register and inspect local Git repositories](project-registry.md)
 - [Import and inspect a Codex session](session-ingestion.md)
+- [Import your own local Claude Code transcripts](local-transcripts.md)
 - [Search historical events and open source evidence](historical-search.md)
 - [Capture, link, and find project-free questions in the General Inbox](general-inbox.md)
 - [Curate active project memory](active-memory.md)

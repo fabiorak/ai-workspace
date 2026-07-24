@@ -95,6 +95,27 @@ const EN = {
   selectProject: "Select {name}",
   refreshGit: "Refresh Git inspection",
   importSample: "Import the safe sample session",
+  transcripts: "Import your own Claude Code sessions",
+  transcriptsIntro:
+    "Name the directory that holds your Claude Code transcripts, then import one file into the selected project. Listing a directory reads names, sizes, and modification times only; no transcript is opened until you import it.",
+  transcriptsTrustBody:
+    "the transcript is read locally and stored as UNTRUSTED evidence. Nothing is executed and nothing is sent over a network. An import that contains high-confidence restricted data is blocked completely, and nothing is written.",
+  transcriptDirectory: "Transcript directory",
+  transcriptDirectoryHelp:
+    "Enter one existing directory. It is not searched recursively and no location is guessed.",
+  transcriptDiscover: "List transcripts",
+  transcriptDiscoverEffect:
+    "Effect: reads file names, sizes, and modification times only. No transcript is opened.",
+  transcriptStatusIdle: "Select a project, then list a transcript directory.",
+  transcriptListing: "Reading file names and sizes only…",
+  transcriptNone: "No .jsonl transcript was found in that directory.",
+  transcriptFound: "{count} transcript file(s), newest first.",
+  transcriptImport: "Import this transcript",
+  transcriptImporting: "Reading and storing this transcript locally…",
+  transcriptCounts:
+    "Added {added}, unchanged {unchanged}, total {total}, records not converted {skipped}.",
+  transcriptNoProject: "Select a registered project first.",
+  transcriptAttention: "Transcript import needs attention.",
   searchEvidence: "Search evidence",
   searchScope: "Scopes to search",
   allProjects: "All registered projects and General",
@@ -431,6 +452,28 @@ const IT = {
   selectProject: "Seleziona {name}",
   refreshGit: "Aggiorna ispezione Git",
   importSample: "Importa la sessione di esempio sicura",
+  transcripts: "Importa le tue sessioni Claude Code",
+  transcriptsIntro:
+    "Indica la cartella che contiene i tuoi transcript di Claude Code, poi importa un file nel progetto selezionato. Elencare una cartella legge soltanto nomi, dimensioni e date di modifica; nessun transcript viene aperto finché non lo importi.",
+  transcriptsTrustBody:
+    "il transcript è letto in locale e conservato come evidenza UNTRUSTED. Nulla viene eseguito e nulla viene inviato in rete. Un import che contiene dati riservati ad alta confidenza viene bloccato completamente e non scrive nulla.",
+  transcriptDirectory: "Cartella dei transcript",
+  transcriptDirectoryHelp:
+    "Indica una cartella esistente. Non viene esplorata in modo ricorsivo e nessun percorso viene indovinato.",
+  transcriptDiscover: "Elenca i transcript",
+  transcriptDiscoverEffect:
+    "Effetto: legge soltanto nomi, dimensioni e date di modifica dei file. Nessun transcript viene aperto.",
+  transcriptStatusIdle:
+    "Seleziona un progetto, poi elenca una cartella di transcript.",
+  transcriptListing: "Lettura dei soli nomi e dimensioni dei file…",
+  transcriptNone: "Nessun transcript .jsonl trovato in quella cartella.",
+  transcriptFound: "{count} file di transcript, dal più recente.",
+  transcriptImport: "Importa questo transcript",
+  transcriptImporting: "Lettura e salvataggio locale di questo transcript…",
+  transcriptCounts:
+    "Aggiunti {added}, invariati {unchanged}, totale {total}, record non convertiti {skipped}.",
+  transcriptNoProject: "Seleziona prima un progetto registrato.",
+  transcriptAttention: "L'import del transcript richiede attenzione.",
   searchEvidence: "Cerca evidenza",
   searchScope: "Ambiti in cui cercare",
   allProjects: "Tutti i progetti registrati e General",

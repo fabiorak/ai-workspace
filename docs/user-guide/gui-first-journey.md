@@ -43,6 +43,13 @@ page is a deliberate unavailable state: no runner or hidden automation exists.
    action. The effect is `LINK_ONLY`; neither scope nor evidence bytes change.
 4. Select the project and choose **Import the safe sample session**. The
    bundled fixture is fictional and remains visibly `UNTRUSTED`.
+   To work on your own history instead, use **Import your own sessions**: name
+   the directory that holds your Claude Code transcripts, list it, and import one
+   file. Listing returns file names, sizes, and modification times only; no
+   transcript is opened until you select it. The import report states how many
+   records were not converted and why. See
+   [importing your own local transcripts](local-transcripts.md) for the storage
+   and privacy consequences.
 5. Search for the suggested phrase, optionally select an event type, and keep
    the result limit between 1 and 100. **All registered projects and General**
    is the default and works without selecting a project; choose **General

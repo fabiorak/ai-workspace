@@ -2,10 +2,11 @@
 
 Runnable entry points live here:
 
-- `server/` — local control-plane API and background processing;
 - `web/` — implemented foreground loopback GUI for the first guided journey;
-- `desktop/` — optional desktop wrapper;
 - `cli/` — implemented command-line interface and automation entry point;
 
-The standalone server and desktop stacks remain intentionally undecided. The
-first web alpha uses the Node built-in HTTP host accepted by ADR-0015.
+Only implemented applications have a directory. A standalone background server
+and a desktop wrapper are anticipated by the long-term design but remain
+intentionally undecided; their directories will be created by the increment that
+implements them, not reserved in advance. The first web alpha uses the Node
+built-in HTTP host accepted by ADR-0015.

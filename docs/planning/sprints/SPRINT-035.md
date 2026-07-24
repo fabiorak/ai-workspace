@@ -6,7 +6,7 @@
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 34 completed; Sprint 33 single-use authorization remains
 `EVIDENCE_ONLY`; no ADR-0027 or production delivery surface exists

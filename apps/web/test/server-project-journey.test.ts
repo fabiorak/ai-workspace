@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,10 @@ const execFileAsync = promisify(execFile);
 const sampleSessionPath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../../integrations/codex/test/fixtures/session.jsonl",
+);
+const localTranscriptFixturePath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../integrations/claude-code/test/fixtures/synthetic-local-session.jsonl",
 );
 
 describe("GUI server project onboarding", () => {
@@ -1281,6 +1285,102 @@ describe("GUI server project onboarding", () => {
       (await api("/api/projects", { method: "DELETE" })).status,
       404,
     );
+  });
+
+  it("discovers a named transcript directory and imports one real transcript", async () => {
+    const projectId = (
+      (await (await api("/api/projects")).json()) as { id: string }[]
+    )[0]!.id;
+    const directory = join(root, "own-transcripts");
+    await mkdir(directory);
+    const transcriptPath = join(directory, "synthetic-local-session.jsonl");
+    await copyFile(localTranscriptFixturePath, transcriptPath);
+    await writeFile(join(directory, "notes.txt"), "not a transcript\n");
+
+    assert.equal(
+      (await api("/api/transcripts/discover", { method: "POST", body: "{}" }))
+        .status,
+      400,
+    );
+    const discovered = await api("/api/transcripts/discover", {
+      method: "POST",
+      body: JSON.stringify({ directory }),
+    });
+    assert.equal(discovered.status, 200);
+    const discovery = (await discovered.json()) as {
+      candidates: {
+        filePath: string;
+        fileName: string;
+        byteLength: number;
+        modifiedAt: string;
+      }[];
+      effect: string;
+    };
+    assert.deepEqual(
+      discovery.candidates.map((candidate) => candidate.fileName),
+      ["synthetic-local-session.jsonl"],
+    );
+    assert.equal(discovery.candidates[0]!.filePath, transcriptPath);
+    assert.ok(discovery.candidates[0]!.byteLength > 0);
+    assert.match(discovery.candidates[0]!.modifiedAt, /^\d{4}-\d{2}-\d{2}T/u);
+    assert.match(discovery.effect, /no transcript was opened/u);
+
+    assert.equal(
+      (
+        await api(
+          `/api/projects/${encodeURIComponent(projectId)}/import-transcript`,
+          { method: "POST", body: "{}" },
+        )
+      ).status,
+      400,
+    );
+    const imported = await api(
+      `/api/projects/${encodeURIComponent(projectId)}/import-transcript`,
+      {
+        method: "POST",
+        body: JSON.stringify({ filePath: transcriptPath }),
+      },
+    );
+    assert.equal(imported.status, 200);
+    const first = (await imported.json()) as {
+      sourceName: string;
+      trust: string;
+      addedEvents: number;
+      totalEvents: number;
+      skippedRecords: { reason: string; count: number }[];
+    };
+    assert.equal(first.sourceName, "synthetic-local-session.jsonl");
+    assert.equal(first.trust, "UNTRUSTED");
+    assert.equal(first.addedEvents, 10);
+    assert.equal(first.totalEvents, 10);
+    assert.equal(
+      first.skippedRecords.reduce((total, entry) => total + entry.count, 0),
+      5,
+    );
+    assert.equal(
+      first.skippedRecords.some((entry) => entry.reason === "BLANK_LINE"),
+      true,
+    );
+
+    const second = (await (
+      await api(
+        `/api/projects/${encodeURIComponent(projectId)}/import-transcript`,
+        { method: "POST", body: JSON.stringify({ filePath: transcriptPath }) },
+      )
+    ).json()) as { addedEvents: number; existingEvents: number };
+    assert.equal(second.addedEvents, 0);
+    assert.equal(second.existingEvents, 10);
+
+    const noCsrf = await fetch(`${server.origin}/api/transcripts/discover`, {
+      method: "POST",
+      headers: {
+        Cookie: cookie,
+        Origin: server.origin,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ directory }),
+    });
+    assert.equal(noCsrf.status, 403);
   });
 
   it("fails closed when active-memory storage is corrupt", async () => {

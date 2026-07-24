@@ -3,7 +3,7 @@
 **Epic:** E0 — Product and engineering foundation  
 **Milestone:** M0 — Engineering baseline  
 **Status:** completed  
-**Cadence:** initial two-week timebox
+**Cadence:** initial scope-bounded increment (no timebox)
 **Completed:** 2026-07-10
 
 ## Sprint goal

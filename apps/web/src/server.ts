@@ -1038,6 +1038,47 @@ export async function startGuiServer(
             200,
             await application.importSample(decodeURIComponent(sample[1]!)),
           );
+        const localImport =
+          /^\/api\/projects\/([^/]+)\/import-transcript$/u.exec(url.pathname);
+        if (localImport !== null) {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.filePath !== "string" ||
+            body.filePath.length === 0
+          )
+            return reject(
+              response,
+              400,
+              "Select one discovered transcript file to import.",
+            );
+          return json(
+            response,
+            200,
+            await application.importLocalTranscript(
+              decodeURIComponent(localImport[1]!),
+              body.filePath,
+            ),
+          );
+        }
+        if (url.pathname === "/api/transcripts/discover") {
+          const body = await readJson(request);
+          if (
+            !record(body) ||
+            typeof body.directory !== "string" ||
+            body.directory.length === 0
+          )
+            return reject(
+              response,
+              400,
+              "Enter the directory that holds your transcripts.",
+            );
+          return json(
+            response,
+            200,
+            await application.discoverTranscripts(body.directory),
+          );
+        }
       }
       return reject(response, 404, "This GUI route does not exist.");
     } catch (error) {

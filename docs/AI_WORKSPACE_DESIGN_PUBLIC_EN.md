@@ -13,6 +13,12 @@ sprint documents, and the current operational plan is [`ROADMAP.md`](../ROADMAP.
 Technologies, services, and interfaces remain candidates until selected by an
 evidence-led ADR.
 
+The vision beyond the current horizon — the complete document-workspace
+direction — is preserved unchanged in the
+[long-term vision](AI_WORKSPACE_VISION_LONG_TERM_EN.md). It was separated because
+this document had grown far larger than the project's delivery capacity: a reader
+must be able to tell what is being built from what is merely imagined.
+
 ---
 
 ## 1. Vision
@@ -1619,604 +1625,7 @@ Security requirements:
 
 ---
 
-## 22. Document Repositories
-
-The platform should treat document repositories as first-class workspaces.
-
-A document repository may be:
-
-- a local folder;
-- a Git repository;
-- an exported document management archive;
-- a collection of PDFs, DOCX files, spreadsheets, presentations, email, and attachments;
-- a mixed repository containing both code and documents.
-
-Repository profiles:
-
-```text
-SOFTWARE
-DOCUMENTS
-MIXED
-LEGAL
-TECHNICAL
-RESEARCH
-TENDER
-QUALITY
-POLICY
-```
-
-### 22.1 Code and document parallels
-
-| Software repository | Document repository |
-|---|---|
-| source files | documents |
-| symbols and functions | sections, paragraphs, tables, concepts |
-| module dependencies | references and document relationships |
-| commits and diffs | revisions and changes |
-| errors and tests | inconsistencies, gaps, verification |
-| code review | critical review |
-| patch | proposed revision |
-| handoff | analysis state |
-| architecture decisions | observations and conclusions |
-
----
-
-## 23. Document Processing Pipeline
-
-```text
-Document folder
-        ↓
-File discovery
-        ↓
-Parsing and normalization
-        ↓
-Anonymization
-        ↓
-Structural chunking
-        ↓
-Metadata extraction
-        ↓
-OpenSearch indexing
-        ↓
-Relationship extraction
-        ↓
-Agent analysis
-        ↓
-Annotations and derived documents
-```
-
-### 23.1 Supported formats
-
-Initial support should include:
-
-- PDF;
-- DOCX;
-- ODT;
-- Markdown;
-- TXT;
-- HTML;
-- CSV;
-- XLSX;
-- PPTX;
-- email;
-- images;
-- scanned PDFs through optional OCR.
-
-### 23.2 Structural parsing
-
-Documents must not be reduced to plain text.
-
-Where available, preserve:
-
-- document;
-- version;
-- page;
-- section;
-- heading;
-- paragraph;
-- table;
-- note;
-- attachment;
-- author;
-- date;
-- references;
-- original position;
-- bounding box;
-- content hash;
-- language;
-- validity status.
-
-```json
-{
-  "documentType": "document_chunk",
-  "repositoryId": "sample-tender-2026",
-  "documentId": "technical-specification",
-  "file": "Technical-Specification.pdf",
-  "page": 17,
-  "section": "4.2 Security Requirements",
-  "content": "The supplier must guarantee...",
-  "contentHash": "sha256:...",
-  "version": "2026-06-14",
-  "sourceRef": "artifact://sha256/..."
-}
-```
-
-### 23.3 Structural chunking
-
-Chunk boundaries should follow:
-
-- section;
-- subsection;
-- paragraph;
-- table;
-- list;
-- note;
-- attachment;
-- regulatory clause;
-- requirement.
-
-Every chunk must preserve source provenance.
-
----
-
-## 24. Document Search and Annotations
-
-OpenSearch should retrieve:
-
-- exact phrases;
-- concepts;
-- sections;
-- requirements;
-- references;
-- notes;
-- observations;
-- previous versions;
-- related documents.
-
-Example filters:
-
-```text
-"maximum recovery time"
-type:requirement
-repository:sample-tender-2026
-section:"security"
-status:open
-severity:high
-```
-
-### 24.1 Persistent annotations
-
-Annotations should be stored outside the chat and linked to precise document locations.
-
-```typescript
-interface DocumentAnnotation {
-    id: string;
-    repositoryId: string;
-    documentId: string;
-    versionId: string;
-
-    location: {
-        page?: number;
-        section?: string;
-        paragraph?: string;
-        textRange?: string;
-        boundingBox?: number[];
-    };
-
-    type:
-        | "note"
-        | "issue"
-        | "question"
-        | "contradiction"
-        | "requirement"
-        | "suggestion"
-        | "risk";
-
-    content: string;
-
-    severity?:
-        | "low"
-        | "medium"
-        | "high"
-        | "critical";
-
-    sourceRefs: string[];
-
-    status:
-        | "open"
-        | "resolved"
-        | "obsolete";
-
-    createdBy: string;
-    createdAt: string;
-    updatedAt: string;
-}
-```
-
-Suggested project files:
-
-```text
-.ai-workspace/
-├── HANDOFF.md
-├── ANALYSIS.md
-├── OBSERVATIONS.md
-├── QUESTIONS.md
-├── SOURCES.md
-├── DECISIONS.md
-└── TRACEABILITY.csv
-```
-
----
-
-## 25. Document Agents and Skills
-
-Possible agents:
-
-```text
-Document Analyst
-Critical Reviewer
-Legal Reviewer
-Technical Reviewer
-Requirements Analyst
-Consistency Checker
-Evidence Collector
-Report Writer
-Executive Summary Writer
-Compliance Reviewer
-```
-
-Possible skills:
-
-```text
-Compare documents
-Extract requirements
-Detect contradictions
-Find missing information
-Build traceability matrix
-Summarize sections
-Extract obligations
-Generate critical observations
-Produce revision comments
-Draft final report
-```
-
-Example:
-
-```yaml
-id: requirements-analyst
-name: Requirements Analyst
-description: Extract and normalize requirements from technical documents.
-
-instructions: agents/requirements-analyst.md
-
-skills:
-  - requirement-extraction
-  - document-comparison
-  - traceability-matrix
-
-allowed_tools:
-  - document_search
-  - document_read
-  - annotation_create
-  - traceability_link_create
-
-context_profile:
-  include:
-    - active_documents
-    - document_versions
-    - previous_observations
-    - project_constraints
-
-output_schema:
-  type: requirement-analysis
-```
-
----
-
-## 26. Document Workflows
-
-### 26.1 Requirements coverage analysis
-
-Example repository:
-
-```text
-/projects/sample-tender/
-├── tender-rules.pdf
-├── Technical-Specification.pdf
-├── clarifications.pdf
-├── Technical-Proposal.docx
-└── internal-notes.md
-```
-
-Work Item:
-
-```text
-Analyze the specification and verify whether the technical
-proposal covers all mandatory requirements.
-```
-
-The system should:
-
-1. index all documents;
-2. extract requirements;
-3. assign a stable identifier to each requirement;
-4. connect requirements to proposal sections;
-5. flag missing coverage;
-6. flag ambiguous coverage;
-7. generate a traceability matrix;
-8. produce an observations report;
-9. preserve provenance.
-
-```text
-REQUIREMENT-042
-Source: specification, § 6.3, page 28
-Status: partially covered
-
-Evidence:
-Technical-Proposal.docx, § 4.1
-
-Observation:
-The proposal describes daily backups but does not specify
-the required maximum recovery time.
-```
-
-### 26.2 Critical review
-
-The system should detect:
-
-- unsupported claims;
-- contradictions;
-- inconsistent terminology;
-- missing information;
-- unclear obligations;
-- unresolved assumptions.
-
-### 26.3 Comparative analysis
-
-Compare:
-
-- offers;
-- versions;
-- specifications;
-- policies;
-- contracts;
-- manuals;
-- reports;
-- project proposals.
-
-### 26.4 Work resumption
-
-When reopening an analysis, restore:
-
-- current state;
-- active document versions;
-- open observations;
-- decisions;
-- questions;
-- generated outputs;
-- cited sources;
-- next actions.
-
----
-
-## 27. Document Version Comparison
-
-The system should detect:
-
-- added sections;
-- removed sections;
-- changed requirements;
-- changed values;
-- changed deadlines;
-- replaced attachments;
-- updated references;
-- impact on previous analysis.
-
-It must support semantic differences, not only textual diffs.
-
-```text
-Version 2 reduces the maximum recovery time from 8 hours to 4 hours.
-```
-
-When a source changes, the platform should identify:
-
-- potentially obsolete annotations;
-- changed requirements;
-- observations requiring review;
-- derived documents requiring regeneration;
-- decisions based on superseded content.
-
----
-
-## 28. Document Graph
-
-The document equivalent of a code graph should model:
-
-### Nodes
-
-- repositories;
-- documents;
-- versions;
-- sections;
-- requirements;
-- people;
-- organizations;
-- regulations;
-- systems;
-- decisions;
-- observations;
-- risks;
-- questions;
-- generated outputs.
-
-### Relationships
-
-```text
-DOCUMENT CONTAINS SECTION
-SECTION CONTAINS REQUIREMENT
-DOCUMENT REFERENCES DOCUMENT
-DOCUMENT REFERENCES REGULATION
-OFFER_SECTION SATISFIES REQUIREMENT
-OBSERVATION CRITICIZES SECTION
-ANNOTATION REFERS_TO DOCUMENT_VERSION
-VERSION SUPERSEDES VERSION
-DECISION BASED_ON DOCUMENT
-GENERATED_DOCUMENT DERIVED_FROM SOURCE
-```
-
-Example queries:
-
-```text
-Which observations depend on a requirement changed in the latest version?
-```
-
-```text
-Which mandatory requirements still lack supporting evidence?
-```
-
----
-
-## 29. Derived Document Generation
-
-The platform should generate:
-
-- critical reports;
-- compliance reports;
-- requirement coverage matrices;
-- executive summaries;
-- gap lists;
-- clarification questions;
-- meeting minutes;
-- revised documents;
-- tender responses;
-- remediation plans;
-- alternative comparisons.
-
-Every generated claim should preserve provenance.
-
-```markdown
-## Observation 12
-
-The document does not specify the service availability requirement.
-
-Sources:
-
-- Technical Specification, § 8.2, page 41
-- Technical Proposal, § 5.4, page 33
-```
-
-Supported outputs:
-
-- Markdown;
-- DOCX;
-- PDF;
-- HTML;
-- CSV;
-- XLSX;
-- structured JSON.
-
----
-
-## 30. Document Context Builder
-
-```yaml
-context_pack:
-  objective: Verify coverage of security requirements
-
-  repository:
-    type: DOCUMENTS
-    id: sample-tender-2026
-
-  mandatory:
-    - active_requirements
-    - current_observations
-    - latest_document_versions
-
-  retrieve:
-    - type: document_section
-      query: security
-      limit: 12
-
-    - type: requirement
-      status: active
-      limit: 50
-
-    - type: observation
-      status: open
-      limit: 20
-
-  token_budget:
-    total: 20000
-    sources: 12000
-    observations: 3000
-    instructions: 2500
-    output_constraints: 2500
-```
-
-The system must not resend the complete document repository for every task.
-
----
-
-## 31. Unified Work Item
-
-The Work Item is the central aggregate.
-
-```text
-Work Item
-├── objective
-├── repository
-├── repository type
-├── branch or document version
-├── sources
-├── agents
-├── skills
-├── instructions
-├── context
-├── annotations
-├── evidence
-├── outputs
-├── verification
-├── costs
-└── handoff
-```
-
-Possible types:
-
-```text
-CODE_CHANGE
-CODE_REVIEW
-DOCUMENT_ANALYSIS
-DOCUMENT_COMPARISON
-REQUIREMENT_EXTRACTION
-CRITICAL_REVIEW
-REPORT_GENERATION
-COMPLIANCE_CHECK
-MIXED_ANALYSIS
-```
-
-The unified shape above is a later extensibility direction, not the Core MVP
-acceptance boundary. The first cross-agent handoff supports only an explicit
-software Work Item containing bounded objective state and additive handoff
-snapshots. Document analysis, mixed repositories, Context Builder budgets,
-skills, cost accounting, and orchestration remain later increments and cannot
-be required to complete the Core MVP alpha.
-
-Main flow:
-
-```text
-SEARCH
-  -> RESUME
-  -> BUILD CONTEXT
-  -> SELECT AGENT
-  -> EXECUTE
-  -> VERIFY
-  -> CONSOLIDATE
-  -> REUSE
-```
-
----
-
-## 32. User Interface
+## 22. User Interface
 
 ### 32.1 Home
 
@@ -2312,7 +1721,7 @@ Original | Anonymized | Deanonymized
 
 ---
 
-## 33. Observability and Metrics
+## 23. Observability and Metrics
 
 Suggested metrics:
 
@@ -2347,7 +1756,7 @@ full uncompressed session
 
 ---
 
-## 34. Security
+## 24. Security
 
 ### 34.1 Threat model
 
@@ -2402,7 +1811,7 @@ models:
 
 ---
 
-## 35. Logical Architecture
+## 25. Logical Architecture
 
 ```text
 ┌──────────────────────────────────────────────────────────┐
@@ -2431,7 +1840,7 @@ models:
 
 ---
 
-## 36. Persistence
+## 26. Persistence
 
 ### 36.1 PostgreSQL
 
@@ -2507,7 +1916,7 @@ Store:
 
 ---
 
-## 37. Initial Technology Architecture
+## 27. Initial Technology Architecture
 
 ### Backend
 
@@ -2548,7 +1957,7 @@ service requires a vertical need and an ADR.
 
 ---
 
-## 38. Candidate Integrations
+## 28. Candidate Integrations
 
 | Need | Candidate |
 |---|---|
@@ -2569,7 +1978,7 @@ All integrations should use adapters to avoid rigid coupling.
 
 ---
 
-## 39. Proposed Repository Structure
+## 29. Proposed Repository Structure
 
 ```text
 ai-workspace/
@@ -2644,7 +2053,7 @@ A modular monolith is preferable for the initial MVP.
 
 ---
 
-## 40. Architecture Decision Records
+## 30. Architecture Decision Records
 
 Suggested ADRs:
 
@@ -2679,7 +2088,7 @@ ADR-026 Unified Work Item for code and documents
 
 ---
 
-## 41. Roadmap
+## 31. Roadmap
 
 This is a long-term product horizon, not the operational sprint plan in
 `ROADMAP.md`. The Core MVP alpha remains software-only: Project Registry,
@@ -2845,7 +2254,7 @@ Goal:
 
 ---
 
-## 42. Non-Functional Requirements
+## 32. Non-Functional Requirements
 
 ### Performance
 
@@ -2893,7 +2302,7 @@ Goal:
 
 ---
 
-## 43. Open Source Strategy
+## 33. Open Source Strategy
 
 ### 43.1 Goals
 
@@ -2941,7 +2350,7 @@ Define:
 
 ---
 
-## 44. Open Questions
+## 34. Open Questions
 
 Open questions become ADRs or time-boxed spikes when they enter the active
 roadmap. Session ingestion, handoff validation, and bounded measurement already
@@ -2970,7 +2379,7 @@ model access remain deliberately undecided.
 
 ---
 
-## 45. MVP Success Criteria
+## 35. MVP Success Criteria
 
 These criteria describe the broader first useful product horizon, not the
 current Core MVP alpha acceptance boundary. The alpha proves the software-only
@@ -2996,7 +2405,7 @@ The first useful release should allow users to:
 
 ---
 
-## 46. Naming Direction
+## 36. Naming Direction
 
 The name should be:
 
@@ -3027,7 +2436,7 @@ Availability and trademark checks must be completed before publication.
 
 ---
 
-## 47. Conclusion
+## 37. Conclusion
 
 The platform addresses a broader problem than agent memory.
 

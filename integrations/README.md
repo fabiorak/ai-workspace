@@ -33,7 +33,21 @@ Implemented adapters:
 - `local-work-items/` persists project-scoped Work Item operation logs with
   deterministic reduction, owner-token locking, and atomic replacement;
 
-`claude-code/` remains an implementation scaffold. Its authored-from-scratch
-fixture now drives a narrow synthetic-only adapter for the reviewed Sprint 5
-subset. No live discovery, broad format compatibility, or CLI support is
-implemented.
+`claude-code/` exposes two separate readers over the same integration boundary,
+as recorded in ADR-0029:
+
+- the original narrow adapter (`claude-code`) still reads only the reviewed
+  authored-from-scratch synthetic subset, unchanged;
+- a tolerant adapter (`claude-code-local`) reads a real local Claude Code JSONL
+  transcript. It is tolerant about record and block shapes but strict about
+  accounting: unrecognized blocks are preserved as `UNKNOWN` evidence, every
+  record it does not convert is counted and reported by reason, and an
+  unparsable record is accepted only as the last line of a live transcript.
+  Skipping produces no event, so re-importing a grown transcript stays
+  idempotent.
+
+Discovery lists one directory the user names explicitly. It is not recursive, has
+no default location, never guesses which project a transcript belongs to, and
+returns only filesystem metadata, so listing cannot read a conversation. Reading
+happens only when the user then imports one named file. Restricted-data screening
+is unchanged and remains fail-closed.

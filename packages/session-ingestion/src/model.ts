@@ -58,11 +58,24 @@ export type ImportedSession = Readonly<{
   events: readonly SessionEvent[];
 }>;
 
+/**
+ * A deterministic, non-content account of source records that produced no
+ * canonical event. A tolerant adapter that reads a real agent transcript must
+ * report what it did not convert, so that a partial reading is never mistaken
+ * for a complete one. The reason is a stable adapter-defined classification and
+ * never carries transcript content.
+ */
+export type SkippedRecordSummary = Readonly<{
+  reason: string;
+  count: number;
+}>;
+
 export type SessionImportReport = Readonly<{
   session: ImportedSession;
   addedEvents: number;
   existingEvents: number;
   totalEvents: number;
+  skippedRecords: readonly SkippedRecordSummary[];
 }>;
 
 export type SourceEvent = Readonly<{
@@ -81,4 +94,20 @@ export type SessionSource = Readonly<{
   startedAt: string | null;
   rawContent: Uint8Array;
   events: readonly SourceEvent[];
+  /**
+   * Optional. Adapters that accept every record leave it absent; tolerant
+   * adapters declare here every record they deliberately did not convert.
+   */
+  skippedRecords?: readonly SkippedRecordSummary[];
+}>;
+
+/**
+ * Metadata about one candidate local transcript file. Discovery never opens a
+ * candidate, so nothing here is derived from transcript content.
+ */
+export type DiscoveredSessionFile = Readonly<{
+  filePath: string;
+  fileName: string;
+  byteLength: number;
+  modifiedAt: string;
 }>;

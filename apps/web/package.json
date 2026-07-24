@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@ai-workspace/active-memory": "0.0.0",
+    "@ai-workspace/claude-code-adapter": "0.0.0",
     "@ai-workspace/codex-adapter": "0.0.0",
     "@ai-workspace/core": "0.0.0",
     "@ai-workspace/context-builder": "0.0.0",

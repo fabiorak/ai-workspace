@@ -2,6 +2,7 @@ export type GuiJourneyStep =
   | "WELCOME"
   | "PROJECTS"
   | "IMPORT"
+  | "TRANSCRIPTS"
   | "GENERAL_INBOX"
   | "SEARCH"
   | "EVENT"
@@ -123,6 +124,22 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
           "Adds canonical UNTRUSTED events and immutable artifacts locally; re-import is idempotent.",
         prerequisites:
           "Select a registered project. Do not use private transcripts in this pre-release flow.",
+        mutates: true,
+      }),
+    ),
+    screen(
+      "TRANSCRIPTS",
+      "Import your own sessions",
+      "List the Claude Code transcripts in a directory you name, which reads file metadata only, then import one of them into the selected project.",
+      action({
+        id: "transcript-import",
+        label: "Import this transcript",
+        description:
+          "Read one named real Claude Code transcript and store it as local UNTRUSTED evidence, reporting every record that was not converted.",
+        effect:
+          "Adds canonical events and immutable artifacts locally; re-import is idempotent and a blocked import writes nothing.",
+        prerequisites:
+          "Select a registered project and list a transcript directory first.",
         mutates: true,
       }),
     ),
@@ -502,7 +519,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 22)
+  if (steps.size !== 23)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

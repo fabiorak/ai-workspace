@@ -2,7 +2,7 @@
   "name": "@ai-workspace/claude-code-adapter",
   "version": "0.0.0",
   "private": true,
-  "description": "Narrow synthetic-only Claude Code JSONL adapter",
+  "description": "Claude Code JSONL adapters: reviewed synthetic subset and tolerant local transcript reader",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {

@@ -6,7 +6,7 @@
 
 **Status:** completed
 
-**Cadence:** two-week timebox
+**Cadence:** scope-bounded increment (no timebox)
 
 **Dependency:** Sprint 37 completed with decision
 `ADOPT_TEST_ONLY_DURABLE_ATTEMPT_EVIDENCE`; ADR-0027 remains accepted; no

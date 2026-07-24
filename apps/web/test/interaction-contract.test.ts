@@ -14,6 +14,7 @@ describe("GUI interaction contract", () => {
         "WELCOME",
         "PROJECTS",
         "IMPORT",
+        "TRANSCRIPTS",
         "GENERAL_INBOX",
         "SEARCH",
         "EVENT",

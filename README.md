@@ -7,6 +7,14 @@ It aims to preserve project knowledge across tools, build the smallest useful
 context for each task, support reliable handoffs between agents, and protect
 sensitive data before it reaches external models.
 
+It runs with **zero external runtime dependencies**: every application, package,
+adapter, and the GUI itself are built only on the Node.js 24 standard library.
+Installing AI Workspace adds no third-party package to your machine at runtime,
+so there is no transitive dependency tree to audit, no supply-chain surface to
+monitor, and nothing to update when an unrelated ecosystem package is
+compromised. External tooling is limited to development: TypeScript, ESLint, and
+Prettier.
+
 > [!IMPORTANT]
 > AI Workspace is in an early design and scaffolding phase. There is no
 > supported release yet. The repository contains a local pre-release GUI and
@@ -45,6 +53,9 @@ use.
   architectural concerns.
 - **Composable and open:** standard protocols, replaceable storage, plugins,
   and documented APIs are preferred.
+- **Zero runtime dependencies:** production code uses only the Node.js standard
+  library. A new runtime dependency requires an Architecture Decision Record
+  that justifies the added supply-chain, portability, and maintenance surface.
 
 ## Core model
 
@@ -88,24 +99,30 @@ workflows. See [ROADMAP.md](ROADMAP.md) for the phased plan.
 ## Repository layout
 
 ```text
-apps/          runnable server, web, desktop, and CLI applications
-packages/      reusable domain and application modules
-services/      independently deployed supporting services
-integrations/  adapters for agents, gateways, and protocols
+apps/          runnable applications (today: web GUI and CLI)
+packages/      reusable provider-neutral domain and application modules
+integrations/  replaceable local adapters for agents, storage, and protocols
+services/      reserved for independently deployed services (none exists yet)
 deploy/        local and production deployment assets
 docs/          design, architecture, ADRs, security, and guides
 examples/      example configurations and workflows
 scripts/       development and maintenance automation
 ```
 
-The project starts as a simple modular monorepo. Package managers, frameworks,
-and service boundaries are introduced through explicit architectural
-decisions.
+The project is a modular monorepo. A directory exists only when something is
+implemented in it: anticipated modules are described in the long-term vision
+rather than reserved as empty placeholders. Package managers, frameworks, runtime
+dependencies, and service boundaries are introduced only through explicit
+architectural decisions.
 
 ## Documentation
 
 - [Public design document (English)](docs/AI_WORKSPACE_DESIGN_PUBLIC_EN.md)
 - [Documento di progettazione (Italiano)](docs/AI_WORKSPACE_DESIGN_PUBLIC_IT.md)
+- [Long-term vision (English)](docs/AI_WORKSPACE_VISION_LONG_TERM_EN.md) —
+  exploratory horizon, not a delivery commitment
+- [Visione a lungo periodo (Italiano)](docs/AI_WORKSPACE_VISION_LONG_TERM_IT.md) —
+  orizzonte esplorativo, non impegno di consegna
 - [Architecture overview](docs/architecture/README.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Product definition](docs/product/PRODUCT.md)
@@ -137,9 +154,13 @@ browser automatically, and serves no remote assets. Local state defaults to
 AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
 ```
 
-Do not use real or private transcripts, credentials, customer data, mapping
-material, or recovery secrets. The current restricted-data screening is
-deliberately narrow and is not suitable for production data.
+You can import your own local agent transcripts. They are read on this machine
+only, and nothing is transmitted. They are stored unencrypted under
+`AI_WORKSPACE_HOME`, so treat that directory as sensitive and never copy it into
+a repository, an issue, or a fixture. Do not import credentials, customer or
+third-party confidential material, mapping material, or recovery secrets: the
+current restricted-data screening is deliberately narrow and is a safety net
+rather than a guarantee.
 
 ## GUI-first journey
 
@@ -153,8 +174,9 @@ local, inspectable workflow:
    area requiring attention;
 3. capture a project-free question in General Inbox or register a local Git
    repository;
-4. import bundled fictional evidence, search it, and inspect its verified
-   source;
+4. import bundled fictional evidence, or list a directory you name and import
+   one of your own local Claude Code transcripts, then search the result and
+   inspect its verified source;
 5. curate source-linked active memory and manage a Work Item;
 6. preview and create an immutable handoff, then inspect drift and prepare a
    successor;
@@ -175,8 +197,9 @@ cover:
 
 - [the graphical workspace dashboard](docs/user-guide/workspace-dashboard.md);
 - [project registration](docs/user-guide/project-registry.md),
-  [session ingestion](docs/user-guide/session-ingestion.md), and
-  [historical search](docs/user-guide/historical-search.md);
+  [session ingestion](docs/user-guide/session-ingestion.md),
+  [importing your own local transcripts](docs/user-guide/local-transcripts.md),
+  and [historical search](docs/user-guide/historical-search.md);
 - [General Inbox](docs/user-guide/general-inbox.md) and
   [active memory](docs/user-guide/active-memory.md);
 - [Work Items and handoffs](docs/user-guide/work-items-and-handoffs.md);
@@ -194,7 +217,12 @@ All current user surfaces are local and inspectable. The pre-release alpha does
 not provide:
 
 - remote access or remote asset loading;
-- support for real or private transcript ingestion;
+- unattended, recursive, or default-location transcript discovery: only a
+  directory you name is listed, one level deep, and only a file you then select
+  is read;
+- transcript formats other than the documented Codex subset and local Claude
+  Code JSONL;
+- encryption at rest for imported evidence;
 - agent, model, instruction, or tool execution;
 - model delivery, routing, or fallback;
 - complete secret or personally identifiable information detection;

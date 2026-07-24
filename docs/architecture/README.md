@@ -216,6 +216,20 @@ translates one controlled JSONL subset at the integration boundary. Imported
 events remain untrusted historical evidence and do not enter active memory or
 an execution path. These choices are recorded in ADR-0005 through ADR-0007.
 
+Real local transcripts enter through a second adapter behind the same port,
+under a distinct `claude-code-local` source type, so the reviewed synthetic
+corpus and every already-imported session keep their exact meaning. The
+tolerant reader is permissive about record and block shapes and strict about
+accounting: unrecognized blocks become `UNKNOWN` evidence, skipped records are
+counted per reason in the import report, skipping emits no event so re-import
+stays idempotent, and an unparsable record is tolerated only as the final line
+of a live transcript. Discovery is a separate metadata-only port over one
+explicitly named non-recursive directory, so listing candidates cannot read a
+conversation. Restricted-data screening keeps its position ahead of persistence
+and stays fail-closed; it now scans overlapping windows so a transcript larger
+than the detector input limit is screened completely instead of failing
+opaquely. ADR-0029 records this reversal of the synthetic-only posture.
+
 Historical retrieval is also behind domain-owned ports. The initial adapter
 scans validated canonical project sessions and General events with explicit
 tagged scope and

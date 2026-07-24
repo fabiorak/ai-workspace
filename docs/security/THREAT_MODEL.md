@@ -372,6 +372,50 @@ versions, entity-token disagreement, and implicit migration fail closed.
 - tests and examples use a fixture authored from scratch with fictional data;
 - ingestion performs no network, telemetry, agent, or model access.
 
+## Implemented real-transcript ingestion controls
+
+Importing the user's own local transcripts changes the data actually stored: the
+local runtime store can now hold real conversation content, file paths, and
+whatever the user discussed with an agent. The following controls apply
+(ADR-0029):
+
+- a real transcript is read only by an explicitly named path, chosen by the
+  user, under a distinct `claude-code-local` source type that leaves the
+  reviewed synthetic corpus and every existing session untouched;
+- discovery lists one directory named by the user. It is not recursive, has no
+  default or inferred location, opens no candidate, and returns only file name,
+  size, and modification time, so listing cannot read a conversation;
+- discovery is bounded to 500 candidates and reading to 64 MiB per transcript,
+  4 MiB per record, 1,000 blocks per record, and 200,000 events;
+- restricted-data screening keeps its position ahead of artifact and session
+  persistence and stays fail-closed. It scans overlapping windows so a
+  transcript larger than the detector input limit is screened completely rather
+  than failing with an opaque error; a rejected import writes no artifact and no
+  session;
+- records that are not conversation turns are skipped deterministically, counted
+  by reason, and reported to the user, so partial reading cannot be mistaken for
+  complete reading. Skipping emits no event, so re-import stays idempotent and
+  prefix validation still rejects mutation and truncation;
+- a skip reason derived from transcript content is emitted only as a validated
+  short token, or `other`, so a transcript cannot inject arbitrary text into the
+  report;
+- an unparsable record is tolerated only as the final line of a file, which is
+  the one shape a live transcript legitimately produces; anywhere else it fails
+  the import;
+- unrecognized content blocks are preserved as `UNKNOWN` evidence rather than
+  discarded, and every event keeps its raw record hash and provenance;
+- imported content stays `UNTRUSTED`, is never executed, and never becomes an
+  instruction;
+- the repository keeps synthetic fixtures only. Real transcripts, and the local
+  runtime store that now contains them, must never be committed, attached to an
+  issue, or turned into a fixture.
+
+Residual risk: the local store is not encrypted at rest, so the confidentiality
+of imported real conversations depends entirely on filesystem permissions and on
+the security of the user's machine. Screening remains a narrow safety net, not
+complete secret or PII detection, so a real transcript can carry secrets or
+personal data that no control here will catch.
+
 ## Implemented E3 retrieval controls
 
 - every search uses an explicit project, `GENERAL_ONLY`, or `ALL_SCOPES`
@@ -680,7 +724,10 @@ Review and update this model when:
 - a new persistence or search technology is selected;
 - a network listener or remote-access mode is added;
 - an agent, model, plugin, or tool gains execution access;
-- real user transcripts or documents are imported;
+- a further real-data surface is added: real transcript ingestion already fired
+  this trigger and is covered by the real-transcript ingestion controls above,
+  but importing documents, repository content, or any other real source requires
+  a new review;
 - a new data class or regulatory obligation appears;
 - a security incident or near miss invalidates an assumption.
 
@@ -692,6 +739,8 @@ encrypted, stale locks require careful manual recovery, and failed commits may
 leave unreferenced immutable artifacts. Active-memory documents are also not
 encrypted, and a local process with filesystem access can tamper with data or
 locks despite validation and restrictive modes. Sandboxing and model-policy
-enforcement also remain unavailable. The repository contains only synthetic
-fixtures and must not be presented as safe for importing confidential
-production data.
+enforcement also remain unavailable. Since real local transcripts can now be
+imported, that unencrypted store may hold real conversation content, so its
+confidentiality rests on filesystem permissions and on the security of the
+user's machine. The repository contains only synthetic fixtures and must not be
+presented as safe for importing confidential production data.

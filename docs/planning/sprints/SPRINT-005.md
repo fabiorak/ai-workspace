@@ -3,7 +3,7 @@
 **Epic:** E4 — Handoff and Cross-agent Resume  
 **Milestone:** M3 — Core MVP alpha  
 **Status:** completed
-**Cadence:** two-week timebox  
+**Cadence:** scope-bounded increment (no timebox)  
 **Dependency:** Sprint 4 completed with its committed acceptance criteria
 
 ## Sprint goal
