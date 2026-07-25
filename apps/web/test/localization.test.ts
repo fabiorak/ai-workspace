@@ -47,9 +47,11 @@ describe("GUI localization contract", () => {
       GUI_CATALOGS.it.welcomeRegistration,
       "La registrazione salva localmente metadati Git bounded. Non copia né modifica i file del repository.",
     );
+    // Italian has no "(s)", so the count follows the noun and the sentence reads
+    // correctly at one as well as at many.
     assert.equal(
       guiMessage("it", "projectsRegistered", { count: "2" }),
-      "2 progetti sono registrati localmente.",
+      "Progetti registrati localmente: 2.",
     );
     assert.match(GUI_CATALOGS.it.projectDirectoryHelp, /registrazione/u);
     assert.match(GUI_CATALOGS.it.projectEffect, /Effetto/u);
@@ -75,7 +77,7 @@ describe("GUI localization contract", () => {
         projects: "3",
         events: "40",
       }),
-      "Trovati 2 risultati in 3 progetti e 40 eventi esaminati.",
+      "Risultati trovati: 2. Progetti esaminati: 3; eventi esaminati: 40.",
     );
     assert.match(GUI_CATALOGS.it.selectInspect, /Seleziona questo progetto/u);
     assert.match(GUI_CATALOGS.it.contextWarning, /schema v2/u);

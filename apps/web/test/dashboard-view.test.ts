@@ -209,7 +209,9 @@ describe("dashboard fragment", () => {
 
   it("states coverage with a localized timestamp", () => {
     const value = coverageText(dashboard(), "it");
-    assert.match(value, /^Copertura: 4 progetti disponibili su 4;/u);
+    // The count follows the noun: Italian has no "(s)", so a template that hardcodes
+    // the plural would read "1 progetti" at one.
+    assert.match(value, /^Copertura: progetti disponibili 4 su 4;/u);
     assert.ok(
       value.includes(formatGuiDateTime("it", "2026-07-25T09:30:00.000Z")),
     );

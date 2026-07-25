@@ -7,7 +7,12 @@ import {
 import { APP_CSS, APP_JS, shellHtml } from "./assets.ts";
 import { GuiApplication, GuiApplicationError } from "./application.ts";
 import { dashboardFragmentHtml } from "./dashboard-view.ts";
-import { resolveGuiLocale } from "./localization.ts";
+import { escapeMarkup } from "./charts.ts";
+import {
+  guiMessage,
+  resolveGuiLocale,
+  type GuiMessageKey,
+} from "./localization.ts";
 import {
   SESSION_EVENT_TYPES,
   type SessionEventType,
@@ -52,17 +57,25 @@ export async function startGuiServer(
         !loopback(request.socket.remoteAddress) ||
         !validHost(request.headers.host, authority)
       )
-        return reject(response, 403, "Request origin is not allowed.");
+        return denied(
+          request,
+          response,
+          403,
+          "originBlockedMessage",
+          "originBlockedRecovery",
+        );
       const url = new URL(request.url ?? "/", origin);
       if (
         request.method === "GET" &&
         url.pathname === `/bootstrap/${bootstrapToken}`
       ) {
         if (!bootstrapAvailable)
-          return reject(
+          return denied(
+            request,
             response,
             410,
-            "This bootstrap link has already been used.",
+            "bootstrapUsedMessage",
+            "bootstrapUsedRecovery",
           );
         bootstrapAvailable = false;
         response.statusCode = 303;
@@ -74,10 +87,12 @@ export async function startGuiServer(
         return response.end();
       }
       if (!authenticated(request, sessionToken))
-        return reject(
+        return denied(
+          request,
           response,
           401,
-          "Open the one-time bootstrap URL printed by the local GUI process.",
+          "sessionMissingMessage",
+          "sessionMissingRecovery",
         );
       if (request.method === "GET" && url.pathname === "/")
         return send(response, "text/html; charset=utf-8", shellHtml(csrfToken));
@@ -1208,11 +1223,48 @@ function json(response: ServerResponse, status: number, value: unknown) {
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.end(JSON.stringify(value));
 }
-function reject(response: ServerResponse, status: number, message: string) {
-  return json(response, status, {
-    message,
-    recovery: "Use the documented local GUI action and retry.",
-  });
+function reject(
+  response: ServerResponse,
+  status: number,
+  message: string,
+  recovery = "Use the documented local GUI action and retry.",
+) {
+  return json(response, status, { message, recovery });
+}
+/**
+ * A refusal reaches this server two ways. A fetch from the shell wants JSON, so
+ * the client can put the sentence where the user is already looking. A browser
+ * typing the address wants a page: answering that with raw JSON leaves the reader
+ * staring at a brace with no idea what to do next. Same cause, same remedy, two
+ * encodings, chosen by what the request says it accepts and written in the
+ * language it asks for — the shell is not loaded yet, so nothing else can
+ * translate it.
+ *
+ * The page carries no stylesheet on purpose: `/app.css` is behind the very
+ * session this request is missing, and a broken link would be one more thing
+ * that looks wrong.
+ */
+function denied(
+  request: IncomingMessage,
+  response: ServerResponse,
+  status: number,
+  messageKey: GuiMessageKey,
+  recoveryKey: GuiMessageKey,
+) {
+  const locale = resolveGuiLocale(
+    undefined,
+    (request.headers["accept-language"] ?? "").split(","),
+  );
+  const message = guiMessage(locale, messageKey);
+  const recovery = guiMessage(locale, recoveryKey);
+  if (!(request.headers.accept ?? "").includes("text/html"))
+    return reject(response, status, message, recovery);
+  const title = guiMessage(locale, "accessBlockedTitle");
+  response.statusCode = status;
+  response.setHeader("Content-Type", "text/html; charset=utf-8");
+  response.end(
+    `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeMarkup(title)}</title></head><body><main><h1>${escapeMarkup(title)}</h1><p>${escapeMarkup(message)}</p><p>${escapeMarkup(recovery)}</p></main></body></html>`,
+  );
 }
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

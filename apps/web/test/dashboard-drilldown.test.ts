@@ -116,9 +116,9 @@ describe("dashboard drill-down", () => {
       APP_JS,
       /workItems\.filter\(\(item\) => item\.status === filter\)/u,
     );
-    assert.match(APP_JS, /message\("noMatchingProjects"\)/u);
-    assert.match(APP_JS, /message\("noMatchingWork"\)/u);
-    assert.match(APP_JS, /message\("filterClear"\)/u);
+    assert.match(APP_JS, /say\(status, "noMatchingProjects"\)/u);
+    assert.match(APP_JS, /say\(.*, "noMatchingWork"\)/u);
+    assert.match(APP_JS, /say\(clear, "filterClear"\)/u);
   });
 
   it("ignores a status the Work Item lifecycle does not define", () => {

@@ -22,11 +22,11 @@ export function shellHtml(csrfToken: string) {
   <a class="skip-link" href="#main" data-i18n="skip">Skip to the guided workflow</a>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#/dashboard" aria-label="AI Workspace dashboard">
+      <a class="brand" href="#/dashboard" data-i18n-label="brandLabel" aria-label="AI Workspace dashboard">
         <span class="brand-mark" aria-hidden="true">AW</span>
         <span><strong>AI Workspace</strong><small data-i18n="headerTagline">Local-first control plane</small></span>
       </a>
-      <nav class="primary-nav" aria-label="Workspace">
+      <nav class="primary-nav" data-i18n-label="navLabel" aria-label="Workspace">
         <p class="nav-label" data-i18n="navOverview">Overview</p>
         <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">⌂</span><span data-i18n="navDashboard">Dashboard</span></a>
         <p class="nav-label" data-i18n="navWork">Workspace</p>
@@ -61,8 +61,8 @@ export function shellHtml(csrfToken: string) {
         <p data-i18n="dashboardIntro">Read-only local summary. Every value comes from an authoritative store; no telemetry or model request is used.</p></div>
         <button id="dashboard-refresh" type="button" class="button-secondary" data-i18n="refreshDashboard">Refresh overview</button>
       </div>
-      <div id="dashboard-status" class="inline-status" role="status" aria-live="polite">Loading workspace overview…</div>
-      <div id="dashboard-charts"><p class="inline-status" data-i18n="dashboardChartsLoading">Loading local charts…</p></div>
+      <div id="dashboard-status" class="inline-status" role="status" aria-live="polite" data-i18n="dashboardLoading">Loading the workspace overview…</div>
+      <div id="dashboard-charts"><p class="inline-status" data-i18n="dashboardChartsLoading">Loading the local charts…</p></div>
       <article class="boundary-card">
         <div class="boundary-icon" aria-hidden="true">⛨</div><div><p class="card-kicker" data-i18n="dashboardBoundaryKicker">Safety boundary</p><h3 data-i18n="dashboardDelivery">Model delivery</h3>
         <p class="status-unavailable" data-i18n="dashboardUnavailable">Unavailable: no provider delivery surface exists. Nothing can be sent.</p></div>
@@ -86,7 +86,7 @@ export function shellHtml(csrfToken: string) {
         <p id="project-effect" class="effect" data-i18n="projectEffect">Effect: creates or refreshes one local Project Registry entry; repository content is unchanged.</p>
         <p id="project-error" class="error" role="alert"></p>
       </form>
-      <div id="project-list" aria-label="Registered projects"></div>
+      <div id="project-list" data-i18n-label="projectListLabel" aria-label="Registered projects"></div>
     </section>
     <section aria-labelledby="next-heading" id="next-step" tabindex="-1">
       <h2 id="next-heading" data-i18n="next">Next recommended action</h2>
@@ -114,49 +114,51 @@ export function shellHtml(csrfToken: string) {
       </form>
       <div id="transcript-status" role="status" aria-live="polite" data-i18n="transcriptStatusIdle">Select a project, then list a transcript directory.</div>
       <p id="transcript-restricted" class="notice" role="status" aria-live="polite" hidden></p>
-      <div id="transcript-list" aria-label="Discovered transcripts"></div>
+      <p id="transcript-detail" class="help" role="status" aria-live="polite"></p>
+      <div id="transcript-list" data-i18n-label="transcriptListLabel" aria-label="Discovered transcripts"></div>
       <p id="transcript-error" class="error" role="alert"></p>
     </section>
     <section aria-labelledby="general-heading" id="general-inbox">
-      <h2 id="general-heading" tabindex="-1">General Inbox / Posta generale</h2>
-      <p class="notice"><strong>Destination / Destinazione: GENERAL.</strong> Local persistence only: no model request, assistant answer, tool execution, active-memory promotion, Context Pack inclusion, or delivery occurs. Solo persistenza locale: nessuna risposta AI.</p>
-      <p>Questions are immutable USER_AUTHORED, UNVERIFIED evidence and default to CONFIDENTIAL. Restricted high-confidence values are blocked before persistence. Search is literal: it does not find paraphrases, typos, synonyms, or stems.</p>
+      <h2 id="general-heading" tabindex="-1" data-i18n="generalInbox">General Inbox</h2>
+      <p class="notice"><strong data-i18n="generalDestinationLabel">Destination: GENERAL.</strong> <span data-i18n="generalNotice">Local persistence only: no model request, assistant answer, tool execution, active-memory promotion, Context Pack inclusion, or delivery occurs.</span></p>
+      <p data-i18n="generalIntro">Questions are immutable USER_AUTHORED, UNVERIFIED evidence and default to CONFIDENTIAL. Restricted high-confidence values are blocked before persistence. Search is literal: it does not find paraphrases, typos, synonyms, or stems.</p>
       <form id="general-create-form">
-        <label for="general-title">Conversation title / Titolo conversazione</label>
+        <label for="general-title" data-i18n="generalTitleLabel">Conversation title</label>
         <input id="general-title" required maxlength="200" autocomplete="off">
-        <button type="submit">Create General conversation / Crea conversazione General</button>
-        <p class="effect">Effect: creates one empty project-free immutable conversation; changing project selection cannot move it.</p>
+        <button type="submit" data-i18n="generalCreate">Create a General conversation</button>
+        <p class="effect" data-i18n="generalCreateEffect">Effect: creates one empty project-free immutable conversation; changing the project selection cannot move it.</p>
       </form>
       <form id="general-append-form" hidden>
         <p id="general-destination" class="notice"></p>
-        <label for="general-question">Question to save / Domanda da salvare</label>
+        <label for="general-question" data-i18n="generalQuestionLabel">Question to save</label>
         <textarea id="general-question" required aria-describedby="general-effect general-error"></textarea>
-        <button type="submit">Save question to GENERAL / Salva domanda in GENERAL</button>
-        <p id="general-effect" class="effect">Effect: appends one local USER_MESSAGE. No assistant message is created.</p>
+        <button type="submit" data-i18n="generalSave">Save the question in GENERAL</button>
+        <p id="general-effect" class="effect" data-i18n="generalAppendEffect">Effect: appends one local USER_MESSAGE. No assistant message is created.</p>
       </form>
-      <div id="general-status" role="status" aria-live="polite">Loading bounded General conversations…</div>
+      <div id="general-status" role="status" aria-live="polite" data-i18n="generalLoading">Loading bounded General conversations…</div>
       <p id="general-error" class="error" role="alert"></p>
-      <div id="general-list" aria-label="General conversations"></div>
+      <div id="general-list" data-i18n-label="generalListLabel" aria-label="General conversations"></div>
       <form id="general-link-form" hidden>
-        <h3>Link General evidence to a project / Collega evidenza General a un progetto</h3>
+        <h3 data-i18n="generalLinkHeading">Link General evidence to a project</h3>
         <p id="general-link-source" class="notice"></p>
-        <label for="general-link-project">Explicit target PROJECT / Progetto destinazione esplicito</label>
+        <label for="general-link-project" data-i18n="generalLinkProjectLabel">Explicit target PROJECT</label>
         <select id="general-link-project" required></select>
-        <label for="general-link-rationale">Reviewed rationale / Motivazione revisionata</label>
+        <label for="general-link-rationale" data-i18n="generalLinkRationaleLabel">Reviewed rationale</label>
         <textarea id="general-link-rationale" required maxlength="2000"></textarea>
-        <button type="submit">Create immutable link / Crea link immutabile</button>
-        <p class="effect">Effect / Effetto: LINK_ONLY. GENERAL and PROJECT remain separate and byte-unchanged; no ownership, active memory, Work Item, permission, model, or execution is created.</p>
+        <button type="submit" data-i18n="generalLinkSubmit">Create the immutable link</button>
+        <p class="effect" data-i18n="generalLinkEffect">Effect: LINK_ONLY. GENERAL and PROJECT remain separate and byte-unchanged; no ownership, active memory, Work Item, permission, model, or execution is created.</p>
         <p id="general-link-error" class="error" role="alert"></p>
+        <p id="general-link-detail" class="help" role="status" aria-live="polite"></p>
       </form>
     </section>
     <section aria-labelledby="search-heading" id="search">
       <h2 id="search-heading" tabindex="-1" data-i18n="search">Search historical evidence</h2>
       <p data-i18n="searchIntro">Search is literal, local, and bounded. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.</p>
       <form id="search-form">
-        <label for="search-scope" data-i18n="searchScope">Projects to search</label>
-        <select id="search-scope" name="scope"><option value="ALL">All registered projects and General / Tutti i progetti registrati e General</option><option value="GENERAL">General only / Solo General</option><option value="SELECTED" data-i18n="selectedProjectOnly">Selected project only</option></select>
-        <label for="search-associated-project">Associated with project (optional, General scopes only) / Associata al progetto (opzionale)</label>
-        <select id="search-associated-project"><option value="">No association filter / Nessun filtro associazione</option></select>
+        <label for="search-scope" data-i18n="searchScope">Scopes to search</label>
+        <select id="search-scope" name="scope"><option value="ALL" data-i18n="scopeAll">All registered projects and General</option><option value="GENERAL" data-i18n="scopeGeneral">General only</option><option value="SELECTED" data-i18n="selectedProjectOnly">Selected project only</option></select>
+        <label for="search-associated-project" data-i18n="searchAssociatedLabel">Associated with a project (optional, General scopes only)</label>
+        <select id="search-associated-project"><option value="" data-i18n="searchNoAssociationFilter">No association filter</option></select>
         <label for="search-query">What evidence are you looking for?</label>
         <p id="search-help" class="help"><span data-i18n="searchTry">Try the safe sample phrase</span> <strong>test failed</strong>. <span data-i18n="searchHelpBody">Your query and filters stay in place when inspecting a source.</span></p>
         <input id="search-query" name="query" value="test failed" required aria-describedby="search-help search-error">
@@ -169,7 +171,7 @@ export function shellHtml(csrfToken: string) {
         <p id="search-error" class="error" role="alert"></p>
       </form>
       <div id="search-status" role="status" aria-live="polite" data-i18n="searchPrompt">Enter a query to search all registered projects, or choose selected-project scope.</div>
-      <div id="search-results" aria-label="Historical evidence results"></div>
+      <div id="search-results" data-i18n-label="searchResultsLabel" aria-label="Historical evidence results"></div>
     </section>
     <section aria-labelledby="event-heading" id="event-detail" hidden>
       <h2 id="event-heading" tabindex="-1" data-i18n="event">Inspect canonical event</h2>
@@ -200,7 +202,7 @@ export function shellHtml(csrfToken: string) {
       </form>
       <div id="memory-status" role="status" aria-live="polite">Select a project to load active memory.</div>
       <p id="memory-error" class="error" role="alert"></p>
-      <div id="memory-list" aria-label="Project memory items"></div>
+      <div id="memory-list" data-i18n-label="memoryListLabel" aria-label="Project memory items"></div>
     </section>
     <section aria-labelledby="memory-detail-heading" id="memory-detail" hidden>
       <h2 id="memory-detail-heading" tabindex="-1" data-i18n="memoryDetail">Memory lifecycle and provenance</h2>
@@ -254,34 +256,34 @@ export function shellHtml(csrfToken: string) {
       <form id="profile-context-form"><label for="profile-context-path" data-i18n="profilePath">Reviewed schema-v1 agent profile bundle path</label><input id="profile-context-path" required autocomplete="off" spellcheck="false"><label for="profile-context-digest" data-i18n="profileDigest">Expected SHA-256 digest (optional pin)</label><input id="profile-context-digest" pattern="[a-f0-9]{64}" autocomplete="off" spellcheck="false"><label for="profile-context-bundles" data-i18n="profileContextBundles">Exact reviewed instruction bundle paths declared by the profile, one per line</label><textarea id="profile-context-bundles" required spellcheck="false"></textarea><label for="profile-context-model" data-i18n="profileContextModel">Allowed model to select explicitly</label><input id="profile-context-model" required><label for="profile-context-task" data-i18n="profileContextTask">Task target (optional explicit selector)</label><input id="profile-context-task"><button type="submit" data-i18n="previewProfileContext">Compose profile and Context Pack read-only</button></form>
       <div id="profile-context-status" role="status" aria-live="polite" data-i18n="profileContextEmpty">Inspect an immutable handoff, then select one profile, its exact instruction sources, and one allowed model.</div><pre id="profile-context-content" tabindex="0" hidden></pre><p id="profile-context-error" class="error" role="alert"></p>
       <h3 id="privacy-preflight-heading" data-i18n="privacyPreflight">Preview model privacy policy</h3>
-      <p class="notice" data-i18n="privacyPreflightWarning">Required review boundary: every included item is classified for one explicit model policy. Every valid decision is recorded in the separate local non-content audit before this report is returned. REVIEWABLE_NOT_AUTHORIZED is not permission or delivery, and detection is not complete PII coverage.</p>
+      <p class="notice" data-i18n="privacyPreflightWarning">Required review boundary: every included item is classified for one explicit model policy. Unknown items default to CONFIDENTIAL. Every valid decision is recorded in the separate local non-content audit before its report is returned. REVIEWABLE_NOT_AUTHORIZED is not permission or delivery, and detection is not complete PII coverage.</p>
       <form id="privacy-preflight-form"><label for="privacy-profile-path" data-i18n="profilePath">Reviewed schema-v1 agent profile bundle path</label><input id="privacy-profile-path" required autocomplete="off" spellcheck="false"><label for="privacy-profile-digest" data-i18n="profileDigest">Expected SHA-256 digest (optional pin)</label><input id="privacy-profile-digest" pattern="[a-f0-9]{64}" autocomplete="off" spellcheck="false"><label for="privacy-bundles" data-i18n="profileContextBundles">Exact reviewed instruction bundle paths declared by the profile, one per line</label><textarea id="privacy-bundles" required spellcheck="false"></textarea><label for="privacy-model" data-i18n="profileContextModel">Allowed model to select explicitly</label><input id="privacy-model" required><label for="privacy-task" data-i18n="profileContextTask">Task target (optional explicit selector)</label><input id="privacy-task"><label for="privacy-policy-path" data-i18n="privacyPolicyPath">Reviewed schema-v1 model data policy path</label><input id="privacy-policy-path" required autocomplete="off" spellcheck="false"><label for="privacy-policy-digest" data-i18n="privacyPolicyDigest">Expected policy SHA-256 digest (optional pin)</label><input id="privacy-policy-digest" pattern="[a-f0-9]{64}" autocomplete="off" spellcheck="false"><button type="submit" data-i18n="previewPrivacyPreflight">Run and record privacy preflight</button></form>
-      <div id="privacy-preflight-status" role="status" aria-live="polite" data-i18n="privacyPreflightEmpty">Inspect an immutable handoff, then provide one profile, its exact instruction sources, one allowed model, and one same-project model data policy.</div><pre id="privacy-preflight-content" tabindex="0" hidden></pre><p id="privacy-preflight-error" class="error" role="alert"></p>
+      <div id="privacy-preflight-status" role="status" aria-live="polite" data-i18n="privacyPreflightEmpty">Inspect an immutable handoff, then provide one profile, its exact instruction sources, one allowed model, and one same-project model data policy.</div><p id="privacy-preflight-audit" class="help" role="status" aria-live="polite"></p><pre id="privacy-preflight-content" tabindex="0" hidden></pre><p id="privacy-preflight-error" class="error" role="alert"></p>
       <h3 id="customer-alias-heading" data-i18n="customerAliasSuggestions">Review exact customer/project alias suggestions</h3>
       <p class="notice" data-i18n="customerAliasWarning">Exact, case-sensitive CUSTOMER and PROJECT aliases only. The dictionary is transient and never persisted. Every result starts SUGGESTED_NOT_REVIEWED and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.</p>
       <form id="customer-alias-form"><label for="customer-aliases" data-i18n="customerAliasInput">Synthetic aliases, one typed line such as CUSTOMER: Cedar Demo or PROJECT: Quartz Demo</label><textarea id="customer-aliases" required spellcheck="false"></textarea><button type="submit" data-i18n="previewCustomerAliases">Preview entity suggestions</button></form>
       <div id="customer-alias-status" role="status" aria-live="polite" data-i18n="customerAliasEmpty">Reuse the exact privacy inputs above and enter typed transient synthetic aliases.</div><ul id="customer-alias-results"></ul><button id="customer-alias-confirm" type="button" hidden data-i18n="confirmCustomerAliases">Confirm selected current-hash ranges</button><p id="customer-alias-error" class="error" role="alert"></p>
-      <h3 id="pseudonymization-heading">Reversible privacy transformation / Trasformazione privacy reversibile</h3>
-      <p class="notice">Local reviewed-span boundary / Boundary locale a intervalli revisionati: reuse the exact privacy inputs above, then bind every selection to item ID, content SHA-256, entity type, and UTF-8 byte range. Only encrypted mapping ciphertext is persisted. Source evidence is unchanged; this is not detection, permission, delivery, or execution.</p>
-      <form id="pseudonymization-form"><label for="pseudonym-mapping-id">New mapping-set identity / Nuova identità mapping set</label><input id="pseudonym-mapping-id" required maxlength="256" autocomplete="off"><label for="pseudonym-selections">Reviewed selection JSON array / Array JSON delle selezioni revisionate</label><p class="help">Each entry / Ogni voce: {"itemId":"…","contentSha256":"64 lowercase hex","byteStart":0,"byteEnd":4,"entityType":"CUSTOMER"}. Schema v1 types: PERSON, CUSTOMER, EMAIL, BUSINESS_IDENTIFIER, OTHER. Confirming PROJECT selects schema v2 explicitly.</p><textarea id="pseudonym-selections" required spellcheck="false"></textarea><label for="pseudonym-custody-mode">Local key custody / Custodia locale della chiave</label><select id="pseudonym-custody-mode" required><option value="PASSPHRASE_WRAPPING">Passphrase-wrapped local key / Chiave locale protetta da passphrase</option></select><label for="pseudonym-passphrase">Custody passphrase, 16–1024 UTF-8 bytes / Passphrase di custodia, 16–1024 byte UTF-8</label><input id="pseudonym-passphrase" type="password" required minlength="16" maxlength="1024" autocomplete="new-password" spellcheck="false"><button type="submit">Transform, encrypt mapping, and verify locally / Trasforma, cifra il mapping e verifica localmente</button><p class="effect">Effect / Effetto: generates one mapping key and stores only an immutable authenticated passphrase-wrapped schema-v1 custody envelope plus schema-v1 or explicit schema-v2 mapping ciphertext. Back up both encrypted directories and retain the passphrase offline; losing either is irrecoverable. Older v1-only software must preserve v2 ciphertext until compatible software is restored. The passphrase is cleared after every attempt.</p></form>
-      <div id="pseudonymization-status" role="status" aria-live="polite">Run and inspect the exact privacy preflight first / Esegui e ispeziona prima il preflight privacy esatto.</div><pre id="pseudonymization-content" tabindex="0" hidden></pre><p id="pseudonymization-error" class="error" role="alert"></p>
-      <h3 id="output-restoration-heading">Strict local output restoration / Ripristino locale rigoroso dell'output</h3>
-      <p class="notice">Every AI Workspace-shaped placeholder is validated before any value is restored. Unknown, altered, foreign, or malformed tokens block the complete output. Candidate and restored text stay transient and local; this is not model access, response capture, permission, delivery, or execution.</p>
-      <form id="output-restoration-form"><label for="output-restoration-mapping-id">Existing mapping-set identity / Identità mapping set esistente</label><input id="output-restoration-mapping-id" required maxlength="256" autocomplete="off"><label for="output-restoration-candidate">Bounded pseudonymized output / Output pseudonimizzato bounded</label><textarea id="output-restoration-candidate" required maxlength="30000" spellcheck="false"></textarea><label for="output-restoration-passphrase">Local custody passphrase / Passphrase di custodia locale</label><input id="output-restoration-passphrase" type="password" required minlength="16" maxlength="1024" autocomplete="current-password" spellcheck="false"><button type="submit">Validate and restore locally / Valida e ripristina localmente</button><p class="effect">Effect / Effetto: reads one existing authenticated encrypted mapping and returns restored content only after all-or-nothing validation. Nothing is persisted or sent. The passphrase is cleared after every attempt.</p></form>
-      <div id="output-restoration-status" role="status" aria-live="polite">Inspect the originating handoff and enter one existing mapping / Ispeziona l'handoff di origine e inserisci un mapping esistente.</div><pre id="output-restoration-content" tabindex="0" hidden></pre><p id="output-restoration-error" class="error" role="alert"></p>
+      <h3 id="pseudonymization-heading" data-i18n="pseudonymHeading">Reversible privacy transformation</h3>
+      <p class="notice" data-i18n="pseudonymWarning">Local reviewed-span boundary: reuse the exact privacy inputs above, then bind every selection to item ID, content SHA-256, entity type, and UTF-8 byte range. Only encrypted mapping ciphertext is persisted. Source evidence is unchanged; this is not detection, permission, delivery, or execution.</p>
+      <form id="pseudonymization-form"><label for="pseudonym-mapping-id" data-i18n="pseudonymMappingLabel">New mapping-set identity</label><input id="pseudonym-mapping-id" required maxlength="256" autocomplete="off"><label for="pseudonym-selections" data-i18n="pseudonymSelectionsLabel">Reviewed selection JSON array</label><p class="help" data-i18n="pseudonymSelectionsHelp">Each entry carries itemId, contentSha256 as 64 lowercase hex characters, byteStart, byteEnd, and entityType. Schema v1 types: PERSON, CUSTOMER, EMAIL, BUSINESS_IDENTIFIER, OTHER. Confirming PROJECT selects schema v2 explicitly.</p><textarea id="pseudonym-selections" required spellcheck="false"></textarea><label for="pseudonym-custody-mode" data-i18n="pseudonymCustodyLabel">Local key custody</label><select id="pseudonym-custody-mode" required><option value="PASSPHRASE_WRAPPING" data-i18n="pseudonymCustodyOption">Passphrase-wrapped local key</option></select><label for="pseudonym-passphrase" data-i18n="pseudonymPassphraseLabel">Custody passphrase, 16–1024 UTF-8 bytes</label><input id="pseudonym-passphrase" type="password" required minlength="16" maxlength="1024" autocomplete="new-password" spellcheck="false"><button type="submit" data-i18n="pseudonymSubmit">Transform, encrypt the mapping, and verify locally</button><p class="effect" data-i18n="pseudonymEffect">Effect: generates one mapping key and stores only an immutable authenticated passphrase-wrapped schema-v1 custody envelope plus schema-v1 or explicit schema-v2 mapping ciphertext. Back up both encrypted directories and keep the passphrase offline; losing either is irrecoverable. Older v1-only software must preserve v2 ciphertext until compatible software is restored. The passphrase is cleared after every attempt.</p></form>
+      <div id="pseudonymization-status" role="status" aria-live="polite" data-i18n="pseudonymEmpty">Run and inspect the exact privacy preflight first.</div><pre id="pseudonymization-content" tabindex="0" hidden></pre><p id="pseudonymization-error" class="error" role="alert"></p>
+      <h3 id="output-restoration-heading" data-i18n="restorationHeading">Strict local output restoration</h3>
+      <p class="notice" data-i18n="restorationWarning">Every AI Workspace-shaped placeholder is validated before any value is restored. Unknown, altered, foreign, or malformed tokens block the complete output. Candidate and restored text stay transient and local; this is not model access, response capture, permission, delivery, or execution.</p>
+      <form id="output-restoration-form"><label for="output-restoration-mapping-id" data-i18n="restorationMappingLabel">Existing mapping-set identity</label><input id="output-restoration-mapping-id" required maxlength="256" autocomplete="off"><label for="output-restoration-candidate" data-i18n="restorationOutputLabel">Bounded pseudonymized output</label><textarea id="output-restoration-candidate" required maxlength="30000" spellcheck="false"></textarea><label for="output-restoration-passphrase" data-i18n="restorationPassphraseLabel">Local custody passphrase</label><input id="output-restoration-passphrase" type="password" required minlength="16" maxlength="1024" autocomplete="current-password" spellcheck="false"><button type="submit" data-i18n="restorationSubmit">Validate and restore locally</button><p class="effect" data-i18n="restorationEffect">Effect: reads one existing authenticated encrypted mapping and returns restored content only after all-or-nothing validation. Nothing is persisted or sent. The passphrase is cleared after every attempt.</p></form>
+      <div id="output-restoration-status" role="status" aria-live="polite" data-i18n="restorationEmpty">Inspect the originating handoff and enter one existing mapping.</div><pre id="output-restoration-content" tabindex="0" hidden></pre><p id="output-restoration-error" class="error" role="alert"></p>
       <h3 id="context-selector-report-heading" data-i18n="contextSelectorReport">Measure profile context selectors</h3>
       <p class="notice" data-i18n="contextSelectorWarning">Experiment only: selectors map only to documented handoff sections. Objective, repository, next action, and source references form a non-excludable safety floor. This report does not change Context Builder policy.</p><p class="help" data-i18n="contextSelectorVocabulary">Accepted selectors: handoff.objective, handoff.repository, handoff.selected_memory, handoff.known_failures, handoff.test_state, handoff.relevant_files, handoff.next_action, handoff.source_references.</p>
       <form id="context-selector-form"><label for="context-selector-profile-path" data-i18n="profilePath">Reviewed schema-v1 agent profile bundle path</label><input id="context-selector-profile-path" required autocomplete="off" spellcheck="false"><label for="context-selector-profile-digest" data-i18n="profileDigest">Expected SHA-256 digest (optional pin)</label><input id="context-selector-profile-digest" pattern="[a-f0-9]{64}" autocomplete="off" spellcheck="false"><button type="submit" data-i18n="previewContextSelectors">Preview selector measurement read-only</button></form>
       <div id="context-selector-status" role="status" aria-live="polite" data-i18n="contextSelectorEmpty">Inspect an immutable handoff, then select one reviewed profile that uses only the experiment-only handoff selector vocabulary.</div><pre id="context-selector-content" tabindex="0" hidden></pre><p id="context-selector-error" class="error" role="alert"></p>
     </section>
     <section aria-labelledby="privacy-audit-heading" id="privacy-audit" hidden>
-      <h2 id="privacy-audit-heading" tabindex="-1">Privacy decision audit / Audit delle decisioni privacy</h2>
-      <p class="notice">Project-scoped, local, bounded, append-only non-content evidence / Evidenza locale, bounded, append-only, senza contenuto e limitata al progetto. The hash chain detects internal corruption, gaps, and reordering, but cannot prove that a privileged actor did not replace or truncate the whole store.</p>
-      <p class="help">Valid preflight decisions only. No Context Pack content, item hashes, matches, paths, reports, mappings, secrets, prompts, responses, or restored output. No delete, edit, correction, export, search, or retention controls.</p>
-      <button id="privacy-audit-refresh" type="button">Refresh audit / Aggiorna audit</button>
-      <div id="privacy-audit-status" role="status" aria-live="polite">Select a project / Seleziona un progetto.</div>
-      <div id="privacy-audit-list" aria-label="Privacy decision audit events"></div>
-      <button id="privacy-audit-more" type="button" hidden>Load older events / Carica eventi precedenti</button>
+      <h2 id="privacy-audit-heading" tabindex="-1" data-i18n="privacyAuditHeading">Privacy decision audit</h2>
+      <p class="notice" data-i18n="privacyAuditNotice">Project-scoped, local, bounded, append-only non-content evidence. The hash chain detects internal corruption, gaps, and reordering, but cannot prove that a privileged actor did not replace or truncate the whole store.</p>
+      <p class="help" data-i18n="privacyAuditHelp">Valid preflight decisions only. No Context Pack content, item hashes, matches, paths, reports, mappings, secrets, prompts, responses, or restored output. No delete, edit, correction, export, search, or retention controls.</p>
+      <button id="privacy-audit-refresh" type="button" data-i18n="privacyAuditRefresh">Refresh the audit</button>
+      <div id="privacy-audit-status" role="status" aria-live="polite" data-i18n="auditSelectProject">Select a project.</div>
+      <div id="privacy-audit-list" data-i18n-label="privacyAuditListLabel" aria-label="Privacy decision audit events"></div>
+      <button id="privacy-audit-more" type="button" hidden data-i18n="privacyAuditMore">Load older events</button>
       <pre id="privacy-audit-detail" tabindex="0" hidden></pre>
       <p id="privacy-audit-error" class="error" role="alert"></p>
     </section>
@@ -298,7 +300,7 @@ export function shellHtml(csrfToken: string) {
       <h2 id="settings-heading" tabindex="-1" data-i18n="settingsTitle">Settings</h2>
       <p data-i18n="settingsIntro">Presentation preferences stay in this browser and never leave this computer.</p>
       <div class="settings-grid">
-        <article class="setting-card"><div><h3 data-i18n="language">Language / Lingua</h3><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></div><select id="gui-language" aria-label="Language / Lingua"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select></article>
+        <article class="setting-card"><div><h3 data-i18n="language">Language</h3><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></div><select id="gui-language" data-i18n-label="language" aria-label="Language"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select></article>
         <article class="setting-card"><div><h3 data-i18n="appearanceTitle">Appearance</h3><p class="help" data-i18n="appearanceBody">AI Workspace follows your operating-system light or dark theme and reduced-motion preference.</p></div><span class="setting-value" id="appearance-value" data-i18n="systemManaged">System managed</span></article>
         <article class="setting-card"><div><h3 data-i18n="privacyTitle">Local preference storage</h3><p class="help" data-i18n="privacyBody">Only the language preference is stored in local browser storage. It contains no workspace content.</p></div><span class="setting-value" data-i18n="browserOnly">Browser only</span></article>
       </div>

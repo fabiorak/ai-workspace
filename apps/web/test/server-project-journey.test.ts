@@ -119,7 +119,9 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /explicit empty selection/u);
     assert.match(html, /id="handoff-preview-content"/u);
     assert.match(html, /Validate current Git state/u);
-    assert.match(html, /Language \/ Lingua/u);
+    // One language at a time: the selector, not a doubled string, is what switches it.
+    assert.match(html, /<h3 data-i18n="language">Language<\/h3>/u);
+    assert.equal(/ \/ [A-Z]/u.test(html), false);
     assert.match(html, /Preview effective instructions/u);
     assert.match(html, /Inspect an agent and skill profile/u);
     assert.match(html, /grant no runtime permission/u);
@@ -142,7 +144,7 @@ describe("GUI server project onboarding", () => {
     assert.match(script, /aria-current/u);
     assert.match(script, /\/view\/dashboard-charts\?locale=/u);
     assert.match(script, /new DOMParser\(\)\.parseFromString/u);
-    assert.match(script, /\{count\} progetti sono registrati localmente/u);
+    assert.match(script, /Progetti registrati localmente: \{count\}/u);
     assert.match(script, /La registrazione salva localmente metadati Git/u);
     assert.match(script, /Pronto a importare l'esempio fittizio/u);
     assert.match(script, /Nessuna memoria corrispondente/u);

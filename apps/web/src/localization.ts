@@ -2,7 +2,7 @@ export const SUPPORTED_LOCALES = ["en", "it"] as const;
 export type GuiLocale = (typeof SUPPORTED_LOCALES)[number];
 
 const EN = {
-  language: "Language / Lingua",
+  language: "Language",
   english: "English",
   italian: "Italiano",
   headerTagline: "Local-first control plane",
@@ -350,7 +350,8 @@ const EN = {
     "No Work Items. Select evidence and create an explicit objective.",
   loadingMemory: "Loading bounded project memory…",
   showingMemory: "Showing {count} memory item(s).",
-  moreMemory: "More items are available.",
+  showingMemoryMore:
+    "Showing {count} memory item(s). More items are available.",
   memoryAttention: "Memory needs attention.",
   showingWork: "Showing {count} Work Item(s).",
   returningImport:
@@ -424,13 +425,207 @@ const EN = {
   filterClear: "Show all",
   noMatchingProjects: "No registered project matches this filter.",
   noMatchingWork: "No Work Item matches this filter.",
+  // Everything below is written by the browser after a user action. It has to live in the
+  // catalogue like the static copy: a message composed as a literal in the client script is
+  // never translated, because the locale walk only rewrites text that is already in the page.
+  detailLabel: "Technical detail: {detail}",
+  projectCardSummary: "Software repository · branch {branch} · {state}",
+  projectStateDirty: "uncommitted changes present",
+  projectStateClean: "working tree clean",
+  projectBranchDetached: "detached",
+  refreshingGit: "Refreshing bounded Git metadata…",
+  projectsLoadFailed:
+    "The project list could not be loaded. The local store is unchanged; retry when ready.",
+  registerValidating: "Validating the local Git repository…",
+  projectReady: "{name} is ready. Select it to continue.",
+  registerAttention:
+    "This project was not registered. Correct the directory in the field below and retry; nothing was stored.",
+  importRunning: "Importing the reviewed synthetic session locally…",
+  importDone:
+    "Synthetic canonical events and immutable artifacts were added locally. Added {added}, unchanged {unchanged}, total {total}.",
+  sampleReadyGuidance:
+    "The safe sample is ready. Continue with Search historical evidence.",
+  importAttention:
+    "The sample import did not complete. Nothing partial was stored; retry from this page.",
+  auditSelectProject: "Select a project.",
+  auditLoading: "Loading the verified local audit…",
+  auditNoDecisions:
+    "No valid preflight decision has been recorded for this project.",
+  auditCount: "{count} verified event(s), newest first. Read-only.",
+  auditEventSummary:
+    "Work Item {work} · handoff {handoff} · model {model} · policy {policy} v{version} · allowed {allowed} · blocked {blocked}",
+  auditInspect: "Inspect safe provenance",
+  auditAttention:
+    "The audit could not be loaded. No partial event is shown; use Refresh to retry.",
+  searchNoAssociationFilter: "No association filter",
+  generalShowing: "Showing {count} bounded General conversation(s).",
+  generalEmpty:
+    "The General Inbox is empty. Create an explicit project-free conversation above.",
+  generalConversationState:
+    "{count} immutable USER_MESSAGE event(s) · CONFIDENTIAL · UNVERIFIED",
+  generalAppend: "Append a question here",
+  generalDestination: "Destination: GENERAL · {title} · {id}",
+  generalEventMetadata:
+    "{occurred} · LOCAL_USER · USER_AUTHORED · {bytes} UTF-8 bytes · SHA-256 {hash}",
+  generalCopyPhrase: "Copy safe search phrase",
+  generalPhrasePrepared:
+    "The search phrase is ready; review it in Search before you submit it.",
+  generalLinkButton: "Link to PROJECT",
+  generalLinkSource:
+    "Source GENERAL: {conversation} · event {event} · exact SHA-256 {hash}. The target PROJECT must be reviewed explicitly; link only.",
+  generalAttention:
+    "The General Inbox could not be loaded. No partial conversation is shown.",
+  generalQuestionSaved:
+    "The question was saved locally in GENERAL. No model was called and no answer was created.",
+  generalLinkReload: "Reload the page and select an exact General event.",
+  generalLinkCreated:
+    "LINK_ONLY created: GENERAL → PROJECT {project} · {id}. The original evidence is unchanged.",
+  generalLinkFailed:
+    "No link was created. Reload the immutable event and the project, check for a stale hash or a duplicate, then retry. No partial link was used.",
+  eventLabelType: "Type",
+  eventLabelTrust: "Trust",
+  eventLabelSession: "Session",
+  eventLabelOccurred: "Occurred",
+  eventLabelPosition: "Source position",
+  eventOccurredUnknown: "Unknown",
+  searchingScope: "Searching bounded canonical evidence in {scope}…",
+  searchNoMatch:
+    "No literal match in the requested scope. This search is literal, so try an exact word taken from the evidence, or widen the scope.",
+  searchFound:
+    "Found {count} result(s) after scanning {events} event(s); the global limit was applied after the scope merge.",
+  searchResultGeneral:
+    "Source GENERAL: {conversation} · USER_AUTHORED · CONFIDENTIAL · exact SHA-256 {hash}",
+  searchResultLink:
+    "Target PROJECT: {project} · {actor} · {verification} · {effect} · {created} · rationale: {rationale}",
+  openGeneralInbox: "Open the General Inbox",
+  artifactMetadata: "{bytes} UTF-8 bytes · {trust} · {id}",
+  handoffNoMemory:
+    "No ACTIVE memory is available. The handoff will record an explicit empty selection.",
+  memoryLabelType: "Type",
+  memoryLabelCuration: "Curation",
+  memoryLabelValidity: "Validity",
+  memoryLabelVerification: "Verification",
+  memoryLabelConfidence: "Confidence",
+  memoryLabelVersion: "Version",
+  memoryLabelCreated: "Created",
+  memorySourceEntry: "UNTRUSTED event {event} · {type} · position {position}",
+  memorySourceSelected:
+    "Selected UNTRUSTED canonical event {event} as provenance for the next explicit memory action.",
+  memoryNeedsEvent: "Inspect an event and select it as memory evidence first.",
+  memoryCreated:
+    "Created {type} as ACTIVE, UNVERIFIED, UNASSESSED USER_CURATED memory.",
+  memoryNeedsEvidence:
+    "Select canonical evidence before this lifecycle action.",
+  workCardHeading: "{status} · version {version}",
+  workLabelStatus: "Status",
+  workLabelVersion: "Version",
+  workLabelCreatedBy: "Created by",
+  workLabelUpdated: "Updated",
+  workTransition: "{from} → {to} by {actor} at {occurred}",
+  workNeedsEvidence: "Inspect and select current canonical evidence first.",
+  workCreateNeedsEvidence:
+    "Inspect and select canonical evidence before you create a Work Item.",
+  handoffPreviewReady:
+    "Preview only: schema {schema} · {bytes} exact UTF-8 bytes · {sources} source reference(s). Review all eight inert sections below. No file was created.",
+  handoffMatch:
+    "MATCH: the current bounded Git state matches the immutable snapshot.",
+  handoffDrift: "DRIFT: {differences}. {recovery}",
+  privacyAuditEventSuffix: "Audit event: {event}.",
+  aliasPrefixRequired: "Prefix every alias with CUSTOMER: or PROJECT:.",
+  aliasItemMissing:
+    "The recomposed Context Pack no longer contains a suggested item.",
+  pseudonymNeedsHandoff: "Inspect one immutable handoff first.",
+  pseudonymReady:
+    "Verified local round trip: schema v{schema}, {selections} reviewed selection(s), {items} transformed item(s), mapping {mapping} stored as authenticated ciphertext with passphrase-wrapped local custody. Not authorized and not delivered.",
+  restorationNeedsHandoff: "Inspect the originating handoff first.",
+  restorationReady:
+    "Decision: {decision}; schema v{schema}; restored tokens: {tokens}; anomalies: {anomalies}. Local only, not authorized and not delivered.",
+  importNoProject: "Select a registered project first.",
+  selectedProjectFallback: "Selected project",
+  // The shell markup carries these as `data-i18n` keys, so the reader sees one language.
+  dashboardLoading: "Loading the workspace overview…",
+  generalInbox: "General Inbox",
+  generalDestinationLabel: "Destination: GENERAL.",
+  generalNotice:
+    "Local persistence only: no model request, assistant answer, tool execution, active-memory promotion, Context Pack inclusion, or delivery occurs.",
+  generalIntro:
+    "Questions are immutable USER_AUTHORED, UNVERIFIED evidence and default to CONFIDENTIAL. Restricted high-confidence values are blocked before persistence. Search is literal: it does not find paraphrases, typos, synonyms, or stems.",
+  generalTitleLabel: "Conversation title",
+  generalCreate: "Create a General conversation",
+  generalCreateEffect:
+    "Effect: creates one empty project-free immutable conversation; changing the project selection cannot move it.",
+  generalQuestionLabel: "Question to save",
+  generalSave: "Save the question in GENERAL",
+  generalAppendEffect:
+    "Effect: appends one local USER_MESSAGE. No assistant message is created.",
+  generalLoading: "Loading bounded General conversations…",
+  generalLinkHeading: "Link General evidence to a project",
+  generalLinkProjectLabel: "Explicit target PROJECT",
+  generalLinkRationaleLabel: "Reviewed rationale",
+  generalLinkSubmit: "Create the immutable link",
+  generalLinkEffect:
+    "Effect: LINK_ONLY. GENERAL and PROJECT remain separate and byte-unchanged; no ownership, active memory, Work Item, permission, model, or execution is created.",
+  scopeAll: "All registered projects and General",
+  scopeGeneral: "General only",
+  searchAssociatedLabel:
+    "Associated with a project (optional, General scopes only)",
+  pseudonymHeading: "Reversible privacy transformation",
+  pseudonymWarning:
+    "Local reviewed-span boundary: reuse the exact privacy inputs above, then bind every selection to item ID, content SHA-256, entity type, and UTF-8 byte range. Only encrypted mapping ciphertext is persisted. Source evidence is unchanged; this is not detection, permission, delivery, or execution.",
+  pseudonymMappingLabel: "New mapping-set identity",
+  pseudonymSelectionsLabel: "Reviewed selection JSON array",
+  pseudonymSelectionsHelp:
+    "Each entry carries itemId, contentSha256 as 64 lowercase hex characters, byteStart, byteEnd, and entityType. Schema v1 types: PERSON, CUSTOMER, EMAIL, BUSINESS_IDENTIFIER, OTHER. Confirming PROJECT selects schema v2 explicitly.",
+  pseudonymCustodyLabel: "Local key custody",
+  pseudonymCustodyOption: "Passphrase-wrapped local key",
+  pseudonymPassphraseLabel: "Custody passphrase, 16–1024 UTF-8 bytes",
+  pseudonymSubmit: "Transform, encrypt the mapping, and verify locally",
+  pseudonymEffect:
+    "Effect: generates one mapping key and stores only an immutable authenticated passphrase-wrapped schema-v1 custody envelope plus schema-v1 or explicit schema-v2 mapping ciphertext. Back up both encrypted directories and keep the passphrase offline; losing either is irrecoverable. Older v1-only software must preserve v2 ciphertext until compatible software is restored. The passphrase is cleared after every attempt.",
+  pseudonymEmpty: "Run and inspect the exact privacy preflight first.",
+  restorationHeading: "Strict local output restoration",
+  restorationWarning:
+    "Every AI Workspace-shaped placeholder is validated before any value is restored. Unknown, altered, foreign, or malformed tokens block the complete output. Candidate and restored text stay transient and local; this is not model access, response capture, permission, delivery, or execution.",
+  restorationMappingLabel: "Existing mapping-set identity",
+  restorationOutputLabel: "Bounded pseudonymized output",
+  restorationPassphraseLabel: "Local custody passphrase",
+  restorationSubmit: "Validate and restore locally",
+  restorationEffect:
+    "Effect: reads one existing authenticated encrypted mapping and returns restored content only after all-or-nothing validation. Nothing is persisted or sent. The passphrase is cleared after every attempt.",
+  restorationEmpty:
+    "Inspect the originating handoff and enter one existing mapping.",
+  privacyAuditHeading: "Privacy decision audit",
+  privacyAuditNotice:
+    "Project-scoped, local, bounded, append-only non-content evidence. The hash chain detects internal corruption, gaps, and reordering, but cannot prove that a privileged actor did not replace or truncate the whole store.",
+  privacyAuditHelp:
+    "Valid preflight decisions only. No Context Pack content, item hashes, matches, paths, reports, mappings, secrets, prompts, responses, or restored output. No delete, edit, correction, export, search, or retention controls.",
+  privacyAuditRefresh: "Refresh the audit",
+  privacyAuditMore: "Load older events",
+  accessBlockedTitle: "Access blocked",
+  bootstrapUsedMessage: "This bootstrap link has already been used.",
+  bootstrapUsedRecovery:
+    "A bootstrap link opens one session and then expires, so nobody can replay it. Restart the local GUI process and open the new one-time URL it prints.",
+  sessionMissingMessage: "This browser has no session for the local GUI.",
+  sessionMissingRecovery:
+    "The session lives in a cookie this browser has not received yet. Open the one-time bootstrap URL printed by the local GUI process in this same browser.",
+  originBlockedMessage: "This request did not come from this machine.",
+  originBlockedRecovery:
+    "The GUI answers the loopback address only, so nothing on the network can reach it. Open it as http://127.0.0.1 on the port the local process printed.",
+  brandLabel: "AI Workspace dashboard",
+  navLabel: "Workspace",
+  projectListLabel: "Registered projects",
+  transcriptListLabel: "Discovered transcripts",
+  generalListLabel: "General conversations",
+  searchResultsLabel: "Historical evidence results",
+  memoryListLabel: "Project memory items",
+  privacyAuditListLabel: "Privacy decision audit events",
 } as const;
 
 export type GuiMessageKey = keyof typeof EN;
 type Catalog = Readonly<Record<GuiMessageKey, string>>;
 
 const IT = {
-  language: "Language / Lingua",
+  language: "Lingua",
   english: "English",
   italian: "Italiano",
   headerTagline: "Piano di controllo local-first",
@@ -538,13 +733,13 @@ const IT = {
     "Seleziona un progetto, poi elenca una cartella di transcript.",
   transcriptListing: "Lettura dei soli nomi e dimensioni dei file…",
   transcriptNone: "Nessun transcript .jsonl trovato in quella cartella.",
-  transcriptFound: "{count} file di transcript, dal più recente.",
+  transcriptFound: "File di transcript: {count}, dal più recente.",
   transcriptImport: "Importa questo transcript",
   transcriptImporting: "Lettura e salvataggio locale di questo transcript…",
   transcriptCounts:
-    "Aggiunti {added}, invariati {unchanged}, totale {total}, record non convertiti {skipped}.",
+    "Aggiunti: {added}, invariati: {unchanged}, totale: {total}, record non convertiti: {skipped}.",
   transcriptRestricted:
-    "{count} record sono stati esclusi dallo screening dei dati riservati. Il loro contenuto non è stato importato né salvato e il valore rilevato non viene mai mostrato. Ruota qualunque credenziale che fosse reale.",
+    "Record esclusi dallo screening dei dati riservati: {count}. Il loro contenuto non è stato importato né salvato e il valore rilevato non viene mai mostrato. Ruota qualunque credenziale che fosse reale.",
   transcriptNoProject: "Seleziona prima un progetto registrato.",
   transcriptAttention: "L'import del transcript richiede attenzione.",
   searchEvidence: "Cerca evidenza",
@@ -642,7 +837,7 @@ const IT = {
   privacyPreflightEmpty:
     "Esamina un handoff immutabile, poi fornisci un profilo, le sue sorgenti istruzioni esatte, un modello consentito e una policy dati modello dello stesso progetto.",
   privacyPreflightReady:
-    "Preflight privacy {result} per {model} con policy {policy}: {allowed} consentiti, {blocked} bloccati, {defaulted} predefiniti, {restricted} restricted. L'audit locale senza contenuto è stato verificato; nulla è stato inviato o autorizzato.",
+    "Preflight privacy {result} per {model} con policy {policy}: consentiti {allowed}, bloccati {blocked}, predefiniti {defaulted}, restricted {restricted}. L'audit locale senza contenuto è stato verificato; nulla è stato inviato o autorizzato.",
   customerAliasWarning:
     "Solo alias CUSTOMER e PROJECT esatti e case-sensitive. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce SUGGESTED_NOT_REVIEWED e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
   customerAliasInput:
@@ -650,10 +845,10 @@ const IT = {
   customerAliasEmpty:
     "Riusa gli input privacy esatti sopra e inserisci alias sintetici transitori tipizzati.",
   customerAliasReady:
-    "{count} suggerimenti entità esatti pronti. Sono tutti deselezionati e non revisionati.",
+    "Suggerimenti entità esatti pronti: {count}. Sono tutti deselezionati e non revisionati.",
   customerAliasSelectOne: "Seleziona almeno un suggerimento current-hash.",
   customerAliasConfirmed:
-    "{count} suggerimenti confermati esplicitamente nel form transitorio degli span revisionati. La trasformazione resta un'azione separata.",
+    "Suggerimenti confermati esplicitamente nel form transitorio degli span revisionati: {count}. La trasformazione resta un'azione separata.",
   contextSelectorWarning:
     "Solo esperimento: i selector mappano esclusivamente sezioni handoff documentate. Obiettivo, repository, prossima azione e riferimenti sorgente formano un safety floor non escludibile. Il report non cambia la policy del Context Builder.",
   contextSelectorVocabulary:
@@ -678,7 +873,7 @@ const IT = {
   projectEffect:
     "Effetto: crea o aggiorna una voce locale del Project Registry; il contenuto del repository resta invariato.",
   nextGuidance: "Registra o seleziona un progetto per continuare.",
-  projectsRegistered: "{count} progetti sono registrati localmente.",
+  projectsRegistered: "Progetti registrati localmente: {count}.",
   projectRegistered: "1 progetto è registrato localmente.",
   importIntro:
     "Questo importatore pre-release accetta la fixture Codex fittizia inclusa. Non usare ancora trascrizioni private o di produzione.",
@@ -712,9 +907,9 @@ const IT = {
   projectEmpty:
     "Nessuna evidenza corrispondente nel progetto selezionato. Controlla il testo, rimuovi i filtri o importa l'esempio sicuro.",
   globalFound:
-    "Trovati {count} risultati in {projects} progetti e {events} eventi esaminati.",
+    "Risultati trovati: {count}. Progetti esaminati: {projects}; eventi esaminati: {events}.",
   projectFound:
-    "Trovati {count} risultati in {events} eventi esaminati nel progetto selezionato.",
+    "Risultati trovati: {count}. Eventi esaminati nel progetto selezionato: {events}.",
   resultProject: "Progetto: {name} ({id})",
   selectInspect: "Seleziona questo progetto ed esamina l'evento sorgente",
   projectReloadRequired:
@@ -783,10 +978,11 @@ const IT = {
   noWorkItems:
     "Nessun Work Item. Seleziona un'evidenza e crea un obiettivo esplicito.",
   loadingMemory: "Caricamento della memoria bounded del progetto…",
-  showingMemory: "Visualizzati {count} elementi di memoria.",
-  moreMemory: "Sono disponibili altri elementi.",
+  showingMemory: "Elementi di memoria visualizzati: {count}.",
+  showingMemoryMore:
+    "Elementi di memoria visualizzati: {count}. Sono disponibili altri elementi.",
   memoryAttention: "La memoria richiede attenzione.",
-  showingWork: "Visualizzati {count} Work Item.",
+  showingWork: "Work Item visualizzati: {count}.",
   returningImport:
     "È selezionato un progetto. Puoi importare o reimportare l'esempio sicuro.",
   dashboardFocusKicker: "Cosa fare adesso",
@@ -796,36 +992,36 @@ const IT = {
   focusFirstRunAction: "Registra un progetto",
   focusBlockedTitle: "Il lavoro bloccato richiede una decisione",
   focusBlockedBody:
-    "{count} Work Item su {total} sono BLOCKED. Nulla che dipenda da loro può avanzare finché ciascuno non viene completato o riaperto.",
+    "Work Item in stato BLOCKED: {count} su {total}. Nulla che dipenda da loro può avanzare finché ciascuno non viene completato o riaperto.",
   focusBlockedAction: "Esamina i Work Item bloccati",
   focusAttentionTitle: "Modifiche non committate nel repository",
   focusAttentionBody:
-    "{count} progetti registrati su {total} hanno modifiche non committate. L'evidenza raccolta adesso descrive uno stato che non è committato da nessuna parte.",
+    "Progetti registrati con modifiche non committate: {count} su {total}. L'evidenza raccolta adesso descrive uno stato che non è committato da nessuna parte.",
   focusAttentionAction: "Esamina i progetti che richiedono attenzione",
   focusUnverifiedTitle: "È in uso memoria non verificata",
   focusUnverifiedBody:
-    "{count} elementi di memoria attiva campionati su {total} sono ancora UNVERIFIED. Trattali come affermazioni finché non li verifichi ciascuno rispetto alla sua evidenza.",
+    "Elementi di memoria attiva campionati ancora UNVERIFIED: {count} su {total}. Trattali come affermazioni finché non li verifichi ciascuno rispetto alla sua evidenza.",
   focusUnverifiedAction: "Esamina la memoria attiva",
   focusClearTitle: "Nulla richiede la tua attenzione",
   focusClearBody:
     "Nessun Work Item bloccato, nessuna modifica non committata e nessuna memoria non verificata. Importa evidenza o cura la memoria quando vuoi.",
   focusClearAction: "Apri i progetti",
   chartProjectsDesc:
-    "{clean} progetti registrati su {total} hanno il working tree pulito e {attention} richiedono attenzione.",
+    "Progetti registrati con working tree pulito: {clean} su {total}; richiedono attenzione: {attention}.",
   chartProjectsEmpty: "Nessun progetto è ancora registrato.",
   chartProjectsTotal: "progetti",
   chartWorkDesc:
-    "{total} Work Item: {proposed} proposti, {active} attivi, {blocked} bloccati, {completed} completati.",
+    "Work Item in totale: {total}; proposti {proposed}, attivi {active}, bloccati {blocked}, completati {completed}.",
   chartWorkEmpty: "Non esiste ancora nessun Work Item.",
   chartWorkTotal: "Work Item",
   chartMemoryDesc:
-    "{verified} elementi di memoria attiva campionati su {sampled} sono verificati e {unverified} non sono verificati.",
+    "Elementi di memoria attiva campionati verificati: {verified} su {sampled}; non verificati: {unverified}.",
   chartMemoryEmpty: "Non esiste ancora nessun elemento di memoria attiva.",
   chartMemoryTotal: "elementi attivi",
   chartMemoryTruncated:
-    "Il campione è limitato: sono stati letti {sampled} elementi attivi su {active}, quindi questo grafico descrive il campione e non tutto lo store.",
+    "Il campione è limitato: elementi attivi letti {sampled} su {active}, quindi questo grafico descrive il campione e non tutto lo store.",
   chartPrivacyDesc:
-    "{total} decisioni privacy registrate: {reviewable} rivedibili e {blocked} bloccate.",
+    "Decisioni privacy registrate: {total}; rivedibili {reviewable}, bloccate {blocked}.",
   chartPrivacyEmpty: "Nessuna decisione privacy è ancora stata registrata.",
   chartPrivacyTotal: "decisioni",
   legendClean: "Pulito",
@@ -845,12 +1041,12 @@ const IT = {
   chartTableValue: "Valore",
   chartTableShare: "Quota",
   dashboardCoverageText:
-    "Copertura: {available} progetti disponibili su {total}; la memoria è limitata a {memoryLimit} elementi e l'audit a {privacyLimit} eventi per progetto. Aggiornato {updated}.",
+    "Copertura: progetti disponibili {available} su {total}; la memoria è limitata a {memoryLimit} elementi e l'audit a {privacyLimit} eventi per progetto. Aggiornato {updated}.",
   dashboardUpdatedStatus: "Panoramica locale aggiornata. Sola lettura.",
   dashboardAttentionStatus: "La panoramica richiede attenzione.",
   dashboardChartsLoading: "Caricamento dei grafici locali…",
   systemProjectCoverage:
-    "Disponibili {available} progetti su {total}; {unavailable} richiedono attenzione.",
+    "Progetti disponibili: {available} su {total}; richiedono attenzione: {unavailable}.",
   systemSnapshot: "Ultimo snapshot locale: {updated}.",
   filterProjectsAttention:
     "Sono mostrati solo i progetti registrati che richiedono attenzione.",
@@ -858,6 +1054,198 @@ const IT = {
   filterClear: "Mostra tutto",
   noMatchingProjects: "Nessun progetto registrato corrisponde a questo filtro.",
   noMatchingWork: "Nessun Work Item corrisponde a questo filtro.",
+  detailLabel: "Dettaglio tecnico: {detail}",
+  projectCardSummary: "Repository software · branch {branch} · {state}",
+  projectStateDirty: "modifiche non committate presenti",
+  projectStateClean: "working tree pulito",
+  projectBranchDetached: "detached",
+  refreshingGit: "Aggiornamento dei metadati Git bounded…",
+  projectsLoadFailed:
+    "Non è stato possibile caricare l'elenco dei progetti. Lo store locale è invariato; riprova quando vuoi.",
+  registerValidating: "Verifica del repository Git locale…",
+  projectReady: "{name} è pronto. Selezionalo per continuare.",
+  registerAttention:
+    "Il progetto non è stato registrato. Correggi la directory nel campo qui sotto e riprova; non è stato salvato nulla.",
+  importRunning: "Importazione locale della sessione sintetica revisionata…",
+  importDone:
+    "Eventi canonici sintetici e artifact immutabili aggiunti localmente. Aggiunti: {added}, invariati: {unchanged}, totale: {total}.",
+  sampleReadyGuidance:
+    "L'esempio sicuro è pronto. Prosegui con Cerca nelle evidenze storiche.",
+  importAttention:
+    "L'importazione dell'esempio non è stata completata. Non è stato salvato nulla di parziale; riprova da questa pagina.",
+  auditSelectProject: "Seleziona un progetto.",
+  auditLoading: "Caricamento dell'audit locale verificato…",
+  auditNoDecisions:
+    "Nessuna decisione preflight valida è stata registrata per questo progetto.",
+  auditCount: "Eventi verificati: {count}, dal più recente. Sola lettura.",
+  auditEventSummary:
+    "Work Item {work} · handoff {handoff} · modello {model} · policy {policy} v{version} · consentiti {allowed} · bloccati {blocked}",
+  auditInspect: "Ispeziona la provenienza sicura",
+  auditAttention:
+    "Non è stato possibile caricare l'audit. Non viene mostrato alcun evento parziale; usa Aggiorna per riprovare.",
+  searchNoAssociationFilter: "Nessun filtro di associazione",
+  generalShowing: "Conversazioni General bounded mostrate: {count}.",
+  generalEmpty:
+    "La Posta generale è vuota. Crea qui sopra una conversazione esplicita senza progetto.",
+  generalConversationState:
+    "Eventi USER_MESSAGE immutabili: {count} · CONFIDENTIAL · UNVERIFIED",
+  generalAppend: "Aggiungi qui una domanda",
+  generalDestination: "Destinazione: GENERAL · {title} · {id}",
+  generalEventMetadata:
+    "{occurred} · LOCAL_USER · USER_AUTHORED · {bytes} byte UTF-8 · SHA-256 {hash}",
+  generalCopyPhrase: "Copia la frase di ricerca sicura",
+  generalPhrasePrepared:
+    "La frase di ricerca è pronta; controllala in Cerca prima di inviarla.",
+  generalLinkButton: "Collega a un PROJECT",
+  generalLinkSource:
+    "Sorgente GENERAL: {conversation} · evento {event} · SHA-256 esatto {hash}. Il PROJECT di destinazione va revisionato esplicitamente; solo collegamento.",
+  generalAttention:
+    "Non è stato possibile caricare la Posta generale. Non viene mostrata alcuna conversazione parziale.",
+  generalQuestionSaved:
+    "La domanda è stata salvata localmente in GENERAL. Nessun modello è stato chiamato e nessuna risposta è stata creata.",
+  generalLinkReload: "Ricarica la pagina e seleziona un evento General esatto.",
+  generalLinkCreated:
+    "LINK_ONLY creato: GENERAL → PROJECT {project} · {id}. L'evidenza originale è invariata.",
+  generalLinkFailed:
+    "Nessun collegamento è stato creato. Ricarica l'evento immutabile e il progetto, controlla se l'hash è obsoleto o duplicato, poi riprova. Nessun collegamento parziale è stato usato.",
+  eventLabelType: "Tipo",
+  eventLabelTrust: "Attendibilità",
+  eventLabelSession: "Sessione",
+  eventLabelOccurred: "Avvenuto",
+  eventLabelPosition: "Posizione nella sorgente",
+  eventOccurredUnknown: "Sconosciuto",
+  searchingScope: "Ricerca di evidenza canonica bounded in {scope}…",
+  searchNoMatch:
+    "Nessuna corrispondenza letterale nell'ambito richiesto. La ricerca è letterale: prova una parola esatta presa dall'evidenza, oppure allarga l'ambito.",
+  searchFound:
+    "Risultati trovati: {count}. Eventi esaminati: {events}. Il limite globale è stato applicato dopo l'unione degli ambiti.",
+  searchResultGeneral:
+    "Sorgente GENERAL: {conversation} · USER_AUTHORED · CONFIDENTIAL · SHA-256 esatto {hash}",
+  searchResultLink:
+    "PROJECT di destinazione: {project} · {actor} · {verification} · {effect} · {created} · motivazione: {rationale}",
+  openGeneralInbox: "Apri la Posta generale",
+  artifactMetadata: "{bytes} byte UTF-8 · {trust} · {id}",
+  handoffNoMemory:
+    "Nessuna memoria ACTIVE disponibile. L'handoff registrerà una selezione vuota esplicita.",
+  memoryLabelType: "Tipo",
+  memoryLabelCuration: "Curatela",
+  memoryLabelValidity: "Validità",
+  memoryLabelVerification: "Verifica",
+  memoryLabelConfidence: "Confidenza",
+  memoryLabelVersion: "Versione",
+  memoryLabelCreated: "Creata",
+  memorySourceEntry: "Evento UNTRUSTED {event} · {type} · posizione {position}",
+  memorySourceSelected:
+    "Selezionato l'evento canonico UNTRUSTED {event} come provenienza per la prossima azione esplicita sulla memoria.",
+  memoryNeedsEvent:
+    "Prima esamina un evento e selezionalo come evidenza per la memoria.",
+  memoryCreated:
+    "Creata {type} come memoria ACTIVE, UNVERIFIED, UNASSESSED, USER_CURATED.",
+  memoryNeedsEvidence:
+    "Seleziona un'evidenza canonica prima di questa azione di ciclo di vita.",
+  workCardHeading: "{status} · versione {version}",
+  workLabelStatus: "Stato",
+  workLabelVersion: "Versione",
+  workLabelCreatedBy: "Creato da",
+  workLabelUpdated: "Aggiornato",
+  workTransition: "{from} → {to} da {actor} il {occurred}",
+  workNeedsEvidence: "Prima esamina e seleziona l'evidenza canonica corrente.",
+  workCreateNeedsEvidence:
+    "Esamina e seleziona un'evidenza canonica prima di creare un Work Item.",
+  handoffPreviewReady:
+    "Solo anteprima: schema {schema} · {bytes} byte UTF-8 esatti · {sources} riferimenti a sorgenti. Rivedi tutte e otto le sezioni inerti qui sotto. Nessun file è stato creato.",
+  handoffMatch:
+    "MATCH: lo stato Git bounded corrente corrisponde allo snapshot immutabile.",
+  handoffDrift: "DRIFT: {differences}. {recovery}",
+  privacyAuditEventSuffix: "Evento di audit: {event}.",
+  aliasPrefixRequired: "Usa il prefisso CUSTOMER: o PROJECT: per ogni alias.",
+  aliasItemMissing:
+    "Il Context Pack ricomposto non contiene più un elemento suggerito.",
+  pseudonymNeedsHandoff: "Esamina prima un handoff immutabile.",
+  pseudonymReady:
+    "Round trip locale verificato: schema v{schema}, selezioni revisionate: {selections}, elementi trasformati: {items}, mapping {mapping} salvato come ciphertext autenticato con custodia locale protetta da passphrase. Non autorizzato e non inviato.",
+  restorationNeedsHandoff: "Esamina prima l'handoff di origine.",
+  restorationReady:
+    "Decisione: {decision}; schema v{schema}; token ripristinati: {tokens}; anomalie: {anomalies}. Solo locale, non autorizzato e non inviato.",
+  importNoProject: "Seleziona prima un progetto registrato.",
+  selectedProjectFallback: "Progetto selezionato",
+  dashboardLoading: "Caricamento della panoramica del workspace…",
+  generalInbox: "Posta generale",
+  generalDestinationLabel: "Destinazione: GENERAL.",
+  generalNotice:
+    "Solo persistenza locale: nessuna richiesta a un modello, nessuna risposta dell'assistente, nessuna esecuzione di strumenti, nessuna promozione a memoria attiva, nessuna inclusione nel Context Pack e nessun invio.",
+  generalIntro:
+    "Le domande sono evidenza immutabile USER_AUTHORED, UNVERIFIED e sono CONFIDENTIAL per impostazione predefinita. I valori riservati ad alta confidenza vengono bloccati prima della persistenza. La ricerca è letterale: non trova parafrasi, refusi, sinonimi o radici di parola.",
+  generalTitleLabel: "Titolo della conversazione",
+  generalCreate: "Crea una conversazione General",
+  generalCreateEffect:
+    "Effetto: crea una conversazione immutabile vuota e senza progetto; cambiare progetto selezionato non può spostarla.",
+  generalQuestionLabel: "Domanda da salvare",
+  generalSave: "Salva la domanda in GENERAL",
+  generalAppendEffect:
+    "Effetto: aggiunge un solo USER_MESSAGE locale. Nessun messaggio dell'assistente viene creato.",
+  generalLoading: "Caricamento delle conversazioni General bounded…",
+  generalLinkHeading: "Collega evidenza General a un progetto",
+  generalLinkProjectLabel: "PROJECT di destinazione esplicito",
+  generalLinkRationaleLabel: "Motivazione revisionata",
+  generalLinkSubmit: "Crea il collegamento immutabile",
+  generalLinkEffect:
+    "Effetto: LINK_ONLY. GENERAL e PROJECT restano separati e invariati byte per byte; non vengono creati proprietà, memoria attiva, Work Item, permessi, modelli o esecuzioni.",
+  scopeAll: "Tutti i progetti registrati e General",
+  scopeGeneral: "Solo General",
+  searchAssociatedLabel:
+    "Associata a un progetto (facoltativo, solo ambiti General)",
+  pseudonymHeading: "Trasformazione privacy reversibile",
+  pseudonymWarning:
+    "Boundary locale a intervalli revisionati: riusa gli stessi input privacy qui sopra, poi vincola ogni selezione a ID elemento, SHA-256 del contenuto, tipo di entità e intervallo di byte UTF-8. Viene salvato solo il ciphertext cifrato del mapping. L'evidenza di origine resta invariata; non si tratta di rilevamento, autorizzazione, invio o esecuzione.",
+  pseudonymMappingLabel: "Identità del nuovo mapping set",
+  pseudonymSelectionsLabel: "Array JSON delle selezioni revisionate",
+  pseudonymSelectionsHelp:
+    "Ogni voce contiene itemId, contentSha256 come 64 caratteri esadecimali minuscoli, byteStart, byteEnd e entityType. Tipi dello schema v1: PERSON, CUSTOMER, EMAIL, BUSINESS_IDENTIFIER, OTHER. Confermare PROJECT seleziona esplicitamente lo schema v2.",
+  pseudonymCustodyLabel: "Custodia locale della chiave",
+  pseudonymCustodyOption: "Chiave locale protetta da passphrase",
+  pseudonymPassphraseLabel: "Passphrase di custodia, 16–1024 byte UTF-8",
+  pseudonymSubmit: "Trasforma, cifra il mapping e verifica localmente",
+  pseudonymEffect:
+    "Effetto: genera una chiave di mapping e salva solo una busta di custodia schema v1 immutabile, autenticata e protetta da passphrase, più il ciphertext del mapping schema v1 o esplicitamente v2. Fai il backup di entrambe le directory cifrate e conserva la passphrase offline; perdere una delle due è irrecuperabile. Il software che conosce solo la v1 deve preservare il ciphertext v2 finché non viene ripristinato software compatibile. La passphrase viene cancellata dopo ogni tentativo.",
+  pseudonymEmpty: "Esegui e ispeziona prima il preflight privacy esatto.",
+  restorationHeading: "Ripristino locale rigoroso dell'output",
+  restorationWarning:
+    "Ogni segnaposto nel formato di AI Workspace viene validato prima di ripristinare qualsiasi valore. Token sconosciuti, alterati, estranei o malformati bloccano l'intero output. Il testo candidato e quello ripristinato restano transitori e locali; non si tratta di accesso al modello, cattura di risposte, autorizzazione, invio o esecuzione.",
+  restorationMappingLabel: "Identità del mapping set esistente",
+  restorationOutputLabel: "Output pseudonimizzato bounded",
+  restorationPassphraseLabel: "Passphrase di custodia locale",
+  restorationSubmit: "Valida e ripristina localmente",
+  restorationEffect:
+    "Effetto: legge un mapping cifrato e autenticato già esistente e restituisce il contenuto ripristinato solo dopo una validazione tutto-o-niente. Non viene salvato né inviato nulla. La passphrase viene cancellata dopo ogni tentativo.",
+  restorationEmpty:
+    "Ispeziona l'handoff di origine e inserisci un mapping esistente.",
+  privacyAuditHeading: "Audit delle decisioni privacy",
+  privacyAuditNotice:
+    "Evidenza locale, bounded, append-only, senza contenuto e limitata al progetto. La catena di hash rileva corruzione interna, buchi e riordini, ma non può dimostrare che un attore privilegiato non abbia sostituito o troncato l'intero store.",
+  privacyAuditHelp:
+    "Solo decisioni preflight valide. Nessun contenuto del Context Pack, hash di elementi, corrispondenze, percorsi, report, mapping, segreti, prompt, risposte o output ripristinato. Nessun controllo di cancellazione, modifica, correzione, esportazione, ricerca o retention.",
+  privacyAuditRefresh: "Aggiorna l'audit",
+  privacyAuditMore: "Carica eventi precedenti",
+  accessBlockedTitle: "Accesso bloccato",
+  bootstrapUsedMessage: "Questo link di avvio è già stato usato.",
+  bootstrapUsedRecovery:
+    "Un link di avvio apre una sola sessione e poi scade, così nessuno può riutilizzarlo. Riavvia il processo locale della GUI e apri il nuovo URL monouso che stampa.",
+  sessionMissingMessage:
+    "Questo browser non ha una sessione per la GUI locale.",
+  sessionMissingRecovery:
+    "La sessione vive in un cookie che questo browser non ha ancora ricevuto. Apri in questo stesso browser l'URL di avvio monouso stampato dal processo locale della GUI.",
+  originBlockedMessage: "Questa richiesta non proviene da questa macchina.",
+  originBlockedRecovery:
+    "La GUI risponde solo all'indirizzo di loopback, così nulla dalla rete può raggiungerla. Aprila come http://127.0.0.1 sulla porta stampata dal processo locale.",
+  brandLabel: "Panoramica di AI Workspace",
+  navLabel: "Workspace",
+  projectListLabel: "Progetti registrati",
+  transcriptListLabel: "Transcript trovati",
+  generalListLabel: "Conversazioni General",
+  searchResultsLabel: "Risultati delle evidenze storiche",
+  memoryListLabel: "Elementi di memoria del progetto",
+  privacyAuditListLabel: "Eventi di audit delle decisioni privacy",
 } as const satisfies Catalog;
 
 export const GUI_CATALOGS: Readonly<Record<GuiLocale, Catalog>> = Object.freeze(
