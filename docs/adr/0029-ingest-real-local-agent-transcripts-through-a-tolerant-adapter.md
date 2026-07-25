@@ -4,6 +4,14 @@
 
 **Date:** 2026-07-24
 
+> [!IMPORTANT]
+> Amended by
+> [ADR-0030](0030-screen-restricted-data-per-record-in-the-tolerant-reader.md) on
+> one point only. Where this record says restricted-data screening is unchanged
+> and blocks the whole import, the tolerant reader now screens per record and
+> imports partially, with the exclusion counted and shown. Every other decision
+> below stands as written.
+
 ## Context
 
 Session ingestion has so far accepted only authored synthetic transcripts. The

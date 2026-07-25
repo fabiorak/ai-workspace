@@ -50,3 +50,4 @@ Status: proposed | accepted | superseded
 - [ADR-0027: Use explicit unknown-after-exposure attempt semantics](0027-use-explicit-unknown-after-exposure-attempt-semantics.md)
 - [ADR-0028: Use a separate local model-attempt evidence store](0028-use-separate-local-model-attempt-store.md)
 - [ADR-0029: Ingest real local agent transcripts through a tolerant adapter](0029-ingest-real-local-agent-transcripts-through-a-tolerant-adapter.md)
+- [ADR-0030: Screen restricted data per record in the tolerant reader](0030-screen-restricted-data-per-record-in-the-tolerant-reader.md)

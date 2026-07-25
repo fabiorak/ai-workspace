@@ -13,9 +13,10 @@ automatically, and no default location is assumed.
 > Imported evidence is stored unencrypted under `AI_WORKSPACE_HOME`
 > (`~/.ai-workspace` by default). Treat that directory as sensitive: never copy
 > it into a repository, a public issue, or a test fixture. Restricted-data
-> screening blocks a small set of high-confidence credential patterns and is a
-> safety net, not a guarantee. Do not import credentials, third-party or customer
-> confidential material, mapping material, or recovery secrets.
+> screening excludes the individual records that carry a small set of
+> high-confidence credential patterns and is a safety net, not a guarantee. Do not
+> import credentials, third-party or customer confidential material, mapping
+> material, or recovery secrets.
 
 ## Prerequisites
 
@@ -90,7 +91,10 @@ skipped deterministically, counted, and reported by reason:
 - `MESSAGE_WITHOUT_CONTENT` — a turn with nothing convertible in it;
 - `INCOMPLETE_TRAILING_RECORD` — the last line was still being written. This is
   accepted only at the end of the file. An unparsable record anywhere else fails
-  the import.
+  the import;
+- `RESTRICTED_DATA:<category>` — the record carried a high-confidence credential
+  pattern and was excluded whole. See _Records excluded by restricted-data
+  screening_ below.
 
 Skipping adds no event, so importing the same transcript again after it has
 grown adds only the new suffix. If a record you already imported changed, or the
@@ -121,12 +125,39 @@ The reader requires exactly one session identity per file, because a stable
 session ID is what makes re-import idempotent. Import each transcript
 separately.
 
-### Import blocked: restricted data detected
+### Records excluded by restricted-data screening
 
-Screening found a high-confidence credential pattern. The message reports the
-detector category and where it matched, never the value. Nothing was persisted.
-Remove the credential from your workflow — rotate it if it was real — and import
-a transcript that does not carry it.
+Screening found a high-confidence credential pattern inside one or more records.
+Those records were excluded whole, and the rest of the transcript was imported.
+The result reports how many records were excluded and their detector category —
+`RESTRICTED_DATA:private-key`, `RESTRICTED_DATA:assigned-credential`, and so on —
+on a line of its own in the CLI and in its own notice in the app. The matched
+value is never shown, and it is stored nowhere: not in an event, not in an
+artifact, not in the reason.
+
+**Rotate any credential that was real.** A dropped record is not a rotated key.
+
+Two things follow from this. Exclusion is per line, so clean content that shared
+a record with a pattern is dropped with it — a secret can straddle two blocks of
+one record, and the line is the unit of provenance. And when something was
+excluded, the stored source artifact for that import is the screened transcript
+rather than the file byte for byte; each imported record still carries its own
+hash, so evidence stays verifiable per record.
+
+A false positive of meaning is possible and expected: a conversation that merely
+quotes a key-shaped string, for example while working on security tests, has that
+record excluded even though no credential exists. That is the cost of keeping the
+detectors strict, and it now costs one record instead of the whole session.
+
+Screening remains a bounded safety net over high-confidence patterns. An import
+with no exclusions does not mean the transcript is free of secrets or personal
+data.
+
+### Import failed: screening excluded every convertible record
+
+Every record the reader could convert carried a pattern, so there was nothing
+left to import and nothing was written. Check whether you pointed the import at
+the right file.
 
 ### Records not converted is higher than expected
 
@@ -139,4 +170,6 @@ concluding that a search found nothing.
 - [Session ingestion](session-ingestion.md) for the Codex subset and the local
   storage layout;
 - [Historical search](historical-search.md) to query what you imported;
-- ADR-0029 for the decision that introduced the tolerant reader.
+- ADR-0029 for the decision that introduced the tolerant reader;
+- ADR-0030 for the decision that made restricted-data screening per record for
+  this source type.

@@ -245,6 +245,137 @@ describe("ClaudeCodeLocalSessionSourceAdapter", () => {
       );
     }));
 
+  it("excludes only the screened record, counts it, and keeps it out of the raw content", async () =>
+    withFile(
+      `{"type":"user","sessionId":"screened","message":{"role":"user","content":"kept before"}}\n{"type":"user","sessionId":"screened","message":{"role":"user","content":"carries SYNTHETIC-MARKER here"}}\n{"type":"user","sessionId":"screened","message":{"role":"user","content":"kept after"}}\n`,
+      async (path) => {
+        const source = await new ClaudeCodeLocalSessionSourceAdapter({
+          restrictedDataClassifier: markerClassifier("provider-api-key"),
+        }).read(path);
+
+        assert.equal(source.events.length, 2);
+        assert.equal(source.events[0]?.payload.includes("kept before"), true);
+        assert.equal(source.events[1]?.payload.includes("kept after"), true);
+        assert.equal(
+          source.events.some((event) =>
+            event.payload.includes("SYNTHETIC-MARKER"),
+          ),
+          false,
+        );
+        assert.deepEqual(
+          source.events.map((event) => event.position),
+          [1, 2],
+        );
+        assert.deepEqual(source.skippedRecords, [
+          { reason: "RESTRICTED_DATA:provider-api-key", count: 1 },
+        ]);
+
+        const retained = new TextDecoder().decode(source.rawContent);
+
+        assert.equal(retained.includes("SYNTHETIC-MARKER"), false);
+        assert.equal(retained.includes("kept before"), true);
+        assert.equal(retained.includes("kept after"), true);
+        assert.equal(retained.split("\n").filter(Boolean).length, 2);
+      },
+    ));
+
+  it("collapses an unexpected detector category and never echoes the record", async () =>
+    withFile(
+      `{"type":"user","sessionId":"screened","message":{"role":"user","content":"SYNTHETIC-MARKER"}}\n{"type":"user","sessionId":"screened","message":{"role":"user","content":"kept"}}\n`,
+      async (path) => {
+        const source = await new ClaudeCodeLocalSessionSourceAdapter({
+          restrictedDataClassifier: markerClassifier(
+            "unexpected category with spaces",
+          ),
+        }).read(path);
+
+        assert.deepEqual(source.skippedRecords, [
+          { reason: "RESTRICTED_DATA:other", count: 1 },
+        ]);
+        assert.equal(
+          JSON.stringify(source.skippedRecords).includes("SYNTHETIC-MARKER"),
+          false,
+        );
+      },
+    ));
+
+  it("fails with a dedicated message when screening excludes every convertible record", async () =>
+    withFile(
+      `{"type":"user","sessionId":"screened","message":{"role":"user","content":"SYNTHETIC-MARKER"}}\n`,
+      async (path) =>
+        assert.rejects(
+          new ClaudeCodeLocalSessionSourceAdapter({
+            restrictedDataClassifier: markerClassifier("private-key"),
+          }).read(path),
+          /screening excluded every convertible record/u,
+        ),
+    ));
+
+  it("keeps re-import idempotent and prefix validation intact around a screened record", async () =>
+    withFile(
+      `{"type":"user","sessionId":"screened","message":{"role":"user","content":"first"}}\n{"type":"user","sessionId":"screened","message":{"role":"user","content":"SYNTHETIC-MARKER"}}\n{"type":"user","sessionId":"screened","message":{"role":"user","content":"second"}}\n`,
+      async (path) => {
+        let stored: ImportedSession | null = null;
+        const ingestion = new SessionIngestion({
+          sourceAdapter: new ClaudeCodeLocalSessionSourceAdapter({
+            restrictedDataClassifier: markerClassifier("assigned-credential"),
+          }),
+          screen: { assertAllowed: () => undefined },
+          artifactStore: {
+            put: async (content) => ({
+              id: createHash("sha256").update(content).digest("hex"),
+              byteLength: content.byteLength,
+            }),
+          },
+          sessionStore: {
+            load: async () => stored,
+            append: async (session, expected) => {
+              assert.equal(stored?.events.length ?? 0, expected);
+              stored = session;
+            },
+          },
+          projects: { exists: async () => true },
+        });
+
+        const first = await ingestion.import("project", path);
+
+        assert.equal(first.addedEvents, 2);
+        assert.deepEqual(first.skippedRecords, [
+          { reason: "RESTRICTED_DATA:assigned-credential", count: 1 },
+        ]);
+
+        const repeat = await ingestion.import("project", path);
+
+        assert.equal(repeat.addedEvents, 0);
+        assert.equal(repeat.totalEvents, 2);
+
+        await appendFile(
+          path,
+          `{"type":"user","sessionId":"screened","message":{"role":"user","content":"third"}}\n`,
+        );
+
+        const grown = await ingestion.import("project", path);
+
+        assert.equal(grown.addedEvents, 1);
+        assert.equal(grown.totalEvents, 3);
+
+        const lines = (await readFile(path, "utf8")).split("\n");
+
+        await writeFile(
+          path,
+          lines
+            .map((line, index) =>
+              index === 0 ? line.replace("first", "one") : line,
+            )
+            .join("\n"),
+        );
+        await assert.rejects(
+          ingestion.import("project", path),
+          /changed at record 1/u,
+        );
+      },
+    ));
+
   it("writes nothing when restricted-data screening rejects a real transcript", async () => {
     let artifactWrites = 0;
     let storeWrites = 0;
@@ -320,6 +451,19 @@ describe("ClaudeCodeLocalSessionDiscovery", () => {
     );
   });
 });
+
+/**
+ * A synthetic classifier: it reacts to a marker that is not a credential pattern,
+ * so the adapter tests never have to carry a canary of their own.
+ */
+function markerClassifier(category: string) {
+  const decoder = new TextDecoder();
+
+  return {
+    classify: (content: Uint8Array): string | null =>
+      decoder.decode(content).includes("SYNTHETIC-MARKER") ? category : null,
+  };
+}
 
 async function withFile(
   content: string,

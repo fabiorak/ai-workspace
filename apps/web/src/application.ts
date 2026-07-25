@@ -75,6 +75,7 @@ import { JsonGeneralConversationStore } from "@ai-workspace/local-general-conver
 import { JsonGeneralProjectLinkStore } from "@ai-workspace/local-general-project-link";
 import {
   FileArtifactStore,
+  HighConfidenceRestrictedDataClassifier,
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
   LocalHistoricalEventReader,
@@ -421,9 +422,13 @@ export class GuiApplication {
       projects,
     });
     // A real local transcript is read by its own tolerant adapter (ADR-0029), so
-    // the reviewed synthetic corpus keeps being read exactly as before.
+    // the reviewed synthetic corpus keeps being read exactly as before. Only that
+    // adapter screens per record (ADR-0030): the core screen below stays
+    // fail-closed on whatever it receives.
     this.#localIngestion = new SessionIngestion({
-      sourceAdapter: new ClaudeCodeLocalSessionSourceAdapter(),
+      sourceAdapter: new ClaudeCodeLocalSessionSourceAdapter({
+        restrictedDataClassifier: new HighConfidenceRestrictedDataClassifier(),
+      }),
       screen: new HighConfidenceRestrictedDataScreen(),
       artifactStore: new FileArtifactStore(dependencies.workspaceHome),
       sessionStore: new JsonSessionStore(dependencies.workspaceHome),

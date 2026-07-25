@@ -25,6 +25,17 @@ export type RestrictedDataScreen = Readonly<{
   assertAllowed(content: Uint8Array, location: string): void;
 }>;
 
+/**
+ * Reports which high-confidence restricted-data category a candidate carries,
+ * or `null` when it carries none. It classifies instead of throwing, so a
+ * tolerant adapter can exclude one record and account for it rather than losing
+ * the whole transcript. The category is a stable detector-defined name and never
+ * carries the matched value, a fragment of it, or its position inside a record.
+ */
+export type RestrictedDataClassifier = Readonly<{
+  classify(content: Uint8Array): string | null;
+}>;
+
 export type ArtifactStore = Readonly<{
   put(content: Uint8Array): Promise<ArtifactReference>;
 }>;

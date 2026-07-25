@@ -17,6 +17,7 @@ export type {
   ArtifactStore,
   Clock,
   ProjectLookup,
+  RestrictedDataClassifier,
   RestrictedDataScreen,
   SessionFileDiscovery,
   SessionSourceAdapter,

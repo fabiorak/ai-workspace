@@ -226,9 +226,15 @@ stays idempotent, and an unparsable record is tolerated only as the final line
 of a live transcript. Discovery is a separate metadata-only port over one
 explicitly named non-recursive directory, so listing candidates cannot read a
 conversation. Restricted-data screening keeps its position ahead of persistence
-and stays fail-closed; it now scans overlapping windows so a transcript larger
-than the detector input limit is screened completely instead of failing
-opaquely. ADR-0029 records this reversal of the synthetic-only posture.
+and the provider-neutral core stays fail-closed on what it receives; it scans
+overlapping windows so a transcript larger than the detector input limit is
+screened completely instead of failing opaquely. For this source type the reader
+classifies each record through a second port that reports a category instead of
+throwing, and excludes a contaminated record from both the events and the source
+content it returns, so the import is partial, counted as
+`RESTRICTED_DATA:<category>`, and reported separately from ordinary skips.
+ADR-0029 records this reversal of the synthetic-only posture and ADR-0030 the
+per-record screening that made it usable.
 
 Historical retrieval is also behind domain-owned ports. The initial adapter
 scans validated canonical project sessions and General events with explicit

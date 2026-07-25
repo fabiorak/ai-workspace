@@ -18,6 +18,7 @@ import {
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
 import {
   FileArtifactStore,
+  HighConfidenceRestrictedDataClassifier,
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
   LocalHistoricalEventReader,
@@ -397,11 +398,13 @@ function createSessionSourceAdapter(
   }
 
   // `claude-code` reads the reviewed synthetic corpus only. `claude-code-local`
-  // reads a real local transcript and reports what it did not convert
-  // (ADR-0029).
+  // reads a real local transcript, reports what it did not convert (ADR-0029),
+  // and is the only reader that screens per record (ADR-0030).
   return source === "claude-code"
     ? new ClaudeCodeSessionSourceAdapter()
-    : new ClaudeCodeLocalSessionSourceAdapter();
+    : new ClaudeCodeLocalSessionSourceAdapter({
+        restrictedDataClassifier: new HighConfidenceRestrictedDataClassifier(),
+      });
 }
 
 function createSessionIngestion(
@@ -664,9 +667,22 @@ function formatSkippedRecords(
     return ["Records not converted: none"];
   }
 
+  // A record excluded by restricted-data screening is reported on its own line
+  // rather than left among the ordinary skips: the import is partial for a
+  // security reason, and that has to be impossible to miss (ADR-0030).
+  const restricted = skipped
+    .filter((entry) => entry.reason.startsWith("RESTRICTED_DATA:"))
+    .reduce((total, entry) => total + entry.count, 0);
+
   return [
     `Records not converted: ${skipped.reduce((total, entry) => total + entry.count, 0)}`,
     ...skipped.map((entry) => `  ${entry.reason}: ${entry.count}`),
+    ...(restricted === 0
+      ? []
+      : [
+          `Records excluded by restricted-data screening: ${restricted}`,
+          "  The detected values were not imported and were not stored. Rotate any credential that was real.",
+        ]),
   ];
 }
 

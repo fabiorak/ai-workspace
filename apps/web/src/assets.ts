@@ -123,7 +123,7 @@ export function shellHtml(csrfToken: string) {
     <section aria-labelledby="transcripts-heading" id="transcripts" hidden>
       <h2 id="transcripts-heading" tabindex="-1" data-i18n="transcripts">Import your own Claude Code sessions</h2>
       <p data-i18n="transcriptsIntro">Name the directory that holds your Claude Code transcripts, then import one file into the selected project. Listing a directory reads names, sizes, and modification times only; no transcript is opened until you import it.</p>
-      <p class="notice"><strong data-i18n="trust">Trust:</strong> <span data-i18n="transcriptsTrustBody">the transcript is read locally and stored as UNTRUSTED evidence. Nothing is executed and nothing is sent over a network. An import that contains high-confidence restricted data is blocked completely, and nothing is written.</span></p>
+      <p class="notice"><strong data-i18n="trust">Trust:</strong> <span data-i18n="transcriptsTrustBody">the transcript is read locally and stored as UNTRUSTED evidence. Nothing is executed and nothing is sent over a network. A record that carries high-confidence restricted data is excluded whole, counted, and never stored; if that leaves nothing to convert, the import writes nothing at all.</span></p>
       <form id="transcript-discover-form">
         <label for="transcript-directory" data-i18n="transcriptDirectory">Transcript directory</label>
         <p id="transcript-directory-help" class="help" data-i18n="transcriptDirectoryHelp">Enter one existing directory. It is not searched recursively and no location is guessed.</p>
@@ -132,6 +132,7 @@ export function shellHtml(csrfToken: string) {
         <p class="effect" data-i18n="transcriptDiscoverEffect">Effect: reads file names, sizes, and modification times only. No transcript is opened.</p>
       </form>
       <div id="transcript-status" role="status" aria-live="polite" data-i18n="transcriptStatusIdle">Select a project, then list a transcript directory.</div>
+      <p id="transcript-restricted" class="notice" role="status" aria-live="polite" hidden></p>
       <div id="transcript-list" aria-label="Discovered transcripts"></div>
       <p id="transcript-error" class="error" role="alert"></p>
     </section>
@@ -517,6 +518,7 @@ export const APP_JS = `
   const transcriptStatus = document.getElementById("transcript-status");
   const transcriptList = document.getElementById("transcript-list");
   const transcriptError = document.getElementById("transcript-error");
+  const transcriptRestricted = document.getElementById("transcript-restricted");
   const generalStatus = document.getElementById("general-status");
   const generalError = document.getElementById("general-error");
   const generalList = document.getElementById("general-list");
@@ -736,6 +738,9 @@ export const APP_JS = `
           const report = await api("/api/projects/" + encodeURIComponent(selectedProject) + "/import-transcript", { method: "POST", body: JSON.stringify({ filePath: candidate.filePath }) });
           const skipped = report.skippedRecords.reduce((total, entry) => total + entry.count, 0);
           text(transcriptStatus, report.effect + " " + message("transcriptCounts", { added: String(report.addedEvents), unchanged: String(report.existingEvents), total: String(report.totalEvents), skipped: String(skipped) }) + (skipped === 0 ? "" : " " + report.skippedRecords.map((entry) => entry.reason + " × " + entry.count).join(", ")));
+          const restricted = report.skippedRecords.filter((entry) => entry.reason.indexOf("RESTRICTED_DATA:") === 0).reduce((total, entry) => total + entry.count, 0);
+          transcriptRestricted.hidden = restricted === 0;
+          text(transcriptRestricted, restricted === 0 ? "" : message("transcriptRestricted", { count: String(restricted) }));
           searchSection.hidden = false;
         } catch (cause) { text(transcriptStatus, message("transcriptAttention")); text(transcriptError, cause.message); button.focus(); }
       });

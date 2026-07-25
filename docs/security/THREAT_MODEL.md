@@ -377,7 +377,7 @@ versions, entity-token disagreement, and implicit migration fail closed.
 Importing the user's own local transcripts changes the data actually stored: the
 local runtime store can now hold real conversation content, file paths, and
 whatever the user discussed with an agent. The following controls apply
-(ADR-0029):
+(ADR-0029, ADR-0030):
 
 - a real transcript is read only by an explicitly named path, chosen by the
   user, under a distinct `claude-code-local` source type that leaves the
@@ -388,10 +388,23 @@ whatever the user discussed with an agent. The following controls apply
 - discovery is bounded to 500 candidates and reading to 64 MiB per transcript,
   4 MiB per record, 1,000 blocks per record, and 200,000 events;
 - restricted-data screening keeps its position ahead of artifact and session
-  persistence and stays fail-closed. It scans overlapping windows so a
-  transcript larger than the detector input limit is screened completely rather
-  than failing with an opaque error; a rejected import writes no artifact and no
-  session;
+  persistence and the provider-neutral core stays fail-closed on whatever it
+  receives. Screening scans overlapping windows so a transcript larger than the
+  detector input limit is screened completely rather than failing with an opaque
+  error; an import the core rejects writes no artifact and no session;
+- for this source type only, the reader classifies each record before converting
+  it and excludes a record carrying a high-confidence pattern from both the
+  events and the source content it returns, so the detected value reaches neither
+  the artifact store nor an event. The exclusion is counted as
+  `RESTRICTED_DATA:<category>` and reported separately from ordinary skips in the
+  CLI and in the GUI, so an import that is partial for a security reason cannot
+  look complete. The matched value is never returned, shown, logged, or
+  persisted, not even in the reason or an error message. When every convertible
+  record is excluded the import fails and writes nothing;
+- exclusion is per line rather than per content block, because a pattern can
+  straddle two blocks of one record and the line is the unit of provenance. The
+  narrow synthetic reader keeps failing the whole import closed, since a
+  detection in an authored corpus means the fixture is wrong;
 - records that are not conversation turns are skipped deterministically, counted
   by reason, and reported to the user, so partial reading cannot be mistaken for
   complete reading. Skipping emits no event, so re-import stays idempotent and
@@ -414,7 +427,15 @@ Residual risk: the local store is not encrypted at rest, so the confidentiality
 of imported real conversations depends entirely on filesystem permissions and on
 the security of the user's machine. Screening remains a narrow safety net, not
 complete secret or PII detection, so a real transcript can carry secrets or
-personal data that no control here will catch.
+personal data that no control here will catch. An excluded record proves nothing
+about the records that were imported: it says a pattern was matched once, not
+that the rest of the transcript is clean. Because a real credential is now
+dropped quietly instead of blocking the import loudly, the user has to act on the
+rotation notice for the exclusion to have protected anything — a dropped record
+is not a rotated key. And for this source type the stored source artifact is no
+longer necessarily the file byte for byte whenever something was excluded, so
+provenance for a screened import rests on per-record hashes rather than on a
+whole-file comparison.
 
 ## Implemented E3 retrieval controls
 
@@ -729,6 +750,11 @@ Review and update this model when:
   but importing documents, repository content, or any other real source requires
   a new review;
 - a new data class or regulatory obligation appears;
+- restricted-data screening changes where it acts, what it blocks, or what it
+  lets through: moving from whole-import rejection to per-record exclusion in the
+  tolerant reader already fired this trigger, and any further change to the
+  detector set, to the granularity of exclusion, or to which surface enforces it
+  requires a new review;
 - a security incident or near miss invalidates an assumption.
 
 ## Known residual risks

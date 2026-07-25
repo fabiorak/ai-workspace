@@ -2,6 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { TextDecoder, TextEncoder } from "node:util";
 import {
   SessionImportError,
+  type RestrictedDataClassifier,
   type SessionEventType,
   type SessionSource,
   type SessionSourceAdapter,
@@ -30,6 +31,14 @@ const MAX_SOURCE_BYTES = 64 * 1024 * 1024,
   MAX_BLOCKS_PER_RECORD = 1_000,
   MAX_EVENTS = 200_000;
 const SAFE_TOKEN = /^[A-Za-z][A-Za-z0-9_-]{0,31}$/u;
+const RESTRICTED_DATA_REASON = "RESTRICTED_DATA";
+const RESTRICTED_DATA_CATEGORIES = new Set([
+  "private-key",
+  "aws-access-key",
+  "github-token",
+  "provider-api-key",
+  "assigned-credential",
+]);
 const decoder = new TextDecoder("utf8", { fatal: true }),
   encoder = new TextEncoder();
 
@@ -43,10 +52,35 @@ type ParsedRecord = Readonly<{
   occurredAt: string | null;
   model: string | null;
   events: readonly CandidateEvent[];
+  /**
+   * True only for a record excluded by restricted-data screening. Such a record
+   * is kept out of the returned raw content as well as out of the events, so the
+   * detected value is never persisted (ADR-0030). Every other skip leaves the
+   * record in the raw content, because it carries no restricted data.
+   */
+  excluded: boolean;
+}>;
+
+export type ClaudeCodeLocalSessionSourceAdapterDependencies = Readonly<{
+  /**
+   * Optional. Without it the reader converts every record it understands and the
+   * core screen keeps failing the whole import closed. With it, a record that
+   * carries high-confidence restricted data is excluded and counted instead, so
+   * one contaminated record no longer costs the whole transcript.
+   */
+  restrictedDataClassifier?: RestrictedDataClassifier;
 }>;
 
 export class ClaudeCodeLocalSessionSourceAdapter implements SessionSourceAdapter {
   public readonly sourceType = "claude-code-local";
+
+  readonly #classifier: RestrictedDataClassifier | null;
+
+  public constructor(
+    dependencies: ClaudeCodeLocalSessionSourceAdapterDependencies = {},
+  ) {
+    this.#classifier = dependencies.restrictedDataClassifier ?? null;
+  }
 
   public async read(filePath: string): Promise<SessionSource> {
     const rawContent = await readSource(filePath);
@@ -62,8 +96,9 @@ export class ClaudeCodeLocalSessionSourceAdapter implements SessionSourceAdapter
     }
 
     const lines = content.split("\n").map(stripCarriageReturn);
+    const hadTrailingNewline = lines.at(-1) === "";
 
-    if (lines.at(-1) === "") {
+    if (hadTrailingNewline) {
       lines.pop();
     }
 
@@ -73,7 +108,13 @@ export class ClaudeCodeLocalSessionSourceAdapter implements SessionSourceAdapter
 
     const skipped = new Map<string, number>();
     const records = lines.map((line, index) =>
-      parseLine(line, index + 1, index === lines.length - 1, skipped),
+      parseLine(
+        line,
+        index + 1,
+        index === lines.length - 1,
+        skipped,
+        this.#classifier,
+      ),
     );
     const events: SourceEvent[] = [];
 
@@ -105,7 +146,9 @@ export class ClaudeCodeLocalSessionSourceAdapter implements SessionSourceAdapter
 
     if (events.length === 0) {
       throw new SessionImportError(
-        "The Claude Code transcript contains no convertible conversation record.",
+        records.some((record) => record.excluded)
+          ? "Restricted-data screening excluded every convertible record in the Claude Code transcript; nothing was imported."
+          : "The Claude Code transcript contains no convertible conversation record.",
       );
     }
 
@@ -126,7 +169,12 @@ export class ClaudeCodeLocalSessionSourceAdapter implements SessionSourceAdapter
       agent: "claude-code",
       model: models.size === 1 ? [...models][0]! : null,
       startedAt: timestamps[0] ?? null,
-      rawContent,
+      rawContent: screenSourceContent(
+        rawContent,
+        lines,
+        records,
+        hadTrailingNewline,
+      ),
       events: Object.freeze(events),
       skippedRecords: summarize(skipped),
     });
@@ -174,13 +222,26 @@ function parseLine(
   lineNumber: number,
   isLastLine: boolean,
   skipped: Map<string, number>,
+  classifier: RestrictedDataClassifier | null,
 ): ParsedRecord {
   if (line.trim().length === 0) {
     return skip("BLANK_LINE", skipped);
   }
 
-  if (encoder.encode(line).byteLength > MAX_RECORD_BYTES) {
+  const encodedLine = encoder.encode(line);
+
+  if (encodedLine.byteLength > MAX_RECORD_BYTES) {
     throw invalidLine(lineNumber, `record exceeds ${MAX_RECORD_BYTES} bytes`);
+  }
+
+  // Screening happens before any conversion, so a contaminated record cannot
+  // reach an event, a payload, or the retained source content. It is excluded as
+  // a whole line: a secret can straddle two content blocks, and the line is the
+  // unit of provenance (ADR-0030).
+  const category = classifier?.classify(encodedLine) ?? null;
+
+  if (category !== null) {
+    return excludeRestricted(category, skipped);
   }
 
   let value: unknown;
@@ -237,6 +298,7 @@ function parseLine(
     occurredAt: canonicalTimestamp(value.timestamp),
     model: recordType === "assistant" ? optionalString(message.model) : null,
     events: Object.freeze(events),
+    excluded: false,
   });
 }
 
@@ -387,7 +449,62 @@ function skip(reason: string, skipped: Map<string, number>): ParsedRecord {
     occurredAt: null,
     model: null,
     events: Object.freeze([]),
+    excluded: false,
   });
+}
+
+/**
+ * Accounts for a record excluded by restricted-data screening. The reason carries
+ * the detector category, which is a closed set of adapter-known names, and never
+ * the matched value or a fragment of it. An unexpected category collapses to
+ * `other`, exactly as an unexpected record type does.
+ */
+function excludeRestricted(
+  category: string,
+  skipped: Map<string, number>,
+): ParsedRecord {
+  const reason = `${RESTRICTED_DATA_REASON}:${
+    RESTRICTED_DATA_CATEGORIES.has(category) ? category : "other"
+  }`;
+
+  skipped.set(reason, (skipped.get(reason) ?? 0) + 1);
+
+  return Object.freeze({
+    sessionId: null,
+    occurredAt: null,
+    model: null,
+    events: Object.freeze([]),
+    excluded: true,
+  });
+}
+
+/**
+ * Returns the source content that may be persisted as evidence. With no excluded
+ * record it is the file exactly as read, byte for byte. With at least one excluded
+ * record the retained lines are rejoined with a single newline, so the detected
+ * value never reaches the artifact store: that copy is the screened transcript
+ * rather than the file, and CRLF line endings collapse to LF in it. Record hashes
+ * are unaffected, because they are computed per line without the carriage return.
+ */
+function screenSourceContent(
+  rawContent: Uint8Array,
+  lines: readonly string[],
+  records: readonly ParsedRecord[],
+  hadTrailingNewline: boolean,
+): Uint8Array {
+  if (!records.some((record) => record.excluded)) {
+    return rawContent;
+  }
+
+  const retained = lines.filter(
+    (_, index) => records[index]?.excluded !== true,
+  );
+
+  return encoder.encode(
+    retained.length === 0
+      ? ""
+      : `${retained.join("\n")}${hadTrailingNewline ? "\n" : ""}`,
+  );
 }
 
 function summarize(

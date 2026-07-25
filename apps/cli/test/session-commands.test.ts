@@ -209,6 +209,57 @@ describe("session CLI workflow", () => {
     assert.match(printed.stdout, /Events added: 0/u);
   });
 
+  it("imports a real transcript partially when one record carries restricted data", async () => {
+    const canary = "synthetic_canary_value_54321";
+    const transcriptDirectory = join(temporaryRoot, "screened-transcripts");
+    const transcriptPath = join(transcriptDirectory, "screened-session.jsonl");
+    await mkdir(transcriptDirectory, { recursive: true });
+    await writeFile(
+      transcriptPath,
+      `{"type":"user","sessionId":"synthetic-screened-session","message":{"role":"user","content":"keep this turn"}}\n{"type":"user","sessionId":"synthetic-screened-session","message":{"role":"user","content":"password=${canary}"}}\n{"type":"user","sessionId":"synthetic-screened-session","message":{"role":"user","content":"keep this turn too"}}\n`,
+      "utf8",
+    );
+
+    const imported = await runSuccessfulCli([
+      "session",
+      "import",
+      "--project",
+      projectId,
+      "--source",
+      "claude-code-local",
+      "--file",
+      transcriptPath,
+      "--json",
+    ]);
+    const report = JSON.parse(imported.stdout) as {
+      addedEvents: number;
+      skippedRecords: readonly { reason: string; count: number }[];
+    };
+
+    assert.equal(report.addedEvents, 2);
+    assert.deepEqual(report.skippedRecords, [
+      { reason: "RESTRICTED_DATA:assigned-credential", count: 1 },
+    ]);
+    assert.doesNotMatch(imported.stdout, new RegExp(canary, "u"));
+
+    const printed = await runSuccessfulCli([
+      "session",
+      "import",
+      "--project",
+      projectId,
+      "--source",
+      "claude-code-local",
+      "--file",
+      transcriptPath,
+    ]);
+    assert.match(
+      printed.stdout,
+      /Records excluded by restricted-data screening: 1/u,
+    );
+    assert.match(printed.stdout, /RESTRICTED_DATA:assigned-credential: 1/u);
+    assert.doesNotMatch(printed.stdout, new RegExp(canary, "u"));
+  });
+
   it("adds only an append-only source extension", async () => {
     await writeFile(sourcePath, `${originalSource}${extensionRecord}`, "utf8");
     const result = await runSuccessfulCli([

@@ -7,7 +7,9 @@ import test from "node:test";
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
 import {
+  classifyRestrictedData,
   FileArtifactStore,
+  HighConfidenceRestrictedDataClassifier,
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
   LocalHistoricalEventReader,
@@ -145,6 +147,47 @@ test("screens content larger than one detector window in every position", () => 
       /provider-api-key/u,
       `undetected at character ${position}`,
     );
+});
+
+test("classifies restricted data without throwing and shares the window scan", () => {
+  const classifier = new HighConfidenceRestrictedDataClassifier();
+
+  assert.equal(classifier.classify(new Uint8Array()), null);
+  assert.equal(
+    classifier.classify(Buffer.from("ordinary conversation text", "utf8")),
+    null,
+  );
+  assert.equal(
+    classifier.classify(Buffer.from("-----BEGIN PRIVATE KEY-----", "utf8")),
+    "private-key",
+  );
+
+  // A pattern straddling a window boundary must still be classified, exactly as
+  // the throwing screen does: both shapes read the same overlapping scan.
+  const filler = "conversation text that contains nothing restricted.\n".repeat(
+    30_000,
+  );
+  const canary = `sk-${"a".repeat(20)}`;
+
+  assert.equal(classifier.classify(Buffer.from(filler, "utf8")), null);
+
+  for (const position of [0, 260_000, 520_000, filler.length]) {
+    assert.equal(
+      classifier.classify(
+        Buffer.from(
+          `${filler.slice(0, position)}${canary}${filler.slice(position)}`,
+          "utf8",
+        ),
+      ),
+      "provider-api-key",
+      `unclassified at character ${position}`,
+    );
+  }
+
+  assert.equal(
+    classifyRestrictedData(Buffer.from(`password=${"b".repeat(20)}`, "utf8")),
+    "assigned-credential",
+  );
 });
 
 test("screens an empty payload without treating it as restricted", () => {

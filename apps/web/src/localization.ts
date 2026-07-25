@@ -99,7 +99,7 @@ const EN = {
   transcriptsIntro:
     "Name the directory that holds your Claude Code transcripts, then import one file into the selected project. Listing a directory reads names, sizes, and modification times only; no transcript is opened until you import it.",
   transcriptsTrustBody:
-    "the transcript is read locally and stored as UNTRUSTED evidence. Nothing is executed and nothing is sent over a network. An import that contains high-confidence restricted data is blocked completely, and nothing is written.",
+    "the transcript is read locally and stored as UNTRUSTED evidence. Nothing is executed and nothing is sent over a network. A record that carries high-confidence restricted data is excluded whole, counted, and never stored; if that leaves nothing to convert, the import writes nothing at all.",
   transcriptDirectory: "Transcript directory",
   transcriptDirectoryHelp:
     "Enter one existing directory. It is not searched recursively and no location is guessed.",
@@ -114,6 +114,8 @@ const EN = {
   transcriptImporting: "Reading and storing this transcript locally…",
   transcriptCounts:
     "Added {added}, unchanged {unchanged}, total {total}, records not converted {skipped}.",
+  transcriptRestricted:
+    "{count} record(s) were excluded by restricted-data screening. Their content was neither imported nor stored, and the detected value is never shown. Rotate any credential that was real.",
   transcriptNoProject: "Select a registered project first.",
   transcriptAttention: "Transcript import needs attention.",
   searchEvidence: "Search evidence",
@@ -456,7 +458,7 @@ const IT = {
   transcriptsIntro:
     "Indica la cartella che contiene i tuoi transcript di Claude Code, poi importa un file nel progetto selezionato. Elencare una cartella legge soltanto nomi, dimensioni e date di modifica; nessun transcript viene aperto finché non lo importi.",
   transcriptsTrustBody:
-    "il transcript è letto in locale e conservato come evidenza UNTRUSTED. Nulla viene eseguito e nulla viene inviato in rete. Un import che contiene dati riservati ad alta confidenza viene bloccato completamente e non scrive nulla.",
+    "il transcript è letto in locale e conservato come evidenza UNTRUSTED. Nulla viene eseguito e nulla viene inviato in rete. Un record che contiene dati riservati ad alta confidenza viene escluso per intero, contato e mai salvato; se così non resta nulla da convertire, l'import non scrive nulla.",
   transcriptDirectory: "Cartella dei transcript",
   transcriptDirectoryHelp:
     "Indica una cartella esistente. Non viene esplorata in modo ricorsivo e nessun percorso viene indovinato.",
@@ -472,6 +474,8 @@ const IT = {
   transcriptImporting: "Lettura e salvataggio locale di questo transcript…",
   transcriptCounts:
     "Aggiunti {added}, invariati {unchanged}, totale {total}, record non convertiti {skipped}.",
+  transcriptRestricted:
+    "{count} record sono stati esclusi dallo screening dei dati riservati. Il loro contenuto non è stato importato né salvato e il valore rilevato non viene mai mostrato. Ruota qualunque credenziale che fosse reale.",
   transcriptNoProject: "Seleziona prima un progetto registrato.",
   transcriptAttention: "L'import del transcript richiede attenzione.",
   searchEvidence: "Cerca evidenza",
