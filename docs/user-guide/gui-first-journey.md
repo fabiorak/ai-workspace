@@ -118,8 +118,13 @@ move to a separately reviewed indexed adapter.
 
 The host binds only to loopback and makes no external request. It uses local
 assets, a one-time bootstrap URL, session and CSRF tokens, restrictive browser
-headers, and bounded request bodies. Do not use real, private, or production
-transcripts: only the reviewed bundled synthetic sample is supported.
+headers, and bounded request bodies. The bundled sample remains the only
+fictional corpus, but real local Claude Code transcripts are supported through
+the tolerant `claude-code-local` reader. Imported evidence is stored
+unencrypted under `AI_WORKSPACE_HOME`, so read
+[importing your own local transcripts](local-transcripts.md) first, and never
+import credentials, third-party confidential material, or recovery secrets.
+Fixtures committed to this repository stay synthetic without exception.
 
 The GUI does not discover, author, edit, install, select, enforce, or execute
 instructions, agents, or skills. Models, tools, translation services, and
