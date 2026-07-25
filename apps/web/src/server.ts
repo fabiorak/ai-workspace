@@ -6,6 +6,8 @@ import {
 } from "node:http";
 import { APP_CSS, APP_JS, shellHtml } from "./assets.ts";
 import { GuiApplication, GuiApplicationError } from "./application.ts";
+import { dashboardFragmentHtml } from "./dashboard-view.ts";
+import { resolveGuiLocale } from "./localization.ts";
 import {
   SESSION_EVENT_TYPES,
   type SessionEventType,
@@ -87,6 +89,23 @@ export async function startGuiServer(
         return json(response, 200, await application.listProjects());
       if (request.method === "GET" && url.pathname === "/api/dashboard")
         return json(response, 200, await application.dashboard());
+      // Presentation endpoint, not an API: it returns a rendered fragment so the
+      // client never assembles markup from data. An unsupported locale falls
+      // back to English rather than failing the request.
+      if (
+        request.method === "GET" &&
+        url.pathname === "/view/dashboard-charts"
+      ) {
+        const locale = resolveGuiLocale(
+          url.searchParams.get("locale") ?? undefined,
+          [],
+        );
+        return send(
+          response,
+          "text/html; charset=utf-8",
+          dashboardFragmentHtml(await application.dashboard(), locale),
+        );
+      }
       if (request.method === "GET") {
         const privacyAuditEvent =
           /^\/api\/projects\/([^/]+)\/privacy-audit\/([^/]+)$/u.exec(

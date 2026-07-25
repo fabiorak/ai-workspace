@@ -355,6 +355,75 @@ const EN = {
   showingWork: "Showing {count} Work Item(s).",
   returningImport:
     "A project is selected. You can import or re-import the safe sample.",
+  dashboardFocusKicker: "What to do now",
+  focusFirstRunTitle: "Register your first project",
+  focusFirstRunBody:
+    "No project is registered, so there is nothing to summarize yet. Register one local repository and this overview fills itself in.",
+  focusFirstRunAction: "Register a project",
+  focusBlockedTitle: "Blocked work needs a decision",
+  focusBlockedBody:
+    "{count} of {total} Work Items are BLOCKED. Nothing that depends on them can move until each one is completed or reopened.",
+  focusBlockedAction: "Review blocked Work Items",
+  focusAttentionTitle: "Uncommitted repository changes",
+  focusAttentionBody:
+    "{count} of {total} registered projects have uncommitted changes. Evidence captured now describes a state that is committed nowhere.",
+  focusAttentionAction: "Review projects needing attention",
+  focusUnverifiedTitle: "Unverified memory is in play",
+  focusUnverifiedBody:
+    "{count} of {total} sampled active memory items are still UNVERIFIED. Treat them as claims until you check each one against its evidence.",
+  focusUnverifiedAction: "Review active memory",
+  focusClearTitle: "Nothing needs your attention",
+  focusClearBody:
+    "No blocked Work Item, no uncommitted repository change, and no unverified memory. Import evidence or curate memory when you are ready.",
+  focusClearAction: "Open projects",
+  chartProjectsDesc:
+    "{clean} of {total} registered projects have a clean working tree and {attention} need attention.",
+  chartProjectsEmpty: "No project is registered yet.",
+  chartProjectsTotal: "projects",
+  chartWorkDesc:
+    "{total} Work Items: {proposed} proposed, {active} active, {blocked} blocked, {completed} completed.",
+  chartWorkEmpty: "No Work Item exists yet.",
+  chartWorkTotal: "Work Items",
+  chartMemoryDesc:
+    "{verified} of {sampled} sampled active memory items are verified and {unverified} are unverified.",
+  chartMemoryEmpty: "No active memory item exists yet.",
+  chartMemoryTotal: "active items",
+  chartMemoryTruncated:
+    "The sample is bounded: {sampled} of {active} active items were read, so this chart describes the sample and not the whole store.",
+  chartPrivacyDesc:
+    "{total} recorded privacy decisions: {reviewable} reviewable and {blocked} blocked.",
+  chartPrivacyEmpty: "No privacy decision has been recorded yet.",
+  chartPrivacyTotal: "decisions",
+  legendClean: "Clean",
+  legendAttention: "Needs attention",
+  legendProposed: "Proposed",
+  legendActive: "Active",
+  legendBlocked: "Blocked",
+  legendCompleted: "Completed",
+  legendVerified: "Verified",
+  legendUnverified: "Unverified",
+  legendReviewable: "Reviewable",
+  legendValue: "{value} ({share}%)",
+  chartTableSummary: "Show the same numbers as a table",
+  chartTableCaption: "Every dashboard chart as text.",
+  chartTableMeasure: "Measure",
+  chartTableGroup: "Group",
+  chartTableValue: "Value",
+  chartTableShare: "Share",
+  dashboardCoverageText:
+    "Coverage: {available} of {total} projects available; memory is limited to {memoryLimit} items and audit to {privacyLimit} events per project. Updated {updated}.",
+  dashboardUpdatedStatus: "Local overview updated. Read-only.",
+  dashboardAttentionStatus: "The overview needs attention.",
+  dashboardChartsLoading: "Loading the local charts…",
+  systemProjectCoverage:
+    "Available {available} of {total} projects; {unavailable} need attention.",
+  systemSnapshot: "Latest local snapshot: {updated}.",
+  filterProjectsAttention:
+    "Showing only the registered projects that need attention.",
+  filterWorkState: "Showing only Work Items with status {state}.",
+  filterClear: "Show all",
+  noMatchingProjects: "No registered project matches this filter.",
+  noMatchingWork: "No Work Item matches this filter.",
 } as const;
 
 export type GuiMessageKey = keyof typeof EN;
@@ -720,6 +789,75 @@ const IT = {
   showingWork: "Visualizzati {count} Work Item.",
   returningImport:
     "È selezionato un progetto. Puoi importare o reimportare l'esempio sicuro.",
+  dashboardFocusKicker: "Cosa fare adesso",
+  focusFirstRunTitle: "Registra il tuo primo progetto",
+  focusFirstRunBody:
+    "Nessun progetto è registrato, quindi non c'è ancora nulla da riassumere. Registra un repository locale e questa panoramica si popola da sé.",
+  focusFirstRunAction: "Registra un progetto",
+  focusBlockedTitle: "Il lavoro bloccato richiede una decisione",
+  focusBlockedBody:
+    "{count} Work Item su {total} sono BLOCKED. Nulla che dipenda da loro può avanzare finché ciascuno non viene completato o riaperto.",
+  focusBlockedAction: "Esamina i Work Item bloccati",
+  focusAttentionTitle: "Modifiche non committate nel repository",
+  focusAttentionBody:
+    "{count} progetti registrati su {total} hanno modifiche non committate. L'evidenza raccolta adesso descrive uno stato che non è committato da nessuna parte.",
+  focusAttentionAction: "Esamina i progetti che richiedono attenzione",
+  focusUnverifiedTitle: "È in uso memoria non verificata",
+  focusUnverifiedBody:
+    "{count} elementi di memoria attiva campionati su {total} sono ancora UNVERIFIED. Trattali come affermazioni finché non li verifichi ciascuno rispetto alla sua evidenza.",
+  focusUnverifiedAction: "Esamina la memoria attiva",
+  focusClearTitle: "Nulla richiede la tua attenzione",
+  focusClearBody:
+    "Nessun Work Item bloccato, nessuna modifica non committata e nessuna memoria non verificata. Importa evidenza o cura la memoria quando vuoi.",
+  focusClearAction: "Apri i progetti",
+  chartProjectsDesc:
+    "{clean} progetti registrati su {total} hanno il working tree pulito e {attention} richiedono attenzione.",
+  chartProjectsEmpty: "Nessun progetto è ancora registrato.",
+  chartProjectsTotal: "progetti",
+  chartWorkDesc:
+    "{total} Work Item: {proposed} proposti, {active} attivi, {blocked} bloccati, {completed} completati.",
+  chartWorkEmpty: "Non esiste ancora nessun Work Item.",
+  chartWorkTotal: "Work Item",
+  chartMemoryDesc:
+    "{verified} elementi di memoria attiva campionati su {sampled} sono verificati e {unverified} non sono verificati.",
+  chartMemoryEmpty: "Non esiste ancora nessun elemento di memoria attiva.",
+  chartMemoryTotal: "elementi attivi",
+  chartMemoryTruncated:
+    "Il campione è limitato: sono stati letti {sampled} elementi attivi su {active}, quindi questo grafico descrive il campione e non tutto lo store.",
+  chartPrivacyDesc:
+    "{total} decisioni privacy registrate: {reviewable} rivedibili e {blocked} bloccate.",
+  chartPrivacyEmpty: "Nessuna decisione privacy è ancora stata registrata.",
+  chartPrivacyTotal: "decisioni",
+  legendClean: "Pulito",
+  legendAttention: "Richiede attenzione",
+  legendProposed: "Proposti",
+  legendActive: "Attivi",
+  legendBlocked: "Bloccati",
+  legendCompleted: "Completati",
+  legendVerified: "Verificati",
+  legendUnverified: "Non verificati",
+  legendReviewable: "Rivedibili",
+  legendValue: "{value} ({share}%)",
+  chartTableSummary: "Mostra gli stessi numeri come tabella",
+  chartTableCaption: "Ogni grafico della dashboard in forma testuale.",
+  chartTableMeasure: "Misura",
+  chartTableGroup: "Gruppo",
+  chartTableValue: "Valore",
+  chartTableShare: "Quota",
+  dashboardCoverageText:
+    "Copertura: {available} progetti disponibili su {total}; la memoria è limitata a {memoryLimit} elementi e l'audit a {privacyLimit} eventi per progetto. Aggiornato {updated}.",
+  dashboardUpdatedStatus: "Panoramica locale aggiornata. Sola lettura.",
+  dashboardAttentionStatus: "La panoramica richiede attenzione.",
+  dashboardChartsLoading: "Caricamento dei grafici locali…",
+  systemProjectCoverage:
+    "Disponibili {available} progetti su {total}; {unavailable} richiedono attenzione.",
+  systemSnapshot: "Ultimo snapshot locale: {updated}.",
+  filterProjectsAttention:
+    "Sono mostrati solo i progetti registrati che richiedono attenzione.",
+  filterWorkState: "Sono mostrati solo i Work Item con stato {state}.",
+  filterClear: "Mostra tutto",
+  noMatchingProjects: "Nessun progetto registrato corrisponde a questo filtro.",
+  noMatchingWork: "Nessun Work Item corrisponde a questo filtro.",
 } as const satisfies Catalog;
 
 export const GUI_CATALOGS: Readonly<Record<GuiLocale, Catalog>> = Object.freeze(
@@ -738,6 +876,44 @@ export function resolveGuiLocale(
     if (locale === "en" || locale === "it") return locale;
   }
   return "en";
+}
+
+const NUMBER_FORMATTERS = new Map<GuiLocale, Intl.NumberFormat>();
+const DATE_TIME_FORMATTERS = new Map<GuiLocale, Intl.DateTimeFormat>();
+
+/**
+ * Formats a count for display, so 1000 reads as `1,000` in English and `1.000`
+ * in Italian instead of as a bare digit run in both.
+ */
+export function formatGuiNumber(locale: GuiLocale, value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  let formatter = NUMBER_FORMATTERS.get(locale);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale);
+    NUMBER_FORMATTERS.set(locale, formatter);
+  }
+  return formatter.format(value);
+}
+
+/**
+ * Formats a stored ISO timestamp in the reader's locale and local time zone. An
+ * unparsable value is returned verbatim rather than shown as `Invalid Date`.
+ */
+export function formatGuiDateTime(
+  locale: GuiLocale,
+  isoTimestamp: string,
+): string {
+  const instant = new Date(isoTimestamp);
+  if (Number.isNaN(instant.getTime())) return isoTimestamp;
+  let formatter = DATE_TIME_FORMATTERS.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeStyle: "medium",
+    });
+    DATE_TIME_FORMATTERS.set(locale, formatter);
+  }
+  return formatter.format(instant);
 }
 
 export function guiMessage(

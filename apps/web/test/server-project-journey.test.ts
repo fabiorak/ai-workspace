@@ -91,13 +91,14 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Skip to the guided workflow/u);
     assert.match(html, /id="dashboard"/u);
     assert.match(html, /Workspace overview/u);
-    assert.match(html, /dashboard-grid/u);
+    assert.match(html, /id="dashboard-charts"/u);
     assert.match(html, /class="app-shell"/u);
     assert.match(html, /class="sidebar"/u);
     assert.match(html, /href="#\/settings"/u);
     assert.match(html, /href="#\/scripts"/u);
     assert.match(html, /href="#\/system"/u);
-    assert.match(html, /id="dashboard-project-ring"/u);
+    assert.match(html, /id="project-filter" class="filter-chip"/u);
+    assert.match(html, /id="work-filter" class="filter-chip"/u);
     assert.match(html, /No script runner, command execution/u);
     assert.match(html, /no provider delivery surface exists/iu);
     assert.match(html, /aria-live="polite"/u);
@@ -139,7 +140,8 @@ describe("GUI server project onboarding", () => {
     assert.match(script, /aiw-locale/u);
     assert.match(script, /const pageSections/u);
     assert.match(script, /aria-current/u);
-    assert.match(script, /--chart-value/u);
+    assert.match(script, /\/view\/dashboard-charts\?locale=/u);
+    assert.match(script, /new DOMParser\(\)\.parseFromString/u);
     assert.match(script, /\{count\} progetti sono registrati localmente/u);
     assert.match(script, /La registrazione salva localmente metadati Git/u);
     assert.match(script, /Pronto a importare l'esempio fittizio/u);
@@ -156,8 +158,15 @@ describe("GUI server project onboarding", () => {
     assert.match(style, /max-width: 64rem/u);
     assert.match(style, /max-width: 44rem/u);
     assert.match(style, /prefers-reduced-motion/u);
-    assert.match(style, /dashboard-card/u);
-    assert.match(style, /conic-gradient/u);
+    assert.match(style, /\.chart-card/u);
+    assert.match(
+      style,
+      /\.chart-tone-blocked \{ --chart-tone: var\(--danger\); \}/u,
+    );
+    assert.match(style, /\.filter-chip/u);
+    // The chart palette must stay indirect: a literal colour in a tone class would defeat
+    // the light and dark themes that redefine those variables.
+    assert.equal(/--chart-tone: #/u.test(style), false);
     assert.match(style, /section\.route-hidden/u);
     const dashboard = (await (await api("/api/dashboard")).json()) as {
       projects: { total: number };

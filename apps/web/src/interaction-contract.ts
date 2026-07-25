@@ -1,4 +1,5 @@
 export type GuiJourneyStep =
+  | "DASHBOARD"
   | "WELCOME"
   | "PROJECTS"
   | "IMPORT"
@@ -83,6 +84,24 @@ const STATES: readonly GuiState[] = Object.freeze([
 
 export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
   [
+    screen(
+      "DASHBOARD",
+      "Workspace overview",
+      "Read the local state at a glance and open the page that explains a number.",
+      action({
+        id: "open-filtered-drill-down",
+        label: "Open the projects that need attention",
+        description:
+          "Follow a chart link to the destination page already filtered to the counted subset.",
+        effect:
+          "Changes the visible page and its filter only; no stored state is read or written.",
+        recovery:
+          "Choose Show all on the destination page to remove the filter.",
+        nextAction:
+          "The destination page lists exactly the items the chart counted.",
+        mutates: false,
+      }),
+    ),
     screen(
       "WELCOME",
       "Welcome to AI Workspace",
@@ -519,7 +538,7 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 23)
+  if (steps.size !== 24)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

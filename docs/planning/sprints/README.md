@@ -46,3 +46,4 @@ results separately from future forecasts in the project plan.
 - [Sprint 39 — Introduce the Graphical Workspace Dashboard](SPRINT-039.md) — completed
 - [Sprint 40 — Read Provider Credentials from the Environment Only](SPRINT-040.md) — planned
 - [Sprint 41 — Ingest Real Local Claude Code Sessions](SPRINT-041.md) — completed
+- [Sprint 42 — Screen Restricted Data per Record and Chart the Dashboard](SPRINT-042.md) — completed

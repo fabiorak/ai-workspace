@@ -11,6 +11,7 @@ describe("GUI interaction contract", () => {
     assert.deepEqual(
       GUI_SCREEN_CONTRACTS.map((screen) => screen.step),
       [
+        "DASHBOARD",
         "WELCOME",
         "PROJECTS",
         "IMPORT",
