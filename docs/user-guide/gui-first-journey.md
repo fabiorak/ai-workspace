@@ -16,9 +16,19 @@ Open the one-time `127.0.0.1` URL printed in the terminal. Keep that terminal
 open; press Ctrl+C to stop the foreground host. Set `AI_WORKSPACE_HOME` before
 starting only when an isolated local state directory is needed.
 
+The link opens one session and then expires, so opening it a second time, or
+opening the GUI in a browser that never received the session cookie, shows a
+page stating what happened and what to do. Restart the host and open the new
+URL it prints.
+
 Open **Settings** from the sidebar to choose **English** or **Italiano** at any
-time. The preference is stored only in the local browser, falls back to English
-for unsupported values, and does not clear entered values or mutate workspace
+time. The interface shows one language at a time, and switching also rewrites
+the messages already on screen, including the ones written after an action such
+as an import or a search. Technical details that come from the core packages
+stay in English under a labeled line, so the cause and the remedy are always in
+the chosen language while the untranslated detail stays visibly separate. The
+preference is stored only in the local browser, falls back to English for
+unsupported values, and does not clear entered values or mutate workspace
 state. Imported evidence, identifiers, and user-authored content remain in
 their original language.
 
