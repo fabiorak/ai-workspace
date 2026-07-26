@@ -101,9 +101,9 @@ which is the expected case here — the lexical engine is not the compromise; it
 the better engine.
 
 **A declared bilingual glossary bridges most of the language jump.** 61 declared
-term pairs raise cross-language recall from 40% to 80% while precision *rises*
+term pairs raise cross-language recall from 40% to 80% while precision _rises_
 from 26.67% to 35% and Italian-only recall is unchanged. The bridge adds the
-translation *in addition* to the term the reader typed, never as a substitute:
+translation _in addition_ to the term the reader typed, never as a substitute:
 a term being present in the index says nothing about it being present in the
 right document. Two questions remain unresolved — `it-dashboard` and
 `it-memoria-attiva` — where the gap is conceptual rather than lexical.
@@ -111,7 +111,7 @@ right document. Two questions remain unresolved — `it-dashboard` and
 Dense retrieval on this corpus is genuinely the strongest on quality: 100%
 recall, 75% precision, and it answers the two questions the glossary cannot.
 It costs 53.16 s to build 1,642 section vectors and 209 ms median per query
-against a 150 ms budget, and fusing it with the lexical list *lowers* precision
+against a 150 ms budget, and fusing it with the lexical list _lowers_ precision
 from 58.33% to 50.93%, because RRF promotes candidates that only one engine
 believes in.
 
@@ -124,16 +124,16 @@ across 8 families, 20 ground-truth pairs, 12 of which name the symbol the answer
 should land on. 8,565 distinct terms in code tokenization against 6,527 in prose
 tokenization of the same records.
 
-| engine                          | file recall | symbol localization | p@R    | p95      |
-| ------------------------------- | ----------- | ------------------- | ------ | -------- |
-| prose mode, symbol              | 83.33%      | 25%                 | 38.89% | 0.9 ms   |
-| code mode, symbol               | 88.89%      | 41.67%              | 55.56% | 1.2 ms   |
-| code mode, symbol, typo tolerant| 88.89%      | 41.67%              | 55.56% | 1.5 ms   |
-| code mode, whole-name weight    | 88.89%      | 41.67%              | 41.67% | 0.9 ms   |
-| code mode, declared-name weight | 100%        | 75%                 | 61.11% | 1.7 ms   |
-| code mode, whole file           | 100%        | 0%                  | 30.56% | 0.2 ms   |
-| dense, symbol (bge-m3)          | 88.89%      | 66.67%              | 63.89% | 882.5 ms |
-| hybrid, symbol (RRF)            | 100%        | 66.67%              | 69.44% | 882.5 ms |
+| engine                           | file recall | symbol localization | p@R    | p95      |
+| -------------------------------- | ----------- | ------------------- | ------ | -------- |
+| prose mode, symbol               | 83.33%      | 25%                 | 38.89% | 0.9 ms   |
+| code mode, symbol                | 88.89%      | 41.67%              | 55.56% | 1.2 ms   |
+| code mode, symbol, typo tolerant | 88.89%      | 41.67%              | 55.56% | 1.5 ms   |
+| code mode, whole-name weight     | 88.89%      | 41.67%              | 41.67% | 0.9 ms   |
+| code mode, declared-name weight  | 100%        | 75%                 | 61.11% | 1.7 ms   |
+| code mode, whole file            | 100%        | 0%                  | 30.56% | 0.2 ms   |
+| dense, symbol (bge-m3)           | 88.89%      | 66.67%              | 63.89% | 882.5 ms |
+| hybrid, symbol (RRF)             | 100%        | 66.67%              | 69.44% | 882.5 ms |
 
 **Code needs its own tokenization, and the difference is measurable in both
 directions.** Code questions reach 88.89% in code mode against 83.33% in prose
@@ -150,13 +150,13 @@ the results are, not only where the query was typed.
 **The decisive lever on code is the same as on documents: weight the declared
 name.** Repeating the symbol name at the head of its record takes the engine to
 100% file recall, 75% symbol localization, 61.11% precision, with every one of
-the eight question families at 100%. Weighting the *whole identifier* against its
+the eight question families at 100%. Weighting the _whole identifier_ against its
 own parts — the change that intuition suggests, since splitting `getUserById`
 makes five weak parts compete with one strong exact match — changes no recall and
 costs 14 points of precision. Splitting identifiers, measured alone, changes
 nothing at all: 100% against 100% recall and 80% against 80% localization on the
 word-form questions. What the code corpus needed was not more splitting but a
-distinction between the name a record *declares* and the words it merely
+distinction between the name a record _declares_ and the words it merely
 contains.
 
 **Typo tolerance does not conflate similar names.** On three deliberately
@@ -170,10 +170,10 @@ mode, against the conflation this measurement was written expecting.
 textually indistinguishable to BM25, and the shorter record wins. The same cause
 produces a residual defect in the recommended engine: searching
 `inspectPseudonymizedOutputWithPolicy` ranks first the shorter record that
-*calls* it, which is why symbol localization on exact names is 66.67% and not
+_calls_ it, which is why symbol localization on exact names is 66.67% and not
 100%.
 
-On code, unlike on documents, fusing dense with lexical *improves* precision:
+On code, unlike on documents, fusing dense with lexical _improves_ precision:
 69.44% against 61.11% lexical and 63.89% dense. Dense costs 82.32 s to build
 2,122 symbol vectors. Its measured query latency varied between roughly 200 ms
 and 900 ms across runs of the same script on the same machine, so no single
@@ -221,7 +221,7 @@ active mode is stated alongside the results**, because a query run in the wrong
 mode was measured to return plausible results rather than none.
 
 **Cross-language reach is a declared glossary, not an inference.** A bilingual
-term glossary adds the declared translation *in addition* to the term the reader
+term glossary adds the declared translation _in addition_ to the term the reader
 typed, never as a replacement and never only when the term is absent from the
 index. Every bridged result states which term was translated.
 

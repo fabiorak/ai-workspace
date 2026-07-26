@@ -903,7 +903,10 @@ export function dot(left: readonly number[], right: readonly number[]): number {
   return total;
 }
 
-export function percentile(values: readonly number[], fraction: number): number {
+export function percentile(
+  values: readonly number[],
+  fraction: number,
+): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((left, right) => left - right);
   const position = Math.min(

@@ -43,6 +43,38 @@ reads no credential, invokes no model, captures no response, and creates no
 production store. See the
 [corpus](../docs/development/openai-at-most-once-attempt-corpus.md).
 
+`npm run measure:tolerant-search` and `npm run measure:unified-retrieval` run the
+two synthetic retrieval corpora behind ADR-0031. The first compares five
+retrieval strategies over fictional Italian canonical events; the second adds
+synthetic active-memory items, including deliberately superseded and invalidated
+ones, and compares six engines including SQLite FTS5 through `node:sqlite`.
+Reports contain aggregate counts, fingerprints, gates, and decisions. Neither
+reads a real store, a local path, or a transcript. See the
+[tolerant search corpus](../docs/development/tolerant-search-corpus.md), the
+[unified retrieval corpus](../docs/development/unified-retrieval-corpus.md), and
+the shared
+[observations](../docs/development/tolerant-retrieval-observations.md).
+
+`npm run measure:document-retrieval` and `npm run measure:code-retrieval` measure
+the same engine over the real content of this repository — the committed Markdown
+documentation and the TypeScript sources — read from disk at run time and never
+copied into a fixture. Both are already public, so the measurement exposes
+nothing; `.ai-workspace`, `node_modules`, `.git`, and generated `dist` output are
+excluded. Both corpora grow with the repository, so each report states a
+fingerprint and the owning tests assert predeclared thresholds instead of frozen
+percentages. They import their retrieval rules from
+`tolerant-search-measurement.ts` rather than reimplementing them. See the
+[document corpus](../docs/development/document-retrieval-corpus.md), the
+[code corpus](../docs/development/code-retrieval-corpus.md), and the shared
+[observations](../docs/development/tolerant-retrieval-observations.md).
+
+The dense sections of the last three commands are optional. They call a local
+embedding service on loopback when one answers, using only synthetic records or
+this repository's public content, and state the absence when none does; no
+lexical result depends on the service. No command reads a credential, calls a
+remote provider, incurs cost, persists an index, or exports anything to
+production code.
+
 `npm run measure:anthropic-messages` and `npm run measure:claude-headless` run
 the Sprint 35 qualification corpora twice. The first models bounded Messages
 serialization and typed events; the second uses two deterministic fake Claude

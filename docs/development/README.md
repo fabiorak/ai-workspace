@@ -12,6 +12,11 @@ Measurement reports:
 - [Reviewed entity candidate discovery corpus](entity-candidate-discovery-corpus.md)
 - [Reviewed entity candidate discovery observations](entity-candidate-discovery-observations.md)
 - [Privacy mapping schema-v2 compatibility corpus](privacy-schema-v2-compatibility-corpus.md)
+- [Tolerant search corpus](tolerant-search-corpus.md)
+- [Unified retrieval corpus](unified-retrieval-corpus.md)
+- [Document retrieval corpus](document-retrieval-corpus.md)
+- [Code retrieval corpus](code-retrieval-corpus.md)
+- [Tolerant retrieval observations](tolerant-retrieval-observations.md)
 
 ## Prerequisites
 
@@ -209,6 +214,49 @@ exact configured aliases only as future review suggestions and require further
 refinement for standard syntax and combined candidates. No recognizer is
 exported to production or connected to the facade, GUI, mapping, or delivery
 graph.
+
+## Tolerant retrieval measurements
+
+Four measurements support
+[ADR-0031](../adr/0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md),
+which replaces the bounded literal scan of ADR-0008 with a tolerant lexical
+engine and amends ADR-0018. Their observed results are kept together in
+[Tolerant Retrieval Observations](tolerant-retrieval-observations.md); each
+corpus document freezes its own questions, ground truth, bounds, and gates.
+
+The [Tolerant Search Corpus](tolerant-search-corpus.md) freezes 13 synthetic
+Italian canonical events, 16 questions across eight tolerance families, five
+retrieval strategies, and the scale profile. Run
+`npm run measure:tolerant-search`. It establishes that the shipped literal engine
+answers 25% of lexical targets and returns nothing for 9 of 16 questions, and
+that the same rules need an index rather than a scan to stay inside the declared
+150 ms budget.
+
+The [Unified Retrieval Corpus](unified-retrieval-corpus.md) freezes the same
+events plus seven active-memory items — two of them deliberately superseded or
+invalidated — eight questions, four forbidden pairs, and six candidate engines
+including SQLite FTS5 and locally generated dense vectors. Run
+`npm run measure:unified-retrieval`. It establishes the store gap that motivates
+unification, the provenance redundancy that motivates deduplication, and the
+admissibility gate that no engine may fail whatever its recall.
+
+The [Document Retrieval Corpus](document-retrieval-corpus.md) and the
+[Code Retrieval Corpus](code-retrieval-corpus.md) run over the real, already
+public documentation and TypeScript sources of this repository, because whether
+one engine serves prose and code cannot be answered on fixtures. Run
+`npm run measure:document-retrieval` and `npm run measure:code-retrieval`. They
+establish the section and declaration indexing unit, the declared-name weight
+that is the largest single quality lever in both domains, the search-mode flag,
+and the declared limits of the bilingual glossary. Both corpora grow with the
+repository, so their reports state a fingerprint and their tests assert
+predeclared thresholds rather than frozen percentages.
+
+All four are declared `DEVELOPMENT_ONLY_NO_PRODUCTION_CONSUMER`: no package,
+GUI, index, or shipped API consumes them, and the two real-corpus harnesses
+import their retrieval rules from the synthetic one so that all four measure the
+same engine. Their dense paths reach a local embedding service when one answers
+and state the absence when none does; no lexical result depends on it. Executable
+assertions live in `packages/historical-search/test/`.
 
 ## Architecture decisions
 
