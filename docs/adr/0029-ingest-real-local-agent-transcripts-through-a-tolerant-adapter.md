@@ -23,13 +23,12 @@ of those shapes occurs in an actual Claude Code transcript, so no real session
 can be imported today.
 
 That restriction protected the evidence-first method while persistence, privacy,
-and delivery semantics were being decided. It also had a cost: the project has
-never been used on real work, so no product decision rests on evidence of use.
-PROJECT_PLAN principles 10 and 11 now separate the two kinds of evidence — a
-frozen synthetic corpus for irreversible technical decisions, actual use for
-product decisions — and name the maintainer's own agent sessions as the source
-of product evidence. Reading a real transcript is therefore required, and it
-reverses a stated posture, so it needs a decision record.
+and delivery semantics were being decided. It also had a cost: with synthetic
+material only, no product decision can rest on evidence of real use. The two
+kinds of evidence are distinct — a frozen synthetic corpus for irreversible
+technical decisions, actual use of the product for product decisions — and only
+real sessions can supply the second. Reading a real transcript is therefore
+required, and it reverses a stated posture, so it needs a decision record.
 
 Two things must not be weakened by that reversal. A repository that is public
 must never contain a real transcript. And the high-confidence restricted-data
@@ -66,7 +65,7 @@ the narrow synthetic adapter unchanged:
   containing high-confidence restricted data blocks the whole import and writes
   nothing;
 - the repository keeps containing synthetic fixtures only. Real transcripts stay
-  in the maintainer's local runtime state, which is ignored by version control.
+  in local runtime state, which is ignored by version control.
 
 The adapter remains dependency-free and adds no network access, no provider
 call, and no automatic filesystem search.

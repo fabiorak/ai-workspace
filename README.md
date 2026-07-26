@@ -126,7 +126,9 @@ architectural decisions.
 - [Architecture overview](docs/architecture/README.md)
 - [Architecture Decision Records](docs/adr/README.md)
 - [Product definition](docs/product/PRODUCT.md)
-- [Project plan](docs/planning/PROJECT_PLAN.md)
+- [Experience vision (English)](docs/product/EXPERIENCE_VISION_EN.md) —
+  how the product must feel to use
+- [Visione dell'esperienza d'uso (Italiano)](docs/product/EXPERIENCE_VISION_IT.md)
 - [Development guide](docs/development/README.md)
 - [Roadmap](ROADMAP.md)
 

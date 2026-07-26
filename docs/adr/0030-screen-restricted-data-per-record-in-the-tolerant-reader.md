@@ -8,25 +8,24 @@
 
 ADR-0029 made real local transcripts importable and deliberately left
 restricted-data screening unchanged: a transcript containing a high-confidence
-pattern blocked the whole import and wrote nothing. The first real use of that
-capability showed what the posture costs.
+pattern blocked the whole import and wrote nothing. Use on real transcripts shows
+what that posture costs.
 
-The maintainer imported the transcript of the session that had just built the
-feature and got `Restricted data detected in session source (private-key);
-import blocked`. No key was involved. The `private-key` detector looks for the
-literal string `-----BEGIN PRIVATE KEY-----`, which this repository carries as a
-synthetic canary in its own privacy tests and measurement scripts. The session
-had read those files, so the transcript quoted the canary. A false positive of
-meaning, a true positive of pattern.
+A transcript of ordinary development work on a security-sensitive codebase is
+refused with `Restricted data detected in session source (private-key); import
+blocked` even when no key is involved. The `private-key` detector looks for the
+literal string `-----BEGIN PRIVATE KEY-----`. Any project whose own privacy tests
+or measurement scripts carry a synthetic canary of that shape puts that string
+into every session that reads those files. A false positive of meaning, a true
+positive of pattern.
 
 Because screening is per file and fails the whole import closed, every session
-that touches the security tests of this project is permanently unimportable —
-which is precisely the set of sessions that do the work on this project. The
-primary use case of the product is blocked, and with it the evidence of use that
-plan principles 10 and 11 make the basis of product decisions. The remedy ADR-0029
-suggested, "a decision about the transcript", does not exist here: the maintainer
-cannot remove a canary from a repository whose tests need it, and cannot rewrite
-history that already happened.
+that touches such files is permanently unimportable — which is precisely the set
+of sessions that did the work. The primary use case of the product is blocked,
+and with it the evidence of real use that product decisions depend on. The remedy
+ADR-0029 suggested, "a decision about the transcript", does not exist here: a
+canary cannot be removed from a repository whose tests need it, and history that
+already happened cannot be rewritten.
 
 Two remedies were considered and rejected before this one. Asking the user to
 acknowledge each record moves a security decision onto a click and would have to
@@ -74,8 +73,8 @@ explicit non-recursive discovery, synthetic-only fixtures — stands unchanged.
 
 ## Consequences
 
-- a session that merely mentions a credential pattern is importable, so the
-  project can finally be used on its own history;
+- a session that merely mentions a credential pattern is importable, so a project
+  can be used on the history of its own development;
 - an import can now be partial for a security reason, and the accounting is the
   only thing that says so: a reader who ignores the skip breakdown can mistake a
   screened import for a complete one. That is why exclusion is reported

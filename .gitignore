@@ -26,6 +26,9 @@ coverage/
 __pycache__/
 *.py[cod]
 
+# Internal planning material, kept local and out of the public repository
+docs/planning/
+
 # Local runtime data and uncommitted session handoff
 .ai-workspace/HANDOFF.md
 .ai-workspace/

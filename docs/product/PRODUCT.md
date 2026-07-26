@@ -8,18 +8,27 @@ without surrendering control of local project data.
 
 ## Primary persona
 
-The initial persona is an independent software developer or technical lead who:
+The persona is anyone who works with more than one AI assistant and who is **not
+an insider**. They:
 
-- works on multiple local Git repositories;
-- uses at least two coding agents or model providers;
-- regularly loses time reconstructing decisions, failed attempts, changed
-  files, and test state;
-- wants local control over transcripts, source code, and sensitive data;
-- can run a local service and is comfortable with a CLI-first early product.
+- keep their work in local folders, which may hold source code, documents, or
+  both;
+- use at least two assistants or model providers, and switch between them;
+- regularly lose time re-explaining decisions, failed attempts, and the state of
+  the work to a new assistant;
+- want local control over conversations, files, and sensitive data;
+- can use a program with a familiar graphical interface, do not know the domain
+  vocabulary, and will not read a manual first.
 
-This persona is intentionally narrow. Teams, document-heavy workflows, and
-non-technical users remain important later audiences, but they must not widen
-the first MVP before cross-agent continuity is validated.
+This persona is the target of every interface decision, and is described in full
+in [`EXPERIENCE_VISION_EN.md`](EXPERIENCE_VISION_EN.md) with its Italian
+counterpart. The graphical interface is the surface that must serve it; the CLI
+stays available for automation, diagnostics, and advanced use.
+
+Teams and multi-user workflows remain a later audience, and must not widen the
+first MVP before cross-agent continuity is validated. Document repositories are
+designed but not yet in the delivery horizon; even so, no interface may assume a
+project contains code.
 
 ## Primary job to be done
 

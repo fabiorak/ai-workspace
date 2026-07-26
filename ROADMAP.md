@@ -21,31 +21,31 @@ reopened without new evidence that invalidates the accepted decision.
   separate provider-neutral local attempt store, not an extension of session or
   memory documents.
 
-Sprint 0 through [Sprint 39](docs/planning/sprints/SPRINT-039.md) are complete.
-[Sprint 40](docs/planning/sprints/SPRINT-040.md) is planned to establish the
+Sprint 0 through Sprint 39 are complete.
+Sprint 40 is planned to establish the
 next narrow M5 boundary: environment-only provider credential input and
 GUI-first non-secret status, without persisting any secret and without
 credential consumption, network access, provider authentication, model
 delivery, or execution.
-[Sprint 41](docs/planning/sprints/SPRINT-041.md) is planned to make the product
+Sprint 41 is planned to make the product
 usable on real local agent sessions through explicit user-selected ingestion of
-the maintainer's own Claude Code transcripts, so that product decisions can be
+Claude Code transcripts already on the machine, so that product decisions can be
 based on real use instead of synthetic fixtures alone.
-[Sprint 36](docs/planning/sprints/SPRINT-036.md) accepted ADR-0027 after its
+Sprint 36 accepted ADR-0027 after its
 28-case offline corpus proved at most one application-level OpenAI create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and
 zero retries. The decision is prototype semantics only: no live call,
 credential, production adapter/store, response, GUI action, routing, fallback,
 or execution was added.
-[Sprint 37](docs/planning/sprints/SPRINT-037.md) qualified the durable,
+Sprint 37 qualified the durable,
 non-content attempt evidence required before a future adapter call. Its 29-case
 offline corpus passed with zero retries and accepted only a dedicated
 test-owned JSON candidate. It does not authorize credentials, network, model
 delivery, a production store, or a user-facing surface.
-[Sprint 38](docs/planning/sprints/SPRINT-038.md) adopted the provider-neutral
+Sprint 38 adopted the provider-neutral
 production persistence boundary through ADR-0028 without adding credentials,
 network, provider calls, routes, GUI actions, or delivery.
-[Sprint 39](docs/planning/sprints/SPRINT-039.md) introduced a bilingual,
+Sprint 39 introduced a bilingual,
 accessible graphical homepage dashboard. It derives bounded read-only summaries
 from authoritative local stores and uses semantic HTML and CSS rather than a
 charting dependency.
@@ -57,25 +57,25 @@ evidence. Strict whole-token validation now restores exact mapping-owned values
 in a bounded local inspector and blocks the complete result on unknown or
 altered placeholders. It introduces no model access, response capture,
 delivery, routing, permission, or execution.
-[Sprint 32](docs/planning/sprints/SPRINT-032.md) accepted ADR-0026 after its
+Sprint 32 accepted ADR-0026 after its
 frozen non-content corpus passed. Valid explicit privacy-preflight decisions
 are now recorded in a separate bounded append-only local store and exposed in a
 read-only bilingual project viewer. Audit failure blocks report return; models,
 delivery, routing, permissions, and execution remain excluded.
-[Sprint 33](docs/planning/sprints/SPRINT-033.md) completed a frozen 22-case
+Sprint 33 completed a frozen 22-case
 authorization, replay, expiry, and crash corpus. Local transaction-coupled
 single-use consumption passed, but provider outcome after byte exposure stayed
 unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027, production grant,
 provider, credential, network, model call, response, delivery, routing, or
 execution surface.
-[Sprint 34](docs/planning/sprints/SPRINT-034.md) qualified concrete OpenAI
+Sprint 34 qualified concrete OpenAI
 surfaces without invoking them. Responses passed 13/13 offline protocol cases,
 but request IDs do not document create idempotency and post-exposure outcomes
 remain ambiguous, so its decision is `EVIDENCE_ONLY`. The 10/10 Codex headless
 process corpus closes `SEPARATE_AGENT_BOUNDARY` because coding-agent context
 cannot prove exact reviewed-input isolation. No ADR-0027 or production surface
 is added.
-[Sprint 35](docs/planning/sprints/SPRINT-035.md) applied the same offline
+Sprint 35 applied the same offline
 qualification to Anthropic. Messages passed 19/19 local protocol cases but
 remains `EVIDENCE_ONLY` because safe create replay and post-timeout retrieval
 are not documented. Claude Code passed 14/14 fake-process cases: bare mode is
@@ -84,12 +84,12 @@ are not documented. Claude Code passed 14/14 fake-process cases: bare mode is
 The foreground loopback GUI now covers the Core MVP journey, complete
 active-memory and continuity cockpit workflows, English/Italian localization,
 effective-instruction preview, and deterministic budgeted Context Pack preview.
-[Sprint 13](docs/planning/sprints/SPRINT-013.md) completed Context Pack pressure
+Sprint 13 completed Context Pack pressure
 measurement over a deterministic 27-sample synthetic corpus before any new
-optimization was selected. [Sprint 14](docs/planning/sprints/SPRINT-014.md)
+optimization was selected. Sprint 14
 then measured resolvable reference and outline granularity without enabling
 either representation: neither improves the sampled standard-budget fit
-boundary. [Sprint 15](docs/planning/sprints/SPRINT-015.md) then accepted a
+boundary. Sprint 15 then accepted a
 future packet-level source table in ADR-0016 after an exact lossless comparison
 created one new compact standard-budget fit. Sprint 17 rolled that source table
 out as explicit schema v2 with schema-v1 compatibility and lossless expanded
@@ -119,25 +119,25 @@ reasons, and recovery. No content is sent to a model and no pseudonymization,
 mapping persistence, encryption key, routing, permission, or execution path is
 introduced.
 
-[Sprint 16](docs/planning/sprints/SPRINT-016.md) completed the E3 usability
+Sprint 16 completed the E3 usability
 increment: bounded literal search across all registered projects from the
 primary bilingual GUI, with project identity and project-scoped source
 navigation on every result. It adds no index or OpenSearch dependency.
 
-[Sprint 17](docs/planning/sprints/SPRINT-017.md) completed the bounded ADR-0016
+Sprint 17 completed the bounded ADR-0016
 rollout. Explicit Context Pack schema v2 uses a canonical source table,
 deterministic marginal shared-byte accounting, schema-v1 compatibility, and
 lossless read-only inspection in the bilingual GUI. Persistence, delivery,
 execution, CodeGraph, profiles, and new infrastructure remain outside the
 increment.
 
-[Sprint 18](docs/planning/sprints/SPRINT-018.md) completed the next M4 boundary:
+Sprint 18 completed the next M4 boundary:
 strict portable schema-v1 agent and skill profiles, controlled local
 digest-pinned import, canonical round-trip export, and bilingual read-only
 inspection. It adds no registry persistence, installation, permission
 enforcement, model/tool access, selection, delivery, or execution.
 
-[Sprint 19](docs/planning/sprints/SPRINT-019.md) completed the read-only
+Sprint 19 completed the read-only
 profile-composition boundary. Exact declared instruction-source closure and an
 explicit allowed-model selection are required; the agent target and exact-byte
 budgets come only from the reviewed profile. The transient result retains
@@ -145,45 +145,45 @@ profile digest and declaration provenance alongside effective rules and an
 expanded Context Pack. It adds no registry, availability resolution,
 persistence, delivery, permission, or execution path.
 
-[Sprint 20](docs/planning/sprints/SPRINT-020.md) completed the selector-evidence
+Sprint 20 completed the selector-evidence
 increment. Eight explicit selectors map to existing handoff sections while a
 four-section safety floor remains non-excludable. The bilingual report is
 measurement-only. Decision `adapt` defers vocabulary versioning and production
 policy until continuity-quality evidence exists.
 
-[Sprint 21](docs/planning/sprints/SPRINT-021.md) completed that bounded
+Sprint 21 completed that bounded
 measurement. Predeclared exact-answer anchors show task-dependent optional
 sections are lost by every candidate policy. Historical v1 candidate sums and
 exact schema-v2 bytes remain separate; neither accounting method improves the
 18/54 fit count, and production behavior stays unchanged.
 
-[Sprint 22](docs/planning/sprints/SPRINT-022.md) completed the first E7
+Sprint 22 completed the first E7
 vertical slice. It defines a portable digest-pinned model data policy,
 centralizes the existing narrow high-confidence restricted detector, and
 exposes a non-echoing privacy preflight for an explicitly composed Context Pack. A
 `REVIEWABLE_NOT_AUTHORIZED` result remains local review evidence, never model
 delivery authorization.
 
-[Sprint 23](docs/planning/sprints/SPRINT-023.md) implements ADR-0018/0019. A General Inbox captures explicit local
+Sprint 23 implements ADR-0018/0019. A General Inbox captures explicit local
 user-authored questions without false project attribution and make them
 available to General-only and all-scope bounded literal search through a
 separate atomic JSON store. Model replies, semantic retrieval,
 embeddings, FTS5, databases, automatic promotion, delivery, and execution
 remain outside the slice.
 
-[Sprint 24](docs/planning/sprints/SPRINT-024.md) completed the additive
+Sprint 24 completed the additive
 provenance-link increment through ADR-0020. Selected exact General evidence can
 be linked explicitly to one registered project in a separate immutable atomic
 store; retrieval explains and filters the link while preserving `GENERAL`
 scope and project-only isolation.
 
-[Sprint 25](docs/planning/sprints/SPRINT-025.md) completed a development-only
+Sprint 25 completed a development-only
 scale and integrity measurement of canonical General/link validation. Two
 REFERENCE runs produced identical counts, zero known-item misses, sub-threshold
 latency and less than 2.4% pressure on every production bound. Decision
 `NO_CHANGE` retains JSON scans and creates no index ADR.
 
-[Sprint 26](docs/planning/sprints/SPRINT-026.md) completed the next bounded E7
+Sprint 26 completed the next bounded E7
 slice. Exact-hash user-reviewed UTF-8 spans produce deterministic inert aliases
 while preserving all unselected bytes. A separate local adapter stores only
 AES-256-GCM authenticated ciphertext with fresh nonces, private modes, owner
@@ -191,9 +191,9 @@ locking, atomic publication, and explicit volatile key custody. The bilingual
 GUI verifies byte-exact restoration without changing evidence or authorizing
 network, model, delivery, permission, or execution behavior.
 
-[Sprint 27](docs/planning/sprints/SPRINT-027.md) completed passphrase-wrapped
+Sprint 27 completed passphrase-wrapped
 local custody for random per-mapping keys while retaining mapping schema-v1 and
-byte-exact recovery. [Sprint 28](docs/planning/sprints/SPRINT-028.md) then
+byte-exact recovery. Sprint 28 then
 measured deterministic entity candidates without a production consumer. Exact
 aliases achieved 100% precision and recall on the frozen corpus and are
 recommended only for explicit review; standard syntax and the union remain
