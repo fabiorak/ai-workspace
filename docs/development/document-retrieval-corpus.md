@@ -86,12 +86,12 @@ machine.
 
 Three of those five entries were surplus — `it-mapping-key`,
 `it-import-transcripts`, and `en-restoration-typo` each kept their other expected
-documents — and were simply dropped, which is why the pair count falls from 30 to
-29. The remaining two named a sprint file as their **only** expected document and
-could not be repointed, because no committed document answers them: the seven
-occurrences of "credential" in the public corpus are all statements that no
-credential is used. The question was answerable only from material that is not
-part of this repository.
+documents — and were simply dropped, which is why the pair count falls from 30
+pairs to 29. The remaining two named a sprint file as their **only** expected
+document and could not be repointed, because no committed document answers them:
+the seven occurrences of "credential" in the public corpus are all statements
+that no credential is used. The question was answerable only from material that
+is not part of this repository.
 
 | Removed          | Language, family | Replaced by         | Expected                                  |
 | ---------------- | ---------------- | ------------------- | ----------------------------------------- |
