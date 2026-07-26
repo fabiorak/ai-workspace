@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 import {
+  CORPUS_ROOTS,
   DOCUMENT_QUERIES,
   ITALIAN_QUERIES,
   buildDocumentIndex,
@@ -24,8 +27,8 @@ test("measures a document corpus long enough for the question to matter", async 
   const report = await measureDocumentRetrieval("SMALL", "SKIP");
   assert.equal(report.corpusId, "DOCUMENT_RETRIEVAL_REAL_REPOSITORY_V1");
   assert.equal(report.effect, "DEVELOPMENT_ONLY_NO_PRODUCTION_CONSUMER");
-  assert.ok(report.fingerprint.documents >= 130);
-  assert.ok(report.fingerprint.sections > 1_000);
+  assert.ok(report.fingerprint.documents >= 95);
+  assert.ok(report.fingerprint.sections > 850);
   assert.ok(
     report.fingerprint.longestDocumentWords > 5_000,
     "the corpus must contain a document long enough to dilute its own terms",
@@ -34,10 +37,42 @@ test("measures a document corpus long enough for the question to matter", async 
     queries: 18,
     italianQueries: 10,
     englishQueries: 8,
-    expectedPairs: 30,
+    expectedPairs: 29,
     localizationQueries: 4,
     sameLanguageItalianQueries: 12,
   });
+});
+
+/**
+ * The corpus is declared to be the committed documentation, and the harness
+ * enforces that by excluding paths by name. That list silently drifted once: the
+ * internal planning material was read on the machine that had it and absent from
+ * a fresh clone, so the same measurement reported 141 documents locally and 102
+ * in continuous integration, and the ground truth pointed at files nobody else
+ * had. Comparing the corpus against the Git index in both directions is what
+ * makes that class of drift fail here instead of in someone else's clone.
+ */
+test("reads exactly the documentation that a fresh clone contains", (t) => {
+  const root = fileURLToPath(new URL("../../../", import.meta.url));
+  let tracked: readonly string[];
+  try {
+    tracked = execFileSync("git", ["ls-files", "-z", "--", ...CORPUS_ROOTS], {
+      cwd: root,
+      encoding: "utf8",
+    })
+      .split("\0")
+      .filter((path) => path.endsWith(".md"));
+  } catch {
+    t.skip("no Git index available to compare the corpus against");
+    return;
+  }
+
+  const collected = collectDocuments().map((document) => document.path);
+  assert.deepEqual(
+    [...collected].sort(),
+    [...tracked].sort(),
+    "the measured corpus and the committed documentation must be the same set",
+  );
 });
 
 test("keeps the predeclared ground truth pointing at documents that exist", () => {

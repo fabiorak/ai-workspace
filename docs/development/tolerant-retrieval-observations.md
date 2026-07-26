@@ -132,26 +132,33 @@ Every lexical engine is inside budget; the dense one is not, at any size.
 
 ## 3. Document retrieval over the real documentation
 
-Corpus `DOCUMENT_RETRIEVAL_REAL_REPOSITORY_V1`, observed fingerprint: 141
-documents, 1,761 sections, 167,018 words, longest document 7,468 words, 3 Italian
-documents, 5,075 distinct section terms. 18 questions, 30 ground-truth pairs, 4
+Corpus `DOCUMENT_RETRIEVAL_REAL_REPOSITORY_V1`, observed fingerprint: 102
+documents, 953 sections, 98,289 words, longest document 7,468 words, 3 Italian
+documents, 4,703 distinct section terms. 18 questions, 29 ground-truth pairs, 4
 localization questions, plus 12 same-language Italian questions.
+
+These figures replace a first run that read Git-ignored planning material and so
+measured one machine rather than this repository. The corpus is now asserted
+against the Git index, and two questions answerable only from that material were
+replaced; the [corpus document](document-retrieval-corpus.md#ground-truth-that-had-to-be-replaced)
+records what changed and what did not. Every conclusion below survived the
+correction unchanged.
 
 | Engine                              | Recall | Section localization | p@R    | p95      |
 | ----------------------------------- | ------ | -------------------- | ------ | -------- |
-| `INVERTED_WHOLE_DOCUMENT`           | 61.11% | 0%                   | 37.41% | 28.3 ms  |
-| `INVERTED_SECTION`                  | 66.67% | 50%                  | 45.19% | 12.4 ms  |
-| `INVERTED_SECTION_HEADING_WEIGHTED` | 66.67% | 50%                  | 53.70% | 16.2 ms  |
-| `INVERTED_SECTION_GLOSSARY`         | 88.89% | 100%                 | 58.33% | 11.4 ms  |
-| `FTS5_SECTION_UNICODE61`            | 55.56% | 50%                  | 41.67% | 4.5 ms   |
-| `DENSE_SECTION`                     | 100%   | 75%                  | 75%    | 586.9 ms |
-| `HYBRID_SECTION`                    | 100%   | 75%                  | 50.93% | 586.9 ms |
+| `INVERTED_WHOLE_DOCUMENT`           | 61.11% | 0%                   | 47.22% | 9.6 ms   |
+| `INVERTED_SECTION`                  | 66.67% | 50%                  | 45.83% | 3.9 ms   |
+| `INVERTED_SECTION_HEADING_WEIGHTED` | 66.67% | 50%                  | 55.56% | 4.0 ms   |
+| `INVERTED_SECTION_GLOSSARY`         | 83.33% | 100%                 | 61.11% | 3.9 ms   |
+| `FTS5_SECTION_UNICODE61`            | 50%    | 50%                  | 44.44% | 1.2 ms   |
+| `DENSE_SECTION`                     | 100%   | 75%                  | 80.56% | 279.4 ms |
+| `HYBRID_SECTION`                    | 100%   | 75%                  | 54.63% | 279.4 ms |
 
 **The indexing unit is not the document.** Conclusion
 `SECTION_LEVEL_INDEXING_REQUIRED`: a whole document localizes nothing by
 construction — the answer is "this 7,468-word file" — and it dilutes its own
 terms, 61.11% against 66.67%. Repeating the heading path at the head of each
-section costs no recall and buys **8.5 points of precision**.
+section costs no recall and buys **9.7 points of precision**.
 
 **Lexical retrieval is language-bound, not weak in Italian.** Conclusion
 `LEXICAL_RETRIEVAL_IS_LANGUAGE_BOUND`: Italian questions against English
@@ -164,18 +171,23 @@ lexical engine is not the compromise; it is the better engine. Conclusion
 `ITALIAN_SAME_LANGUAGE_LEXICAL_SUFFICIENT`.
 
 **The glossary bridges most of the language jump.** 61 declared pairs raise
-cross-language recall from 40% to 80% while precision _rises_ from 26.67% to 35%
-and Italian-only recall is unchanged. Conclusion
-`GLOSSARY_RAISES_CROSS_LANGUAGE_RECALL`. Two questions remain unresolved —
-`it-dashboard` and `it-memoria-attiva` — where the gap is conceptual rather than
-lexical. The glossary was written after seeing which questions failed, so its
-figure is optimistic by construction.
+cross-language recall from 40% to 70% while precision _rises_ from 25% to 35% and
+Italian-only recall is unchanged. Conclusion
+`GLOSSARY_RAISES_CROSS_LANGUAGE_RECALL`. Three questions remain unresolved —
+`it-model-delivery`, `it-dashboard`, and `it-memoria-attiva` — where the gap is
+conceptual rather than lexical. The glossary was written after seeing which
+questions failed, so its figure is optimistic by construction.
 
 Dense on this corpus is the strongest on quality and unaffordable on the critical
-path: 1,657 sections embedded, 104 skipped as too short, 17 truncated at the
-4,000-character limit, **58.6 s to build**, query embedding median 481 ms and p95
-587 ms. Fusing it with the lexical list **lowers** precision from 58.33% to
-50.93%, because RRF promotes candidates only one engine believes in.
+path: 917 sections embedded, 36 skipped as too short, 16 truncated at the
+4,000-character limit, **28.4 s to build**, query embedding median 238 ms and p95
+279 ms. Fusing it with the lexical list **lowers** precision from 61.11% to
+54.63%, because RRF promotes candidates only one engine believes in.
+
+The embedding latency is worth reading as a bound and not as a figure: it fell
+from 587 ms to 279 ms only because the corpus shrank by a third when the
+untracked material stopped being read. It stays above the 150 ms interactive
+budget either way, which is the part that decides where dense retrieval sits.
 
 ## 4. Code retrieval over the real TypeScript source
 

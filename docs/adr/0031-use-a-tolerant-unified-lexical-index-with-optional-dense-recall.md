@@ -69,25 +69,33 @@ under pressure: both engines answer well inside an interactive budget.
 
 ### What the document corpus established
 
-140 documents, 1,746 sections, 163,829 words, longest document 7,468 words, of
-which 3 documents are written in Italian. 18 questions, 30 ground-truth pairs.
+102 documents, 953 sections, 98,289 words, longest document 7,468 words, of which
+3 documents are written in Italian. 18 questions, 29 ground-truth pairs.
+
+These figures were restated after the harness was found to be reading Git-ignored
+planning material, which made the corpus larger on one machine than in any clone.
+The corpus is now asserted against the Git index and two questions answerable only
+from that material were replaced. Every conclusion below is unchanged, including
+the recommended unit and engine; the
+[corpus document](../development/document-retrieval-corpus.md#ground-truth-that-had-to-be-replaced)
+records the substitution.
 
 | engine                            | recall | section localization | p@R    | p95      |
 | --------------------------------- | ------ | -------------------- | ------ | -------- |
-| inverted, whole document          | 61.11% | 0%                   | 37.41% | 10.0 ms  |
-| inverted, section                 | 66.67% | 50%                  | 45.19% | 4.3 ms   |
-| inverted, section, heading weight | 66.67% | 50%                  | 53.70% | 4.2 ms   |
-| inverted, section, glossary       | 88.89% | 100%                 | 58.33% | 4.3 ms   |
-| FTS5 unicode61, section           | 55.56% | 50%                  | 41.67% | 1.9 ms   |
-| dense, section (bge-m3)           | 100%   | 75%                  | 75%    | 233.9 ms |
-| hybrid, section (RRF)             | 100%   | 75%                  | 50.93% | 233.9 ms |
+| inverted, whole document          | 61.11% | 0%                   | 47.22% | 9.6 ms   |
+| inverted, section                 | 66.67% | 50%                  | 45.83% | 3.9 ms   |
+| inverted, section, heading weight | 66.67% | 50%                  | 55.56% | 4.0 ms   |
+| inverted, section, glossary       | 83.33% | 100%                 | 61.11% | 3.9 ms   |
+| FTS5 unicode61, section           | 50%    | 50%                  | 44.44% | 1.2 ms   |
+| dense, section (bge-m3)           | 100%   | 75%                  | 80.56% | 279.4 ms |
+| hybrid, section (RRF)             | 100%   | 75%                  | 54.63% | 279.4 ms |
 
 Three results decide the design.
 
 **The indexing unit is not the document.** A whole document localizes nothing by
 construction — the answer is "this 7,468-word file" — and it dilutes its own
 terms: 61.11% against 66.67% for sections. Repeating the heading path at the head
-of each section costs no recall and buys 8.5 points of precision. This is the
+of each section costs no recall and buys 9.7 points of precision. This is the
 same lever, measured twice, that the code corpus independently confirms below.
 
 **Lexical retrieval is bound to the language of the document, not weak in
@@ -101,19 +109,20 @@ which is the expected case here — the lexical engine is not the compromise; it
 the better engine.
 
 **A declared bilingual glossary bridges most of the language jump.** 61 declared
-term pairs raise cross-language recall from 40% to 80% while precision _rises_
-from 26.67% to 35% and Italian-only recall is unchanged. The bridge adds the
+term pairs raise cross-language recall from 40% to 70% while precision _rises_
+from 25% to 35% and Italian-only recall is unchanged. The bridge adds the
 translation _in addition_ to the term the reader typed, never as a substitute:
 a term being present in the index says nothing about it being present in the
-right document. Two questions remain unresolved — `it-dashboard` and
-`it-memoria-attiva` — where the gap is conceptual rather than lexical.
+right document. Three questions remain unresolved — `it-model-delivery`,
+`it-dashboard`, and `it-memoria-attiva` — where the gap is conceptual rather than
+lexical.
 
 Dense retrieval on this corpus is genuinely the strongest on quality: 100%
-recall, 75% precision, and it answers the two questions the glossary cannot.
-It costs 53.16 s to build 1,642 section vectors and 209 ms median per query
-against a 150 ms budget, and fusing it with the lexical list _lowers_ precision
-from 58.33% to 50.93%, because RRF promotes candidates that only one engine
-believes in.
+recall, 80.56% precision, and it answers the questions the glossary cannot.
+It costs 28.4 s to build 917 section vectors and 238 ms median per query against
+a 150 ms budget, and fusing it with the lexical list _lowers_ precision from
+61.11% to 54.63%, because RRF promotes candidates that only one engine believes
+in.
 
 ### What the code corpus established
 
@@ -310,7 +319,7 @@ its lifecycle are a separate decision.
   written after seeing which questions went unresolved, it does not generalize to
   vocabulary nobody declared, and its coverage has to be reviewed as the corpus
   grows;
-- cross-language recall stays a declared limit rather than a solved problem: 80%
+- cross-language recall stays a declared limit rather than a solved problem: 70%
   with the glossary, and the residue is conceptual rather than lexical;
 - a name mentioned in a short record can outrank the record that declares it,
   because a mention and a declaration are textually identical to BM25; closing

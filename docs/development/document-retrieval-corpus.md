@@ -1,6 +1,8 @@
 # Document retrieval corpus and gates
 
 **Frozen before the harness was run:** 2026-07-26  
+**Two questions replaced after the first run:** 2026-07-26, disclosed in
+[Ground truth that had to be replaced](#ground-truth-that-had-to-be-replaced)  
 **Scope:** development-only measurement over the real documentation of this
 repository, which is already public  
 **Decision it supports:** [ADR-0031](../adr/0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md)
@@ -31,8 +33,15 @@ It authorizes no engine, package, index, GUI surface, or embedding model.
 The committed documentation of this repository, read from disk at run time rather
 than copied into a fixture: `docs/`, plus `README.md`, `ROADMAP.md`,
 `AGENTS.md`, `CONTRIBUTING.md`, and `SECURITY.md`. Excluded: `.ai-workspace`,
-`node_modules`, and `.git`. The local handoff file is Git-ignored and must never
-be read into a measured corpus.
+`node_modules`, `.git`, and `docs/planning`. The local handoff file and the
+internal planning material are both Git-ignored and must never be read into a
+measured corpus.
+
+"Committed" is asserted rather than trusted: the owning test compares the
+collected corpus against the Git index in both directions, so a file the harness
+reads but a fresh clone does not contain fails the measurement instead of
+inflating it. That assertion exists because the exclusion list drifted once — see
+below.
 
 The corpus is real prose that is already public, so measuring it copies nothing
 and exposes nothing. It also **grows as the project grows**. The corpus is
@@ -43,7 +52,7 @@ rather than frozen percentages.
 
 ## Frozen questions
 
-Eighteen predeclared questions, 30 ground-truth pairs, declared by reading the
+Eighteen predeclared questions, 29 ground-truth pairs, declared by reading the
 documents rather than by running a query. `expected` lists every document a
 person asking that question would want; `expectedHeading` names the section a
 section-level answer should land in, for the four localization questions.
@@ -60,6 +69,54 @@ documents** measures same-language retrieval directly, so that an Italian
 question that fails against an English document is not recorded as an Italian
 weakness. Their families deliberately avoid restating a heading, so that no
 question can be answered by repeating the title it targets.
+
+## Ground truth that had to be replaced
+
+Two of the eighteen questions were replaced after the first run, and this section
+exists because a reader cannot otherwise tell a corrected defect from a rewritten
+inconvenient result.
+
+The exclusion list above named only `.ai-workspace`, `node_modules`, and `.git`,
+so the harness read `docs/planning` — internal process material that is
+Git-ignored. It was present on the machine that ran the measurement and absent
+from every clone, so the same harness reported 141 documents and 1,761 sections
+locally against 102 and 953 in continuous integration, and five ground-truth
+entries pointed at sprint files nobody else had. That is not a corpus: it is one
+machine.
+
+Three of those five entries were surplus — `it-mapping-key`,
+`it-import-transcripts`, and `en-restoration-typo` each kept their other expected
+documents — and were simply dropped, which is why the pair count falls from 30 to
+29. The remaining two named a sprint file as their **only** expected document and
+could not be repointed, because no committed document answers them: the seven
+occurrences of "credential" in the public corpus are all statements that no
+credential is used. The question was answerable only from material that is not
+part of this repository.
+
+| Removed          | Language, family | Replaced by         | Expected                                  |
+| ---------------- | ---------------- | ------------------- | ----------------------------------------- |
+| `it-credentials` | IT, `PARAPHRASE` | `it-model-delivery` | ADR-0017 plus its corpus and observations |
+| `en-credentials` | EN, `LITERAL`    | `en-attempt-store`  | ADR-0028, whose title carries the literal |
+
+The replacements keep the language, the family, and the shape of the originals:
+one Italian paraphrase of an English document, one English literal string. Their
+expected documents were declared by reading those documents, before the harness
+was run again. What must be stated plainly is that they were chosen with the
+engine's behaviour already known, which the original eighteen were not.
+
+Two consequences are worth naming rather than leaving to be discovered:
+
+- English lexical recall reads 100% before and after, but for different reasons,
+  and the identical number hides the defect rather than showing it. The first run
+  resolved `en-credentials` because it was reading the sprint file; every clone
+  scored it 87.5%, because there the expected document simply did not exist. The
+  replacement is answerable from a committed document, so the two now agree.
+- `it-model-delivery` is unresolved by lexical retrieval, exactly as
+  `it-credentials` was, so the language-gap evidence rests on the same number of
+  failing Italian questions as before rather than on a corpus made easier.
+
+No threshold, no verdict label, and no scoring rule was changed. All five
+conclusions came back identical, and so did the recommended unit and engine.
 
 ## Frozen engines
 

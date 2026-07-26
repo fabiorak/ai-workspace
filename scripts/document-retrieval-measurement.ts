@@ -26,7 +26,7 @@
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
@@ -45,7 +45,7 @@ export const SCHEMA_VERSION = 1;
 const INTERACTIVE_BUDGET_MILLISECONDS = 150;
 
 /** Directories and files that form the declared document corpus. */
-const CORPUS_ROOTS = Object.freeze([
+export const CORPUS_ROOTS = Object.freeze([
   "docs",
   "README.md",
   "ROADMAP.md",
@@ -55,10 +55,19 @@ const CORPUS_ROOTS = Object.freeze([
 ]);
 
 /**
- * Excluded from the corpus. The local handoff file is intentionally ignored by
- * Git and must never be read into a measured corpus.
+ * Excluded from the corpus. The local handoff file and the internal planning
+ * material are both intentionally ignored by Git, and neither may be read into a
+ * measured corpus: a corpus that includes untracked files measures one machine
+ * instead of this repository, and the same run against a fresh clone then reports
+ * different figures. The owning test asserts the collected corpus against the Git
+ * index, because keeping this list correct by hand has already failed once.
  */
-const EXCLUDED_PATHS = Object.freeze([".ai-workspace", "node_modules", ".git"]);
+const EXCLUDED_PATHS = Object.freeze([
+  ".ai-workspace",
+  "node_modules",
+  ".git",
+  "docs/planning",
+]);
 
 /**
  * Indexing units under comparison. This is the open question for documents: a
@@ -156,11 +165,15 @@ export const DOCUMENT_QUERIES: readonly DocumentQuery[] = Object.freeze([
     expectedHeading: null,
   },
   {
-    id: "it-credentials",
-    text: "da dove vengono lette le credenziali del fornitore",
+    id: "it-model-delivery",
+    text: "perche serve una decisione sulla privacy verificabile prima di inviare al modello",
     language: "IT",
     family: "PARAPHRASE",
-    expected: Object.freeze(["docs/planning/sprints/SPRINT-040.md"]),
+    expected: Object.freeze([
+      "docs/adr/0017-require-an-inspectable-privacy-decision-before-model-delivery.md",
+      "docs/development/model-delivery-authorization-corpus.md",
+      "docs/development/model-delivery-authorization-observations.md",
+    ]),
     expectedHeading: null,
   },
   {
@@ -188,7 +201,6 @@ export const DOCUMENT_QUERIES: readonly DocumentQuery[] = Object.freeze([
       "docs/adr/0022-use-passphrase-wrapped-local-mapping-keys.md",
       "docs/development/local-mapping-key-custody-corpus.md",
       "docs/development/local-mapping-key-custody-observations.md",
-      "docs/planning/sprints/SPRINT-027.md",
     ]),
     expectedHeading: null,
   },
@@ -208,7 +220,6 @@ export const DOCUMENT_QUERIES: readonly DocumentQuery[] = Object.freeze([
     expected: Object.freeze([
       "docs/user-guide/local-transcripts.md",
       "docs/adr/0029-ingest-real-local-agent-transcripts-through-a-tolerant-adapter.md",
-      "docs/planning/sprints/SPRINT-041.md",
     ]),
     expectedHeading: null,
   },
@@ -268,11 +279,13 @@ export const DOCUMENT_QUERIES: readonly DocumentQuery[] = Object.freeze([
     expectedHeading: null,
   },
   {
-    id: "en-credentials",
-    text: "provider credentials read from the environment",
+    id: "en-attempt-store",
+    text: "separate local model attempt evidence store",
     language: "EN",
     family: "LITERAL",
-    expected: Object.freeze(["docs/planning/sprints/SPRINT-040.md"]),
+    expected: Object.freeze([
+      "docs/adr/0028-use-separate-local-model-attempt-store.md",
+    ]),
     expectedHeading: null,
   },
   {
@@ -295,7 +308,6 @@ export const DOCUMENT_QUERIES: readonly DocumentQuery[] = Object.freeze([
       "docs/user-guide/pseudonymized-output-restoration.md",
       "docs/development/privacy-output-restoration-corpus.md",
       "docs/development/privacy-output-restoration-observations.md",
-      "docs/planning/sprints/SPRINT-031.md",
     ]),
     expectedHeading: null,
   },
@@ -519,8 +531,14 @@ export const BILINGUAL_GLOSSARY: readonly (readonly [string, string])[] =
 
 const REPOSITORY_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+/**
+ * Compares against a slash-separated form, because one excluded entry names a
+ * directory below another and would otherwise stop matching wherever the path
+ * separator differs.
+ */
 function isExcluded(path: string): boolean {
-  return EXCLUDED_PATHS.some((excluded) => path.includes(excluded));
+  const slashed = path.split(sep).join("/");
+  return EXCLUDED_PATHS.some((excluded) => slashed.includes(excluded));
 }
 
 function collectMarkdownPaths(root: string): readonly string[] {
