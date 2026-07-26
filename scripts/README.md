@@ -68,7 +68,24 @@ percentages. They import their retrieval rules from
 [code corpus](../docs/development/code-retrieval-corpus.md), and the shared
 [observations](../docs/development/tolerant-retrieval-observations.md).
 
-The dense sections of the last three commands are optional. They call a local
+`npm run measure:real-event-retrieval` is the only retrieval command that reads a
+private store: real canonical events from `AI_WORKSPACE_HOME`, or `~/.ai-workspace`
+when it is unset, or a home passed as the first argument. It reads and never
+writes, and it emits **aggregate figures only** — counts, quantiles, rates, and
+verdicts. No content, path, identifier, or probe text leaves the process, and
+probes are generated from the corpus by rule rather than predeclared, because
+writing down a question about private content would mean quoting the answer. An
+absent or empty home is reported as `homeReadable: false` with undecided
+verdicts rather than as a failure, so the command is safe to run anywhere. Its
+figures are not reproducible on another machine, by construction. It imports its
+prose rules from `tolerant-search-measurement.ts` and its code tokenization from
+`code-retrieval-measurement.ts`. See the
+[real event corpus](../docs/development/real-event-retrieval-corpus.md) and its
+own
+[observations](../docs/development/real-event-retrieval-observations.md).
+
+The dense sections of `measure:unified-retrieval`,
+`measure:document-retrieval`, and `measure:code-retrieval` are optional. They call a local
 embedding service on loopback when one answers, using only synthetic records or
 this repository's public content, and state the absence when none does; no
 lexical result depends on the service. No command reads a credential, calls a

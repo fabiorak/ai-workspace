@@ -29,6 +29,7 @@
     "measure:output-restoration": "node scripts/output-restoration-measurement.ts",
     "measure:code-retrieval": "node scripts/code-retrieval-measurement.ts",
     "measure:document-retrieval": "node scripts/document-retrieval-measurement.ts",
+    "measure:real-event-retrieval": "node scripts/real-event-retrieval-measurement.ts",
     "measure:tolerant-search": "node scripts/tolerant-search-measurement.ts",
     "measure:unified-retrieval": "node scripts/unified-retrieval-measurement.ts",
     "measure:privacy-audit": "node scripts/privacy-audit-measurement.ts",

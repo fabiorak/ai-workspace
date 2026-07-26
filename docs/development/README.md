@@ -17,6 +17,8 @@ Measurement reports:
 - [Document retrieval corpus](document-retrieval-corpus.md)
 - [Code retrieval corpus](code-retrieval-corpus.md)
 - [Tolerant retrieval observations](tolerant-retrieval-observations.md)
+- [Real event retrieval corpus](real-event-retrieval-corpus.md)
+- [Real event retrieval observations](real-event-retrieval-observations.md)
 
 ## Prerequisites
 
@@ -251,12 +253,28 @@ and the declared limits of the bilingual glossary. Both corpora grow with the
 repository, so their reports state a fingerprint and their tests assert
 predeclared thresholds rather than frozen percentages.
 
-All four are declared `DEVELOPMENT_ONLY_NO_PRODUCTION_CONSUMER`: no package,
-GUI, index, or shipped API consumes them, and the two real-corpus harnesses
-import their retrieval rules from the synthetic one so that all four measure the
+The [Real Event Retrieval Corpus](real-event-retrieval-corpus.md) closes the gap
+the other four leave: it runs over real canonical events in a local workspace
+home, because no real transcript can be committed. Run
+`npm run measure:real-event-retrieval`. It emits aggregate figures only — no
+content, path, identifier, or probe text — and its probes are generated from the
+corpus by rule, because predeclaring a question about private content would mean
+quoting the answer. Its results are recorded separately in
+[Real Event Retrieval Observations](real-event-retrieval-observations.md), since a
+private corpus is not reproducible by anyone else and its caveats should not be
+read as caveats of the other four. It establishes that a canonical payload is a
+serialized JSON object that must be reduced to its content before it is indexed,
+and it leaves the record unit and the mixed-content question open with the reasons
+written down.
+
+All five are declared `DEVELOPMENT_ONLY_NO_PRODUCTION_CONSUMER`: no package,
+GUI, index, or shipped API consumes them, and the three real-corpus harnesses
+import their retrieval rules from the synthetic one so that all five measure the
 same engine. Their dense paths reach a local embedding service when one answers
 and state the absence when none does; no lexical result depends on it. Executable
-assertions live in `packages/historical-search/test/`.
+assertions live in `packages/historical-search/test/`, and the real-event
+assertions build a synthetic home in a temporary directory rather than reading a
+real one.
 
 ## Architecture decisions
 
