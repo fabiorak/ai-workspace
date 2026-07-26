@@ -3,6 +3,15 @@
 **Status:** accepted  
 **Date:** 2026-07-15
 
+> [!IMPORTANT]
+> Amended by
+> [ADR-0031](0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md)
+> on one point only. Where this record says no semantic model, the position is now
+> no semantic model **on the critical path**: dense recall is admitted as an
+> optional secondary path that degrades to lexical, which satisfies the hybrid,
+> explainable, and rebuildable conditions this record itself required. The
+> `GENERAL` scope, its separation, and its lexical-first obligation are unchanged.
+
 ## Context
 
 AI Workspace currently attaches canonical historical sessions to a registered

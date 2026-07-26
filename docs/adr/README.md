@@ -51,3 +51,4 @@ Status: proposed | accepted | superseded
 - [ADR-0028: Use a separate local model-attempt evidence store](0028-use-separate-local-model-attempt-store.md)
 - [ADR-0029: Ingest real local agent transcripts through a tolerant adapter](0029-ingest-real-local-agent-transcripts-through-a-tolerant-adapter.md)
 - [ADR-0030: Screen restricted data per record in the tolerant reader](0030-screen-restricted-data-per-record-in-the-tolerant-reader.md)
+- [ADR-0031: Use a tolerant unified lexical index with optional dense recall](0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md)

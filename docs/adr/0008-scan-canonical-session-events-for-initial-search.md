@@ -3,6 +3,15 @@
 **Status:** accepted  
 **Date:** 2026-07-10
 
+> [!IMPORTANT]
+> Amended by
+> [ADR-0031](0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md)
+> on the retrieval mechanism only. Where this record says search is a bounded
+> literal substring scan over at most 1,000 documents, retrieval is now a tolerant
+> BM25 inverted index over sections and declarations. Its ports, determinism,
+> bounded snippets, trust reporting, fail-closed corruption handling, and
+> content-addressed artifact verification are unchanged and still govern.
+
 ## Context
 
 Sprint 3 must prove that imported historical evidence can be found and opened
