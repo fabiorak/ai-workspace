@@ -18,7 +18,10 @@ Implemented packages:
   cases;
 - `session-ingestion/` owns canonical imported-session and event contracts;
 - `historical-search/` owns read-only historical evidence search contracts and
-  use cases, including additive tagged-scope General/all-scope retrieval;
+  use cases, including additive tagged-scope General/all-scope retrieval, and
+  the single searchable surface that ranks canonical events together with
+  active memory through the tolerant index, admissibility settled and
+  provenance deduplicated before a reader sees a list;
 - `general-conversation/` owns project-free immutable question capture,
   provenance, integrity, classification, and persistence ports;
 - `general-project-link/` owns explicit immutable `LINK_ONLY` associations from

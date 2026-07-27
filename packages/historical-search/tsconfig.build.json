@@ -8,8 +8,10 @@
   },
   "include": ["src/**/*.ts"],
   "references": [
+    { "path": "../active-memory/tsconfig.build.json" },
     { "path": "../general-conversation/tsconfig.build.json" },
     { "path": "../general-project-link/tsconfig.build.json" },
-    { "path": "../session-ingestion/tsconfig.build.json" }
+    { "path": "../session-ingestion/tsconfig.build.json" },
+    { "path": "../tolerant-retrieval/tsconfig.build.json" }
   ]
 }

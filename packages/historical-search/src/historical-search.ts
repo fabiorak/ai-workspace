@@ -1,5 +1,3 @@
-import { TextDecoder } from "node:util";
-
 import {
   HistoricalEventNotFoundError,
   HistoricalSearchError,
@@ -17,6 +15,7 @@ import type {
   OpenedArtifact,
 } from "./model.ts";
 import type { HistoricalSearchDependencies } from "./ports.ts";
+import { assertProject, decodeArtifact, requiredValue } from "./shared.ts";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -24,7 +23,6 @@ const MAX_ARTIFACT_DISPLAY_BYTES = 64 * 1024;
 const MAX_GLOBAL_PROJECTS = 100;
 const MAX_GLOBAL_EVENTS = 10_000;
 const SNIPPET_CONTEXT = 72;
-const decoder = new TextDecoder("utf8", { fatal: true });
 
 export class HistoricalSearch {
   readonly #dependencies: HistoricalSearchDependencies;
@@ -46,7 +44,7 @@ export class HistoricalSearch {
       );
     }
 
-    await this.#assertProject(projectId);
+    await assertProject(this.#dependencies.projects, projectId);
     const events = await this.#dependencies.events.list(
       projectId,
       query.sessionId,
@@ -137,7 +135,7 @@ export class HistoricalSearch {
     projectIds.sort((left, right) => left.localeCompare(right, "en"));
     const events: HistoricalEvent[] = [];
     for (const projectId of projectIds) {
-      await this.#assertProject(projectId);
+      await assertProject(this.#dependencies.projects, projectId);
       let projectEvents: readonly HistoricalEvent[];
       try {
         projectEvents = await this.#dependencies.events.list(projectId);
@@ -234,7 +232,7 @@ export class HistoricalSearch {
       const projectEvents: HistoricalEvent[] = [];
       if (query.scope === "ALL_SCOPES") {
         for (const projectId of projectIds) {
-          await this.#assertProject(projectId);
+          await assertProject(this.#dependencies.projects, projectId);
           const events = await this.#dependencies.events.list(projectId);
           if (events.some((event) => event.projectId !== projectId))
             throw new Error("cross-scope project event");
@@ -435,7 +433,7 @@ export class HistoricalSearch {
   ): Promise<HistoricalEvent> {
     const projectId = requiredValue(projectIdValue, "Project ID");
     const eventId = requiredValue(eventIdValue, "Event ID");
-    await this.#assertProject(projectId);
+    await assertProject(this.#dependencies.projects, projectId);
     const result = await this.#dependencies.events.find(projectId, eventId);
 
     if (result === null) {
@@ -460,14 +458,6 @@ export class HistoricalSearch {
       byteLength: bytes.byteLength,
       content: decodeArtifact(bytes, id),
     });
-  }
-
-  async #assertProject(projectId: string): Promise<void> {
-    if (!(await this.#dependencies.projects.exists(projectId))) {
-      throw new HistoricalSearchError(
-        `Project '${projectId}' is not registered. Run 'ai-workspace project list' to find an ID or 'ai-workspace project register <path>' to create one.`,
-      );
-    }
   }
 }
 
@@ -530,25 +520,4 @@ function snippet(
   );
   const body = content.slice(start, end).replace(/\s+/gu, " ").trim();
   return `${start > 0 ? "…" : ""}${body}${end < content.length ? "…" : ""}`;
-}
-
-function requiredValue(value: string, label: string): string {
-  const normalized = value.trim();
-
-  if (normalized.length === 0) {
-    throw new HistoricalSearchError(`${label} cannot be empty.`);
-  }
-
-  return normalized;
-}
-
-function decodeArtifact(content: Uint8Array, artifactId: string): string {
-  try {
-    return decoder.decode(content);
-  } catch (error) {
-    throw new HistoricalSearchError(
-      `Artifact '${artifactId}' is not valid UTF-8 text and cannot be searched or displayed by this CLI.`,
-      { cause: error },
-    );
-  }
 }

@@ -18,8 +18,10 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
+    "@ai-workspace/active-memory": "0.0.0",
     "@ai-workspace/general-conversation": "0.0.0",
     "@ai-workspace/general-project-link": "0.0.0",
-    "@ai-workspace/session-ingestion": "0.0.0"
+    "@ai-workspace/session-ingestion": "0.0.0",
+    "@ai-workspace/tolerant-retrieval": "0.0.0"
   }
 }

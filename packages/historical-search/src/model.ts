@@ -1,8 +1,14 @@
 import type {
+  MemoryConfidence,
+  MemoryItemType,
+  MemoryVerification,
+} from "@ai-workspace/active-memory";
+import type {
   SessionEvent,
   SessionEventType,
   SourceReference,
 } from "@ai-workspace/session-ingestion";
+import type { MatchReason } from "@ai-workspace/tolerant-retrieval";
 import type { GeneralEvent } from "@ai-workspace/general-conversation";
 import type { GeneralProjectLink } from "@ai-workspace/general-project-link";
 
@@ -132,4 +138,60 @@ export type OpenedArtifact = Readonly<{
   id: string;
   byteLength: number;
   content: string;
+}>;
+
+/** The stores the one searchable surface of ADR-0031 reads. */
+export const RETRIEVAL_STORES = ["SESSION_EVENTS", "ACTIVE_MEMORY"] as const;
+export type RetrievalStore = (typeof RETRIEVAL_STORES)[number];
+
+/**
+ * One entry of the single ranked list. Which store an answer came from is part
+ * of the answer rather than a detail of how it was found, so it discriminates
+ * the union: a reader is never left to infer whether they are looking at what
+ * happened or at what someone decided to keep.
+ *
+ * Only `ACTIVE` memory can appear, so the validity is a constant here. That is
+ * the type stating a rule the engine enforces before ranking, not a field a
+ * caller should ever have to check.
+ */
+export type TolerantHistoricalResult =
+  | Readonly<{
+      store: "SESSION_EVENTS";
+      projectId: string;
+      eventId: string;
+      sessionId: string;
+      sequence: number;
+      type: SessionEventType;
+      occurredAt: string | null;
+      trust: "UNTRUSTED";
+      score: number;
+      reasons: readonly MatchReason[];
+      source: SourceReference;
+    }>
+  | Readonly<{
+      store: "ACTIVE_MEMORY";
+      projectId: string;
+      memoryId: string;
+      type: MemoryItemType;
+      validity: "ACTIVE";
+      verification: MemoryVerification;
+      confidence: MemoryConfidence;
+      occurredAt: string;
+      score: number;
+      reasons: readonly MatchReason[];
+    }>;
+
+export type TolerantHistoricalReport = Readonly<{
+  query: Readonly<{
+    projectIds: readonly string[];
+    text: string;
+    limit: number;
+  }>;
+  /**
+   * What the index holds, not what this query walked. Nothing is scanned per
+   * query, so a count of visited records would be the wrong thing to publish.
+   */
+  indexedEvents: number;
+  indexedMemoryItems: number;
+  results: readonly TolerantHistoricalResult[];
 }>;
