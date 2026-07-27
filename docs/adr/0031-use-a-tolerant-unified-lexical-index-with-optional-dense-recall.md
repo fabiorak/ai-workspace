@@ -3,6 +3,20 @@
 **Status:** accepted  
 **Date:** 2026-07-26
 
+> [!IMPORTANT]
+> Amended by
+> [ADR-0032](0032-index-one-merged-token-set-over-text-extracted-outside-the-engine.md)
+> on three points, after a fifth measurement over real transcript events, the
+> corpus none of the four measurements here could reach. Where this record says
+> search has two modes carried by the query and shown alongside results, every
+> record is now indexed under both token sets at once and there is no mode. Where
+> it says "bounded Damerau tolerance" without saying where, tolerance now applies
+> before stemming, against unstemmed surface forms. Reducing a canonical payload
+> to text now belongs to a reader outside the engine. The indexing unit, the
+> weight on the declared name, admissibility, provenance deduplication, the
+> per-result reason, the glossary, FTS5 as latency escalation, and the dense path
+> are unchanged and still govern.
+
 ## Context
 
 ADR-0008 accepted a bounded literal scan as the first retrieval behavior and
