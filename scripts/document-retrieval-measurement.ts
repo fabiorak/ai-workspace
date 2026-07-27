@@ -34,7 +34,7 @@ import {
   isTypoOf,
   normalizeTokens,
   stem,
-} from "./tolerant-search-measurement.ts";
+} from "../packages/tolerant-retrieval/src/index.ts";
 
 export class DocumentRetrievalMeasurementError extends Error {}
 

@@ -29,10 +29,12 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
+  PROVENANCE_FIELDS,
   contentTerms,
   normalizeTokens,
+  readCanonicalPayload,
   stem,
-} from "./tolerant-search-measurement.ts";
+} from "../packages/tolerant-retrieval/src/index.ts";
 import {
   buildCodeIndex,
   searchCode,
@@ -111,31 +113,6 @@ export const RECORD_SHAPES = Object.freeze([
   "EXTRACTED_TEXT",
 ] as const);
 export type RecordShape = (typeof RECORD_SHAPES)[number];
-
-/**
- * Payload fields that carry provenance rather than content. They are identical
- * in shape across every record and one of them is unique per record, so an index
- * that keeps them spends its vocabulary on them.
- */
-const PROVENANCE_FIELDS = Object.freeze([
-  "recordUuid",
-  "recordType",
-  "isSidechain",
-  "isMeta",
-  "blockIndex",
-  "blockType",
-  "toolUseId",
-  "isError",
-]);
-
-/** Payload fields that carry what a person actually saw, in reading order. */
-const CONTENT_FIELDS = Object.freeze([
-  "text",
-  "name",
-  "input",
-  "content",
-  "block",
-]);
 
 export const TOKENIZATIONS = Object.freeze([
   "PROSE_ONLY",
@@ -354,54 +331,11 @@ export function readsAsCode(text: string): boolean {
 }
 
 /**
- * The content fields of a canonical payload, in declared reading order, with
- * provenance dropped. A payload that is not the expected JSON object is returned
- * unchanged and counted, so a corpus produced by a different adapter degrades to
- * the raw shape instead of being silently emptied.
+ * The text reduction moved to `@ai-workspace/tolerant-retrieval`, ported
+ * unchanged, and is re-exported here under the name this measurement published
+ * it under, so the figures below and the package describe one reduction.
  */
-export function extractText(
-  payload: string,
-): Readonly<{ text: string; parsed: boolean }> {
-  let document: unknown;
-  try {
-    document = JSON.parse(payload);
-  } catch {
-    return Object.freeze({ text: payload, parsed: false });
-  }
-  if (
-    document === null ||
-    typeof document !== "object" ||
-    Array.isArray(document)
-  )
-    return Object.freeze({ text: payload, parsed: false });
-
-  const record = document as Record<string, unknown>;
-  const known = new Set([...PROVENANCE_FIELDS, ...CONTENT_FIELDS]);
-  const parts: string[] = [];
-
-  for (const field of CONTENT_FIELDS) {
-    if (!(field in record)) continue;
-    const value = record[field];
-    if (value === null || value === undefined) continue;
-    parts.push(typeof value === "string" ? value : JSON.stringify(value));
-  }
-
-  /**
-   * An unexpected field is content until proven otherwise: dropping it would
-   * make a future adapter's text invisible to retrieval without any signal.
-   */
-  for (const [field, value] of Object.entries(record)) {
-    if (known.has(field)) continue;
-    if (value === null || value === undefined) continue;
-    parts.push(typeof value === "string" ? value : JSON.stringify(value));
-  }
-
-  const text = parts.join("\n\n").trim();
-  return Object.freeze({
-    text: text.length > 0 ? text : payload,
-    parsed: true,
-  });
-}
+export { readCanonicalPayload as extractText };
 
 async function readArtifactText(
   home: string,
@@ -519,7 +453,7 @@ export async function readCanonicalEvents(home: string): Promise<
 
       if (text.trim().length === 0) continue;
 
-      const extraction = extractText(text);
+      const extraction = readCanonicalPayload(text);
 
       events.push(
         Object.freeze({
@@ -930,11 +864,11 @@ export function generateProbes(
  * on the same record without reimplementing the index this repository already
  * measures. The query is prepared the same way.
  */
-function mergedBody(text: string): string {
+export function mergedBody(text: string): string {
   return `${normalizeTokens(text).map(stem).join(" ")}\n${text}`;
 }
 
-function mergedQuery(text: string): string {
+export function mergedQuery(text: string): string {
   return `${contentTerms(text).map(stem).join(" ")} ${text}`;
 }
 

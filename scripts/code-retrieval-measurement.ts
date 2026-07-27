@@ -30,11 +30,13 @@ import {
   percentile,
 } from "./document-retrieval-measurement.ts";
 import {
+  codeTokens,
   contentTerms,
   isTypoOf,
   normalizeTokens,
+  splitIdentifier,
   stem,
-} from "./tolerant-search-measurement.ts";
+} from "../packages/tolerant-retrieval/src/index.ts";
 
 export class CodeRetrievalMeasurementError extends Error {}
 
@@ -520,73 +522,13 @@ export function buildProseRecords(): readonly CodeRecord[] {
   );
 }
 
-const PUNCTUATION_TOKENS = Object.freeze([
-  "===",
-  "!==",
-  "??=",
-  "...",
-  "=>",
-  "??",
-  "?.",
-  "&&",
-  "||",
-  "==",
-  "!=",
-  ">=",
-  "<=",
-]);
-
-const IDENTIFIER = /[A-Za-z_$][A-Za-z0-9_$]*/gu;
-
 /**
- * Splits an identifier the way its author wrote it: camelCase boundaries,
- * acronym runs, underscores, and digits. `resolveGuiLocale` yields `resolve`,
- * `gui`, `locale`; `validatePseudonymMappingV2` keeps `v2` as its own word so a
- * version suffix can be searched for.
+ * Identifier splitting and code tokenization moved to
+ * `@ai-workspace/tolerant-retrieval`, ported unchanged, and are re-exported
+ * here so the variants this harness compares stay derived from the definition
+ * the package ships rather than from a second copy of it.
  */
-export function splitIdentifier(identifier: string): readonly string[] {
-  const parts = identifier
-    .replace(/([a-z0-9])([A-Z])/gu, "$1 $2")
-    .replace(/([A-Z]+)([A-Z][a-z])/gu, "$1 $2")
-    .replace(/([A-Za-z])([0-9])/gu, "$1 $2")
-    .split(/[\s_$]+/u)
-    .map((part) => part.toLowerCase())
-    .filter((part) => part.length > 0);
-  return Object.freeze(parts);
-}
-
-/**
- * Code tokenization. No stemming, because `mapping` and `mapped` are different
- * names, and no diacritic folding beyond lowercasing, because an identifier
- * has no accents. Whole identifiers are kept alongside their parts so an exact
- * name still outranks the files that merely share a word with it.
- */
-export function codeTokens(
-  text: string,
-  splitting = true,
-  wholeIdentifierWeight = 1,
-): readonly string[] {
-  const tokens: string[] = [];
-  for (const punctuation of PUNCTUATION_TOKENS) {
-    let from = 0;
-    for (;;) {
-      const found = text.indexOf(punctuation, from);
-      if (found < 0) break;
-      tokens.push(punctuation);
-      from = found + punctuation.length;
-    }
-  }
-  for (const match of text.matchAll(IDENTIFIER)) {
-    const identifier = match[0];
-    const lowered = identifier.toLowerCase();
-    for (let repeat = 0; repeat < wholeIdentifierWeight; repeat += 1)
-      tokens.push(lowered);
-    if (!splitting) continue;
-    const parts = splitIdentifier(identifier);
-    if (parts.length > 1 || parts[0] !== lowered) tokens.push(...parts);
-  }
-  return Object.freeze(tokens);
-}
+export { codeTokens, splitIdentifier };
 
 function tokensFor(
   mode: SearchMode,

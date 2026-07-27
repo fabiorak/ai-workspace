@@ -6,6 +6,14 @@ import { TextEncoder } from "node:util";
 import { HistoricalSearch } from "../packages/historical-search/src/index.ts";
 import type { HistoricalEvent } from "../packages/historical-search/src/index.ts";
 import type { SessionEvent } from "../packages/session-ingestion/src/index.ts";
+import {
+  STOPWORDS,
+  boundedDistance,
+  contentTerms,
+  isTypoOf,
+  normalizeTokens,
+  stem,
+} from "../packages/tolerant-retrieval/src/index.ts";
 
 export const TOLERANT_SEARCH_CORPUS_ID = "TOLERANT_SEARCH_SYNTHETIC_V1";
 
@@ -148,8 +156,6 @@ export type ScaleProfile = keyof typeof SCALE_PROFILES;
 const SCALE_WARM_RUNS = 2;
 const SCALE_MEASURED_RUNS = 3;
 const SCALE_FILLER_TERMS = 4_096;
-const FUZZY_MIN_LENGTH = 4;
-const FUZZY_LONG_LENGTH = 8;
 const BM25_K1 = 1.2;
 const BM25_B = 0.75;
 const encoder = new TextEncoder();
@@ -160,134 +166,6 @@ export class TolerantSearchMeasurementError extends Error {
     this.name = "TolerantSearchMeasurementError";
   }
 }
-
-export const STOPWORDS: ReadonlySet<string> = new Set([
-  "a",
-  "abbiamo",
-  "ai",
-  "al",
-  "alla",
-  "alle",
-  "an",
-  "and",
-  "are",
-  "be",
-  "che",
-  "chi",
-  "ci",
-  "come",
-  "con",
-  "cosa",
-  "da",
-  "dal",
-  "dei",
-  "del",
-  "della",
-  "delle",
-  "dello",
-  "did",
-  "do",
-  "dove",
-  "e",
-  "ed",
-  "for",
-  "fra",
-  "gli",
-  "ha",
-  "hanno",
-  "ho",
-  "how",
-  "i",
-  "il",
-  "in",
-  "is",
-  "it",
-  "la",
-  "le",
-  "lo",
-  "mi",
-  "ne",
-  "nei",
-  "nel",
-  "nella",
-  "non",
-  "of",
-  "on",
-  "o",
-  "or",
-  "not",
-  "per",
-  "perche",
-  "quando",
-  "si",
-  "sono",
-  "su",
-  "sul",
-  "sulla",
-  "that",
-  "the",
-  "this",
-  "ti",
-  "to",
-  "tra",
-  "un",
-  "una",
-  "uno",
-  "was",
-  "we",
-  "were",
-  "what",
-  "when",
-  "where",
-  "with",
-]);
-
-const ITALIAN_SUFFIXES = Object.freeze([
-  "issimo",
-  "issima",
-  "issimi",
-  "issime",
-  "amente",
-  "azione",
-  "azioni",
-  "mente",
-  "sione",
-  "sioni",
-  "zione",
-  "zioni",
-  "iamo",
-  "iate",
-  "ando",
-  "endo",
-  "ante",
-  "anti",
-  "ente",
-  "enti",
-  "ione",
-  "ioni",
-  "ata",
-  "ate",
-  "ati",
-  "ato",
-  "ita",
-  "ite",
-  "iti",
-  "ito",
-  "uta",
-  "ute",
-  "uti",
-  "uto",
-]);
-const ENGLISH_SUFFIXES = Object.freeze([
-  "ingly",
-  "edly",
-  "ing",
-  "ies",
-  "ed",
-  "es",
-  "ly",
-  "s",
-]);
 
 /**
  * Predeclared synthetic corpus. Three conversations covering software work, an
@@ -509,64 +387,19 @@ export const QUERIES = Object.freeze([
   },
 ] satisfies readonly CorpusQuery[]);
 
-export function normalizeTokens(value: string): readonly string[] {
-  return Object.freeze(
-    value
-      .normalize("NFD")
-      .replace(/\p{M}+/gu, "")
-      .toLowerCase()
-      .split(/[^\p{L}\p{N}]+/u)
-      .filter((token) => token.length > 0),
-  );
-}
-
-export function contentTerms(value: string): readonly string[] {
-  const tokens = normalizeTokens(value);
-  const kept = tokens.filter((token) => !STOPWORDS.has(token));
-  return kept.length > 0 ? Object.freeze(kept) : tokens;
-}
-
-function stripFinalVowel(token: string): string {
-  return token.length >= 5 && /[aeiou]$/u.test(token)
-    ? token.slice(0, token.length - 1)
-    : token;
-}
-
-export function stem(token: string): string {
-  if (token.length < FUZZY_MIN_LENGTH) return token;
-  for (const suffixes of [ITALIAN_SUFFIXES, ENGLISH_SUFFIXES])
-    for (const suffix of suffixes)
-      if (token.endsWith(suffix) && token.length - suffix.length >= 3)
-        return stripFinalVowel(token.slice(0, token.length - suffix.length));
-  return stripFinalVowel(token);
-}
-
-export function boundedDistance(left: string, right: string): number {
-  const budget = right.length >= FUZZY_LONG_LENGTH ? 2 : 1;
-  if (Math.abs(left.length - right.length) > budget) return budget + 1;
-  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
-  for (let row = 1; row <= left.length; row += 1) {
-    const current = [row, ...new Array<number>(right.length).fill(0)];
-    for (let column = 1; column <= right.length; column += 1) {
-      const cost = left[row - 1] === right[column - 1] ? 0 : 1;
-      current[column] = Math.min(
-        (current[column - 1] ?? 0) + 1,
-        (previous[column] ?? 0) + 1,
-        (previous[column - 1] ?? 0) + cost,
-      );
-    }
-    if (Math.min(...current) > budget) return budget + 1;
-    previous = current;
-  }
-  return previous[right.length] ?? budget + 1;
-}
-
-export function isTypoOf(term: string, candidate: string): boolean {
-  if (candidate.length < FUZZY_MIN_LENGTH || term.length < FUZZY_MIN_LENGTH)
-    return false;
-  const budget = candidate.length >= FUZZY_LONG_LENGTH ? 2 : 1;
-  return boundedDistance(term, candidate) <= budget;
-}
+/**
+ * The primitives moved to `@ai-workspace/tolerant-retrieval`, ported unchanged
+ * from this harness, and are re-exported here so the package and the figures
+ * below rest on one definition instead of two that could drift apart.
+ */
+export {
+  STOPWORDS,
+  boundedDistance,
+  contentTerms,
+  isTypoOf,
+  normalizeTokens,
+  stem,
+};
 
 type IndexedRecord = Readonly<{
   id: string;

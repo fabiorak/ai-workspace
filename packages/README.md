@@ -42,3 +42,8 @@ Implemented packages:
   machine and its persistence ports;
 - `context-builder/` owns deterministic budgeted Context Pack composition and
   its schema-versioned canonical representation;
+- `tolerant-retrieval/` owns the in-memory tolerant lexical index of ADR-0031
+  and ADR-0032: one merged token set per record, typo tolerance against
+  unstemmed surface forms, admissibility before ranking, a stated reason for
+  every result, and the reader that reduces a canonical payload to text outside
+  the engine;

@@ -13,12 +13,14 @@ import {
   CORPUS,
   PROBE_FAMILIES,
   QUERIES,
-  contentTerms,
-  isTypoOf,
-  stem,
   type CorpusRecord,
   type ProbeFamily,
 } from "./tolerant-search-measurement.ts";
+import {
+  contentTerms,
+  isTypoOf,
+  stem,
+} from "../packages/tolerant-retrieval/src/index.ts";
 
 export const UNIFIED_RETRIEVAL_CORPUS_ID = "UNIFIED_RETRIEVAL_SYNTHETIC_V1";
 
