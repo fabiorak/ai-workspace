@@ -31,6 +31,7 @@ import {
 import {
   TolerantRetrievalError,
   TolerantRetrievalIndex,
+  boundedDistance,
   codeTokens,
   isTypoOf,
   mergedQueryTerms,
@@ -453,11 +454,39 @@ test("compares a typo against the surface form, not against the stem", () => {
   assert.equal(results[0]?.reasons[0]?.kind, "TYPO");
 });
 
-test("declares that a transposition costs two edits", () => {
-  assert.ok(fixesTranspositionsUnderBudget("retrieve"));
-  assert.ok(isTypoOf("retrieev", "retrieve"));
-  assert.ok(!fixesTranspositionsUnderBudget("cerca"));
-  assert.ok(!isTypoOf("cerac", "cerca"));
+/**
+ * The transposition case is the one plain Levenshtein could not pay for on a
+ * short word, and short words are most of what anyone types. These are the terms
+ * that were out of reach before it was added, so a regression to Levenshtein
+ * fails here rather than showing up as a search that quietly finds less.
+ */
+test("reaches a transposition for one edit, at every matched length", () => {
+  for (const [typed, indexed] of [
+    ["cerac", "cerca"],
+    ["indcie", "indice"],
+    ["saerch", "search"],
+    ["meomria", "memoria"],
+    ["retrieev", "retrieve"],
+  ]) {
+    if (typed === undefined || indexed === undefined) continue;
+    assert.equal(boundedDistance(typed, indexed), 1, `${typed} → ${indexed}`);
+    assert.ok(isTypoOf(typed, indexed), `${typed} must reach ${indexed}`);
+    assert.ok(fixesTranspositionsUnderBudget(indexed));
+  }
+  /** Below the minimum length nothing is inexact, transpositions included. */
+  assert.ok(!fixesTranspositionsUnderBudget("gui"));
+  assert.ok(!isTypoOf("iug", "gui"));
+  /** One edit is spent on the transposition, so a second change is still too far. */
+  assert.ok(!isTypoOf("cerack", "cerca"));
+});
+
+test("reaches a typo through the index, stating it as the reason", () => {
+  const index = TolerantRetrievalIndex.build([
+    record({ id: "hit", text: "la cerca del totale nel carrello" }),
+  ]);
+  const results = index.search("cerac");
+  assert.equal(results[0]?.id, "hit");
+  assert.equal(results[0]?.reasons[0]?.kind, "TYPO");
 });
 
 test("indexes one merged token set, the one the measurement merged", () => {
