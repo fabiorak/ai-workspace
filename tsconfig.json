@@ -78,6 +78,9 @@
       ],
       "@ai-workspace/session-ingestion": [
         "./packages/session-ingestion/src/index.ts"
+      ],
+      "@ai-workspace/tolerant-retrieval": [
+        "./packages/tolerant-retrieval/src/index.ts"
       ]
     },
     "types": ["node"]
