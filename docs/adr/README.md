@@ -53,3 +53,4 @@ Status: proposed | accepted | superseded
 - [ADR-0030: Screen restricted data per record in the tolerant reader](0030-screen-restricted-data-per-record-in-the-tolerant-reader.md)
 - [ADR-0031: Use a tolerant unified lexical index with optional dense recall](0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md)
 - [ADR-0032: Index one merged token set over text extracted outside the engine](0032-index-one-merged-token-set-over-text-extracted-outside-the-engine.md)
+- [ADR-0033: Qualify rizzo-pii behind an interchangeable local detection port](0033-qualify-rizzo-pii-behind-an-interchangeable-local-detection-port.md)
