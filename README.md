@@ -166,8 +166,10 @@ rather than a guarantee.
 
 ## GUI-first journey
 
-The GUI provides English and Italian presentation and guides the user through a
-local, inspectable workflow:
+The GUI provides English and Italian presentation. The path to a useful answer
+is four steps — register a project, bring in some history, ask, and carry the
+answer to another assistant — and everything else is there when it is needed
+rather than on the way:
 
 1. use the persistent sidebar to open focused local pages for Dashboard,
    Projects, Evidence, Active memory, Work and handoffs, Privacy, Settings, and

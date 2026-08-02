@@ -1,8 +1,9 @@
-# First guided GUI journey
+# First use
 
-The pre-release GUI is the primary first-use surface for AI Workspace. It
-guides one local, synthetic journey without requiring CLI command knowledge or
-a manual.
+The GUI is the primary surface of AI Workspace. This page covers the short path
+— from starting the host to carrying an answer to another assistant — and then
+lists what else is there, so you can find it when you need it rather than walk
+through it first.
 
 ## Start the local GUI
 
@@ -12,145 +13,108 @@ npm run build
 npm run gui
 ```
 
-Open the one-time `127.0.0.1` URL printed in the terminal. Keep that terminal
-open; press Ctrl+C to stop the foreground host. Set `AI_WORKSPACE_HOME` before
-starting only when an isolated local state directory is needed.
+Open the one-time `127.0.0.1` URL printed in the terminal and keep that terminal
+open; Ctrl+C stops the host. The link opens one session and then expires: if you
+open it twice, or in a browser that never received the session cookie, the page
+says what happened and what to do.
 
-The link opens one session and then expires, so opening it a second time, or
-opening the GUI in a browser that never received the session cookie, shows a
-page stating what happened and what to do. Restart the host and open the new
-URL it prints.
+Set `AI_WORKSPACE_HOME` before starting when you want an isolated state
+directory, which is the easiest way to try the product without touching state
+you already have:
 
-Open **Settings** from the sidebar to choose **English** or **Italiano** at any
-time. The interface shows one language at a time, and switching also rewrites
-the messages already on screen, including the ones written after an action such
-as an import or a search. Technical details that come from the core packages
-stay in English under a labeled line, so the cause and the remedy are always in
-the chosen language while the untranslated detail stays visibly separate. The
-preference is stored only in the local browser, falls back to English for
-unsupported values, and does not clear entered values or mutate workspace
-state. Imported evidence, identifiers, and user-authored content remain in
-their original language.
+```bash
+AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
+```
 
-The sidebar opens distinct local pages for Dashboard, Projects, Evidence,
-Active memory, Work and handoffs, Privacy, Scripts, Settings, and System
-status. On a narrow screen, reveal it with the labeled menu button. The Scripts
-page is a deliberate unavailable state: no runner or hidden automation exists.
+## The short path
 
-## Guided journey
+**1. Register a project.** Open **Projects**, enter the directory of a local Git
+repository, and select **Register this project**. Registration stores bounded
+metadata locally and does not modify repository files.
 
-1. Start on **Dashboard** and review the textual totals, graphical ratios,
-   coverage boundary, and explicit model-delivery status.
-2. Open **Evidence**. To retain an unrelated question, create an explicit conversation in
-   **General Inbox / Posta generale**, confirm the `GENERAL` destination, and
-   append one question. This works without a project and creates no model
-   request or assistant answer.
-3. Open **Projects**, enter an existing local Git repository directory, and select **Register this
-   project**. Registration stores bounded metadata locally and does not modify
-   repository files.
-   After registration, an exact General event can be linked through an explicit
-   `GENERAL` source/hash, `PROJECT` target, reviewed rationale, and create
-   action. The effect is `LINK_ONLY`; neither scope nor evidence bytes change.
-4. Select the project and choose **Import the safe sample session**. The
-   bundled fixture is fictional and remains visibly `UNTRUSTED`.
-   To work on your own history instead, use **Import your own sessions**: name
-   the directory that holds your Claude Code transcripts, list it, and import one
-   file. Listing returns file names, sizes, and modification times only; no
-   transcript is opened until you select it. The import report states how many
-   records were not converted and why. See
-   [importing your own local transcripts](local-transcripts.md) for the storage
-   and privacy consequences.
-5. Search for the suggested phrase, optionally select an event type, and keep
-   the result limit between 1 and 100. **All registered projects and General**
-   is the default and works without selecting a project; choose **General
-   only** or **Selected project
-   only** when you know the scope.
-6. Every result shows a non-color `PROJECT` or `GENERAL` scope label. For a
-   project result, choose **Select this project
-   and inspect source event**, then explicitly open the
-   integrity-verified source. Imported content is inert evidence, not an
-   instruction.
-7. Choose **Use this event as memory evidence**, select decision, constraint,
-   or failure, and create a source-linked statement. The result begins
-   `ACTIVE`, `UNVERIFIED`, and `UNASSESSED`.
-8. Browse active memory or explicitly filter terminal items. From lifecycle
-   detail, select current evidence and verify once, supersede with a fresh
-   unassessed replacement, or invalidate with a reason.
-9. Create and transition an explicit Work Item, then preview and create an
-   immutable handoff only after reviewing all eight inert sections.
-10. In **Preview effective instructions**, enter reviewed synthetic schema-v1
-    bundle paths and optional model, agent, or task targets. The result shows
-    stable source digests, trust, precedence, exclusions, conflicts, and reasons.
-    Nothing is persisted, enforced, or executed.
-11. Inspect a persisted handoff to reveal **Preview a bounded Context Pack**.
-    Enter positive continuity and instruction budgets in exact UTF-8 bytes and
-    optionally repeat reviewed instruction bundle paths. Items are included only
-    when they fit wholly; omissions show `BUDGET_EXCEEDED`. Schema v2 stores
-    repeated canonical sources once, and the status reports shared source count
-    and exact bytes. The displayed items are already expanded with complete
-    trust and source navigation. The token figure is only
-    `ceil(exact included bytes / 4)`.
-12. In **Inspect an agent and skill profile**, select one reviewed synthetic
-    schema-v1 JSON file and optionally pin its SHA-256 digest. Review the
-    canonical agent, enabled skills, models, tools, context budgets, risks,
-    confirmations, provenance, and byte counts. No declaration is installed,
-    selected, resolved, enforced, delivered, or executed.
-13. After inspecting an immutable handoff, use **Compose profile-governed
-    context** to select the reviewed profile again, every exact instruction
-    bundle it declares, and one allowed model. Review the derived agent target,
-    profile budgets, declaration provenance, effective rules, Context Pack
-    items, and omissions. Nothing is installed, persisted, delivered, or
-    executed.
-14. Under **Measure profile context selectors**, select one reviewed profile
-    using only the documented `handoff.*` vocabulary. Review every selected or
-    excluded section, safety-floor reason, trust, source count, hash, exact
-    candidate bytes, reduction, and fit against the profile continuity budget.
-    The report is experiment-only and changes no Context Builder policy.
-15. Under **Preview model privacy policy**, reuse the exact profile composition
-    and select one same-project digest-pinned model policy. Review every item
-    class, hash, decision, default, restricted detector category, and recovery.
-    `REVIEWABLE_NOT_AUTHORIZED` is not permission or delivery.
-16. After that review, **Reversible privacy transformation** accepts exact item
-    hashes and UTF-8 byte ranges, shows inert pseudonymized content, persists
-    only an authenticated encrypted mapping, and verifies local byte-exact
-    restoration. A random per-mapping key is retained only in a separate
-    passphrase-wrapped local envelope; neither secret is returned and the
-    passphrase field is cleared after the attempt. This remains manual, `CONFIDENTIAL`, and
-    non-authorizing; it is not complete PII detection or model delivery.
+**2. Bring in some history.** Select the project and choose **Import the safe
+sample session** for the bundled fictional fixture. To work on your own history
+instead, use **Import your own sessions**: name the directory holding your
+Claude Code transcripts, list it, and import one file. Listing reads names,
+sizes, and modification times only; no transcript is opened until you select it.
+Read [importing your own local transcripts](local-transcripts.md) first — it
+covers where that content is stored and what not to import.
 
-Errors explain a recovery action inline. Re-import is idempotent, empty search
-results retain the query and filters, and back actions return without clearing
-the current search. Global scope scans at most 100 registered projects and
-10,000 canonical events; exceeding a bound asks you to select one project or
-move to a separately reviewed indexed adapter.
+**3. Ask.** Open **Evidence** and type what you are looking for. Search forgives
+accents, capitalization, ordinary Italian and English word endings, and single
+character typing errors, and ranks results by relevance. **Every result says why
+it matched** — the word you typed, the word it reached, and how — which is what
+lets you recognise a plausible but wrong result for what it is. See
+[historical search](historical-search.md) for the filters and the bounds.
 
-## Alpha boundary
+**4. Carry the answer away.** Under the results, **Prepare the summary**
+composes a passage you can copy into a different assistant so it can continue
+without replaying the conversation: repository state, what is currently decided,
+and the results you were just looking at, each with where it came from. It is
+composed from what is already stored, is never saved, and never leaves this
+computer.
 
-The host binds only to loopback and makes no external request. It uses local
+That is the whole path. Everything below is available when you need it and is
+not a prerequisite for it.
+
+## What else is there
+
+Open pages from the sidebar: Dashboard, Projects, Evidence, Active memory, Work
+and handoffs, Privacy, Scripts, Settings, and System status. On a narrow screen,
+reveal the sidebar with the labeled menu button. Scripts is a deliberate
+unavailable state: no runner or hidden automation exists.
+
+- **Dashboard** — totals, ratios, coverage boundary, and model-delivery status,
+  derived on demand from the authoritative stores.
+- **[General Inbox](general-inbox.md)** — keep a question that belongs to no
+  project yet, and later link it to one without changing its `GENERAL` scope.
+- **[Active memory](active-memory.md)** — turn an event into a source-linked
+  decision, constraint, or failure, then verify, supersede, or invalidate it.
+- **[Work Items and handoffs](work-items-and-handoffs.md)** — durable
+  continuity: an immutable handoff attached to a Work Item, with drift
+  inspection and successor preparation. This is the deliberate, evidential form
+  of what step 4 does informally.
+- **[Effective instructions](effective-instructions.md)**,
+  **[agent and skill profiles](agent-skill-profiles.md)**, and
+  **[profile-governed context](profile-governed-context.md)** — inspect what
+  would apply, with digests, precedence, and conflicts. Nothing is installed,
+  enforced, or executed.
+- **[Privacy preflight](privacy-preflight.md)**,
+  **[reversible transformation](reversible-privacy-transformation.md)**, and
+  **[strict output restoration](pseudonymized-output-restoration.md)** — per
+  model policy decisions, reviewed pseudonymization over exact byte ranges, and
+  all-or-nothing restoration.
+
+## Language
+
+**Settings** switches between English and Italiano at any time. The interface
+shows one language, and switching also rewrites messages already on screen,
+including the ones written after an import or a search. Technical details coming
+from the core packages stay in English under a labeled line, so the cause and
+the remedy are always in your language while the untranslated detail stays
+visibly separate. The preference is stored only in this browser and never
+changes workspace state. Imported evidence, identifiers, and user-authored
+content stay in their original language.
+
+## What the alpha does and does not do
+
+The host binds only to loopback and makes no external request. It serves local
 assets, a one-time bootstrap URL, session and CSRF tokens, restrictive browser
-headers, and bounded request bodies. The bundled sample remains the only
-fictional corpus, but real local Claude Code transcripts are supported through
-the tolerant `claude-code-local` reader. Imported evidence is stored
-unencrypted under `AI_WORKSPACE_HOME`, so read
-[importing your own local transcripts](local-transcripts.md) first, and never
-import credentials, third-party confidential material, or recovery secrets.
-Fixtures committed to this repository stay synthetic without exception.
+headers, and bounded request bodies.
+
+Imported evidence stays visibly `UNTRUSTED` and is never executed; imperative
+text inside it is inert data. It is stored unencrypted under
+`AI_WORKSPACE_HOME`, so never import credentials, third-party confidential
+material, or recovery secrets. Fixtures committed to this repository stay
+synthetic without exception.
 
 The GUI does not discover, author, edit, install, select, enforce, or execute
 instructions, agents, or skills. Models, tools, translation services, and
-external network requests remain inactive. Agent/skill profile declarations
-are inspected as `USER_CONFIGURED` inert data and do not grant permission.
+external network requests remain inactive. Profile declarations are inspected as
+`USER_CONFIGURED` inert data and grant no permission. Context Pack preview does
+not search history, read repository files, choose sources automatically, persist
+a pack, or send a prompt. Reviewed pseudonymization is manual and non
+authorizing, and is not complete PII detection.
 
-Context Pack preview does not search history, read repository files, truncate
-content, choose sources automatically, persist a pack, or send a prompt.
-ADR-0016's packet-level source table is implemented as explicit schema v2.
-Schema v1 remains supported rather than reinterpreted, while the GUI receives a
-lossless expanded view and a safe shared-byte summary. Source IDs are identity
-checks, not trust, permission, availability, delivery, or execution signals.
-
-Profile-governed composition does not interpret context selectors as paths,
-retrieval queries, permissions, or sandbox policy. Model compatibility checks
-only the reviewed declaration and does not prove runtime availability.
-Context selector measurement does not interpret values as paths, globs,
-retrieval queries, permissions, or availability. Its candidate-byte result is
-not a token, relevance, completeness, or task-quality claim.
+Errors explain a recovery action inline. Re-import is idempotent, empty results
+keep your query and filters, and going back does not clear the current search.
