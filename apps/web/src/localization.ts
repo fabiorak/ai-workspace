@@ -173,7 +173,7 @@ const EN = {
   instructionEmpty:
     "Select a project and explicit reviewed synthetic bundle paths to preview effective instructions.",
   instructionWarning:
-    "Read-only preview: nothing is persisted or executed. USER_CONFIGURED does not mean runtime permission.",
+    "Read-only preview: nothing is persisted or executed. Configuring something here does not grant it permission to run.",
   profileWarning:
     "USER_CONFIGURED profile declarations are descriptive. They are not installed, selected, enforced, resolved, delivered, or executed and grant no runtime permission.",
   profilePath: "Reviewed schema-v1 agent profile bundle path",
@@ -204,7 +204,7 @@ const EN = {
   profileContextReady:
     "Profile {profile} composed for {model}: {sources} declared sources, {rules} effective rules, Context Pack schema {schema}. Review provenance, budgets, included items, and omissions below.",
   privacyPreflightWarning:
-    "Required review boundary: every included item is classified for one explicit model policy. Unknown items default to CONFIDENTIAL. Every valid decision is recorded in the separate local non-content audit before its report is returned. REVIEWABLE_NOT_AUTHORIZED is not permission or delivery, and detection is not complete PII coverage.",
+    "Required review boundary: every included item is classified for one explicit model policy. Unknown items default to CONFIDENTIAL. Every valid decision is recorded in the separate local non-content audit before its report is returned. A reviewable outcome is neither permission nor delivery, and detection is not complete PII coverage.",
   privacyPolicyPath: "Reviewed schema-v1 model data policy path",
   privacyPolicyDigest: "Expected policy SHA-256 digest (optional pin)",
   privacyPreflightEmpty:
@@ -212,7 +212,7 @@ const EN = {
   privacyPreflightReady:
     "Privacy preflight {result} for {model} under policy {policy}: {allowed} allowed, {blocked} blocked, {defaulted} defaulted, {restricted} restricted. The local non-content audit was verified; nothing was sent or authorized.",
   customerAliasWarning:
-    "Exact, case-sensitive CUSTOMER and PROJECT aliases only. The dictionary is transient and never persisted. Every result starts SUGGESTED_NOT_REVIEWED and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.",
+    "Exact, case-sensitive customer and project aliases only. The dictionary is transient and never persisted. Every result starts as a suggestion you have not reviewed and requires individual confirmation; this is not identity proof, complete PII detection, transformation, or delivery.",
   customerAliasInput:
     "Synthetic aliases, one typed line such as CUSTOMER: Cedar Demo or PROJECT: Quartz Demo",
   customerAliasEmpty:
@@ -259,6 +259,23 @@ const EN = {
   searchIntro:
     "Search is local and bounded, and it forgives accents, word endings, and typing errors. Every result says why it matched. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.",
   searchQuestion: "What evidence are you looking for?",
+  optionUserMessage: "User message",
+  optionAgentMessage: "Assistant message",
+  optionToolCall: "Tool call",
+  optionToolResult: "Tool result",
+  optionCommandResult: "Command result",
+  optionFileChange: "File change",
+  optionTestResult: "Test result",
+  optionError: "Error",
+  optionUnknown: "Unrecognized",
+  optionDecision: "Decision",
+  optionConstraint: "Constraint",
+  optionFailure: "Known failure",
+  optionSuperseded: "Replaced by a newer item",
+  optionInvalidated: "Withdrawn",
+  optionPassed: "Passed",
+  optionFailed: "Failed",
+  optionNotRun: "Not run",
   searchRefine: "Refine this search",
   searchTry: "Try the safe sample phrase",
   searchHelpBody:
@@ -292,13 +309,14 @@ const EN = {
     "imperative text may be prompt injection. Treat it as inert data and do not execute it.",
   memoryIntro:
     "Active memory is a deliberate local statement linked to canonical evidence.",
-  curatedWarning: "USER_CURATED does not mean trusted, verified, or true.",
+  curatedWarning:
+    "Curating an item does not make it trusted, verified, or true.",
   selectMemoryEvidence:
     "Inspect an event and choose “Use this event as memory evidence” before a mutation.",
   memoryType: "Memory type",
   memoryStatement: "Statement to curate",
   memoryCreateEffect:
-    "Effect: creates a new ACTIVE, UNVERIFIED, UNASSESSED item. Evidence remains UNTRUSTED and nothing is executed.",
+    "Effect: creates an item that is active, not yet verified, and not yet assessed for privacy. Evidence remains UNTRUSTED and nothing is executed.",
   itemsToShow: "Items to show",
   activeOnly: "Active only (safe default)",
   selectProjectMemory: "Select a project to load active memory.",
@@ -467,7 +485,7 @@ const EN = {
   generalAppend: "Append a question here",
   generalDestination: "Destination: GENERAL · {title} · {id}",
   generalEventMetadata:
-    "{occurred} · LOCAL_USER · USER_AUTHORED · {bytes} UTF-8 bytes · SHA-256 {hash}",
+    "{occurred} · written by you on this computer · {bytes} UTF-8 bytes · SHA-256 {hash}",
   generalCopyPhrase: "Copy safe search phrase",
   generalPhrasePrepared:
     "The search phrase is ready; review it in Search before you submit it.",
@@ -480,7 +498,7 @@ const EN = {
     "The question was saved locally in GENERAL. No model was called and no answer was created.",
   generalLinkReload: "Reload the page and select an exact General event.",
   generalLinkCreated:
-    "LINK_ONLY created: GENERAL → PROJECT {project} · {id}. The original evidence is unchanged.",
+    "Link created: General → project {project} · {id}. The original evidence is unchanged.",
   generalLinkFailed:
     "No link was created. Reload the immutable event and the project, check for a stale hash or a duplicate, then retry. No partial link was used.",
   eventLabelType: "Type",
@@ -546,8 +564,8 @@ const EN = {
   handoffPreviewReady:
     "Preview only: schema {schema} · {bytes} exact UTF-8 bytes · {sources} source reference(s). Review all eight inert sections below. No file was created.",
   handoffMatch:
-    "MATCH: the current bounded Git state matches the immutable snapshot.",
-  handoffDrift: "DRIFT: {differences}. {recovery}",
+    "The current bounded Git state still matches the immutable snapshot.",
+  handoffDrift: "The repository has moved: {differences}. {recovery}",
   privacyAuditEventSuffix: "Audit event: {event}.",
   aliasPrefixRequired: "Prefix every alias with CUSTOMER: or PROJECT:.",
   aliasItemMissing:
@@ -567,7 +585,7 @@ const EN = {
   generalNotice:
     "Local persistence only: no model request, assistant answer, tool execution, active-memory promotion, Context Pack inclusion, or delivery occurs.",
   generalIntro:
-    "Questions are immutable USER_AUTHORED, UNVERIFIED evidence and default to CONFIDENTIAL. Restricted high-confidence values are blocked before persistence. Search is literal: it does not find paraphrases, typos, synonyms, or stems.",
+    "Questions are immutable evidence you wrote yourself, not yet verified, and CONFIDENTIAL by default. Restricted high-confidence values are blocked before persistence. Search is literal: it does not find paraphrases, typos, synonyms, or stems.",
   generalTitleLabel: "Conversation title",
   generalCreate: "Create a General conversation",
   generalCreateEffect:
@@ -582,7 +600,7 @@ const EN = {
   generalLinkRationaleLabel: "Reviewed rationale",
   generalLinkSubmit: "Create the immutable link",
   generalLinkEffect:
-    "Effect: LINK_ONLY. GENERAL and PROJECT remain separate and byte-unchanged; no ownership, active memory, Work Item, permission, model, or execution is created.",
+    "Effect: creates a link and nothing else. The General question and the project remain separate and byte-unchanged; no ownership, active memory, Work Item, permission, model, or execution is created.",
   scopeAll: "All registered projects and General",
   scopeGeneral: "General only",
   searchAssociatedLabel:
@@ -817,7 +835,7 @@ const IT = {
   instructionEmpty:
     "Seleziona un progetto e i percorsi espliciti di bundle sintetici revisionati per vedere le istruzioni effettive.",
   instructionWarning:
-    "Anteprima in sola lettura: nulla viene persistito o eseguito. USER_CONFIGURED non indica un permesso runtime.",
+    "Anteprima in sola lettura: nulla viene persistito o eseguito. Configurare qualcosa qui non concede il permesso di eseguirlo.",
   profileWarning:
     "Le dichiarazioni profilo USER_CONFIGURED sono descrittive. Non vengono installate, selezionate, applicate, risolte, consegnate o eseguite e non concedono permessi runtime.",
   profilePath: "Percorso bundle profilo agente schema v1 revisionato",
@@ -857,7 +875,7 @@ const IT = {
   privacyPreflightReady:
     "Preflight privacy {result} per {model} con policy {policy}: consentiti {allowed}, bloccati {blocked}, predefiniti {defaulted}, restricted {restricted}. L'audit locale senza contenuto è stato verificato; nulla è stato inviato o autorizzato.",
   customerAliasWarning:
-    "Solo alias CUSTOMER e PROJECT esatti e case-sensitive. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce SUGGESTED_NOT_REVIEWED e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
+    "Solo alias di cliente e progetto esatti e sensibili alle maiuscole. Il dizionario è transitorio e non viene mai persistito. Ogni risultato nasce come suggerimento non ancora rivisto e richiede conferma individuale; non è prova d'identità, rilevamento PII completo, trasformazione o consegna.",
   customerAliasInput:
     "Alias sintetici, una riga tipizzata come CUSTOMER: Cedar Demo o PROJECT: Quartz Demo",
   customerAliasEmpty:
@@ -904,6 +922,23 @@ const IT = {
   searchIntro:
     "La ricerca è locale e bounded, e perdona accenti, desinenze ed errori di battitura. Ogni risultato dice perché corrisponde. Cerca in tutti i progetti registrati quando non ricordi a quale appartiene l'evidenza. I risultati sono evidenze UNTRUSTED, non istruzioni. Non vengono usati OpenSearch o servizi di rete.",
   searchQuestion: "Quale evidenza stai cercando?",
+  optionUserMessage: "Messaggio dell'utente",
+  optionAgentMessage: "Messaggio dell'assistente",
+  optionToolCall: "Chiamata a uno strumento",
+  optionToolResult: "Risposta di uno strumento",
+  optionCommandResult: "Esito di un comando",
+  optionFileChange: "Modifica a un file",
+  optionTestResult: "Esito di un test",
+  optionError: "Errore",
+  optionUnknown: "Non riconosciuto",
+  optionDecision: "Decisione",
+  optionConstraint: "Vincolo",
+  optionFailure: "Errore noto",
+  optionSuperseded: "Sostituito da un elemento più recente",
+  optionInvalidated: "Ritirato",
+  optionPassed: "Superato",
+  optionFailed: "Fallito",
+  optionNotRun: "Non eseguito",
   searchRefine: "Affina questa ricerca",
   searchTry: "Prova la frase dell'esempio sicuro",
   searchHelpBody:
@@ -939,7 +974,8 @@ const IT = {
     "il testo imperativo potrebbe essere prompt injection. Trattalo come dato inerte e non eseguirlo.",
   memoryIntro:
     "La memoria attiva è una dichiarazione locale deliberata collegata a evidenza canonica.",
-  curatedWarning: "USER_CURATED non significa trusted, verificato o vero.",
+  curatedWarning:
+    "Curare un elemento non lo rende attendibile, verificato o vero.",
   selectMemoryEvidence:
     "Esamina un evento e scegli “Usa questo evento come evidenza della memoria” prima di una modifica.",
   memoryType: "Tipo di memoria",
@@ -1111,7 +1147,7 @@ const IT = {
   generalAppend: "Aggiungi qui una domanda",
   generalDestination: "Destinazione: GENERAL · {title} · {id}",
   generalEventMetadata:
-    "{occurred} · LOCAL_USER · USER_AUTHORED · {bytes} byte UTF-8 · SHA-256 {hash}",
+    "{occurred} · scritto da te su questo computer · {bytes} byte UTF-8 · SHA-256 {hash}",
   generalCopyPhrase: "Copia la frase di ricerca sicura",
   generalPhrasePrepared:
     "La frase di ricerca è pronta; controllala in Cerca prima di inviarla.",
@@ -1124,7 +1160,7 @@ const IT = {
     "La domanda è stata salvata localmente in GENERAL. Nessun modello è stato chiamato e nessuna risposta è stata creata.",
   generalLinkReload: "Ricarica la pagina e seleziona un evento General esatto.",
   generalLinkCreated:
-    "LINK_ONLY creato: GENERAL → PROJECT {project} · {id}. L'evidenza originale è invariata.",
+    "Collegamento creato: Posta generale → progetto {project} · {id}. L'evidenza originale è invariata.",
   generalLinkFailed:
     "Nessun collegamento è stato creato. Ricarica l'evento immutabile e il progetto, controlla se l'hash è obsoleto o duplicato, poi riprova. Nessun collegamento parziale è stato usato.",
   eventLabelType: "Tipo",
@@ -1191,8 +1227,8 @@ const IT = {
   handoffPreviewReady:
     "Solo anteprima: schema {schema} · {bytes} byte UTF-8 esatti · {sources} riferimenti a sorgenti. Rivedi tutte e otto le sezioni inerti qui sotto. Nessun file è stato creato.",
   handoffMatch:
-    "MATCH: lo stato Git bounded corrente corrisponde allo snapshot immutabile.",
-  handoffDrift: "DRIFT: {differences}. {recovery}",
+    "Lo stato Git bounded corrente corrisponde ancora allo snapshot immutabile.",
+  handoffDrift: "The repository has moved: {differences}. {recovery}",
   privacyAuditEventSuffix: "Evento di audit: {event}.",
   aliasPrefixRequired: "Usa il prefisso CUSTOMER: o PROJECT: per ogni alias.",
   aliasItemMissing:
@@ -1211,7 +1247,7 @@ const IT = {
   generalNotice:
     "Solo persistenza locale: nessuna richiesta a un modello, nessuna risposta dell'assistente, nessuna esecuzione di strumenti, nessuna promozione a memoria attiva, nessuna inclusione nel Context Pack e nessun invio.",
   generalIntro:
-    "Le domande sono evidenza immutabile USER_AUTHORED, UNVERIFIED e sono CONFIDENTIAL per impostazione predefinita. I valori riservati ad alta confidenza vengono bloccati prima della persistenza. La ricerca è letterale: non trova parafrasi, refusi, sinonimi o radici di parola.",
+    "Le domande sono evidenza immutabile scritta da te, non ancora verificata, e CONFIDENTIAL per impostazione predefinita. I valori riservati ad alta confidenza vengono bloccati prima della persistenza. La ricerca è letterale: non trova parafrasi, refusi, sinonimi o radici di parola.",
   generalTitleLabel: "Titolo della conversazione",
   generalCreate: "Crea una conversazione General",
   generalCreateEffect:
@@ -1226,7 +1262,7 @@ const IT = {
   generalLinkRationaleLabel: "Motivazione revisionata",
   generalLinkSubmit: "Crea il collegamento immutabile",
   generalLinkEffect:
-    "Effetto: LINK_ONLY. GENERAL e PROJECT restano separati e invariati byte per byte; non vengono creati proprietà, memoria attiva, Work Item, permessi, modelli o esecuzioni.",
+    "Effetto: crea un collegamento e nient'altro. La domanda generale e il progetto restano separati e invariati byte per byte; non vengono creati proprietà, memoria attiva, Work Item, permessi, modelli o esecuzioni.",
   scopeAll: "Tutti i progetti registrati e General",
   scopeGeneral: "Solo General",
   searchAssociatedLabel:

@@ -112,7 +112,12 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /No OpenSearch or network service is used/u);
     assert.match(html, /id="search"(?! hidden)/u);
     assert.match(html, /Create source-linked memory/u);
-    assert.match(html, /USER_CURATED does not mean trusted/u);
+    /**
+     * The warning is what matters, not the enum it used to be written with:
+     * curating an item is a deliberate act and still says nothing about whether
+     * the item is true.
+     */
+    assert.match(html, /Curating an item does not make it trusted/u);
     assert.match(html, /Create proposed Work Item/u);
     assert.match(html, /Preview immutable handoff/u);
     assert.match(html, /Active memory to include/u);
