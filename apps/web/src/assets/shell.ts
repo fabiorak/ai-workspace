@@ -172,6 +172,16 @@ export function shellHtml(csrfToken: string) {
       </form>
       <div id="search-status" role="status" aria-live="polite" data-i18n="searchPrompt">Enter a query to search all registered projects, or choose selected-project scope.</div>
       <div id="search-results" data-i18n-label="searchResultsLabel" aria-label="Historical evidence results"></div>
+      <div id="restart" hidden>
+        <h3 id="restart-heading" tabindex="-1" data-i18n="restartTitle">Carry this to another assistant</h3>
+        <p data-i18n="restartIntro">A summary of this project is composed from what is already stored: the repository state, what was decided, and what you were just looking at. It is not saved anywhere and nothing is sent.</p>
+        <button id="restart-prepare" type="button" data-i18n="restartPrepare">Prepare the summary</button>
+        <div id="restart-status" role="status" aria-live="polite"></div>
+        <pre id="restart-text" tabindex="0"></pre>
+        <button id="restart-copy" type="button" hidden data-i18n="restartCopy">Copy the summary</button>
+        <p id="restart-omissions"></p>
+        <p id="restart-error" class="error" role="alert"></p>
+      </div>
     </section>
     <section aria-labelledby="event-heading" id="event-detail" hidden>
       <h2 id="event-heading" tabindex="-1" data-i18n="event">Inspect canonical event</h2>

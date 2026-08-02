@@ -17,6 +17,13 @@ export {
 } from "./evaluation.ts";
 export * from "./model.ts";
 export {
+  composeRestartSummary,
+  type RestartDecision,
+  type RestartFinding,
+  type RestartSummary,
+  type RestartSummaryInput,
+} from "./restart-summary.ts";
+export {
   measureHandoffBreakEven,
   previewHandoffSize,
   attributeHandoffBytes,

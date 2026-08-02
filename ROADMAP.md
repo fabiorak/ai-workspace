@@ -1,316 +1,124 @@
 # Roadmap
 
-This roadmap summarizes the current design direction. Scope and ordering may
-change as the architecture is validated.
+What AI Workspace does today, and what comes next. Scope and ordering may change
+as the architecture is validated.
 
-## Closed decisions
+Two things deliberately live elsewhere. **Why** a technical choice is in force is
+recorded in the [Architecture Decision Records](docs/adr/README.md), each with
+the evidence it was accepted on. **When** something changed is recorded in the
+commit history. Repeating either here produced a document that described the
+past more accurately than the present.
 
-These questions are decided. They are recorded here so that they are not
-reopened without new evidence that invalidates the accepted decision.
+## What works today
 
-- **Model delivery guarantee.** Closed by
-  [ADR-0027](docs/adr/0027-use-explicit-unknown-after-exposure-attempt-semantics.md).
-  AI Workspace provides application-level at-most-once exposure per
-  authorization, reports `UNKNOWN_AFTER_EXPOSURE` when the provider outcome is
-  not observable, and performs zero automatic retries. Provider-side
-  exactly-once processing is not claimed, is not required, and is not a
-  prerequisite for M5. Earlier sprint notes that describe the boundary as
-  unresolved describe the state before ADR-0027.
-- **Attempt persistence boundary.** Closed by
+This is a pre-release alpha. Everything below runs locally, reads and writes
+only local files, and makes no network request.
+
+**Projects and evidence.** Register a local Git repository, inspect its Git
+metadata, and import agent sessions: the bundled fictional sample, or one of
+your own Claude Code transcripts from a directory you name. Imported content is
+stored as canonical events with content-addressed source artifacts, stays
+visibly `UNTRUSTED`, and is never executed. Records carrying high-confidence
+restricted data are excluded whole, counted, and never stored.
+
+**Search.** One tolerant index answers over canonical events and active memory
+together, inside a project and across projects and General scopes. It forgives
+accents, capitalization, ordinary Italian and English word endings, and single
+character typing errors, ranks results by relevance, and states why each result
+matched. It runs in process, holds an interactive budget of 150 ms at its
+declared bound, and uses no service, no model, and no network.
+
+**Memory and continuity.** Curate source-linked active memory through an
+additive lifecycle, manage Work Items, and create immutable handoffs with drift
+inspection and successor preparation. Capture project-free questions in the
+General Inbox and link chosen General evidence to a project without losing its
+`GENERAL` scope.
+
+**Instructions and context.** Inspect composed effective instructions, portable
+agent and skill profiles, and deterministic Context Packs with exact UTF-8 byte
+budgets, shared source provenance, and declared omissions. Nothing previewed is
+installed, resolved, delivered, or executed.
+
+**Privacy.** Preview per-model data policy decisions, review and apply
+reversible pseudonymization over exact user-reviewed spans with encrypted local
+mappings and passphrase-wrapped custody, restore pseudonymized output strictly
+and all-or-nothing, and read a separate non-content decision audit.
+
+**Interface.** A loopback GUI in English and Italian is the primary path, with a
+graphical dashboard derived on demand from the authoritative stores. A CLI
+covers the same ground for scripting. The GUI has no runtime dependency, loads
+no remote asset, and renders charts as inline SVG from tested pure functions.
+
+## What comes next
+
+**Make the whole path feel like one product.** The capabilities above are
+complete but still ask the reader to know where each one lives. The next
+increment reduces steps, technical vocabulary, and confirmations rather than
+adding surfaces, so that opening a project, finding what was decided, and
+carrying it to another assistant is one continuous path.
+
+**General-purpose repositories.** Registration is still expressed in terms of a
+Git repository. Document repositories are designed in the long-term vision and
+are not in the delivery horizon yet; until they are, no screen may assume a
+project contains code.
+
+**Model delivery.** M5 remains incomplete. The at-most-once exposure semantics,
+the durable attempt evidence, and the provider-neutral attempt store exist as
+offline-qualified contracts; no credential is consumed, no provider is called,
+and a live probe requires separate explicit approval.
+
+**Later boundaries.** Optional dense recall behind the lexical path; a tool
+registry with sandboxed execution; multi-agent orchestration with provider
+neutral adapters; a community registry for portable agent and skill packages.
+Each requires its own decision record before any dependency or runtime is added.
+
+## Milestones
+
+1. **Project Memory** — repository discovery, session acquisition, historical
+   search, and continuity. _Outcome: resume earlier work with a different agent
+   without replaying the complete session._
+2. **Instruction and agent management** — inspectable composition, portable
+   profiles, and permission policy.
+3. **Context optimization** — byte-exact budgets, deduplication, progressive
+   disclosure, and savings evidence.
+4. **Privacy proxy** — entity detection, reversible pseudonymization, per-model
+   policy, and audit.
+5. **Tool registry** — reusable script manifests, discovery, and sandboxed
+   execution.
+6. **Multi-agent orchestration** — roles, provider-neutral adapters, isolated
+   worktrees, routing, and fallback.
+7. **Community registry** — portable packages with signatures, provenance, and
+   compatibility metadata.
+
+Document workflows evolve alongside these: local registration, parsing, search,
+annotations, and provenance first; then semantic search, requirements
+traceability, structured version comparison, a Document Graph, and mixed
+code/document work.
+
+## Decisions that will not be reopened without new evidence
+
+Each of these is recorded with the evidence it was accepted on.
+
+- **Retrieval engine.**
+  [ADR-0031](docs/adr/0031-use-a-tolerant-unified-lexical-index-with-optional-dense-recall.md)
+  replaces literal scanning with a tolerant in-process lexical index over
+  canonical events and active memory, amended by
+  [ADR-0032](docs/adr/0032-index-one-merged-token-set-over-text-extracted-outside-the-engine.md):
+  one merged token set per record, no search mode, typo tolerance applied before
+  stemming, and text extracted outside the engine. OpenSearch is not adopted: a
+  local index answers within the interactive budget.
+- **Model delivery guarantee.**
+  [ADR-0027](docs/adr/0027-use-explicit-unknown-after-exposure-attempt-semantics.md):
+  application-level at-most-once exposure per authorization,
+  `UNKNOWN_AFTER_EXPOSURE` when the provider outcome is not observable, and zero
+  automatic retries. Provider-side exactly-once processing is not claimed and is
+  not a prerequisite for M5.
+- **Attempt persistence boundary.**
   [ADR-0028](docs/adr/0028-use-separate-local-model-attempt-store.md): a
   separate provider-neutral local attempt store, not an extension of session or
   memory documents.
-
-Sprint 0 through Sprint 39 are complete.
-Sprint 40 is planned to establish the
-next narrow M5 boundary: environment-only provider credential input and
-GUI-first non-secret status, without persisting any secret and without
-credential consumption, network access, provider authentication, model
-delivery, or execution.
-Sprint 41 is planned to make the product
-usable on real local agent sessions through explicit user-selected ingestion of
-Claude Code transcripts already on the machine, so that product decisions can be
-based on real use instead of synthetic fixtures alone.
-Sprint 36 accepted ADR-0027 after its
-28-case offline corpus proved at most one application-level OpenAI create per
-authorization, explicit `UNKNOWN_AFTER_EXPOSURE`, restart without resend, and
-zero retries. The decision is prototype semantics only: no live call,
-credential, production adapter/store, response, GUI action, routing, fallback,
-or execution was added.
-Sprint 37 qualified the durable,
-non-content attempt evidence required before a future adapter call. Its 29-case
-offline corpus passed with zero retries and accepted only a dedicated
-test-owned JSON candidate. It does not authorize credentials, network, model
-delivery, a production store, or a user-facing surface.
-Sprint 38 adopted the provider-neutral
-production persistence boundary through ADR-0028 without adding credentials,
-network, provider calls, routes, GUI actions, or delivery.
-Sprint 39 introduced a bilingual,
-accessible graphical homepage dashboard. It derives bounded read-only summaries
-from authoritative local stores and uses semantic HTML and CSS rather than a
-charting dependency.
-Sprint 30 accepted ADR-0024 after an executable compatibility corpus and added
-reviewed `PROJECT` aliases through explicit schema-v2 mappings with permanent
-byte-identical v1 reads and no implicit migration.
-Sprint 31 accepted ADR-0025 after frozen synthetic v1/v2 output-integrity
-evidence. Strict whole-token validation now restores exact mapping-owned values
-in a bounded local inspector and blocks the complete result on unknown or
-altered placeholders. It introduces no model access, response capture,
-delivery, routing, permission, or execution.
-Sprint 32 accepted ADR-0026 after its
-frozen non-content corpus passed. Valid explicit privacy-preflight decisions
-are now recorded in a separate bounded append-only local store and exposed in a
-read-only bilingual project viewer. Audit failure blocks report return; models,
-delivery, routing, permissions, and execution remain excluded.
-Sprint 33 completed a frozen 22-case
-authorization, replay, expiry, and crash corpus. Local transaction-coupled
-single-use consumption passed, but provider outcome after byte exposure stayed
-unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027, production grant,
-provider, credential, network, model call, response, delivery, routing, or
-execution surface.
-Sprint 34 qualified concrete OpenAI
-surfaces without invoking them. Responses passed 13/13 offline protocol cases,
-but request IDs do not document create idempotency and post-exposure outcomes
-remain ambiguous, so its decision is `EVIDENCE_ONLY`. The 10/10 Codex headless
-process corpus closes `SEPARATE_AGENT_BOUNDARY` because coding-agent context
-cannot prove exact reviewed-input isolation. No ADR-0027 or production surface
-is added.
-Sprint 35 applied the same offline
-qualification to Anthropic. Messages passed 19/19 local protocol cases but
-remains `EVIDENCE_ONLY` because safe create replay and post-timeout retrieval
-are not documented. Claude Code passed 14/14 fake-process cases: bare mode is
-`API_EQUIVALENT_NOT_FALLBACK`, while managed login is a
-`SEPARATE_AGENT_BOUNDARY`. No live provider or executable was invoked.
-The foreground loopback GUI now covers the Core MVP journey, complete
-active-memory and continuity cockpit workflows, English/Italian localization,
-effective-instruction preview, and deterministic budgeted Context Pack preview.
-Sprint 13 completed Context Pack pressure
-measurement over a deterministic 27-sample synthetic corpus before any new
-optimization was selected. Sprint 14
-then measured resolvable reference and outline granularity without enabling
-either representation: neither improves the sampled standard-budget fit
-boundary. Sprint 15 then accepted a
-future packet-level source table in ADR-0016 after an exact lossless comparison
-created one new compact standard-budget fit. Sprint 17 rolled that source table
-out as explicit schema v2 with schema-v1 compatibility and lossless expanded
-GUI inspection. Sprint 18 added the first portable agent/skill profile
-contract. Sprint 19 composes one explicitly selected profile, its exact
-instruction-source closure, one allowed model, and one immutable handoff into
-effective instructions and an unchanged schema-v2 Context Pack. M4's
-deterministic inspection and budgeting boundary is complete. Selector-driven
-retrieval, enforceable runtime permissions, delivery, and execution remain
-later boundaries rather than implicit M4 behavior.
-Sprint 20 measured an experiment-only one-to-one `handoff.*` selector
-vocabulary and safety floor. The result is `adapt`: fit improves from 9 to 12
-of 27 observations and repeated candidate bytes fall 49.89%, but no
-continuity-quality evidence or schema-v2 accounting supports production
-rollout. Normal selectors and Context Builder behavior remain unchanged.
-Sprint 21 froze six synthetic, digest-pinned continuity manifests before
-selection. None of the three policies preserves the corpus: exact required
-answer recall is 0%, 55.56%, and 77.78% for floor-only, focused, and risk-aware.
-All retain first action, but source coverage is also incomplete. Exact
-schema-v2 accounting creates no new fit. Both decisions are `no change`, with
-production and GUI behavior unchanged.
-Sprint 22 starts the M5/E7 privacy boundary with an ADR-gated, read-only model
-data-policy preflight over one exact profile-governed Context Pack. Unknown
-content defaults to `CONFIDENTIAL`, high-confidence `RESTRICTED` detection
-always blocks, and the bilingual GUI exposes only hashes, categories, counts,
-reasons, and recovery. No content is sent to a model and no pseudonymization,
-mapping persistence, encryption key, routing, permission, or execution path is
-introduced.
-
-Sprint 16 completed the E3 usability
-increment: bounded literal search across all registered projects from the
-primary bilingual GUI, with project identity and project-scoped source
-navigation on every result. It adds no index or OpenSearch dependency.
-
-Sprint 17 completed the bounded ADR-0016
-rollout. Explicit Context Pack schema v2 uses a canonical source table,
-deterministic marginal shared-byte accounting, schema-v1 compatibility, and
-lossless read-only inspection in the bilingual GUI. Persistence, delivery,
-execution, CodeGraph, profiles, and new infrastructure remain outside the
-increment.
-
-Sprint 18 completed the next M4 boundary:
-strict portable schema-v1 agent and skill profiles, controlled local
-digest-pinned import, canonical round-trip export, and bilingual read-only
-inspection. It adds no registry persistence, installation, permission
-enforcement, model/tool access, selection, delivery, or execution.
-
-Sprint 19 completed the read-only
-profile-composition boundary. Exact declared instruction-source closure and an
-explicit allowed-model selection are required; the agent target and exact-byte
-budgets come only from the reviewed profile. The transient result retains
-profile digest and declaration provenance alongside effective rules and an
-expanded Context Pack. It adds no registry, availability resolution,
-persistence, delivery, permission, or execution path.
-
-Sprint 20 completed the selector-evidence
-increment. Eight explicit selectors map to existing handoff sections while a
-four-section safety floor remains non-excludable. The bilingual report is
-measurement-only. Decision `adapt` defers vocabulary versioning and production
-policy until continuity-quality evidence exists.
-
-Sprint 21 completed that bounded
-measurement. Predeclared exact-answer anchors show task-dependent optional
-sections are lost by every candidate policy. Historical v1 candidate sums and
-exact schema-v2 bytes remain separate; neither accounting method improves the
-18/54 fit count, and production behavior stays unchanged.
-
-Sprint 22 completed the first E7
-vertical slice. It defines a portable digest-pinned model data policy,
-centralizes the existing narrow high-confidence restricted detector, and
-exposes a non-echoing privacy preflight for an explicitly composed Context Pack. A
-`REVIEWABLE_NOT_AUTHORIZED` result remains local review evidence, never model
-delivery authorization.
-
-Sprint 23 implements ADR-0018/0019. A General Inbox captures explicit local
-user-authored questions without false project attribution and make them
-available to General-only and all-scope bounded literal search through a
-separate atomic JSON store. Model replies, semantic retrieval,
-embeddings, FTS5, databases, automatic promotion, delivery, and execution
-remain outside the slice.
-
-Sprint 24 completed the additive
-provenance-link increment through ADR-0020. Selected exact General evidence can
-be linked explicitly to one registered project in a separate immutable atomic
-store; retrieval explains and filters the link while preserving `GENERAL`
-scope and project-only isolation.
-
-Sprint 25 completed a development-only
-scale and integrity measurement of canonical General/link validation. Two
-REFERENCE runs produced identical counts, zero known-item misses, sub-threshold
-latency and less than 2.4% pressure on every production bound. Decision
-`NO_CHANGE` retains JSON scans and creates no index ADR.
-
-Sprint 26 completed the next bounded E7
-slice. Exact-hash user-reviewed UTF-8 spans produce deterministic inert aliases
-while preserving all unselected bytes. A separate local adapter stores only
-AES-256-GCM authenticated ciphertext with fresh nonces, private modes, owner
-locking, atomic publication, and explicit volatile key custody. The bilingual
-GUI verifies byte-exact restoration without changing evidence or authorizing
-network, model, delivery, permission, or execution behavior.
-
-Sprint 27 completed passphrase-wrapped
-local custody for random per-mapping keys while retaining mapping schema-v1 and
-byte-exact recovery. Sprint 28 then
-measured deterministic entity candidates without a production consumer. Exact
-aliases achieved 100% precision and recall on the frozen corpus and are
-recommended only for explicit review; standard syntax and the union remain
-`REFINE` after a telephone false positive in source-code-like text. That result
-required every future match to remain `SUGGESTED_NOT_REVIEWED` until explicit
-current-hash confirmation, with no automatic transformation or delivery.
-
-Sprint 29 accepted ADR-0023 and rolled out only exact `CUSTOMER` aliases through
-a transient, non-echoing `SUGGESTED_NOT_REVIEWED` boundary. The bilingual GUI
-leaves every current-hash range unselected until individual confirmation into
-the unchanged schema-v1 review form; pseudonymization remains a separate
-action. `PROJECT` is rejected rather than coerced to `OTHER`. Sprint 30 must
-freeze v1/v2 compatibility evidence before ADR-0024 or any v2 production code,
-retain permanent v1 reads, and perform no implicit migration.
-
-Sprint 30 froze those compatibility gates before ADR-0024 and production code.
-Exact `CUSTOMER` and `PROJECT` dictionaries now produce non-echoing unreviewed
-suggestions; confirmation selects schema v2 only when a `PROJECT` span is
-present. Mapping v1 remains byte-identical and permanently readable, mapping
-v2 authenticates its exact schema and scope, and both versions coexist under
-distinct immutable mapping-set identities with the unchanged custody-envelope
-schema v1. No migration, delivery, model, network, or execution path was added.
-
-Sprint 31 treats arbitrary output as a new integrity boundary rather than
-reusing position-based Context Pack restoration. The frozen corpus produced
-three exact restores, nine complete blocks, one no-token result, zero errors,
-and zero partial blocked outputs. ADR-0025 authorizes only strict local
-inspection; v1/v2 mapping and custody contracts remain unchanged.
-
-Sprint 32 must keep audit evidence separate from ordinary logs, content,
-mappings, prompts, and responses. Only valid preflight decisions are eligible;
-transformation/restoration audit, deletion, export, retention automation,
-external anchoring, model access, and delivery remain later boundaries.
-
-Sprint 33 did not turn `REVIEWABLE_NOT_AUTHORIZED` into an implicit send path.
-Exact transformed-request binding, intent, expiry, replay, concurrency, and
-pre-exposure blocking passed in the synthetic adapter, while post-exposure
-crashes remained ambiguous. Provider integration remains a later explicitly
-authorized boundary with concrete protocol evidence.
-
-Sprint 34 confirms that OpenAI Responses remains the primary candidate but does
-not yet supply a documented exactly-once or safely repeatable create boundary.
-`codex exec` is not a model-delivery fallback; any future use belongs behind a
-separate agent-execution boundary. M5 remains incomplete and no live probe was
-run.
-
-Sprint 35 confirms that Anthropic Messages has the same unresolved
-post-exposure boundary. Claude Code bare cannot replace missing API
-credentials, and managed-login headless remains an agent-execution candidate
-rather than model delivery. M5 remains incomplete and no live probe was run.
-
-Sprint 36 makes that ambiguity a truthful bounded prototype contract through
-ADR-0027: one automatic application-level exposure per authorization,
-`UNKNOWN_AFTER_EXPOSURE` for inconclusive outcomes, no retry, and fresh warned
-authorization before any deliberate later attempt. The test-only decision does
-not prove provider exactly-once behavior or complete M5. A live probe still
-requires separate explicit approval.
-
-## 1. Project Memory
-
-- repository discovery and registry;
-- Git metadata and session acquisition;
-- project instructions, handoffs, summaries, and decision log;
-- historical indexing and global search;
-- minimal UI and MCP search interface.
-
-**Outcome:** resume earlier work with a different agent without replaying the
-complete session.
-
-## 2. Instruction and Agent Management
-
-- hierarchical, inspectable instruction composition;
-- versioned agent and skill registries;
-- permission and policy enforcement;
-- UI selection and portable Markdown/YAML definitions.
-
-## 3. Context Optimization
-
-- Context Builder and category-based token budgets;
-- progressive disclosure, deduplication, and compression;
-- code graph, artifact store, caching, and savings metrics.
-
-The current implementation enforces exact UTF-8 content-byte budgets and
-reports whole-item omissions. Synthetic granularity data rejects generic
-string-leaf outlines and leaves resolvable references experiment-only.
-ADR-0016 accepts a source table, not a full metadata table. Schema v2 now
-implements it with explicit v1 compatibility, canonical fail-closed expansion,
-and builder/GUI contracts. Broader retrieval, compression, delivery, and
-execution remain future decisions.
-
-## 4. Privacy Proxy
-
-- sensitive-entity detection and reversible pseudonymization;
-- encrypted local mappings and per-model data policies;
-- privacy inspector and audit trail.
-
-## 5. Tool Registry
-
-- reusable script manifests and recipes;
-- discovery, versioning, testing, and sandboxed execution;
-- automatic suggestions for previously verified automation.
-
-## 6. Multi-agent Orchestration
-
-- planner, implementer, reviewer, and tester roles;
-- provider-neutral agent adapters and handoffs;
-- isolated worktrees, routing, and fallback behavior.
-
-## 7. Community Registry
-
-- portable agent and skill packages;
-- signatures, provenance, compatibility, and trust metadata;
-- installation and update workflow.
-
-## Document workflows
-
-Document repositories evolve alongside the core roadmap, beginning with local
-registration, parsing, full-text search, annotations, and provenance. Later
-increments add semantic search, requirements traceability, structured version
-comparison, a Document Graph, OCR, and mixed code/document workflows.
+- **Italian PII detection candidate.**
+  [ADR-0033](docs/adr/0033-qualify-rizzo-pii-behind-an-interchangeable-local-detection-port.md)
+  qualifies `rizzo-pii` behind an interchangeable local port. It adopts no
+  runtime, weights, or dependency: mapping, custody, strict restoration, and
+  release authorization remain AI Workspace's own.

@@ -493,6 +493,17 @@ const EN = {
     "No match in the requested scope. Try a shorter or more common word, remove the type filter, or widen the scope.",
   searchFound:
     "Found {count} result(s) after scanning {events} event(s); the global limit was applied after the scope merge.",
+  restartTitle: "Carry this to another assistant",
+  restartIntro:
+    "A summary of this project is composed from what is already stored: the repository state, what was decided, and what you were just looking at. It is not saved anywhere and nothing is sent.",
+  restartPrepare: "Prepare the summary",
+  restartPreparing: "Composing the summary from local evidence…",
+  restartReady:
+    "Summary ready: {bytes} UTF-8 bytes. Copy it and paste it into the other assistant.",
+  restartCopy: "Copy the summary",
+  restartCopied: "Copied. Nothing left this computer.",
+  restartOmitted: "Not included: {omissions}",
+  restartAttention: "The summary could not be composed.",
   searchWhyMatched: "Why this matched",
   reasonEXACT: "“{term}” appears as you wrote it",
   reasonPREFIX: "“{term}” begins “{matched}”",
@@ -1125,6 +1136,17 @@ const IT = {
     "Nessuna corrispondenza nell'ambito richiesto. Prova una parola più corta o più comune, togli il filtro sul tipo, oppure allarga l'ambito.",
   searchFound:
     "Risultati trovati: {count}. Eventi esaminati: {events}. Il limite globale è stato applicato dopo l'unione degli ambiti.",
+  restartTitle: "Porta questo a un altro assistente",
+  restartIntro:
+    "Il riepilogo di questo progetto viene composto da ciò che è già memorizzato: lo stato del repository, ciò che è stato deciso e ciò che stavi guardando. Non viene salvato da nessuna parte e non viene inviato nulla.",
+  restartPrepare: "Prepara il riepilogo",
+  restartPreparing: "Composizione del riepilogo dalle evidenze locali…",
+  restartReady:
+    "Riepilogo pronto: {bytes} byte UTF-8. Copialo e incollalo nell'altro assistente.",
+  restartCopy: "Copia il riepilogo",
+  restartCopied: "Copiato. Non è uscito nulla da questo computer.",
+  restartOmitted: "Non incluso: {omissions}",
+  restartAttention: "Non è stato possibile comporre il riepilogo.",
   searchWhyMatched: "Perché corrisponde",
   reasonEXACT: "«{term}» compare come l'hai scritto",
   reasonPREFIX: "«{term}» è l'inizio di «{matched}»",

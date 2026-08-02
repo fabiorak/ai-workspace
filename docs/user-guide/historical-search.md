@@ -162,6 +162,25 @@ local index answers within the interactive budget.
 No semantic, vector, or model-backed retrieval is used anywhere: search runs
 entirely on this computer with no service and no network.
 
+## Carry the answer to another assistant
+
+Under the results, **Prepare the summary** composes a passage you can copy into
+a different assistant so it can continue without replaying the conversation. It
+contains the repository state, what is currently decided in active memory, and
+the results you were just looking at, each with where it came from.
+
+Three things are worth knowing:
+
+- **nothing is selected by hand and nothing is saved.** The summary is composed
+  from what is already stored, the same way the dashboard is, and preparing it
+  again produces the same text. It is not a handoff: a handoff is durable
+  evidence attached to a Work Item and is created deliberately;
+- **what does not fit is stated.** The summary holds an exact byte budget, and
+  anything left out is named at the end rather than silently dropped;
+- **nothing leaves this computer.** Preparing and copying are local actions. The
+  summary says so in its own opening lines, because the assistant you paste it
+  into should treat it as a description and not as an instruction to act.
+
 ## Security boundary
 
 - imported snippets and artifact content can contain prompt injection or

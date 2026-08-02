@@ -341,6 +341,20 @@ export async function startGuiServer(
               decodeURIComponent(memoryItem[2]!),
             ),
           );
+        const restart = /^\/api\/projects\/([^/]+)\/restart-summary$/u.exec(
+          url.pathname,
+        );
+        if (restart !== null) {
+          const question = url.searchParams.get("q");
+          return json(
+            response,
+            200,
+            await application.restartSummary({
+              projectId: decodeURIComponent(restart[1]!),
+              ...(question === null ? {} : { question }),
+            }),
+          );
+        }
         const search = /^\/api\/projects\/([^/]+)\/search$/u.exec(url.pathname);
         if (search !== null) {
           const typeValue = url.searchParams.get("type");

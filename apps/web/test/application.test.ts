@@ -54,6 +54,37 @@ describe("GUI application facade", () => {
       assert.ok(artifact.byteLength > 0);
     }));
 
+  it("carries a project to another assistant in three steps", async () =>
+    withFixture(async ({ app, repository }) => {
+      /**
+       * Open, ask, carry away. No Work Item, no selection of memory, no written
+       * next action: the summary is composed from what the stores already hold,
+       * which is what separates this from a handoff.
+       */
+      const project = await app.registerProject(repository);
+      await app.importSample(project.id);
+      const summary = await app.restartSummary({
+        projectId: project.id,
+        question: "test",
+      });
+
+      assert.match(summary.text, /# Restarting work on/u);
+      assert.match(summary.text, /## Question asked/u);
+      assert.match(summary.text, /## What was being looked at/u);
+      assert.equal(
+        summary.effect,
+        "READ_ONLY_LOCAL_SUMMARY_NOT_PERSISTED_AND_NOT_SENT",
+      );
+      assert.ok(summary.exactBytes > 0);
+
+      /** Composed, never stored: asking twice cannot leave anything behind. */
+      const again = await app.restartSummary({
+        projectId: project.id,
+        question: "test",
+      });
+      assert.equal(again.text, summary.text);
+    }));
+
   it("does not answer from an index built before the write", async () =>
     withFixture(async ({ app, repository }) => {
       const project = await app.registerProject(repository);
