@@ -9,6 +9,11 @@ export type {
   TolerantHistoricalSearchOptions,
 } from "./tolerant-historical-index.ts";
 export { snippetOf } from "./snippet.ts";
+/**
+ * Re-exported so a consumer of search can name the reason type without taking
+ * a dependency on the engine: what the engine is stays this package's business.
+ */
+export type { MatchReason } from "@ai-workspace/tolerant-retrieval";
 export { RETRIEVAL_STORES } from "./model.ts";
 export type {
   RetrievalStore,

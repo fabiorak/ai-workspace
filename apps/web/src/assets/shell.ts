@@ -153,7 +153,7 @@ export function shellHtml(csrfToken: string) {
     </section>
     <section aria-labelledby="search-heading" id="search">
       <h2 id="search-heading" tabindex="-1" data-i18n="search">Search historical evidence</h2>
-      <p data-i18n="searchIntro">Search is literal, local, and bounded. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.</p>
+      <p data-i18n="searchIntro">Search is local and bounded, and it forgives accents, word endings, and typing errors. Every result says why it matched. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.</p>
       <form id="search-form">
         <label for="search-scope" data-i18n="searchScope">Scopes to search</label>
         <select id="search-scope" name="scope"><option value="ALL" data-i18n="scopeAll">All registered projects and General</option><option value="GENERAL" data-i18n="scopeGeneral">General only</option><option value="SELECTED" data-i18n="selectedProjectOnly">Selected project only</option></select>

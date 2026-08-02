@@ -43,6 +43,7 @@ import {
 import {
   HistoricalSearch,
   type HistoricalSearchQuery,
+  type MatchReason,
 } from "@ai-workspace/historical-search";
 import {
   composeProfileInstructions,
@@ -198,6 +199,12 @@ export type GuiSearchReport = Readonly<{
     trust: "UNTRUSTED";
     snippet: string;
     matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
+    /**
+     * Why this result matched. The rank score stays out of the interface: it
+     * only compares within one report, so it is a number a reader cannot act
+     * on, while the reason is a sentence they can.
+     */
+    reasons: readonly MatchReason[];
   }>[];
   emptyGuidance: string | null;
 }>;
@@ -216,6 +223,12 @@ export type GuiGlobalSearchReport = Readonly<{
     trust: "UNTRUSTED";
     snippet: string;
     matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
+    /**
+     * Why this result matched. The rank score stays out of the interface: it
+     * only compares within one report, so it is a number a reader cannot act
+     * on, while the reason is a sentence they can.
+     */
+    reasons: readonly MatchReason[];
   }>[];
   emptyGuidance: string | null;
 }>;
@@ -845,6 +858,7 @@ export class GuiApplication {
               trust: result.trust,
               snippet: result.snippet,
               matchedIn: result.matchedIn,
+              reasons: result.reasons,
             }),
           ),
         ),
@@ -895,6 +909,7 @@ export class GuiApplication {
               trust: result.trust,
               snippet: result.snippet,
               matchedIn: result.matchedIn,
+              reasons: result.reasons,
             });
           }),
         ),

@@ -13,6 +13,7 @@ import {
   HistoricalSearch,
   type HistoricalEvent,
   type HistoricalSearchReport,
+  type MatchReason,
   type OpenedArtifact,
 } from "@ai-workspace/historical-search";
 import { JsonProjectRegistryStore } from "@ai-workspace/local-project-registry";
@@ -761,6 +762,7 @@ function formatSearchReport(
     `   Event: ${terminalText(result.eventId)}`,
     `   Trust: ${result.trust} historical evidence`,
     `   Match: ${result.matchedIn}`,
+    `   Why: ${terminalText(matchReasons(result.reasons))}`,
     `   ${terminalText(result.snippet)}`,
     `   Source: ${terminalText(result.source.artifactId)}#record-${result.source.position}`,
     `   Next: npm run cli -- history show ${terminalText(result.eventId)} --project ${terminalText(result.projectId)}`,
@@ -819,6 +821,26 @@ function formatOpenedArtifact(artifact: OpenedArtifact, json: boolean): string {
     "--- end content ---",
     "",
   ].join("\n");
+}
+
+/**
+ * Why a result matched, in one line. Retrieval forgives accents, word endings
+ * and typing errors, so a result can be reached by a word nobody typed; saying
+ * which word reached it is what lets a reader tell a real hit from a plausible
+ * one at the precision this engine was measured at.
+ */
+function matchReasons(reasons: readonly MatchReason[]): string {
+  const stated: Record<MatchReason["kind"], (reason: MatchReason) => string> = {
+    EXACT: (reason) => `"${reason.term}" as written`,
+    PREFIX: (reason) => `"${reason.term}" begins "${reason.matched}"`,
+    STEM: (reason) => `"${reason.term}" ~ "${reason.matched}"`,
+    TYPO: (reason) => `"${reason.term}" read as "${reason.matched}"`,
+    GLOSSARY: (reason) => `"${reason.term}" translated to "${reason.matched}"`,
+  };
+  return reasons
+    .slice(0, 3)
+    .map((reason) => stated[reason.kind](reason))
+    .join("; ");
 }
 
 function terminalText(value: string): string {

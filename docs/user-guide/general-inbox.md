@@ -33,10 +33,11 @@ Search offers three explicit scopes:
 - **Selected project only** preserves the existing project search contract and
   never includes General implicitly.
 
-Matching is case-insensitive literal substring search over canonical full
-content. It does not provide stemming, typo tolerance, synonyms, fuzzy or
-semantic similarity, ranking, or completeness claims. The CLI remains
-project-scoped.
+Matching ignores case and accents, forgives ordinary Italian and English word
+endings and single-character typing errors, and ranks both scopes into one
+list; each result states why it matched. It provides no synonyms beyond the
+declared bilingual glossary, no semantic similarity, and no completeness claim.
+The CLI remains project-scoped.
 
 ## Link exact evidence to a project
 

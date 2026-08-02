@@ -351,6 +351,20 @@ describe("session CLI workflow", () => {
     assert.equal(report.results[0]?.type, "COMMAND_RESULT");
     assert.equal(report.results[0]?.trust, "UNTRUSTED");
 
+    /**
+     * A word the reader never typed can reach a result, so the human output
+     * has to say which word did. Reading it back from the human form, not from
+     * the JSON, is the point: this is the surface a person sees.
+     */
+    const human = await runSuccessfulCli([
+      "history",
+      "search",
+      "sintetica",
+      "--project",
+      projectId,
+    ]);
+    assert.match(human.stdout, /Why: /u);
+
     const eventId = report.results[0]?.eventId ?? "";
     const artifactId = report.results[0]?.source.artifactId ?? "";
     const artifactDigest = artifactId.slice("artifact://sha256/".length);

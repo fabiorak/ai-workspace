@@ -257,7 +257,7 @@ const EN = {
     "Effect: adds canonical events and immutable artifacts locally. Repeating this action is idempotent.",
   selectProjectSample: "Select a project to enable the safe sample.",
   searchIntro:
-    "Search is literal, local, and bounded. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.",
+    "Search is local and bounded, and it forgives accents, word endings, and typing errors. Every result says why it matched. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.",
   searchQuestion: "What evidence are you looking for?",
   searchTry: "Try the safe sample phrase",
   searchHelpBody:
@@ -490,9 +490,15 @@ const EN = {
   eventOccurredUnknown: "Unknown",
   searchingScope: "Searching bounded canonical evidence in {scope}…",
   searchNoMatch:
-    "No literal match in the requested scope. This search is literal, so try an exact word taken from the evidence, or widen the scope.",
+    "No match in the requested scope. Try a shorter or more common word, remove the type filter, or widen the scope.",
   searchFound:
     "Found {count} result(s) after scanning {events} event(s); the global limit was applied after the scope merge.",
+  searchWhyMatched: "Why this matched",
+  reasonEXACT: "“{term}” appears as you wrote it",
+  reasonPREFIX: "“{term}” begins “{matched}”",
+  reasonSTEM: "“{term}” and “{matched}” share a word ending",
+  reasonTYPO: "“{term}” was read as “{matched}”",
+  reasonGLOSSARY: "“{term}” was translated to “{matched}”",
   searchResultGeneral:
     "Source GENERAL: {conversation} · USER_AUTHORED · CONFIDENTIAL · exact SHA-256 {hash}",
   searchResultLink:
@@ -884,7 +890,7 @@ const IT = {
     "Effetto: aggiunge localmente eventi canonici e artifact immutabili. Ripetere l'azione è idempotente.",
   selectProjectSample: "Seleziona un progetto per abilitare l'esempio sicuro.",
   searchIntro:
-    "La ricerca è letterale, locale e bounded. Cerca in tutti i progetti registrati quando non ricordi a quale appartiene l'evidenza. I risultati sono evidenze UNTRUSTED, non istruzioni. Non vengono usati OpenSearch o servizi di rete.",
+    "La ricerca è locale e bounded, e perdona accenti, desinenze ed errori di battitura. Ogni risultato dice perché corrisponde. Cerca in tutti i progetti registrati quando non ricordi a quale appartiene l'evidenza. I risultati sono evidenze UNTRUSTED, non istruzioni. Non vengono usati OpenSearch o servizi di rete.",
   searchQuestion: "Quale evidenza stai cercando?",
   searchTry: "Prova la frase dell'esempio sicuro",
   searchHelpBody:
@@ -1116,9 +1122,15 @@ const IT = {
   eventOccurredUnknown: "Sconosciuto",
   searchingScope: "Ricerca di evidenza canonica bounded in {scope}…",
   searchNoMatch:
-    "Nessuna corrispondenza letterale nell'ambito richiesto. La ricerca è letterale: prova una parola esatta presa dall'evidenza, oppure allarga l'ambito.",
+    "Nessuna corrispondenza nell'ambito richiesto. Prova una parola più corta o più comune, togli il filtro sul tipo, oppure allarga l'ambito.",
   searchFound:
     "Risultati trovati: {count}. Eventi esaminati: {events}. Il limite globale è stato applicato dopo l'unione degli ambiti.",
+  searchWhyMatched: "Perché corrisponde",
+  reasonEXACT: "«{term}» compare come l'hai scritto",
+  reasonPREFIX: "«{term}» è l'inizio di «{matched}»",
+  reasonSTEM: "«{term}» e «{matched}» hanno la stessa radice",
+  reasonTYPO: "«{term}» è stato letto come «{matched}»",
+  reasonGLOSSARY: "«{term}» è stato tradotto in «{matched}»",
   searchResultGeneral:
     "Sorgente GENERAL: {conversation} · USER_AUTHORED · CONFIDENTIAL · SHA-256 esatto {hash}",
   searchResultLink:

@@ -23,6 +23,36 @@ describe("GUI localization contract", () => {
     }
   });
 
+  it("states a reason for every match rule and offers no search mode", () => {
+    /**
+     * One merged token set means there is no prose-or-code mode to pick and
+     * none to disclose. The failure that hid itself — a query run in the wrong
+     * mode returning plausible results instead of none — is gone at the root,
+     * so nothing in either language may offer the choice back.
+     */
+    for (const locale of SUPPORTED_LOCALES) {
+      const catalog = GUI_CATALOGS[locale];
+      for (const kind of [
+        "reasonEXACT",
+        "reasonPREFIX",
+        "reasonSTEM",
+        "reasonTYPO",
+        "reasonGLOSSARY",
+      ] as const) {
+        const sentence = catalog[kind];
+        assert.ok(sentence, `${locale} states the ${kind} reason`);
+        assert.match(sentence, /\{term\}/u);
+      }
+      assert.ok(catalog.searchWhyMatched);
+      for (const [key, value] of Object.entries(catalog))
+        assert.doesNotMatch(
+          value,
+          /\b(prose mode|code mode|search mode|modalità di ricerca|modalità prosa|modalità codice)\b/iu,
+          `${locale}.${key} offers no search mode`,
+        );
+    }
+  });
+
   it("uses explicit, browser, and English fallback order deterministically", () => {
     assert.equal(resolveGuiLocale("it", ["en-US"]), "it");
     assert.equal(resolveGuiLocale(null, ["it-IT", "en"]), "it");

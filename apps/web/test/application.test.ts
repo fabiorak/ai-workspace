@@ -36,6 +36,17 @@ describe("GUI application facade", () => {
       const search = await app.search({ projectId: project.id, text: "test" });
       assert.ok(search.results.length > 0);
       assert.equal(search.results[0]?.trust, "UNTRUSTED");
+      /**
+       * Every result reaches the interface with its reason, or the screen has
+       * nothing to show for why it matched. The rank score deliberately does
+       * not: it compares only within one report, so it is a number a reader
+       * cannot act on.
+       */
+      assert.ok(
+        search.results.every((result) => result.reasons.length > 0),
+        "every result states why it matched",
+      );
+      assert.equal("score" in (search.results[0] ?? {}), false);
       const event = await app.showEvent(project.id, search.results[0]!.eventId);
       assert.match(event.injectionWarning, /inert data/u);
       const artifact = await app.openEventSource(project.id, event.eventId);
