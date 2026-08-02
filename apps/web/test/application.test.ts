@@ -43,6 +43,22 @@ describe("GUI application facade", () => {
       assert.ok(artifact.byteLength > 0);
     }));
 
+  it("does not answer from an index built before the write", async () =>
+    withFixture(async ({ app, repository }) => {
+      const project = await app.registerProject(repository);
+      /**
+       * Searching first is the point: it builds and caches the index while the
+       * project is still empty. This service instance outlives the import that
+       * follows, so without an explicit invalidation the second search would
+       * answer from the state the index froze and report nothing at all.
+       */
+      const before = await app.search({ projectId: project.id, text: "test" });
+      assert.equal(before.results.length, 0);
+      await app.importSample(project.id);
+      const after = await app.search({ projectId: project.id, text: "test" });
+      assert.ok(after.results.length > 0);
+    }));
+
   it("searches all registered projects without exposing paths", async () =>
     withFixture(async ({ app, repository, root }) => {
       const first = await app.registerProject(repository);

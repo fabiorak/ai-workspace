@@ -133,6 +133,8 @@ export class HistoricalSearch {
           snippet: found.snippet,
           matchedIn: found.matchedIn,
           source: found.source,
+          score: found.score,
+          reasons: found.reasons,
         }),
       );
     }
@@ -443,6 +445,8 @@ export class HistoricalSearch {
               snippet: snippetOf(origin.text, found.reasons),
               matchedIn: origin.matchedIn,
               source: event.source,
+              score: found.score,
+              reasons: found.reasons,
             }),
           );
           continue;
@@ -464,6 +468,8 @@ export class HistoricalSearch {
             snippet: snippetOf(event.content, found.reasons),
             matchedIn: "INLINE_PAYLOAD" as const,
             source: event.provenance,
+            score: found.score,
+            reasons: found.reasons,
             links: Object.freeze(
               (linksByEvent.get(event.id) ?? []).map((link) =>
                 Object.freeze({

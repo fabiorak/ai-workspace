@@ -36,6 +36,17 @@ export type HistoricalSearchResult = Readonly<{
   snippet: string;
   matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
   source: SourceReference;
+  /** Rank score. Comparable within one report, meaningless across reports. */
+  score: number;
+  /**
+   * Why this result matched, in the order the rules were tried. Never empty: a
+   * result whose reason cannot be stated is not returned at all. Retrieval is
+   * tolerant, so a term can be reached through a shared ending, a typing
+   * error, or the declared glossary, and at the precision this was measured at
+   * the stated reason is what lets a reader recognise a wrong-but-plausible
+   * hit for what it is.
+   */
+  reasons: readonly MatchReason[];
 }>;
 
 export type HistoricalSearchReport = Readonly<{
@@ -91,6 +102,8 @@ export type ScopedHistoricalSearchResult =
       snippet: string;
       matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
       source: SourceReference;
+      score: number;
+      reasons: readonly MatchReason[];
     }>
   | Readonly<{
       scope: "GENERAL";
@@ -107,6 +120,8 @@ export type ScopedHistoricalSearchResult =
       snippet: string;
       matchedIn: "INLINE_PAYLOAD";
       source: GeneralEvent["provenance"];
+      score: number;
+      reasons: readonly MatchReason[];
       links: readonly Readonly<{
         id: string;
         targetProjectId: string;

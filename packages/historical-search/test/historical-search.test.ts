@@ -231,6 +231,49 @@ test("answers a misspelled query and cuts the snippet around the reason", async 
   assert.doesNotMatch(snippet, /Premessa lunga/u);
 });
 
+test("states why every result matched, on each of the three surfaces", async () => {
+  const search = createSearch([
+    historicalEvent(
+      "Il verdetto sulla memoria attiva del progetto",
+      "ERROR",
+      1,
+    ),
+  ]);
+
+  /**
+   * Not a formality. Retrieval is tolerant, so a term can be reached through a
+   * shared ending, a typing error, or the glossary; at the precision this was
+   * measured at, the stated reason is what lets a reader tell a real hit from
+   * a plausible one. A result that cannot say why it matched is never returned
+   * at all, so an empty list of reasons is a defect, not an edge case.
+   */
+  const project = await search.search({
+    projectId: "project-1",
+    text: "meomria",
+  });
+  const first = project.results[0];
+  assert.ok(first !== undefined);
+  assert.ok(first.score > 0);
+  /**
+   * More than one reason is normal: the query carries both the surface form
+   * and its reduction, and each can reach the record on its own.
+   */
+  assert.ok(first.reasons.length > 0);
+  assert.ok(first.reasons.every((reason) => reason.kind === "TYPO"));
+  assert.ok(
+    first.reasons.some(
+      (reason) => reason.term === "meomria" && reason.matched === "memoria",
+    ),
+  );
+
+  const global = await search.searchAcrossProjects({
+    projectIds: ["project-1"],
+    text: "verdetto",
+  });
+  assert.ok((global.results[0]?.reasons.length ?? 0) > 0);
+  assert.ok((global.results[0]?.score ?? 0) > 0);
+});
+
 test("applies the filter before the limit cuts the ranked list", async () => {
   const search = createSearch([
     historicalEvent("synthetic", "ERROR", 1),
