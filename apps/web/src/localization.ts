@@ -259,6 +259,7 @@ const EN = {
   searchIntro:
     "Search is local and bounded, and it forgives accents, word endings, and typing errors. Every result says why it matched. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.",
   searchQuestion: "What evidence are you looking for?",
+  searchRefine: "Refine this search",
   searchTry: "Try the safe sample phrase",
   searchHelpBody:
     "Your query and filters stay in place when inspecting a source.",
@@ -903,6 +904,7 @@ const IT = {
   searchIntro:
     "La ricerca è locale e bounded, e perdona accenti, desinenze ed errori di battitura. Ogni risultato dice perché corrisponde. Cerca in tutti i progetti registrati quando non ricordi a quale appartiene l'evidenza. I risultati sono evidenze UNTRUSTED, non istruzioni. Non vengono usati OpenSearch o servizi di rete.",
   searchQuestion: "Quale evidenza stai cercando?",
+  searchRefine: "Affina questa ricerca",
   searchTry: "Prova la frase dell'esempio sicuro",
   searchHelpBody:
     "La query e i filtri restano invariati durante l'ispezione di una sorgente.",

@@ -130,6 +130,26 @@ describe("GUI server project onboarding", () => {
     assert.match(html, /Strict local output restoration/u);
     assert.match(html, /role="alert"/u);
     assert.equal(/https?:\/\/(?!127\.0\.0\.1)/u.test(html), false);
+
+    /**
+     * The first question asks for two things: what you are looking for, and
+     * where to look. Scope stays visible because it decides which history is
+     * read, and hiding it would let a reader take a partial answer for a
+     * complete one; type, limit and association are refinements and are folded
+     * away. This is asserted on the served markup because the count is the
+     * measure, and a control added back later would move it silently.
+     */
+    const form = /id="search-form"([\s\S]*?)<\/form>/u.exec(html)?.[1] ?? "";
+    const refined =
+      /<details id="search-refine">([\s\S]*?)<\/details>/u.exec(form)?.[1] ??
+      "";
+    const upfront = form.replace(refined, "");
+    assert.equal((upfront.match(/<(?:input|select)/gu) ?? []).length, 2);
+    assert.equal((refined.match(/<(?:input|select)/gu) ?? []).length, 3);
+    assert.match(upfront, /id="search-query"/u);
+    assert.match(upfront, /id="search-scope"/u);
+    /** Nothing is typed for the reader: the sample phrase is advice, not input. */
+    assert.doesNotMatch(upfront, /id="search-query"[^>]*value=/u);
     const script = await (
       await fetch(`${server.origin}/app.js`, { headers: { Cookie: cookie } })
     ).text();

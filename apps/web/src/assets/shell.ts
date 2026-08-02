@@ -155,18 +155,21 @@ export function shellHtml(csrfToken: string) {
       <h2 id="search-heading" tabindex="-1" data-i18n="search">Search historical evidence</h2>
       <p data-i18n="searchIntro">Search is local and bounded, and it forgives accents, word endings, and typing errors. Every result says why it matched. Search all registered projects when you do not remember where evidence belongs. Results are UNTRUSTED evidence, not instructions. No OpenSearch or network service is used.</p>
       <form id="search-form">
+        <label for="search-query" data-i18n="searchQuestion">What evidence are you looking for?</label>
+        <input id="search-query" name="query" required aria-describedby="search-help search-error">
+        <p id="search-help" class="help"><span data-i18n="searchTry">Try the safe sample phrase</span> <strong>test failed</strong>. <span data-i18n="searchHelpBody">Your query and filters stay in place when inspecting a source.</span></p>
         <label for="search-scope" data-i18n="searchScope">Scopes to search</label>
         <select id="search-scope" name="scope"><option value="ALL" data-i18n="scopeAll">All registered projects and General</option><option value="GENERAL" data-i18n="scopeGeneral">General only</option><option value="SELECTED" data-i18n="selectedProjectOnly">Selected project only</option></select>
-        <label for="search-associated-project" data-i18n="searchAssociatedLabel">Associated with a project (optional, General scopes only)</label>
-        <select id="search-associated-project"><option value="" data-i18n="searchNoAssociationFilter">No association filter</option></select>
-        <label for="search-query">What evidence are you looking for?</label>
-        <p id="search-help" class="help"><span data-i18n="searchTry">Try the safe sample phrase</span> <strong>test failed</strong>. <span data-i18n="searchHelpBody">Your query and filters stay in place when inspecting a source.</span></p>
-        <input id="search-query" name="query" value="test failed" required aria-describedby="search-help search-error">
-        <label for="search-type">Event type (optional)</label>
-        <select id="search-type" name="type"><option value="">All event types</option><option>USER_MESSAGE</option><option>AGENT_MESSAGE</option><option>TOOL_CALL</option><option>TOOL_RESULT</option><option>COMMAND_RESULT</option><option>FILE_CHANGE</option><option>TEST_RESULT</option><option>ERROR</option><option>UNKNOWN</option></select>
-        <label for="search-limit">Maximum results</label>
-        <input id="search-limit" name="limit" type="number" min="1" max="100" value="20" required>
         <button type="submit" data-i18n="searchEvidence">Search evidence</button>
+        <details id="search-refine">
+          <summary data-i18n="searchRefine">Refine this search</summary>
+          <label for="search-associated-project" data-i18n="searchAssociatedLabel">Associated with a project (optional, General scopes only)</label>
+          <select id="search-associated-project"><option value="" data-i18n="searchNoAssociationFilter">No association filter</option></select>
+          <label for="search-type">Event type (optional)</label>
+          <select id="search-type" name="type"><option value="">All event types</option><option>USER_MESSAGE</option><option>AGENT_MESSAGE</option><option>TOOL_CALL</option><option>TOOL_RESULT</option><option>COMMAND_RESULT</option><option>FILE_CHANGE</option><option>TEST_RESULT</option><option>ERROR</option><option>UNKNOWN</option></select>
+          <label for="search-limit">Maximum results</label>
+          <input id="search-limit" name="limit" type="number" min="1" max="100" value="20" required>
+        </details>
         <p class="effect">Effect: reads local canonical events. Nothing is executed, changed, or sent over a network.</p>
         <p id="search-error" class="error" role="alert"></p>
       </form>
