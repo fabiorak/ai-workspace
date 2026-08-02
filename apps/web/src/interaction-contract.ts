@@ -186,7 +186,7 @@ export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
         id: "search-evidence",
         label: "Search evidence",
         description:
-          "Run literal bounded search with explicit all-project or selected-project scope.",
+          "Run bounded ranked search with explicit all-project or selected-project scope.",
         effect:
           "Reads local canonical events only; no content is executed or sent over a network.",
         prerequisites:

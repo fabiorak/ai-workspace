@@ -3,8 +3,6 @@ import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
 import { TextEncoder } from "node:util";
 
-import { HistoricalSearch } from "../packages/historical-search/src/index.ts";
-import type { HistoricalEvent } from "../packages/historical-search/src/index.ts";
 import type { SessionEvent } from "../packages/session-ingestion/src/index.ts";
 import {
   STOPWORDS,
@@ -610,70 +608,36 @@ function byRecencyThenId(left: IndexedRecord, right: IndexedRecord): number {
   );
 }
 
-function historicalEvents(
-  records: readonly CorpusRecord[],
-): readonly HistoricalEvent[] {
-  return Object.freeze(
-    records.map((record, position) =>
-      Object.freeze({
-        projectId: record.projectId,
-        event: Object.freeze({
-          id: record.id,
-          sessionId: record.conversationId,
-          sequence: position,
-          type: record.type,
-          occurredAt: record.occurredAt,
-          trust: "UNTRUSTED",
-          payload: Object.freeze({
-            kind: "INLINE_TEXT" as const,
-            text: record.text,
-          }),
-          source: Object.freeze({
-            artifactId: `artifact://sha256/${"a".repeat(64)}`,
-            sourceType: "synthetic",
-            sourceSessionId: record.conversationId,
-            position,
-            recordHash: "d".repeat(64),
-          }),
-        }) satisfies SessionEvent,
-      }),
-    ),
-  );
-}
+const LITERAL_BASELINE_BOUND = 10_000;
 
-function productionEngine(records: readonly CorpusRecord[]): {
-  readonly projectIds: readonly string[];
-  readonly search: (query: string) => Promise<readonly string[]>;
-} {
-  const events = historicalEvents(records);
-  const projectIds = Object.freeze([
-    ...new Set(records.map((record) => record.projectId)),
-  ]);
-  const engine = new HistoricalSearch({
-    events: {
-      list: async (projectId) =>
-        events.filter((entry) => entry.projectId === projectId),
-      find: async (projectId, eventId) =>
-        events.find(
-          (entry) =>
-            entry.projectId === projectId && entry.event.id === eventId,
-        ) ?? null,
-    },
-    artifacts: { read: async () => encoder.encode("unused") },
-    projects: {
-      exists: async (projectId) => projectIds.includes(projectId),
-    },
-  });
-  return {
-    projectIds,
-    search: async (query) => {
-      const report = await engine.searchAcrossProjects({
-        projectIds,
-        text: query,
-        limit: RESULT_LIMIT,
-      });
-      return report.results.map((result) => result.eventId);
-    },
+function literalBaseline(
+  records: readonly CorpusRecord[],
+): (query: string) => Promise<readonly string[]> {
+  const position = new Map(
+    records.map((record, index) => [record.id, index] as const),
+  );
+  const ordered = [...records].sort(
+    (left, right) =>
+      left.occurredAt.localeCompare(right.occurredAt, "en") ||
+      left.projectId.localeCompare(right.projectId, "en") ||
+      left.conversationId.localeCompare(right.conversationId, "en") ||
+      (position.get(left.id) ?? 0) - (position.get(right.id) ?? 0),
+  );
+  return async (query) => {
+    /**
+     * The declared bound the baseline refused past, kept with it: at the scale
+     * where the literal adapter stopped answering, "it refuses" is the
+     * measurement, not an error to route around.
+     */
+    if (records.length > LITERAL_BASELINE_BOUND)
+      throw new Error("literal baseline refuses past its declared bound");
+    const needle = query.toLowerCase();
+    return Object.freeze(
+      ordered
+        .filter((record) => record.text.toLowerCase().includes(needle))
+        .slice(0, RESULT_LIMIT)
+        .map((record) => record.id),
+    );
   };
 }
 
@@ -845,7 +809,7 @@ async function measureScale(records: number): Promise<ScaleMeasurement> {
   const index = indexRecords(corpus);
   const distinctTerms = new Set(index.flatMap((record) => [...record.tokens]))
     .size;
-  const engine = productionEngine(corpus);
+  const engine = { search: literalBaseline(corpus) };
   const baselineSamples: number[] = [];
   let baselineRefused = false;
   for (let run = 0; run < SCALE_WARM_RUNS + SCALE_MEASURED_RUNS; run += 1)
@@ -957,11 +921,10 @@ export async function measureTolerantSearch(
   assertQueries();
   const index = indexRecords(CORPUS);
   const inverted = buildInvertedIndex(CORPUS);
-  const engine = productionEngine(CORPUS);
   const retrievers: Readonly<
     Record<StrategyName, (query: string) => Promise<readonly string[]>>
   > = Object.freeze({
-    LITERAL_BASELINE: engine.search,
+    LITERAL_BASELINE: literalBaseline(CORPUS),
     NORMALIZED_TOKENS: async (query) =>
       retrieveConjunctive(index, query, "NORMALIZED"),
     NORMALIZED_STEMMED: async (query) =>

@@ -4,6 +4,11 @@ export {
 } from "./errors.ts";
 export { HistoricalSearch } from "./historical-search.ts";
 export { TolerantHistoricalIndex } from "./tolerant-historical-index.ts";
+export type {
+  TolerantHistoricalFilter,
+  TolerantHistoricalSearchOptions,
+} from "./tolerant-historical-index.ts";
+export { snippetOf } from "./snippet.ts";
 export { RETRIEVAL_STORES } from "./model.ts";
 export type {
   RetrievalStore,

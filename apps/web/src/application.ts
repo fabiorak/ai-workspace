@@ -734,11 +734,25 @@ export class GuiApplication {
       "Return to the project list, select a registered accessible project, and retry.",
     );
   }
+  /**
+   * Runs a write and then drops the search index, because every store this
+   * wraps is a store the index reads.
+   *
+   * This service instance outlives a write, where a command-line process does
+   * not, so it is the case explicit invalidation exists for: an index is
+   * derived data, and answering from sources that have moved is a failure a
+   * reader cannot see. A write that throws changed nothing and invalidates
+   * nothing.
+   */
+  async #reindexAfter<T>(write: () => Promise<T>): Promise<T> {
+    const result = await write();
+    this.#history.invalidate();
+    return result;
+  }
   public async importSample(projectId: string): Promise<GuiImportReport> {
     return this.#run(async () => {
-      const report = await this.#ingestion.import(
-        projectId,
-        this.#sampleSessionPath,
+      const report = await this.#reindexAfter(() =>
+        this.#ingestion.import(projectId, this.#sampleSessionPath),
       );
       return Object.freeze({
         projectId,
@@ -1052,19 +1066,19 @@ export class GuiApplication {
     }>,
   ): Promise<MemoryItem> {
     return this.#run(
-      () => this.#memory.add(input),
+      () => this.#reindexAfter(() => this.#memory.add(input)),
       "Keep the entered content, select canonical evidence from this project, and retry.",
     );
   }
   public async verifyMemory(input: VerifyMemoryInput): Promise<MemoryItem> {
     return this.#run(
-      () => this.#memory.verify(input),
+      () => this.#reindexAfter(() => this.#memory.verify(input)),
       "Keep the verification note, select current canonical evidence, and retry.",
     );
   }
   public async supersedeMemory(input: SupersedeMemoryInput) {
     return this.#run(
-      () => this.#memory.supersede(input),
+      () => this.#reindexAfter(() => this.#memory.supersede(input)),
       "Keep the replacement content, select current canonical evidence, and retry.",
     );
   }
@@ -1072,7 +1086,7 @@ export class GuiApplication {
     input: InvalidateMemoryInput,
   ): Promise<MemoryItem> {
     return this.#run(
-      () => this.#memory.invalidate(input),
+      () => this.#reindexAfter(() => this.#memory.invalidate(input)),
       "Keep the reason, select current canonical evidence, and retry.",
     );
   }

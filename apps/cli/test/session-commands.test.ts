@@ -393,10 +393,17 @@ describe("session CLI workflow", () => {
     assert.equal(await readFile(sessionPath, "utf8"), sessionBeforeSearch);
     assert.deepEqual(await readFile(artifactPath), artifactBeforeShow);
 
+    /**
+     * A term with no neighbour in the index. Retrieval is tolerant now, so a
+     * phrase of ordinary words is no longer a query without answers: its terms
+     * reach records on their own, which is the recall the engine exists for and
+     * the precision cost measured alongside it. The empty path is still a real
+     * path, and this is what reaching it takes.
+     */
     const noMatch = await runSuccessfulCli([
       "history",
       "search",
-      "phrase that is not present",
+      "zqxjkvwphlm",
       "--project",
       projectId,
     ]);

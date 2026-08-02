@@ -465,9 +465,13 @@ describe("GUI server project onboarding", () => {
       id: string;
     }[];
     const projectId = projects[0]!.id;
+    /**
+     * A term with no neighbour in the index. A hyphenated phrase no longer
+     * misses: retrieval splits it and each part reaches records on its own.
+     */
     const empty = (await (
       await api(
-        `/api/projects/${encodeURIComponent(projectId)}/search?q=no-such-synthetic-evidence&limit=1`,
+        `/api/projects/${encodeURIComponent(projectId)}/search?q=zqxjkvwphlm&limit=1`,
       )
     ).json()) as { results: unknown[]; emptyGuidance: string };
     assert.deepEqual(empty.results, []);

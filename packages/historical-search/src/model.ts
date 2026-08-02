@@ -167,6 +167,12 @@ export type TolerantHistoricalResult =
       score: number;
       reasons: readonly MatchReason[];
       source: SourceReference;
+      /**
+       * Cut around the strongest declared reason rather than around a literal
+       * offset, because a tolerant match has no offset to cut around.
+       */
+      snippet: string;
+      matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
     }>
   | Readonly<{
       store: "ACTIVE_MEMORY";
@@ -179,6 +185,7 @@ export type TolerantHistoricalResult =
       occurredAt: string;
       score: number;
       reasons: readonly MatchReason[];
+      snippet: string;
     }>;
 
 export type TolerantHistoricalReport = Readonly<{

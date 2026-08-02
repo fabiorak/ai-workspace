@@ -1,4 +1,10 @@
 import {
+  TolerantRetrievalIndex,
+  readCanonicalPayload,
+  type RetrievalRecord,
+} from "@ai-workspace/tolerant-retrieval";
+
+import {
   HistoricalEventNotFoundError,
   HistoricalSearchError,
 } from "./errors.ts";
@@ -16,19 +22,121 @@ import type {
 } from "./model.ts";
 import type { HistoricalSearchDependencies } from "./ports.ts";
 import { assertProject, decodeArtifact, requiredValue } from "./shared.ts";
+import {
+  TolerantHistoricalIndex,
+  eventProvenance,
+} from "./tolerant-historical-index.ts";
+import type { TolerantHistoricalReport } from "./model.ts";
+import { snippetOf } from "./snippet.ts";
+
+type MatchedIn = HistoricalSearchResult["matchedIn"];
+
+type GeneralEvent = Awaited<
+  ReturnType<NonNullable<HistoricalSearchDependencies["general"]>["list"]>
+>[number]["events"][number];
+
+/**
+ * Where a ranked all-scope result came from. The engine returns positions in
+ * the record list it was given, so the two scopes are put back together here
+ * rather than being told apart by inspecting a result.
+ */
+type ScopedOrigin =
+  | Readonly<{
+      scope: "PROJECT";
+      listed: HistoricalEvent;
+      text: string;
+      matchedIn: MatchedIn;
+    }>
+  | Readonly<{ scope: "GENERAL"; event: GeneralEvent }>;
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const MAX_ARTIFACT_DISPLAY_BYTES = 64 * 1024;
 const MAX_GLOBAL_PROJECTS = 100;
 const MAX_GLOBAL_EVENTS = 10_000;
-const SNIPPET_CONTEXT = 72;
 
 export class HistoricalSearch {
   readonly #dependencies: HistoricalSearchDependencies;
+  #index: TolerantHistoricalIndex | null = null;
+  #indexedProjects: string | null = null;
 
   public constructor(dependencies: HistoricalSearchDependencies) {
     this.#dependencies = dependencies;
+  }
+
+  /**
+   * Drops the cached index, so the next search rebuilds it from the canonical
+   * sources. Ingestion calls this: an index is derived data, and an instance
+   * that outlives a write would otherwise answer from sources that have moved.
+   *
+   * A command-line process that never searches pays nothing for this, because
+   * nothing is built until the first search asks for it.
+   */
+  public invalidate(): void {
+    this.#index = null;
+    this.#indexedProjects = null;
+  }
+
+  /**
+   * The cached index, built on first use. One selection of projects is held at
+   * a time: asking about a different selection replaces the previous index
+   * rather than keeping both, so what an instance holds stays bounded by the
+   * same declared record bound that bounds a single index.
+   *
+   * A stale index is dropped rather than queried. Invalidation fails closed in
+   * the engine, and rebuilding here is the honest reading of it: the caller
+   * asked a question about the present, not about the state the index froze.
+   */
+  async #indexFor(
+    projectIds: readonly string[],
+  ): Promise<TolerantHistoricalIndex> {
+    const key = [...projectIds].sort((left, right) =>
+      left.localeCompare(right, "en"),
+    );
+    const identity = JSON.stringify(key);
+    const cached = this.#index;
+    if (
+      cached !== null &&
+      this.#indexedProjects === identity &&
+      !cached.isStale
+    )
+      return cached;
+    const built = await TolerantHistoricalIndex.build(
+      this.#dependencies,
+      projectIds,
+    );
+    this.#index = built;
+    this.#indexedProjects = identity;
+    return built;
+  }
+
+  /**
+   * The event results of a tolerant report, in the shape this API has always
+   * published. Active memory is ranked in the same list by the surface, but
+   * these reports are typed for events and their consumers render events, so
+   * widening them here would change what a caller receives without any caller
+   * asking for it.
+   */
+  #eventResults(report: TolerantHistoricalReport): HistoricalSearchResult[] {
+    const results: HistoricalSearchResult[] = [];
+    for (const found of report.results) {
+      if (found.store !== "SESSION_EVENTS") continue;
+      results.push(
+        Object.freeze({
+          eventId: found.eventId,
+          projectId: found.projectId,
+          sessionId: found.sessionId,
+          sequence: found.sequence,
+          type: found.type,
+          occurredAt: found.occurredAt,
+          trust: found.trust,
+          snippet: found.snippet,
+          matchedIn: found.matchedIn,
+          source: found.source,
+        }),
+      );
+    }
+    return results;
   }
 
   public async search(
@@ -45,59 +153,14 @@ export class HistoricalSearch {
     }
 
     await assertProject(this.#dependencies.projects, projectId);
-    const events = await this.#dependencies.events.list(
+    const index = await this.#indexFor([projectId]);
+    const filter = Object.freeze({
+      store: "SESSION_EVENTS" as const,
       projectId,
-      query.sessionId,
-    );
-    const filtered =
-      query.type === undefined
-        ? events
-        : events.filter(({ event }) => event.type === query.type);
-    const ordered = [...filtered].sort(compareEvents);
-    const needle = text.toLowerCase();
-    const results: HistoricalSearchResult[] = [];
-
-    for (const historicalEvent of ordered) {
-      if (results.length >= limit) {
-        break;
-      }
-
-      const { event } = historicalEvent;
-      let payload: string;
-      let matchedIn: HistoricalSearchResult["matchedIn"];
-
-      if (event.payload.kind === "INLINE_TEXT") {
-        payload = event.payload.text;
-        matchedIn = "INLINE_PAYLOAD";
-      } else {
-        const bytes = await this.#dependencies.artifacts.read(
-          event.payload.artifact.id,
-        );
-        payload = decodeArtifact(bytes, event.payload.artifact.id);
-        matchedIn = "ARTIFACT_PAYLOAD";
-      }
-
-      const matchIndex = payload.toLowerCase().indexOf(needle);
-
-      if (matchIndex < 0) {
-        continue;
-      }
-
-      results.push(
-        Object.freeze({
-          eventId: event.id,
-          projectId,
-          sessionId: event.sessionId,
-          sequence: event.sequence,
-          type: event.type,
-          occurredAt: event.occurredAt,
-          trust: event.trust,
-          snippet: snippet(payload, matchIndex, text.length),
-          matchedIn,
-          source: event.source,
-        }),
-      );
-    }
+      ...(query.sessionId === undefined ? {} : { sessionId: query.sessionId }),
+      ...(query.type === undefined ? {} : { type: query.type }),
+    });
+    const results = this.#eventResults(index.search(text, { limit, filter }));
 
     return Object.freeze({
       query: Object.freeze({
@@ -107,7 +170,7 @@ export class HistoricalSearch {
         type: query.type ?? null,
         limit,
       }),
-      searchedEvents: filtered.length,
+      searchedEvents: index.countIndexedEvents(filter),
       results: Object.freeze(results),
     });
   }
@@ -133,36 +196,33 @@ export class HistoricalSearch {
         "Global search project IDs must be unique. Reload registered projects and retry.",
       );
     projectIds.sort((left, right) => left.localeCompare(right, "en"));
-    const events: HistoricalEvent[] = [];
-    for (const projectId of projectIds) {
+    for (const projectId of projectIds)
       await assertProject(this.#dependencies.projects, projectId);
-      let projectEvents: readonly HistoricalEvent[];
-      try {
-        projectEvents = await this.#dependencies.events.list(projectId);
-      } catch (error) {
-        throw new HistoricalSearchError(
-          "Global history could not be read safely. Preserve local state, select one project to diagnose it, and retry without using partial results.",
-          { cause: error },
-        );
-      }
-      if (projectEvents.some((event) => event.projectId !== projectId))
-        throw new HistoricalSearchError(
-          "Global history returned inconsistent project scope. Preserve local state, repair the adapter, and retry without using partial results.",
-        );
-      events.push(...projectEvents);
-      if (events.length > MAX_GLOBAL_EVENTS)
-        throw new HistoricalSearchError(
-          `Global history exceeds ${MAX_GLOBAL_EVENTS} canonical events. Select one project or migrate to an indexed search adapter.`,
-        );
+
+    let index: TolerantHistoricalIndex;
+    try {
+      index = await this.#indexFor(projectIds);
+    } catch (error) {
+      /**
+       * A refusal is an answer this method already gives, so it is passed
+       * through as it stands: it names the bound that was exceeded and what to
+       * do about it. Anything else is a read that did not complete, and no
+       * partial result is built from it.
+       */
+      if (error instanceof HistoricalSearchError) throw error;
+      throw new HistoricalSearchError(
+        "Global history could not be read safely. Preserve local state, select one project to diagnose it, and retry without using partial results.",
+        { cause: error },
+      );
     }
-    const filtered =
-      query.type === undefined
-        ? events
-        : events.filter(({ event }) => event.type === query.type);
-    const ordered = [...filtered].sort(compareEvents);
+
+    const filter = Object.freeze({
+      store: "SESSION_EVENTS" as const,
+      ...(query.type === undefined ? {} : { type: query.type }),
+    });
     let results: HistoricalSearchResult[];
     try {
-      results = await this.#match(ordered, text);
+      results = this.#eventResults(index.search(text, { limit, filter }));
     } catch (error) {
       throw new HistoricalSearchError(
         "Global historical evidence could not be searched safely. Preserve local state, select one project to diagnose it, and retry without using partial results.",
@@ -177,8 +237,8 @@ export class HistoricalSearch {
         limit,
       }),
       searchedProjects: projectIds.length,
-      searchedEvents: filtered.length,
-      results: Object.freeze(results.slice(0, limit)),
+      searchedEvents: index.countIndexedEvents(filter),
+      results: Object.freeze(results),
     });
   }
 
@@ -278,6 +338,10 @@ export class HistoricalSearch {
         existing.push(link);
         linksByEvent.set(link.generalEventId, existing);
       }
+      if (projectEvents.length > MAX_GLOBAL_EVENTS)
+        throw new HistoricalSearchError(
+          `Global history exceeds ${MAX_GLOBAL_EVENTS} canonical events. Select one project or migrate to an indexed search adapter.`,
+        );
       const filteredProjectEvents =
         query.type === undefined
           ? projectEvents
@@ -302,30 +366,88 @@ export class HistoricalSearch {
           `All-scope history exceeds ${MAX_GLOBAL_EVENTS} canonical events. Narrow the scope or adopt an indexed adapter through an ADR.`,
         );
 
-      const needle = text.toLowerCase();
-      const projectMatches =
-        query.scope === "ALL_SCOPES"
-          ? await this.#match(filteredProjectEvents, text)
-          : [];
-      const results: ScopedHistoricalSearchResult[] = projectMatches.map(
-        (result) =>
-          Object.freeze({
-            scope: "PROJECT" as const,
-            projectId: result.projectId,
-            conversationId: result.sessionId,
-            eventId: result.eventId,
-            sequence: result.sequence,
-            type: result.type,
-            occurredAt: result.occurredAt,
-            trust: result.trust,
-            snippet: result.snippet,
-            matchedIn: result.matchedIn,
-            source: result.source,
-          }),
-      );
+      /**
+       * Both scopes are ranked as one list. The engine sees text that carries
+       * its own location and nothing else, so the two scopes compete on the
+       * same terms and a reader gets one order instead of two lists stapled
+       * together. Validation stays above this line: what a General link must
+       * satisfy is not a retrieval question, and the engine never learns it.
+       */
+      const records: RetrievalRecord[] = [];
+      const origins: ScopedOrigin[] = [];
+      if (query.scope === "ALL_SCOPES")
+        for (const listed of filteredProjectEvents) {
+          const { event } = listed;
+          const found = await this.#eventText(event);
+          records.push(
+            Object.freeze({
+              id: String(records.length),
+              text: found.text,
+              location: Object.freeze({
+                store: "SESSION_EVENTS",
+                path: event.sessionId,
+                declaredName: null,
+                position: event.sequence,
+              }),
+              occurredAt: event.occurredAt ?? "",
+              admissibility: "CURRENT" as const,
+              provenance: eventProvenance(event.source),
+            }),
+          );
+          origins.push(
+            Object.freeze({
+              scope: "PROJECT" as const,
+              listed,
+              text: found.text,
+              matchedIn: found.matchedIn,
+            }),
+          );
+        }
       for (const event of filteredGeneralEvents) {
-        const index = event.content.toLowerCase().indexOf(needle);
-        if (index < 0) continue;
+        records.push(
+          Object.freeze({
+            id: String(records.length),
+            text: event.content,
+            location: Object.freeze({
+              store: "GENERAL",
+              path: event.conversationId,
+              declaredName: null,
+              position: event.sequence,
+            }),
+            occurredAt: event.occurredAt ?? "",
+            admissibility: "CURRENT" as const,
+            provenance: `GENERAL ${event.id}`,
+          }),
+        );
+        origins.push(Object.freeze({ scope: "GENERAL" as const, event }));
+      }
+
+      const results: ScopedHistoricalSearchResult[] = [];
+      for (const found of TolerantRetrievalIndex.build(records).search(text, {
+        limit,
+      })) {
+        const origin = origins[Number(found.id)];
+        if (origin === undefined) continue;
+        if (origin.scope === "PROJECT") {
+          const { event } = origin.listed;
+          results.push(
+            Object.freeze({
+              scope: "PROJECT" as const,
+              projectId: origin.listed.projectId,
+              conversationId: event.sessionId,
+              eventId: event.id,
+              sequence: event.sequence,
+              type: event.type,
+              occurredAt: event.occurredAt,
+              trust: event.trust,
+              snippet: snippetOf(origin.text, found.reasons),
+              matchedIn: origin.matchedIn,
+              source: event.source,
+            }),
+          );
+          continue;
+        }
+        const event = origin.event;
         results.push(
           Object.freeze({
             scope: "GENERAL" as const,
@@ -339,7 +461,7 @@ export class HistoricalSearch {
             dataClass: event.dataClass,
             exactBytes: event.exactBytes,
             contentSha256: event.contentSha256,
-            snippet: snippet(event.content, index, text.length),
+            snippet: snippetOf(event.content, found.reasons),
             matchedIn: "INLINE_PAYLOAD" as const,
             source: event.provenance,
             links: Object.freeze(
@@ -358,7 +480,6 @@ export class HistoricalSearch {
           }),
         );
       }
-      results.sort(compareScopedResults);
       return Object.freeze({
         query: Object.freeze({
           scope: query.scope,
@@ -387,44 +508,27 @@ export class HistoricalSearch {
     }
   }
 
-  async #match(
-    ordered: readonly HistoricalEvent[],
-    text: string,
-  ): Promise<HistoricalSearchResult[]> {
-    const needle = text.toLowerCase();
-    const results: HistoricalSearchResult[] = [];
-    for (const historicalEvent of ordered) {
-      const { event } = historicalEvent;
-      let payload: string;
-      let matchedIn: HistoricalSearchResult["matchedIn"];
-      if (event.payload.kind === "INLINE_TEXT") {
-        payload = event.payload.text;
-        matchedIn = "INLINE_PAYLOAD";
-      } else {
-        const content = await this.#dependencies.artifacts.read(
-          event.payload.artifact.id,
-        );
-        payload = decodeArtifact(content, event.payload.artifact.id);
-        matchedIn = "ARTIFACT_PAYLOAD";
-      }
-      const matchIndex = payload.toLowerCase().indexOf(needle);
-      if (matchIndex < 0) continue;
-      results.push(
-        Object.freeze({
-          eventId: event.id,
-          projectId: historicalEvent.projectId,
-          sessionId: event.sessionId,
-          sequence: event.sequence,
-          type: event.type,
-          occurredAt: event.occurredAt,
-          trust: event.trust,
-          snippet: snippet(payload, matchIndex, text.length),
-          matchedIn,
-          source: event.source,
-        }),
-      );
-    }
-    return results;
+  /**
+   * The text of one canonical event, reduced the way the engine's reader
+   * reduces it, together with where it was found.
+   */
+  async #eventText(
+    event: HistoricalEvent["event"],
+  ): Promise<Readonly<{ text: string; matchedIn: MatchedIn }>> {
+    if (event.payload.kind === "INLINE_TEXT")
+      return Object.freeze({
+        text: readCanonicalPayload(event.payload.text).text,
+        matchedIn: "INLINE_PAYLOAD" as const,
+      });
+    const content = await this.#dependencies.artifacts.read(
+      event.payload.artifact.id,
+    );
+    return Object.freeze({
+      text: readCanonicalPayload(
+        decodeArtifact(content, event.payload.artifact.id),
+      ).text,
+      matchedIn: "ARTIFACT_PAYLOAD" as const,
+    });
   }
 
   public async showEvent(
@@ -461,44 +565,6 @@ export class HistoricalSearch {
   }
 }
 
-function compareScopedResults(
-  left: ScopedHistoricalSearchResult,
-  right: ScopedHistoricalSearchResult,
-): number {
-  const time = (left.occurredAt ?? "9999").localeCompare(
-    right.occurredAt ?? "9999",
-  );
-  if (time !== 0) return time;
-  const scope = left.scope.localeCompare(right.scope, "en");
-  if (scope !== 0) return scope;
-  const conversation = left.conversationId.localeCompare(
-    right.conversationId,
-    "en",
-  );
-  if (conversation !== 0) return conversation;
-  return left.sequence - right.sequence;
-}
-
-function compareEvents(left: HistoricalEvent, right: HistoricalEvent): number {
-  const leftTimestamp = left.event.occurredAt ?? "9999";
-  const rightTimestamp = right.event.occurredAt ?? "9999";
-  const timestampOrder = leftTimestamp.localeCompare(rightTimestamp);
-
-  if (timestampOrder !== 0) {
-    return timestampOrder;
-  }
-
-  const projectOrder = left.projectId.localeCompare(right.projectId, "en");
-  if (projectOrder !== 0) return projectOrder;
-
-  const sessionOrder = left.event.sessionId.localeCompare(
-    right.event.sessionId,
-  );
-  return sessionOrder === 0
-    ? left.event.sequence - right.event.sequence
-    : sessionOrder;
-}
-
 function searchLimit(value: number | undefined) {
   const limit = value ?? DEFAULT_LIMIT;
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > MAX_LIMIT)
@@ -506,18 +572,4 @@ function searchLimit(value: number | undefined) {
       `Search limit must be an integer from 1 to ${MAX_LIMIT}. Omit it to use ${DEFAULT_LIMIT}.`,
     );
   return limit;
-}
-
-function snippet(
-  content: string,
-  matchIndex: number,
-  matchLength: number,
-): string {
-  const start = Math.max(0, matchIndex - SNIPPET_CONTEXT);
-  const end = Math.min(
-    content.length,
-    matchIndex + matchLength + SNIPPET_CONTEXT,
-  );
-  const body = content.slice(start, end).replace(/\s+/gu, " ").trim();
-  return `${start > 0 ? "…" : ""}${body}${end < content.length ? "…" : ""}`;
 }

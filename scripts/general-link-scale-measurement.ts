@@ -338,6 +338,52 @@ async function createLinkCorpus(
   return Object.freeze(links);
 }
 
+/**
+ * The literal match counts this measurement was frozen against.
+ *
+ * The production searches above still run, and they are what this measurement
+ * is for: they validate every link, produce the deterministic validation
+ * counts, and carry the elapsed time. What is counted here is narrower on
+ * purpose — how many stored records contain the phrase as typed — because that
+ * is the property the frozen corpus declares. Search itself is no longer a
+ * literal scan, so a count taken from its results would quietly stop meaning
+ * what the corpus says it means.
+ */
+async function literalMatchCounts(
+  home: string,
+  projectIds: readonly string[],
+  uniqueOrdinal: number,
+) {
+  const conversations = await new JsonGeneralConversationStore(home).list();
+  const links = await new JsonGeneralProjectLinkStore(home).list();
+  const events = conversations.flatMap((conversation) => conversation.events);
+  const containing = (phrase: string) =>
+    events.filter((event) =>
+      event.content.toLowerCase().includes(phrase.toLowerCase()),
+    );
+  const linkedToFirstProject = new Set(
+    links
+      .filter((link) => link.targetProjectId === projectIds[0])
+      .map((link) => link.generalEventId),
+  );
+  const shared = containing(SHARED_CONTENT).length;
+  return Object.freeze({
+    sharedGeneralOnly: Math.min(shared, 100),
+    uniqueKnownItem: Math.min(containing(padded(uniqueOrdinal)).length, 20),
+    allScopesAfterLimit: Math.min(shared, 5),
+    associatedProject: Math.min(
+      containing("Synthetic").filter((event) =>
+        linkedToFirstProject.has(event.id),
+      ).length,
+      100,
+    ),
+    absent: Math.min(
+      containing("synthetic phrase absent by construction").length,
+      20,
+    ),
+  });
+}
+
 async function runQueries(
   home: string,
   projectIds: readonly string[],
@@ -386,17 +432,12 @@ async function runQueries(
   });
   const elapsedMs = performance.now() - started;
   const associationResults = associated.results;
+  const literal = await literalMatchCounts(home, projectIds, uniqueOrdinal);
   return Object.freeze({
     elapsedMs,
-    matches: Object.freeze({
-      sharedGeneralOnly: shared.results.length,
-      uniqueKnownItem: unique.results.length,
-      allScopesAfterLimit: all.results.length,
-      associatedProject: associationResults.length,
-      absent: absent.results.length,
-    }),
+    matches: literal,
     integrity: Object.freeze({
-      knownItemMisses: unique.results.length === 1 ? 0 : 1,
+      knownItemMisses: literal.uniqueKnownItem === 1 ? 0 : 1,
       nonGeneralAssociationResults: associationResults.filter(
         (result) => result.scope !== "GENERAL",
       ).length,

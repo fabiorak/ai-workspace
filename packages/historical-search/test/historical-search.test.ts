@@ -50,7 +50,12 @@ test("searches General without projects and merges all scopes before the global 
   });
   assert.equal(all.searchedEvents, 2);
   assert.equal(all.results.length, 1);
-  assert.equal(all.results[0]?.scope, "GENERAL");
+  /**
+   * Both scopes now compete in one ranked list rather than being merged in
+   * timestamp order. These two records carry the same query terms and score
+   * alike, so the declared tiebreak decides: the more recent record wins.
+   */
+  assert.equal(all.results[0]?.scope, "PROJECT");
 });
 
 test("annotates and explicitly filters General results by validated project links", async () => {
@@ -189,14 +194,102 @@ test("searches case-insensitively with deterministic filters and provenance", as
   assert.equal(report.results[0]?.matchedIn, "INLINE_PAYLOAD");
   assert.match(report.results[0]?.source.artifactId ?? "", /^artifact:/u);
 
+  /**
+   * Ranked, not chronological. Both events carry the term and the shorter
+   * record wins, because BM25 normalizes by length. The scan this replaced
+   * returned events in sequence order, so the reversal is the visible change
+   * and it is asserted deliberately rather than left to be discovered.
+   */
   const ordered = await search.search({
     projectId: "project-1",
     text: "synthetic",
   });
   assert.deepEqual(
     ordered.results.map((result) => result.sequence),
-    [1, 2],
+    [2, 1],
   );
+});
+
+test("answers a misspelled query and cuts the snippet around the reason", async () => {
+  const search = createSearch([
+    historicalEvent(
+      `Premessa lunga che occupa spazio sufficiente da rendere il taglio osservabile e che non contiene il termine cercato. ${"Testo di riempimento. ".repeat(4)}Il verdetto riguarda la memoria attiva del progetto.`,
+      "USER_MESSAGE",
+      1,
+    ),
+  ]);
+
+  const report = await search.search({
+    projectId: "project-1",
+    text: "meomria",
+  });
+
+  assert.equal(report.results.length, 1);
+  const snippet = report.results[0]?.snippet ?? "";
+  assert.match(snippet, /memoria/u);
+  assert.match(snippet, /^…/u);
+  assert.doesNotMatch(snippet, /Premessa lunga/u);
+});
+
+test("applies the filter before the limit cuts the ranked list", async () => {
+  const search = createSearch([
+    historicalEvent("synthetic", "ERROR", 1),
+    historicalEvent("synthetic", "ERROR", 2),
+    historicalEvent(
+      "synthetic evidence inside a longer record that ranks below the short ones",
+      "TEST_RESULT",
+      3,
+    ),
+  ]);
+
+  /**
+   * The two best-ranked records are excluded by the type. Asking the engine for
+   * one result and filtering afterwards would answer this with nothing.
+   */
+  const report = await search.search({
+    projectId: "project-1",
+    text: "synthetic",
+    type: "TEST_RESULT",
+    limit: 1,
+  });
+
+  assert.equal(report.results.length, 1);
+  assert.equal(report.results[0]?.sequence, 3);
+  assert.equal(report.searchedEvents, 1);
+});
+
+test("builds the index once and rebuilds it only after invalidation", async () => {
+  let reads = 0;
+  const event = historicalEvent("synthetic invalidation evidence", "ERROR", 1);
+  const search = new HistoricalSearch({
+    events: {
+      async list() {
+        reads += 1;
+        return [event];
+      },
+      async find() {
+        return event;
+      },
+    },
+    artifacts: {
+      async read() {
+        return encoder.encode("unused");
+      },
+    },
+    projects: {
+      async exists() {
+        return true;
+      },
+    },
+  });
+
+  await search.search({ projectId: "project-1", text: "evidence" });
+  await search.search({ projectId: "project-1", text: "synthetic" });
+  assert.equal(reads, 1);
+
+  search.invalidate();
+  await search.search({ projectId: "project-1", text: "evidence" });
+  assert.equal(reads, 2);
 });
 
 test("searches artifact-backed payloads and opens bounded UTF-8 evidence", async () => {
@@ -276,7 +369,12 @@ test("searches all explicit projects before applying one deterministic limit", a
   assert.equal(report.searchedProjects, 2);
   assert.equal(report.searchedEvents, 2);
   assert.equal(report.results.length, 1);
-  assert.equal(report.results[0]?.projectId, "project-a");
+  /**
+   * Ranked across projects instead of ordered by timestamp. The two records
+   * score alike, so the declared tiebreak decides and the more recent one is
+   * the single result the limit keeps.
+   */
+  assert.equal(report.results[0]?.projectId, "project-b");
   assert.deepEqual(
     report,
     await search.searchAcrossProjects({
@@ -352,12 +450,18 @@ test("rejects invalid global scope and excessive event volume", async () => {
       },
     },
   });
+  /**
+   * The bound that refuses is now the index's own, and it counts records
+   * rather than events: active memory is indexed beside them, so a selection
+   * that a scan once accepted can be refused here. The refusal itself is
+   * unchanged — nothing is answered from part of the history.
+   */
   await assert.rejects(
     oversized.searchAcrossProjects({
       projectIds: ["project-a"],
       text: "bounded",
     }),
-    /exceeds 10000 canonical events/u,
+    /at most 10000 records/u,
   );
 });
 

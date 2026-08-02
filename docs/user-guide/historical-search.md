@@ -66,8 +66,8 @@ Each result shows:
 
 - canonical event type, timestamp, and stable event ID;
 - an explicitly `UNTRUSTED` trust label;
-- a bounded matching snippet and whether it came from inline or artifact
-  payload;
+- a bounded snippet, cut around the term that matched, and whether it came from
+  inline or artifact payload;
 - session and immutable source artifact provenance;
 - copyable next commands for event and artifact inspection.
 
@@ -115,8 +115,10 @@ npm run cli -- artifact show --help
 
 - If a project has no imported events, the CLI prints a copyable `session
 import` command using the bundled fixture.
-- If no result matches, shorten the literal phrase or remove `--type` or
-  `--session`.
+- If no result matches, try a shorter or more common word, or remove `--type`
+  or `--session`.
+- If too much matches, prefer the one distinctive word in the passage you are
+  looking for: inside a project, ordinary words reach records on their own.
 - If an event ID is unknown, run `history search` again within the same
   project.
 - If an artifact is missing, confirm that commands use the same
@@ -126,23 +128,39 @@ import` command using the bundled fixture.
 
 ## Search behavior and limits
 
-The initial adapter performs case-insensitive literal substring matching over
-canonical event payloads. Results are deterministic, not relevance-ranked.
+Search is tolerant and ranked, inside one project and across projects and
+General scopes alike. It matches accents,
+capitalization, ordinary Italian and English word endings, and single-character
+typing errors, and it returns results in order of relevance rather than in
+chronological order. Identical input always produces identical output.
+
+Two consequences are worth knowing before you read a result list:
+
+- **a snippet is cut around the term that matched**, which need not be the term
+  you typed: your word may have reached the passage through a shared word
+  ending or a corrected typing error;
+- **ordinary words match on their own.** A phrase of common words is not a
+  narrow query — each of its words can reach records by itself. To find a
+  precise passage, prefer the distinctive word in it, and use `--type` and
+  `--session` to narrow.
+
 Artifact-backed event payloads are verified and searched; complete raw-session
 artifacts are not searched again as duplicate event content.
 
-The local adapter scans at most 1,000 session documents. The existing session
-and artifact size limits still apply, and `artifact show` displays at most 64
-KiB. These bounds protect an interactive first slice; they are not final scale
-targets.
+A search reads at most 10,000 canonical records. Past that it refuses rather
+than answering from part of the history. The existing session and artifact size
+limits still apply, and `artifact show` displays at most 64 KiB.
 
-There is currently no fuzzy, semantic, vector, stemmed, or indexed search.
-Global GUI search composes bounded project and General readers in memory,
-validates all requested scopes before returning, applies one limit after
-deterministic merge, and does not make
-an OpenSearch completeness or ranking claim. OpenSearch remains deferred until
-measured corpus size, latency, concurrency, ranking, or query-language needs
-exceed the local adapter.
+Search across several projects and across General scopes accepts at most 100
+registered projects, validates every requested scope and every General link
+before returning any result, and ranks both scopes into one list rather than
+merging two lists in timestamp order. Results that score alike are ordered by
+recency, so the same query always produces the same list. It makes no
+OpenSearch completeness or ranking claim; OpenSearch remains deferred while a
+local index answers within the interactive budget.
+
+No semantic, vector, or model-backed retrieval is used anywhere: search runs
+entirely on this computer with no service and no network.
 
 ## Security boundary
 
