@@ -55,3 +55,4 @@ Status: proposed | accepted | superseded
 - [ADR-0032: Index one merged token set over text extracted outside the engine](0032-index-one-merged-token-set-over-text-extracted-outside-the-engine.md)
 - [ADR-0033: Qualify rizzo-pii behind an interchangeable local detection port](0033-qualify-rizzo-pii-behind-an-interchangeable-local-detection-port.md)
 - [ADR-0034: Propose a complete local anonymization for one approval](0034-propose-a-complete-local-anonymization-for-one-approval.md)
+- [ADR-0035: Use a conversational shell over local history](0035-use-a-conversational-shell-over-local-history.md)

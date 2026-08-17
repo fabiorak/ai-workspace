@@ -487,7 +487,10 @@ Each of these points needs its own sprint and, where required, its own ADR:
   Presidio, a source graph, a model gateway). Each needs its own ADR and must be
   weighed against "no external dependency without an ADR" and "zero runtime
   dependencies in the GUI";
-- **the fate of the nine-entry sidebar** and the shape of the technical view;
+- **the shape of the technical view**. Its existence is settled by
+  [ADR-0035](../adr/0035-use-a-conversational-shell-over-local-history.md), which
+  also replaces the nine-entry sidebar with a list of conversations, but not what
+  that view looks like;
 - **the visual design** proper: colours, typefaces, illustrations;
 - **the time dimension in the dashboard**, which today shows only instantaneous
   state;

@@ -493,7 +493,10 @@ Ognuno di questi punti richiede il proprio sprint e, dove serve, il proprio ADR:
   (OpenSearch, Presidio, un grafo dei sorgenti, un intermediario verso il
   modello). Richiede un ADR ciascuno e va confrontata con le regole «nessuna
   dipendenza esterna senza ADR» e «zero dipendenze a runtime nella GUI»;
-- **il destino della barra laterale a nove voci** e la forma della vista tecnica;
+- **la forma della vista tecnica**. Che debba esistere è deciso da
+  [ADR-0035](../adr/0035-use-a-conversational-shell-over-local-history.md), che
+  sostituisce anche la barra laterale a nove voci con un elenco di conversazioni,
+  ma non decide che aspetto abbia quella vista;
 - **il disegno grafico** vero e proprio: colori, caratteri, illustrazioni;
 - **la dimensione tempo nel cruscotto**, che oggi mostra soltanto lo stato
   istantaneo;
