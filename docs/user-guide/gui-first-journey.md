@@ -64,7 +64,10 @@ The list starts empty until there is something to list. Two ways to fill it:
   stored and what not to import.
 
 Imported sessions appear in the list on their own, titled with the first question
-you asked in them, with the most recently active at the top.
+you asked in them, with the most recently active at the top. Each row also names
+the project, the model that ran that session exactly as the transcript recorded
+it, and how many moments it holds. A session whose transcript declared no model
+names the agent instead, which is always recorded.
 
 ## What else is there
 

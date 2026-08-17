@@ -59,6 +59,8 @@ describe("GUI conversation list route", () => {
     titleSource: string;
     momentCount: number;
     workState: string | null;
+    model: string | null;
+    agent: string | null;
   }>;
   const page = async (query = "") =>
     (await (await conversations(query)).json()) as Readonly<{
@@ -110,6 +112,10 @@ describe("GUI conversation list route", () => {
     assert.ok((row?.momentCount ?? 0) > 0);
     // Nobody created a Work Item, so the row carries no state rather than a default one.
     assert.equal(row?.workState, null);
+    // The agent is always recorded, so the row can always say what produced the session;
+    // the model is whatever the transcript declared, and null is a legitimate answer.
+    assert.equal(typeof row?.agent, "string");
+    assert.ok(row?.model === null || typeof row.model === "string");
   });
 
   it("keeps a project-free note in the same list as the sessions", async () => {

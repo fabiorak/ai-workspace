@@ -9,7 +9,10 @@ import {
   sessionRows,
   titleFrom,
 } from "../src/conversation-list.ts";
-import type { SessionEvent } from "@ai-workspace/session-ingestion";
+import type {
+  ImportedSession,
+  SessionEvent,
+} from "@ai-workspace/session-ingestion";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
 
 const event = (
@@ -29,6 +32,23 @@ const event = (
     },
     ...value,
   }) as SessionEvent;
+
+const session = (
+  value: Partial<ImportedSession> & Pick<ImportedSession, "id">,
+): ImportedSession =>
+  ({
+    projectId: "project-1",
+    sourceType: "synthetic",
+    sourceSessionId: `source-${value.id}`,
+    agent: "Claude Code",
+    model: "claude-sonnet-4-5",
+    startedAt: null,
+    createdAt: "2026-08-17T09:00:00.000Z",
+    lastImportedAt: "2026-08-17T09:00:00.000Z",
+    latestSourceArtifact: { id: "artifact-1", byteLength: 10 },
+    events: [],
+    ...value,
+  }) as ImportedSession;
 
 const conversation = (
   value: Partial<GeneralConversation> & Pick<GeneralConversation, "id">,
@@ -65,31 +85,40 @@ describe("conversation titles", () => {
 });
 
 describe("work session rows", () => {
-  it("groups moments per session and titles each from its first question", () => {
+  it("makes one row per session, titled from its first question", () => {
     const rows = sessionRows({
-      projectId: "project-1",
       projectName: "Demo",
-      events: [
-        event({
-          id: "e3",
-          sessionId: "s2",
-          sequence: 1,
-          payload: { kind: "INLINE_TEXT", text: "seconda sessione" },
-          occurredAt: "2026-08-16T10:00:00.000Z",
+      sessions: [
+        session({
+          id: "s2",
+          events: [
+            event({
+              id: "e3",
+              sessionId: "s2",
+              sequence: 1,
+              payload: { kind: "INLINE_TEXT", text: "seconda sessione" },
+              occurredAt: "2026-08-16T10:00:00.000Z",
+            }),
+          ],
         }),
-        event({
-          id: "e2",
-          sessionId: "s1",
-          sequence: 2,
-          type: "AGENT_MESSAGE",
-          payload: { kind: "INLINE_TEXT", text: "una risposta" },
-          occurredAt: "2026-08-17T11:00:00.000Z",
-        }),
-        event({
-          id: "e1",
-          sessionId: "s1",
-          sequence: 1,
-          payload: { kind: "INLINE_TEXT", text: "prima domanda" },
+        session({
+          id: "s1",
+          events: [
+            event({
+              id: "e2",
+              sessionId: "s1",
+              sequence: 2,
+              type: "AGENT_MESSAGE",
+              payload: { kind: "INLINE_TEXT", text: "una risposta" },
+              occurredAt: "2026-08-17T11:00:00.000Z",
+            }),
+            event({
+              id: "e1",
+              sessionId: "s1",
+              sequence: 1,
+              payload: { kind: "INLINE_TEXT", text: "prima domanda" },
+            }),
+          ],
         }),
       ],
     });
@@ -106,23 +135,59 @@ describe("work session rows", () => {
     );
   });
 
+  it("carries the model and the agent the session recorded, verbatim", () => {
+    const rows = sessionRows({
+      projectName: "Demo",
+      sessions: [
+        session({
+          id: "s1",
+          model: "claude-opus-4-6",
+          agent: "Claude Code",
+          events: [event({ id: "e1", sessionId: "s1" })],
+        }),
+      ],
+    });
+    assert.equal(rows[0]?.model, "claude-opus-4-6");
+    assert.equal(rows[0]?.agent, "Claude Code");
+  });
+
+  it("reports no model when ingestion recorded none, instead of guessing from the agent", () => {
+    const rows = sessionRows({
+      projectName: "Demo",
+      sessions: [
+        session({
+          id: "s1",
+          model: null,
+          agent: "Codex",
+          events: [event({ id: "e1", sessionId: "s1" })],
+        }),
+      ],
+    });
+    assert.equal(rows[0]?.model, null);
+    assert.equal(rows[0]?.agent, "Codex");
+  });
+
   it("takes the title from a question, not from an assistant message", () => {
     const rows = sessionRows({
-      projectId: "project-1",
       projectName: "Demo",
-      events: [
-        event({
-          id: "e1",
-          sessionId: "s1",
-          sequence: 1,
-          type: "AGENT_MESSAGE",
-          payload: { kind: "INLINE_TEXT", text: "parlo io per primo" },
-        }),
-        event({
-          id: "e2",
-          sessionId: "s1",
-          sequence: 2,
-          payload: { kind: "INLINE_TEXT", text: "la mia domanda" },
+      sessions: [
+        session({
+          id: "s1",
+          events: [
+            event({
+              id: "e1",
+              sessionId: "s1",
+              sequence: 1,
+              type: "AGENT_MESSAGE",
+              payload: { kind: "INLINE_TEXT", text: "parlo io per primo" },
+            }),
+            event({
+              id: "e2",
+              sessionId: "s1",
+              sequence: 2,
+              payload: { kind: "INLINE_TEXT", text: "la mia domanda" },
+            }),
+          ],
         }),
       ],
     });
@@ -131,17 +196,21 @@ describe("work session rows", () => {
 
   it("leaves a session untitled when its question lives in an artifact", () => {
     const rows = sessionRows({
-      projectId: "project-1",
       projectName: "Demo",
-      events: [
-        event({
-          id: "e1",
-          sessionId: "s1",
-          payload: {
-            kind: "ARTIFACT",
-            artifact: { id: "artifact-9", byteLength: 10 },
-            mediaType: "text/plain",
-          },
+      sessions: [
+        session({
+          id: "s1",
+          events: [
+            event({
+              id: "e1",
+              sessionId: "s1",
+              payload: {
+                kind: "ARTIFACT",
+                artifact: { id: "artifact-9", byteLength: 10 },
+                mediaType: "text/plain",
+              },
+            }),
+          ],
         }),
       ],
     });
@@ -149,20 +218,40 @@ describe("work session rows", () => {
     assert.equal(rows[0]?.titleSource, "UNTITLED");
   });
 
-  it("reports no time rather than inventing one when no moment carries a time", () => {
+  it("falls back to when the session started if no moment carries a time", () => {
     const rows = sessionRows({
-      projectId: "project-1",
       projectName: "Demo",
-      events: [event({ id: "e1", sessionId: "s1", occurredAt: null })],
+      sessions: [
+        session({
+          id: "s1",
+          startedAt: "2026-08-14T08:00:00.000Z",
+          events: [event({ id: "e1", sessionId: "s1", occurredAt: null })],
+        }),
+      ],
+    });
+    assert.equal(rows[0]?.lastMomentAt, "2026-08-14T08:00:00.000Z");
+  });
+
+  it("reports no time rather than inventing one when nothing carries a time", () => {
+    const rows = sessionRows({
+      projectName: "Demo",
+      sessions: [
+        session({
+          id: "s1",
+          startedAt: null,
+          events: [event({ id: "e1", sessionId: "s1", occurredAt: null })],
+        }),
+      ],
     });
     assert.equal(rows[0]?.lastMomentAt, null);
   });
 
   it("shows a linked Work Item state as an attribute of the row", () => {
     const rows = sessionRows({
-      projectId: "project-1",
       projectName: "Demo",
-      events: [event({ id: "e1", sessionId: "s1" })],
+      sessions: [
+        session({ id: "s1", events: [event({ id: "e1", sessionId: "s1" })] }),
+      ],
       workStateBySession: { s1: "BLOCKED" },
     });
     assert.equal(rows[0]?.workState, "BLOCKED");
@@ -228,6 +317,8 @@ describe("ordering and grouping", () => {
       lastMomentAt,
       momentCount: 1,
       workState: null,
+      model: "claude-sonnet-4-5",
+      agent: "Claude Code",
     });
 
   it("puts the newest first and everything undated last", () => {

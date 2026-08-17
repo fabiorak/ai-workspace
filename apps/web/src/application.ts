@@ -72,6 +72,7 @@ import {
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
   LocalHistoricalEventReader,
+  LocalSessionReader,
 } from "@ai-workspace/local-session-ingestion";
 import { JsonWorkItemStore } from "@ai-workspace/local-work-items";
 import {
@@ -244,11 +245,8 @@ export class GuiApplication {
       ids: randomUUID,
       clock: () => new Date(),
     });
-    const eventReader = new LocalHistoricalEventReader(
-      dependencies.workspaceHome,
-    );
     this.#history = new HistoricalSearch({
-      events: eventReader,
+      events: new LocalHistoricalEventReader(dependencies.workspaceHome),
       artifacts: new FileArtifactStore(dependencies.workspaceHome),
       projects,
       general: generalStore,
@@ -269,7 +267,7 @@ export class GuiApplication {
         (await projectStore.load()).map((project) =>
           Object.freeze({ id: project.id, name: project.name }),
         ),
-      events: eventReader,
+      sessions: new LocalSessionReader(dependencies.workspaceHome),
       notes: generalStore,
       workItems: workItemStore,
     });

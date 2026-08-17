@@ -90,6 +90,12 @@ describe("the opening screen", () => {
       );
   });
 
+  it("names the model that ran a session, falling back to the agent", () => {
+    assert.match(APP_JS, /const ran = row\.model \|\| row\.agent/u);
+    // Shown verbatim: no translation key wraps it, because a model name is a proper name.
+    assert.doesNotMatch(APP_JS, /message\("homeModel/u);
+  });
+
   it("shows a linked work state as a word, never as the constant that stores it", () => {
     assert.doesNotMatch(homeSection, /\b[A-Z][A-Z_]{3,}\b/u);
     assert.equal(HOME_TEXT.homeStateBLOCKED.it, "bloccato");

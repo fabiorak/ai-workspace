@@ -12,7 +12,7 @@
  */
 import type { WorkItem } from "@ai-workspace/core";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
-import type { SessionEvent } from "@ai-workspace/session-ingestion";
+import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
 import {
   noteRows,
@@ -26,10 +26,12 @@ export const CONVERSATION_LIMIT = 50;
 
 export type ConversationSources = Readonly<{
   projects(): Promise<readonly Readonly<{ id: string; name: string }>[]>;
-  events: Readonly<{
-    list(
-      projectId: string,
-    ): Promise<readonly Readonly<{ event: SessionEvent }>[]>;
+  /**
+   * Whole session documents rather than flattened events: the list shows which
+   * model ran a session, and that field lives on the document.
+   */
+  sessions: Readonly<{
+    list(projectId: string): Promise<readonly ImportedSession[]>;
   }>;
   notes: Readonly<{ list(): Promise<readonly GeneralConversation[]> }>;
   workItems: Readonly<{
@@ -86,14 +88,13 @@ export async function readConversations(
   const perProject = await Promise.all(
     projects.map(async (project) => {
       try {
-        const [events, items] = await Promise.all([
-          sources.events.list(project.id),
+        const [sessions, items] = await Promise.all([
+          sources.sessions.list(project.id),
           sources.workItems.list(project.id).catch(() => []),
         ]);
         return sessionRows({
-          projectId: project.id,
           projectName: project.name,
-          events: events.map((entry) => entry.event),
+          sessions,
           workStateBySession: statesBySession(items),
         });
       } catch {

@@ -41,7 +41,11 @@ export const HOME_BEHAVIOUR = `
     text(title, conversationTitle(row));
     const meta = document.createElement("span");
     meta.className = "conversation-meta";
-    const parts = [row.kind === "NOTES" ? message("homeKindNOTES") : row.projectName, momentLabel(row.momentCount)];
+    // The model is shown exactly as the session recorded it, because a model name is a
+    // proper name. When ingestion found none, the agent stands in — that much is always
+    // known — and a note shows neither, since nothing answered it.
+    const ran = row.model || row.agent;
+    const parts = [row.kind === "NOTES" ? message("homeKindNOTES") : row.projectName, ran, momentLabel(row.momentCount)];
     // A linked Work Item contributes its state as a word, never as the constant that stores it.
     if (row.workState && catalogs.en["homeState" + row.workState]) parts.push(message("homeState" + row.workState));
     text(meta, parts.filter(Boolean).join(" · "));

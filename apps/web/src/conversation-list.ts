@@ -11,7 +11,7 @@
  * deliberate: the list is the first thing a reader sees, and its ordering and
  * titling rules deserve tests that do not need a filesystem, an index, or HTTP.
  */
-import type { SessionEvent } from "@ai-workspace/session-ingestion";
+import type { ImportedSession } from "@ai-workspace/session-ingestion";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
 
 /** How the title was obtained, so a reader is never told a summary is a quotation. */
@@ -30,6 +30,13 @@ export type ConversationRow = Readonly<{
   momentCount: number;
   /** Present only when a Work Item is linked; the lifecycle itself is unchanged. */
   workState: string | null;
+  /**
+   * Which model ran that session, exactly as ingestion recorded it, and which
+   * agent produced it. Both are null for notes a person wrote themselves, because
+   * no model was involved and saying otherwise would be a lie of omission.
+   */
+  model: string | null;
+  agent: string | null;
 }>;
 
 export const TITLE_BUDGET = 72;
@@ -70,31 +77,31 @@ function latest(times: readonly (string | null)[]): string | null {
 }
 
 /**
- * Groups imported events into one row per session.
+ * Turns imported session documents into rows, one per session.
  *
  * The title comes from the first thing the person wrote in that session, in
  * sequence order, and only when the payload is inline text: an artifact-backed
  * payload is not read here, because reading it would mean I/O in a pure function
  * and a title is not worth that. Such a session stays untitled and the caller
  * names it by its date.
+ *
+ * Model and agent are copied through verbatim. A model name is a proper name, so
+ * shortening or prettifying it would mean showing something the session did not
+ * record; when ingestion found none, the row says none rather than guessing from
+ * the agent.
  */
 export function sessionRows(
   input: Readonly<{
-    projectId: string;
     projectName: string;
-    events: readonly SessionEvent[];
+    sessions: readonly ImportedSession[];
     workStateBySession?: Readonly<Record<string, string>>;
   }>,
 ): readonly ConversationRow[] {
-  const bySession = new Map<string, SessionEvent[]>();
-  for (const event of input.events) {
-    const group = bySession.get(event.sessionId);
-    if (group === undefined) bySession.set(event.sessionId, [event]);
-    else group.push(event);
-  }
   return Object.freeze(
-    [...bySession.entries()].map(([sessionId, group]) => {
-      const ordered = [...group].sort((a, b) => a.sequence - b.sequence);
+    input.sessions.map((session) => {
+      const ordered = [...session.events].sort(
+        (a, b) => a.sequence - b.sequence,
+      );
       const question = ordered.find(
         (event) =>
           event.type === "USER_MESSAGE" && event.payload.kind === "INLINE_TEXT",
@@ -104,17 +111,22 @@ export function sessionRows(
           ? null
           : titleFrom(question.payload.text);
       return Object.freeze({
-        id: sessionId,
+        id: session.id,
         kind: "WORK_SESSION" as const,
-        projectId: input.projectId,
+        projectId: session.projectId,
         projectName: input.projectName,
         title,
         titleSource: (title === null
           ? "UNTITLED"
           : "FIRST_QUESTION") as ConversationTitleSource,
-        lastMomentAt: latest(ordered.map((event) => event.occurredAt)),
+        lastMomentAt: latest([
+          ...ordered.map((event) => event.occurredAt),
+          session.startedAt,
+        ]),
         momentCount: ordered.length,
-        workState: input.workStateBySession?.[sessionId] ?? null,
+        workState: input.workStateBySession?.[session.id] ?? null,
+        model: session.model,
+        agent: session.agent,
       });
     }),
   );
@@ -149,6 +161,8 @@ export function noteRows(
         ]),
         momentCount: conversation.events.length,
         workState: null,
+        model: null,
+        agent: null,
       });
     }),
   );
