@@ -355,8 +355,10 @@ dichiaratamente **non** una garanzia di copertura completa dei dati personali. I
 prodotto propone; non promette di aver visto tutto. La frase che lo dice deve
 comparire **una volta, accanto al testo da approvare**, non in ogni schermata.
 
-Questo richiede un ADR nuovo che emendi ADR-0021 e ADR-0023, registrato fra i
-punti aperti del § 11.
+[ADR-0034](../adr/0034-propose-a-complete-local-anonymization-for-one-approval.md)
+registra questo emendamento a ADR-0021 e ADR-0023: la proposta la compone il
+software, le sostituzioni sono applicate per default e una sola approvazione
+riguarda l'esatto testo trasformato.
 
 ---
 
@@ -491,8 +493,6 @@ Ognuno di questi punti richiede il proprio sprint e, dove serve, il proprio ADR:
   (OpenSearch, Presidio, un grafo dei sorgenti, un intermediario verso il
   modello). Richiede un ADR ciascuno e va confrontata con le regole «nessuna
   dipendenza esterna senza ADR» e «zero dipendenze a runtime nella GUI»;
-- **l'ADR che emenda ADR-0021 e ADR-0023** per la proposta automatica di
-  anonimizzazione con approvazione unica;
 - **il destino della barra laterale a nove voci** e la forma della vista tecnica;
 - **il disegno grafico** vero e proprio: colori, caratteri, illustrazioni;
 - **la dimensione tempo nel cruscotto**, che oggi mostra soltanto lo stato

@@ -348,8 +348,10 @@ restoration stays strict and all-or-nothing, and detection remains explicitly
 does not promise to have seen everything. The sentence that says so must appear
 **once, next to the text to approve**, not on every screen.
 
-This requires a new ADR amending ADR-0021 and ADR-0023, recorded among the open
-points in § 11.
+[ADR-0034](../adr/0034-propose-a-complete-local-anonymization-for-one-approval.md)
+records this amendment to ADR-0021 and ADR-0023: the software composes the
+proposal, substitutions are applied by default, and one approval covers the exact
+transformed text.
 
 ---
 
@@ -485,8 +487,6 @@ Each of these points needs its own sprint and, where required, its own ADR:
   Presidio, a source graph, a model gateway). Each needs its own ADR and must be
   weighed against "no external dependency without an ADR" and "zero runtime
   dependencies in the GUI";
-- **the ADR amending ADR-0021 and ADR-0023** for automatically proposed
-  anonymisation with a single approval;
 - **the fate of the nine-entry sidebar** and the shape of the technical view;
 - **the visual design** proper: colours, typefaces, illustrations;
 - **the time dimension in the dashboard**, which today shows only instantaneous
