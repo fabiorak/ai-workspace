@@ -160,7 +160,11 @@ export const HOME_BEHAVIOUR = `
   const momentSpeaker = (type) => message(catalogs.en["homeMoment" + type] ? "homeMoment" + type : "homeMomentUNKNOWN");
   const renderMoment = (moment, kind) => {
     const item = document.createElement("li");
-    item.className = "moment";
+    // What the person wrote themselves is what a reader scrolls a long conversation to
+    // find, so those moments carry their own surface. The line above already names who
+    // spoke, so the colour is a shortcut for the eye and never the only way to tell a
+    // question from an answer.
+    item.className = moment.type === "USER_MESSAGE" ? "moment moment-yours" : "moment";
     const who = document.createElement("p");
     who.className = "card-kicker";
     text(who, momentSpeaker(moment.type));
@@ -200,7 +204,16 @@ export const HOME_BEHAVIOUR = `
     homeConversationHeading.focus();
   };
   const showConversation = async (row) => {
-    if (openConversation === row.id) { closeConversation(); return; }
+    // The list stays on the left of every screen, so a row can be clicked from a screen
+    // this conversation does not open on. Going there is the product's job: leaving a
+    // person to find the way themselves is the same defect as having no way back at all.
+    // A second click closes what is open, but only from the screen that shows it —
+    // elsewhere that click means "take me to it", and closing would answer a question
+    // nobody asked. The focus is not sent to main, because renderConversation lands it
+    // on the heading of what was asked for.
+    const showing = currentPage() === "home";
+    if (showing && openConversation === row.id) { closeConversation(); return; }
+    if (!showing) openPage("home", false);
     openConversation = row.id;
     say(homeConversationStatus, "homeConversationOpening");
     const query = row.projectId ? "?project=" + encodeURIComponent(row.projectId) : "";

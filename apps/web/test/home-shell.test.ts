@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { APP_JS, shellHtml } from "../src/assets.ts";
+import { APP_CSS, APP_JS, shellHtml } from "../src/assets.ts";
 import { GUI_CATALOGS, SUPPORTED_LOCALES } from "../src/index.ts";
 import { mergeCatalogues } from "../src/text/catalog.ts";
 import { HOME_CATALOGUES, HOME_TEXT } from "../src/text/home.ts";
@@ -75,6 +75,44 @@ describe("the opening screen", () => {
     assert.match(html, /id="home-conversation-moments"/u);
     // The open row is named for assistive technology, not only shaded.
     assert.match(APP_JS, /setAttribute\("aria-current", "true"\)/u);
+  });
+
+  /**
+   * The list is on the left of every screen, so a row is clickable from a screen the
+   * conversation does not open on. Without this the click appears to do nothing, and
+   * the way to what was asked for is a menu entry a person has to find for themselves.
+   */
+  it("takes a reader to the screen the conversation opens on", () => {
+    const start = APP_JS.indexOf("const showConversation");
+    assert.notEqual(start, -1);
+    const body = APP_JS.slice(
+      start,
+      APP_JS.indexOf(
+        'document.getElementById("home-conversation-close")',
+        start,
+      ),
+    );
+    assert.match(body, /currentPage\(\) === "home"/u);
+    assert.match(body, /openPage\("home", false\)/u);
+    // A second click closes what is open only from the screen that shows it.
+    assert.match(body, /showing && openConversation === row\.id/u);
+  });
+
+  /**
+   * A long conversation is mostly reply, and what a reader scrolls back through it for
+   * is their own question. Those moments carry a surface of their own — and a rule as
+   * well as a colour, because a mark made only of colour is no mark on some screens.
+   */
+  it("marks the moments the person wrote themselves", () => {
+    assert.match(
+      APP_JS,
+      /moment\.type === "USER_MESSAGE" \? "moment moment-yours"/u,
+    );
+    assert.match(APP_CSS, /\.moment-yours \{[^}]*background: var\(--yours\)/u);
+    assert.match(APP_CSS, /\.moment-yours \{[^}]*border-inline-start/u);
+    // Both themes declare that surface: a variable defined in one leaves the other
+    // with no background at all, which is exactly the screen nobody tests on.
+    assert.equal((APP_CSS.match(/--yours:/gu) ?? []).length, 2);
   });
 
   /**

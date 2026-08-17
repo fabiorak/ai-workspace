@@ -24,6 +24,7 @@ export const APP_CSS = `
   --amber: #e59b28;
   --good: #23a36d;
   --danger: #ca4459;
+  --yours: #e6edfd;
   --sidebar: #101a2d;
   --sidebar-ink: #f3f6fb;
   --sidebar-muted: #98a8c0;
@@ -61,6 +62,13 @@ a { color: var(--accent-strong); }
 .conversation-nav button[aria-current] { color: var(--sidebar-ink); background: rgba(255,255,255,.1); box-shadow: inset .18rem 0 0 currentColor; }
 .moments { margin: 0; padding: 0 0 0 1.2rem; display: grid; gap: .9rem; }
 .moment { padding: .1rem 0; }
+/**
+ * The moments the person wrote. A long conversation is mostly reply, so what a reader
+ * scrolls back to find is their own question: it gets a surface of its own and a rule
+ * down the side. The mark is not colour alone — each moment already says who spoke, and
+ * the rule survives a screen that shows no colour at all.
+ */
+.moment-yours { padding: .45rem .75rem; border-inline-start: .2rem solid var(--accent); border-radius: .45rem; background: var(--yours); }
 /** Line breaks a person typed are part of what they wrote, so they survive here. */
 .moment-text { margin: .15rem 0; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
 .conversation-title { color: var(--sidebar-ink); font-size: .87rem; font-weight: 650; }
@@ -177,7 +185,7 @@ footer { padding: 0 clamp(1rem, 3vw, 3rem) 2rem; color: var(--muted); font-size:
 .skip-link:focus { transform: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 @media (prefers-color-scheme: dark) {
-  :root { --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --sidebar: #0a101c; --shadow: 0 18px 45px rgba(0,0,0,.2); }
+  :root { --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --yours: #1d2b45; --sidebar: #0a101c; --shadow: 0 18px 45px rgba(0,0,0,.2); }
   /* The chart palette is lightened here: the light-theme hues sit too close to the dark canvas to stay legible as shapes. */
   :root { --cyan: #4cc9e2; --violet: #ad8bf0; --amber: #f2b552; --good: #48c98d; --danger: #f2788a; }
 }
