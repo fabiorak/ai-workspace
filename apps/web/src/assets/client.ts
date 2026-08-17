@@ -477,6 +477,9 @@ ${HOME_BEHAVIOUR}
   renderRoute(false);
   loadGeneral();
   loadProjects();
-  loadConversations();
+  // The list is drawn from what is already stored, then whatever arrived since is
+  // brought in behind it. In that order, so the page answers immediately instead of
+  // waiting on a directory read that may find nothing.
+  loadConversations().then(loadArrived);
 })();
 `;

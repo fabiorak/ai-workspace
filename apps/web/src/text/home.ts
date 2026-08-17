@@ -164,6 +164,26 @@ export const HOME_TEXT = Object.freeze({
     en: "Shown exactly as it was stored.",
     it: "Mostrato esattamente come è stato conservato.",
   },
+  /**
+   * What arrived without being asked for. It is said out loud because work appearing
+   * by itself is only reassuring when the product admits it did it.
+   */
+  homeArrivedLooking: {
+    en: "Looking for new sessions in the folders you brought in before…",
+    it: "Sto cercando sessioni nuove nelle cartelle che hai già portato dentro…",
+  },
+  homeArrived: {
+    en: "{sessions} new sessions arrived on their own, with {moments} moments.",
+    it: "Sono arrivate da sole {sessions} sessioni nuove, con {moments} momenti.",
+  },
+  homeArrivedOne: {
+    en: "One new session arrived on its own, with {moments} moments.",
+    it: "È arrivata da sola una sessione nuova, con {moments} momenti.",
+  },
+  homeArrivedUnreadable: {
+    en: "{count} folders you imported from could not be read this time.",
+    it: "{count} cartelle da cui avevi importato non sono leggibili questa volta.",
+  },
 });
 
 export const HOME_CATALOGUES = catalogues(HOME_TEXT);

@@ -115,6 +115,24 @@ export const HOME_BEHAVIOUR = `
       detail(conversationCount, cause);
     }
   };
+  // Sessions arrive on their own from the folders somebody already pointed at, so the
+  // list is not empty at the start of a day nobody has imported anything into. Nothing
+  // is guessed: only a folder that was named, and imported from, is read again. It is a
+  // write and asks for one, because a read that imports is a read no page may trigger.
+  const loadArrived = async () => {
+    say(conversationStatus, "homeArrivedLooking");
+    let report;
+    try {
+      report = await api("/api/transcripts/arrived", { method: "POST", body: "{}" });
+    } catch { text(conversationStatus, ""); return; }
+    if (report.sessions > 0) {
+      await loadConversations();
+      say(conversationStatus, report.sessions === 1 ? "homeArrivedOne" : "homeArrived", { sessions: number(report.sessions), moments: number(report.moments) });
+    } else text(conversationStatus, "");
+    // A folder that has gone missing is said out loud: work that silently stops
+    // arriving reads like a quiet week rather than a moved directory.
+    if (report.unreadable > 0) say(conversationCount, "homeArrivedUnreadable", { count: number(report.unreadable) });
+  };
   // A row opens its own conversation, which is what ADR-0035 makes the unit of this
   // shell. It opens in place, under the field that found it, rather than as a screen
   // of its own: the list stays where it is, so the reader never loses the thread they

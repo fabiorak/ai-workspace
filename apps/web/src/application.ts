@@ -73,6 +73,7 @@ import {
   JsonSessionStore,
   LocalHistoricalEventReader,
   LocalSessionReader,
+  LocalTranscriptSourceStore,
 } from "@ai-workspace/local-session-ingestion";
 import { JsonWorkItemStore } from "@ai-workspace/local-work-items";
 import {
@@ -125,7 +126,6 @@ import type {
   GuiRestartSummary,
   GuiSearchInput,
   GuiSearchReport,
-  GuiTranscriptDiscovery,
 } from "./view-models.ts";
 /** Every view model stays importable from this facade, wherever it is declared. */
 export type * from "./view-models.ts";
@@ -134,6 +134,7 @@ import {
   conversationArea,
   type ConversationArea,
 } from "./conversation-facade.ts";
+import { transcriptArea, type TranscriptArea } from "./transcript-facade.ts";
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -153,6 +154,7 @@ export class GuiApplication {
   readonly #ingestion: SessionIngestion;
   readonly #localIngestion: SessionIngestion;
   readonly #transcriptDiscovery: ClaudeCodeLocalSessionDiscovery;
+  readonly #transcriptSources: LocalTranscriptSourceStore;
   readonly #history: HistoricalSearch;
   readonly #general: GeneralConversations;
   readonly #generalLinks: GeneralProjectLinks;
@@ -227,6 +229,9 @@ export class GuiApplication {
       projects,
     });
     this.#transcriptDiscovery = new ClaudeCodeLocalSessionDiscovery();
+    this.#transcriptSources = new LocalTranscriptSourceStore(
+      dependencies.workspaceHome,
+    );
     const generalStore = new JsonGeneralConversationStore(
       dependencies.workspaceHome,
     );
@@ -578,54 +583,14 @@ export class GuiApplication {
       });
     }, "Keep the selected project, review the synthetic-only warning, and retry the safe sample import.");
   }
-  public async discoverTranscripts(
-    directory: string,
-  ): Promise<GuiTranscriptDiscovery> {
-    return this.#run(async () => {
-      const candidates = await this.#transcriptDiscovery.discover(directory);
-      return Object.freeze({
-        directory,
-        candidates: Object.freeze(
-          candidates.map((candidate) =>
-            Object.freeze({
-              filePath: candidate.filePath,
-              fileName: candidate.fileName,
-              byteLength: candidate.byteLength,
-              modifiedAt: candidate.modifiedAt,
-            }),
-          ),
-        ),
-        effect:
-          candidates.length === 0
-            ? "No transcript file was found; nothing was read."
-            : "Only file names, sizes, and modification times were read; no transcript was opened.",
-        nextAction: "Select one transcript and import it into a project.",
-      });
-    }, "Name an existing readable directory that holds .jsonl transcripts, then list it again.");
-  }
-
-  public async importLocalTranscript(
-    projectId: string,
-    filePath: string,
-  ): Promise<GuiImportReport> {
-    return this.#run(async () => {
-      const report = await this.#localIngestion.import(projectId, filePath);
-      return Object.freeze({
-        projectId,
-        sessionId: report.session.id,
-        sourceName: basename(filePath),
-        trust: "UNTRUSTED" as const,
-        addedEvents: report.addedEvents,
-        existingEvents: report.existingEvents,
-        totalEvents: report.totalEvents,
-        skippedRecords: report.skippedRecords,
-        effect:
-          report.addedEvents === 0
-            ? "This transcript was already imported; canonical events and artifacts were unchanged."
-            : "Canonical events and immutable artifacts were added locally; nothing was transmitted.",
-        nextAction: "Search this project's UNTRUSTED historical evidence.",
-      });
-    }, "Keep the selected project, check that the transcript is still readable and unchanged before its imported records, and retry.");
+  /** The transcripts area: what a person pointed at, and what has arrived since (ADR-0035). */
+  public get transcripts(): TranscriptArea {
+    return transcriptArea({
+      discovery: this.#transcriptDiscovery,
+      ingestion: this.#localIngestion,
+      sources: this.#transcriptSources,
+      guard: (operation, recovery) => this.#run(operation, recovery),
+    });
   }
   public async search(input: GuiSearchInput): Promise<GuiSearchReport> {
     return this.#run(async () => {

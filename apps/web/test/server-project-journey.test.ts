@@ -1423,6 +1423,37 @@ describe("GUI server project onboarding", () => {
     assert.equal(noCsrf.status, 403);
   });
 
+  /**
+   * The sweep that follows an import a person asked for. It re-reads only that same
+   * directory, brings in nothing the second time because ingestion is idempotent, and
+   * is a write like every other: without the CSRF header it is refused.
+   */
+  it("sweeps the directory it was shown, and adds nothing that is already in", async () => {
+    const arrived = (await (
+      await api("/api/transcripts/arrived", { method: "POST", body: "{}" })
+    ).json()) as {
+      sessions: number;
+      moments: number;
+      directories: number;
+      unreadable: number;
+    };
+    assert.equal(arrived.directories, 1);
+    assert.equal(arrived.sessions, 0);
+    assert.equal(arrived.moments, 0);
+    assert.equal(arrived.unreadable, 0);
+
+    const noCsrf = await fetch(`${server.origin}/api/transcripts/arrived`, {
+      method: "POST",
+      headers: {
+        Cookie: cookie,
+        Origin: server.origin,
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    });
+    assert.equal(noCsrf.status, 403);
+  });
+
   it("fails closed when active-memory storage is corrupt", async () => {
     const projectId = (
       (await (await api("/api/projects")).json()) as { id: string }[]

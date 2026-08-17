@@ -36,6 +36,22 @@ describe("the opening screen", () => {
   });
 
   /**
+   * The list used to be empty until somebody imported by hand, which made the first
+   * screen of the product a screen with nothing on it. Sessions now arrive from the
+   * folders already pointed at — after the stored list is drawn, so the page answers
+   * immediately — and the arrival is announced rather than done quietly.
+   */
+  it("brings in what arrived, behind the list it already had", () => {
+    assert.match(APP_JS, /loadConversations\(\)\.then\(loadArrived\)/u);
+    assert.match(
+      APP_JS,
+      /"\/api\/transcripts\/arrived",\s*\{\s*method: "POST"/u,
+    );
+    assert.match(APP_JS, /"homeArrivedLooking"/u);
+    assert.match(APP_JS, /"homeArrivedUnreadable"/u);
+  });
+
+  /**
    * The day group narrows a row to a day, which is not enough to tell two sessions of
    * the same day apart. The row states its own time and what ran it, and a row with
    * no readable time says nothing rather than borrowing one.
