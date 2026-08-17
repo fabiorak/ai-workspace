@@ -1,4 +1,6 @@
 export type GuiJourneyStep =
+  | "HOME"
+  | "TECHNICAL_VIEW"
   | "DASHBOARD"
   | "WELCOME"
   | "PROJECTS"
@@ -84,6 +86,44 @@ const STATES: readonly GuiState[] = Object.freeze([
 
 export const GUI_SCREEN_CONTRACTS: readonly GuiScreenContract[] = Object.freeze(
   [
+    screen(
+      "HOME",
+      "Your work",
+      "Resume previous work and search your own history without opening a menu.",
+      action({
+        id: "search-your-history",
+        label: "Search your history",
+        description:
+          "Answer a question from the moments, decisions, and constraints already stored on this computer.",
+        effect:
+          "Reads local material only and composes an answer from it; nothing is sent, stored, or authorized.",
+        prerequisites:
+          "None. Conversations appear on their own, and a question can be asked before any project exists.",
+        recovery:
+          "The question stays in the field; use fewer words, or the words you would have written at the time.",
+        nextAction:
+          "Each result states where it comes from and why it matched, and opens its integrity-verified source.",
+        mutates: false,
+      }),
+    ),
+    screen(
+      "TECHNICAL_VIEW",
+      "Technical view",
+      "Reach provenance, integrity verification, exact state, and the original vocabulary.",
+      action({
+        id: "open-technical-screen",
+        label: "Open a technical screen",
+        description:
+          "Follow a link to a screen that shows exact stored values instead of ordinary wording.",
+        effect: "Changes the visible page only; no stored state is written.",
+        prerequisites:
+          "None. Some of these screens are still in their previous shape while the interface is rebuilt.",
+        recovery: "Return to your work from the sidebar at any point.",
+        nextAction:
+          "The chosen screen states its own effect, prerequisites, and recovery.",
+        mutates: false,
+      }),
+    ),
     screen(
       "DASHBOARD",
       "Workspace overview",
@@ -538,7 +578,13 @@ export function validateGuiInteractionContracts(
         "Every GUI screen must satisfy the accessibility baseline.",
       );
   }
-  if (steps.size !== 24)
+  /**
+   * ADR-0035 rebuilds the interface in phases, so this count moves in one
+   * direction: it drops as the screens now sheltered in the technical view are
+   * redesigned into the conversation. It must never rise without a screen whose
+   * contract is declared above.
+   */
+  if (steps.size !== 26)
     throw new Error(
       "The GUI journey must cover every committed screen exactly once.",
     );

@@ -18,7 +18,6 @@ import {
   buildContextPack,
   expandContextPack,
   measureContextSelectorCorpus,
-  type ContextSelectorCorpusReport,
   type ExpandedContextPackPreview,
 } from "@ai-workspace/context-builder";
 import {
@@ -44,26 +43,18 @@ import {
 import {
   HistoricalSearch,
   type HistoricalSearchQuery,
-  type MatchReason,
 } from "@ai-workspace/historical-search";
 import {
   composeProfileInstructions,
   composeInstructions,
   type EffectiveInstructions,
-  type ProfileInstructionSelection,
 } from "@ai-workspace/instruction-manager";
 import {
   LocalAgentProfileReader,
   LocalInstructionBundleReader,
-  type LocalAgentProfileInput,
   type LocalAgentProfileInspection,
-  type LocalInstructionBundleInput,
 } from "@ai-workspace/local-instructions";
-import {
-  LocalModelDataPolicyReader,
-  type LocalModelDataPolicyInput,
-  type LocalModelDataPolicyInspection,
-} from "@ai-workspace/local-privacy-policy";
+import { LocalModelDataPolicyReader } from "@ai-workspace/local-privacy-policy";
 import { PassphraseKeyCustody } from "@ai-workspace/local-key-custody";
 import { EncryptedPrivacyMappingStore } from "@ai-workspace/local-privacy-mapping";
 import { JsonPrivacyAuditStore } from "@ai-workspace/local-privacy-audit";
@@ -95,14 +86,6 @@ import {
   restorePseudonymizedItems,
   restorePseudonymizedItemsV2,
   suggestEntityAliases,
-  type EntityAliasEntry,
-  type EntityAliasSuggestionReport,
-  type PseudonymReview,
-  type PseudonymReviewV2,
-  type PseudonymizationPreview,
-  type PseudonymizationPreviewV2,
-  type OutputRestorationReport,
-  type PrivacyPreflightReport,
 } from "@ai-workspace/privacy-gateway";
 import {
   PrivacyDecisionAudit,
@@ -115,256 +98,41 @@ import {
   type SessionEventType,
 } from "@ai-workspace/session-ingestion";
 
-export type GuiProject = Readonly<{
-  id: string;
-  name: string;
-  repositoryType: "SOFTWARE" | "DOCUMENTS" | "MIXED";
-  branch: string | null;
-  headCommit: string | null;
-  isDirty: boolean;
-  registeredAt: string;
-  lastInspectedAt: string;
-}>;
-
-export type GuiDashboard = Readonly<{
-  schemaVersion: 1;
-  asOf: string;
-  projects: Readonly<{ total: number; clean: number; attention: number }>;
-  general: Readonly<{ conversations: number; questions: number }>;
-  memory: Readonly<{
-    active: number;
-    verified: number;
-    unverified: number;
-    sampled: number;
-    truncated: boolean;
-  }>;
-  workItems: Readonly<{
-    proposed: number;
-    active: number;
-    blocked: number;
-    completed: number;
-  }>;
-  privacy: Readonly<{ reviewable: number; blocked: number; total: number }>;
-  coverage: Readonly<{
-    availableProjects: number;
-    unavailableProjects: number;
-    memoryLimitPerProject: 100;
-    privacyLimitPerProject: 100;
-  }>;
-  modelDelivery: Readonly<{
-    status: "UNAVAILABLE";
-    reason: "NO_PROVIDER_DELIVERY_SURFACE";
-  }>;
-  effect: "READ_ONLY_LOCAL_AGGREGATE_NO_TELEMETRY_OR_MODEL_ACCESS";
-}>;
-export type GuiImportReport = Readonly<{
-  projectId: string;
-  sessionId: string;
-  sourceName: string;
-  trust: "UNTRUSTED";
-  addedEvents: number;
-  existingEvents: number;
-  totalEvents: number;
-  skippedRecords: readonly Readonly<{ reason: string; count: number }>[];
-  effect: string;
-  nextAction: string;
-}>;
-export type GuiTranscriptCandidate = Readonly<{
-  filePath: string;
-  fileName: string;
-  byteLength: number;
-  modifiedAt: string;
-}>;
-export type GuiTranscriptDiscovery = Readonly<{
-  directory: string;
-  candidates: readonly GuiTranscriptCandidate[];
-  effect: string;
-  nextAction: string;
-}>;
-export type GuiSearchInput = Readonly<{
-  projectId: string;
-  text: string;
-  sessionId?: string;
-  type?: SessionEventType;
-  limit?: number;
-}>;
-export type GuiSearchReport = Readonly<{
-  projectId: string;
-  text: string;
-  searchedEvents: number;
-  results: readonly Readonly<{
-    eventId: string;
-    sessionId: string;
-    type: SessionEventType;
-    occurredAt: string | null;
-    trust: "UNTRUSTED";
-    snippet: string;
-    matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
-    /**
-     * Why this result matched. The rank score stays out of the interface: it
-     * only compares within one report, so it is a number a reader cannot act
-     * on, while the reason is a sentence they can.
-     */
-    reasons: readonly MatchReason[];
-  }>[];
-  emptyGuidance: string | null;
-}>;
-export type GuiGlobalSearchReport = Readonly<{
-  scope: "ALL_REGISTERED_PROJECTS";
-  text: string;
-  searchedProjects: number;
-  searchedEvents: number;
-  results: readonly Readonly<{
-    projectId: string;
-    projectName: string;
-    eventId: string;
-    sessionId: string;
-    type: SessionEventType;
-    occurredAt: string | null;
-    trust: "UNTRUSTED";
-    snippet: string;
-    matchedIn: "INLINE_PAYLOAD" | "ARTIFACT_PAYLOAD";
-    /**
-     * Why this result matched. The rank score stays out of the interface: it
-     * only compares within one report, so it is a number a reader cannot act
-     * on, while the reason is a sentence they can.
-     */
-    reasons: readonly MatchReason[];
-  }>[];
-  emptyGuidance: string | null;
-}>;
-export type GuiRestartSummary = Readonly<{
-  projectId: string;
-  /** The passage to copy. Composed on demand and never stored. */
-  text: string;
-  exactBytes: number;
-  omissions: readonly string[];
-  effect: "READ_ONLY_LOCAL_SUMMARY_NOT_PERSISTED_AND_NOT_SENT";
-}>;
-export type GuiEvent = Readonly<{
-  projectId: string;
-  eventId: string;
-  sessionId: string;
-  type: SessionEventType;
-  occurredAt: string | null;
-  trust: "UNTRUSTED";
-  payload: string;
-  sourceArtifactId: string;
-  sourcePosition: number;
-  sourceRecordHash: string;
-  injectionWarning: string;
-}>;
-export type GuiArtifact = Readonly<{
-  projectId: string;
-  eventId: string;
-  artifactId: string;
-  byteLength: number;
-  trust: "UNTRUSTED";
-  content: string;
-  injectionWarning: string;
-}>;
-export type GuiMemoryPage = Readonly<{
-  items: readonly MemoryItem[];
-  nextCursor: string | null;
-}>;
-export type GuiInstructionPreviewInput = Readonly<{
-  projectId: string;
-  bundles: readonly LocalInstructionBundleInput[];
-  model?: string;
-  agent?: string;
-  task?: string;
-}>;
-export type GuiAgentProfilePreviewInput = Readonly<{
-  projectId: string;
-  profile: LocalAgentProfileInput;
-}>;
-export type GuiContextPreviewInput = Readonly<{
-  projectId: string;
-  workItemId: string;
-  handoffId: string;
-  bundles: readonly LocalInstructionBundleInput[];
-  model?: string;
-  agent?: string;
-  task?: string;
-  continuityBudget: number;
-  instructionBudget: number;
-}>;
-export type GuiProfileContextPreviewInput = Readonly<{
-  projectId: string;
-  workItemId: string;
-  handoffId: string;
-  profile: LocalAgentProfileInput;
-  bundles: readonly LocalInstructionBundleInput[];
-  model: string;
-  task?: string;
-}>;
-export type GuiProfileContextPreview = Readonly<{
-  profile: LocalAgentProfileInspection;
-  selection: ProfileInstructionSelection;
-  instructions: EffectiveInstructions;
-  contextPack: ExpandedContextPackPreview;
-  effect: "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED";
-}>;
-export type GuiPrivacyPreflightInput = GuiProfileContextPreviewInput &
-  Readonly<{ policy: LocalModelDataPolicyInput }>;
-export type GuiPrivacyPreflightPreview = Readonly<{
-  profile: LocalAgentProfileInspection;
-  selection: ProfileInstructionSelection;
-  policy: LocalModelDataPolicyInspection;
-  preflight: PrivacyPreflightReport;
-  auditEvent: PrivacyAuditEvent;
-  effect: "LOCAL_AUDITED_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
-}>;
-export type GuiPseudonymizationInput = GuiPrivacyPreflightInput &
-  Readonly<{
-    review: PseudonymReview | PseudonymReviewV2;
-    keyCustody: Readonly<{
-      mode: "PASSPHRASE_WRAPPING";
-      passphrase: string;
-    }>;
-  }>;
-export type GuiPseudonymizationPreview = Readonly<{
-  policy: LocalModelDataPolicyInspection;
-  preflight: PrivacyPreflightReport;
-  transformation: PseudonymizationPreview | PseudonymizationPreviewV2;
-  mapping: Readonly<{
-    persisted: true;
-    restorationVerified: true;
-    mappingSetId: string;
-    schemaVersion: 1 | 2;
-    encryptedAtRest: true;
-    keyCustody: "PASSPHRASE_WRAPPED_LOCAL";
-  }>;
-  effect: "LOCAL_REVIEW_AND_ENCRYPTED_MAPPING_NOT_AUTHORIZED_DELIVERED_OR_EXECUTED";
-}>;
-export type GuiOutputRestorationInput = Readonly<{
-  projectId: string;
-  workItemId: string;
-  handoffId: string;
-  mappingSetId: string;
-  passphrase: string;
-  output: string;
-}>;
-export type GuiOutputRestorationPreview = OutputRestorationReport;
-export type GuiCustomerAliasSuggestionInput = GuiPrivacyPreflightInput &
-  Readonly<{ dictionary: readonly EntityAliasEntry[] }>;
-export type GuiCustomerAliasSuggestionPreview = Readonly<{
-  policy: LocalModelDataPolicyInspection;
-  preflight: PrivacyPreflightReport;
-  suggestions: EntityAliasSuggestionReport;
-  effect: "LOCAL_SUGGESTIONS_NOT_REVIEWED_TRANSFORMED_AUTHORIZED_OR_DELIVERED";
-}>;
-export type GuiContextSelectorPreviewInput = Readonly<{
-  projectId: string;
-  workItemId: string;
-  handoffId: string;
-  profile: LocalAgentProfileInput;
-}>;
-export type GuiContextSelectorPreview = Readonly<{
-  profile: LocalAgentProfileInspection;
-  report: ContextSelectorCorpusReport;
-  effect: "EXPERIMENT_ONLY_NO_CONTEXT_BUILDER_OR_PROFILE_POLICY_CHANGE";
-}>;
+import type {
+  GuiAgentProfilePreviewInput,
+  GuiArtifact,
+  GuiContextPreviewInput,
+  GuiContextSelectorPreview,
+  GuiContextSelectorPreviewInput,
+  GuiCustomerAliasSuggestionInput,
+  GuiCustomerAliasSuggestionPreview,
+  GuiDashboard,
+  GuiEvent,
+  GuiGlobalSearchReport,
+  GuiImportReport,
+  GuiInstructionPreviewInput,
+  GuiMemoryPage,
+  GuiOutputRestorationInput,
+  GuiOutputRestorationPreview,
+  GuiPrivacyPreflightInput,
+  GuiPrivacyPreflightPreview,
+  GuiProfileContextPreview,
+  GuiProfileContextPreviewInput,
+  GuiProject,
+  GuiPseudonymizationInput,
+  GuiPseudonymizationPreview,
+  GuiRestartSummary,
+  GuiSearchInput,
+  GuiSearchReport,
+  GuiTranscriptDiscovery,
+} from "./view-models.ts";
+/** Every view model stays importable from this facade, wherever it is declared. */
+export type * from "./view-models.ts";
+import {
+  readConversations,
+  type ConversationPage,
+  type ConversationSources,
+} from "./conversations.ts";
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -388,6 +156,7 @@ export class GuiApplication {
   readonly #general: GeneralConversations;
   readonly #generalLinks: GeneralProjectLinks;
   readonly #listRegisteredProjects: () => Promise<readonly RegisteredProject[]>;
+  readonly #conversationSources: ConversationSources;
   readonly #memory: ActiveMemory;
   readonly #workItems: WorkItems;
   readonly #handoffs: Handoffs;
@@ -475,8 +244,11 @@ export class GuiApplication {
       ids: randomUUID,
       clock: () => new Date(),
     });
+    const eventReader = new LocalHistoricalEventReader(
+      dependencies.workspaceHome,
+    );
     this.#history = new HistoricalSearch({
-      events: new LocalHistoricalEventReader(dependencies.workspaceHome),
+      events: eventReader,
       artifacts: new FileArtifactStore(dependencies.workspaceHome),
       projects,
       general: generalStore,
@@ -492,6 +264,15 @@ export class GuiApplication {
       clock: () => new Date(),
     });
     const workItemStore = new JsonWorkItemStore(dependencies.workspaceHome);
+    this.#conversationSources = Object.freeze({
+      projects: async () =>
+        (await projectStore.load()).map((project) =>
+          Object.freeze({ id: project.id, name: project.name }),
+        ),
+      events: eventReader,
+      notes: generalStore,
+      workItems: workItemStore,
+    });
     this.#workItems = new WorkItems({
       store: workItemStore,
       projects,
@@ -641,6 +422,13 @@ export class GuiApplication {
     return this.#run(
       async () => Object.freeze((await this.#registry.list()).map(projectView)),
       "Check local workspace permissions, then retry loading projects.",
+    );
+  }
+  /** The list the shell opens on. Composition lives in its own area (ADR-0035). */
+  public async listConversations(limit?: number): Promise<ConversationPage> {
+    return this.#run(
+      async () => readConversations(this.#conversationSources, limit),
+      "Check local workspace permissions, then retry loading your conversations.",
     );
   }
   public async dashboard(): Promise<GuiDashboard> {

@@ -99,8 +99,10 @@ describe("dashboard drill-down", () => {
 
   it("keeps the query out of the page name and falls back on an unknown page", () => {
     assert.equal(shippedRoute("#/work?state=BLOCKED").page, "work");
-    assert.equal(shippedRoute("#/nowhere?state=BLOCKED").page, "dashboard");
-    assert.equal(shippedRoute("").page, "dashboard");
+    // ADR-0035 opens on the reader's own work, so an address that names nothing
+    // lands there rather than on the dashboard.
+    assert.equal(shippedRoute("#/nowhere?state=BLOCKED").page, "home");
+    assert.equal(shippedRoute("").page, "home");
     assert.equal(shippedRoute("#/projects").parameters.get("filter"), null);
   });
 

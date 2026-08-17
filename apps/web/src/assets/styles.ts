@@ -47,6 +47,21 @@ a { color: var(--accent-strong); }
 .primary-nav a[aria-current="page"] { color: #fff; background: linear-gradient(100deg, rgba(82,125,250,.28), rgba(82,125,250,.08)); box-shadow: inset 3px 0 #6f96ff; }
 .primary-nav a > span:first-child { font-size: 1.05rem; text-align: center; }
 .nav-label { margin: 1rem .72rem .25rem; color: #71829c; font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+/**
+ * The conversation list. It scrolls on its own and keeps the two entries that are
+ * not work — projects and settings — reachable at the bottom without scrolling
+ * past the whole history to find them.
+ */
+.conversation-nav { min-height: 0; flex: 1 1 auto; overflow-y: auto; display: grid; align-content: start; gap: .1rem; }
+.conversation-nav ul { margin: 0 0 .5rem; padding: 0; list-style: none; display: grid; gap: .1rem; }
+.conversation-nav a { min-height: 2.75rem; display: grid; gap: .1rem; padding: .5rem .72rem; border-radius: .72rem; color: var(--sidebar-muted); text-decoration: none; }
+.conversation-nav a:hover { color: var(--sidebar-ink); background: rgba(255,255,255,.07); }
+.conversation-title { color: var(--sidebar-ink); font-size: .87rem; font-weight: 650; }
+/** Italian runs longer than English, so the row wraps rather than being clipped to a fixed width. */
+.conversation-meta { color: var(--sidebar-muted); font-size: .7rem; overflow-wrap: anywhere; }
+.conversation-nav .help { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .68rem; }
+.conversation-nav .inline-status { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .72rem; }
+.technical-nav { display: grid; gap: .3rem; max-width: 32rem; }
 .nav-label:first-child { margin-block-start: 0; }
 .nav-badge { padding: .12rem .4rem; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; font-size: .62rem; font-weight: 800; text-transform: uppercase; }
 .locality-card { margin-block-start: auto; display: flex; align-items: center; gap: .7rem; padding: .85rem; border: 1px solid rgba(255,255,255,.09); border-radius: .8rem; background: rgba(255,255,255,.04); }

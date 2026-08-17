@@ -8,11 +8,14 @@
  * can become executable.
  */
 import { GUI_CATALOGS } from "../localization.ts";
+import { mergeCatalogues } from "../text/catalog.ts";
+import { HOME_CATALOGUES } from "../text/home.ts";
+import { HOME_BEHAVIOUR } from "./home-client.ts";
 
 export const APP_JS = `
 (() => {
   "use strict";
-  const catalogs = ${JSON.stringify(GUI_CATALOGS)};
+  const catalogs = ${JSON.stringify(mergeCatalogues(GUI_CATALOGS, HOME_CATALOGUES))};
   const localeKey = "aiw-locale";
   const supported = new Set(Object.keys(catalogs));
   const originalText = new WeakMap();
@@ -109,6 +112,8 @@ export const APP_JS = `
   // rather than applied, so an unknown filter never hides the whole list.
   const WORK_STATES = new Set(["PROPOSED", "ACTIVE", "BLOCKED", "COMPLETED"]);
   const pageSections = Object.freeze({
+    home: ["home"],
+    technical: ["technical"],
     dashboard: ["dashboard"],
     projects: ["welcome", "projects", "next-step", "import", "transcripts"],
     evidence: ["general-inbox", "search", "event-detail", "artifact-detail"],
@@ -120,6 +125,8 @@ export const APP_JS = `
     system: ["system-status", "instructions", "agent-profile", "capabilities"],
   });
   const pageTitleKeys = Object.freeze({
+    home: "navHome",
+    technical: "homeTechnicalHeading",
     dashboard: "navDashboard",
     projects: "navProjects",
     evidence: "navEvidence",
@@ -136,7 +143,7 @@ export const APP_JS = `
     const query = fragment.indexOf("?");
     const path = query === -1 ? fragment : fragment.slice(0, query);
     const candidate = path.split("/")[0];
-    return { page: Object.hasOwn(pageSections, candidate) ? candidate : "dashboard", parameters: new URLSearchParams(query === -1 ? "" : fragment.slice(query + 1)) };
+    return { page: Object.hasOwn(pageSections, candidate) ? candidate : "home", parameters: new URLSearchParams(query === -1 ? "" : fragment.slice(query + 1)) };
   };
   const currentPage = () => currentRoute().page;
   const projectFilter = () => currentRoute().parameters.get("filter") === "attention" ? "attention" : null;
@@ -459,10 +466,12 @@ export const APP_JS = `
   document.getElementById("output-restoration-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("output-restoration-error"); const content = document.getElementById("output-restoration-content"); const passphraseField = document.getElementById("output-restoration-passphrase"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { say(error, "restorationNeedsHandoff"); return; } try { const mappingSetId = document.getElementById("output-restoration-mapping-id").value.trim(); const output = document.getElementById("output-restoration-candidate").value; const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/output-restoration/preview", { method: "POST", body: JSON.stringify({ mappingSetId, passphrase: passphraseField.value, output }) }); say(document.getElementById("output-restoration-status"), "restorationReady", { decision: value.decision, schema: String(value.mappingSchemaVersion), tokens: number(value.restoredTokens), anomalies: number(value.anomalyCount) }); text(content, value.restoredContent === null ? JSON.stringify({ ...value, restoredContent: null }, null, 2) : value.restoredContent); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; detail(error, cause); document.getElementById("output-restoration-mapping-id").focus(); } finally { passphraseField.value = ""; } });
   document.getElementById("context-selector-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("context-selector-error"); const content = document.getElementById("context-selector-content"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { say(error, "contextSelectorEmpty"); return; } const path = document.getElementById("context-selector-profile-path").value.trim(); const expectedDigest = document.getElementById("context-selector-profile-digest").value.trim(); try { const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/context-selectors/preview", { method: "POST", body: JSON.stringify({ profile: { path, ...(expectedDigest ? { expectedDigest } : {}) } }) }); const measured = value.report.cases[0]; const budget = measured.budgets[0]; say(document.getElementById("context-selector-status"), "contextSelectorReady", { selected: String(measured.selectedCandidateBytes), baseline: String(measured.baselineCandidateBytes), reduction: String(measured.reductionPercentFromBaseline), loss: String(measured.safetyFloorLossCount), fit: budget.selectorPolicyFits ? "YES" : "NO" }); text(content, JSON.stringify(value, null, 2)); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; detail(error, cause); document.getElementById("context-selector-profile-path").focus(); } });
   if (selectedProject) { importSection.hidden = false; transcriptSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; say(importStatus, "returningImport"); loadMemory(); loadWork(); loadPrivacyAudit(true); }
+${HOME_BEHAVIOUR}
   applyLocale();
-  if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/dashboard");
+  if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/home");
   renderRoute(false);
   loadGeneral();
   loadProjects();
+  loadConversations();
 })();
 `;

@@ -11,6 +11,10 @@ describe("GUI interaction contract", () => {
     assert.deepEqual(
       GUI_SCREEN_CONTRACTS.map((screen) => screen.step),
       [
+        // ADR-0035 opens on the reader's own work; the technical view keeps the
+        // screens that have not been redesigned reachable while that happens.
+        "HOME",
+        "TECHNICAL_VIEW",
         "DASHBOARD",
         "WELCOME",
         "PROJECTS",

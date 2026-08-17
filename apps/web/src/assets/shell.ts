@@ -5,7 +5,13 @@
  * starts in the document, so navigation is a class toggle rather than a fetch,
  * and every visible string is either final copy or a `data-i18n` key the client
  * swaps when the reader changes language.
+ *
+ * The opening screen and the sidebar it replaces live in `home-shell.ts`: ADR-0035
+ * separates presentation by responsibility, and the shell that lands a reader on
+ * their own work has a different reason to change than the screens it hosts.
  */
+import { HOME_SECTION, HOME_SIDEBAR } from "./home-shell.ts";
+
 export function shellHtml(csrfToken: string) {
   return `<!doctype html>
 <html lang="en">
@@ -26,20 +32,7 @@ export function shellHtml(csrfToken: string) {
         <span class="brand-mark" aria-hidden="true">AW</span>
         <span><strong>AI Workspace</strong><small data-i18n="headerTagline">Local-first control plane</small></span>
       </a>
-      <nav class="primary-nav" data-i18n-label="navLabel" aria-label="Workspace">
-        <p class="nav-label" data-i18n="navOverview">Overview</p>
-        <a href="#/dashboard" data-route="dashboard"><span aria-hidden="true">⌂</span><span data-i18n="navDashboard">Dashboard</span></a>
-        <p class="nav-label" data-i18n="navWork">Workspace</p>
-        <a href="#/projects" data-route="projects"><span aria-hidden="true">◇</span><span data-i18n="navProjects">Projects</span></a>
-        <a href="#/evidence" data-route="evidence"><span aria-hidden="true">⌕</span><span data-i18n="navEvidence">Evidence</span></a>
-        <a href="#/memory" data-route="memory"><span aria-hidden="true">◉</span><span data-i18n="navMemory">Active memory</span></a>
-        <a href="#/work" data-route="work"><span aria-hidden="true">✓</span><span data-i18n="navContinuity">Work &amp; handoffs</span></a>
-        <a href="#/privacy" data-route="privacy"><span aria-hidden="true">◈</span><span data-i18n="navPrivacy">Privacy</span></a>
-        <p class="nav-label" data-i18n="navManage">Manage</p>
-        <a href="#/scripts" data-route="scripts"><span aria-hidden="true">⌘</span><span data-i18n="navScripts">Scripts</span><span class="nav-badge" data-i18n="navSoon">Soon</span></a>
-        <a href="#/settings" data-route="settings"><span aria-hidden="true">⚙</span><span data-i18n="navSettings">Settings</span></a>
-        <a href="#/system" data-route="system"><span aria-hidden="true">●</span><span data-i18n="navSystem">System status</span></a>
-      </nav>
+${HOME_SIDEBAR}
       <div class="locality-card">
         <span class="locality-dot" aria-hidden="true"></span>
         <div><strong data-i18n="localOnly">Local only</strong><small data-i18n="localOnlyDetail">No telemetry or external requests</small></div>
@@ -50,11 +43,11 @@ export function shellHtml(csrfToken: string) {
         <button id="menu-toggle" class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">☰</span><span class="visually-hidden" data-i18n="openMenu">Open navigation</span></button>
         <div>
           <p class="eyebrow" id="page-eyebrow" data-i18n="headerTagline">Local-first control plane</p>
-          <h1 id="page-title" data-i18n="navDashboard">Dashboard</h1>
+          <h1 id="page-title" data-i18n="navHome">Your work</h1>
         </div>
         <div class="topbar-state"><span class="status-dot" aria-hidden="true"></span><span data-i18n="privateWorkspace">Private workspace</span></div>
       </header>
-      <main id="main" tabindex="-1">
+      <main id="main" tabindex="-1">${HOME_SECTION}
     <section aria-labelledby="dashboard-heading" id="dashboard">
       <div class="dashboard-hero">
         <div><p class="eyebrow" data-i18n="dashboardEyebrow">Workspace pulse</p><h2 id="dashboard-heading" tabindex="-1" data-i18n="dashboard">Workspace overview</h2>

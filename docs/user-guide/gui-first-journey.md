@@ -28,44 +28,60 @@ AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
 
 ## The short path
 
-**1. Register a project.** Open **Projects**, enter the directory of a local Git
-repository, and select **Register this project**. Registration stores bounded
-metadata locally and does not modify repository files.
+The page you land on is your own work: the conversations you have had, most
+recent first, and one field to search them. Nothing has to be set up first.
 
-**2. Bring in some history.** Select the project and choose **Import the safe
-sample session** for the bundled fictional fixture. To work on your own history
-instead, use **Import your own sessions**: name the directory holding your
-Claude Code transcripts, list it, and import one file. Listing reads names,
-sizes, and modification times only; no transcript is opened until you select it.
-Read [importing your own local transcripts](local-transcripts.md) first — it
-covers where that content is stored and what not to import.
+**1. Ask.** Type what you are looking for. Search forgives accents,
+capitalization, ordinary Italian and English word endings, and single character
+typing errors, and ranks results by relevance. **Every result says why it
+matched** — the word you typed, the word it reached, and how — which is what lets
+you recognise a plausible but wrong result for what it is. The answer is composed
+from what is already on this computer; nothing is sent anywhere. See
+[historical search](historical-search.md) for the bounds.
 
-**3. Ask.** Open **Evidence** and type what you are looking for. Search forgives
-accents, capitalization, ordinary Italian and English word endings, and single
-character typing errors, and ranks results by relevance. **Every result says why
-it matched** — the word you typed, the word it reached, and how — which is what
-lets you recognise a plausible but wrong result for what it is. See
-[historical search](historical-search.md) for the filters and the bounds.
-
-**4. Carry the answer away.** Under the results, **Prepare the summary**
-composes a passage you can copy into a different assistant so it can continue
-without replaying the conversation: repository state, what is currently decided,
-and the results you were just looking at, each with where it came from. It is
-composed from what is already stored, is never saved, and never leaves this
+**2. Carry the answer away.** When the answer comes from a project, **Prepare the
+summary** composes a passage you can copy into a different assistant so it can
+continue without replaying the conversation: repository state, what is currently
+decided, and the results you were just looking at, each with where it came from.
+It is composed from what is already stored, is never saved, and never leaves this
 computer.
 
-That is the whole path. Everything below is available when you need it and is
-not a prerequisite for it.
+That is the whole path.
+
+### Bringing in history you already have
+
+The list starts empty until there is something to list. Two ways to fill it:
+
+- **write.** A question you type is kept, belongs to no project, and can be
+  linked to one later without changing where it lives;
+- **import sessions.** Open **Projects**, register the directory of a local Git
+  repository, then choose **Import the safe sample session** for the bundled
+  fictional fixture, or **Import your own sessions** to name the directory
+  holding your Claude Code transcripts, list it, and import a file. Listing reads
+  names, sizes, and modification times only; no transcript is opened until you
+  select it. Read [importing your own local
+  transcripts](local-transcripts.md) first — it covers where that content is
+  stored and what not to import.
+
+Imported sessions appear in the list on their own, titled with the first question
+you asked in them, with the most recently active at the top.
 
 ## What else is there
 
-Open pages from the sidebar: Dashboard, Projects, Evidence, Active memory, Work
-and handoffs, Privacy, Scripts, Settings, and System status. On a narrow screen,
-reveal the sidebar with the labeled menu button. Scripts is a deliberate
-unavailable state: no runner or hidden automation exists.
+The sidebar holds your conversations, then **Projects**, **Settings**, and
+**Technical view**. On a narrow screen, reveal the sidebar with the labeled menu
+button.
+
+The technical view is where provenance, integrity verification, exact states, and
+the original vocabulary live. The interface is being rebuilt one part at a time,
+so some of these screens are still in their previous shape and say so; each one
+remains reachable and none of their capabilities were removed.
 
 - **Dashboard** — totals, ratios, coverage boundary, and model-delivery status,
-  derived on demand from the authoritative stores.
+  derived on demand from the authoritative stores. It is no longer the page you
+  land on.
+- **Scripts** — a deliberate unavailable state: no runner or hidden automation
+  exists.
 - **[General Inbox](general-inbox.md)** — keep a question that belongs to no
   project yet, and later link it to one without changing its `GENERAL` scope.
 - **[Active memory](active-memory.md)** — turn an event into a source-linked
