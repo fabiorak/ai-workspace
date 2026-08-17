@@ -11,7 +11,12 @@
  * still reading, and interrupting them is worse than being late.
  */
 
-/** Replaces the nine-entry menu: the work itself, then the two things that are not work. */
+/**
+ * Replaces the nine-entry menu: the work itself, then the things that are not work.
+ * The work names itself first, because a menu that can only be entered is one a
+ * person gets stuck in: without that entry the way back to the opening screen is the
+ * browser's own back button, which is a shortcut rather than an offer.
+ */
 export const HOME_SIDEBAR = `
       <nav class="conversation-nav" data-i18n-label="homeListLabel" aria-label="Your conversations">
         <p class="nav-label" data-i18n="homeListLabel">Your conversations</p>
@@ -20,6 +25,7 @@ export const HOME_SIDEBAR = `
         <p id="conversation-count" class="help"></p>
       </nav>
       <nav class="primary-nav" data-i18n-label="navLabel" aria-label="Workspace">
+        <a href="#/home" data-route="home"><span aria-hidden="true">⌂</span><span data-i18n="navHome">Your work</span></a>
         <a href="#/projects" data-route="projects"><span aria-hidden="true">◇</span><span data-i18n="navProjects">Projects</span></a>
         <a href="#/settings" data-route="settings"><span aria-hidden="true">⚙</span><span data-i18n="navSettings">Settings</span></a>
         <a href="#/technical" data-route="technical"><span aria-hidden="true">⌗</span><span data-i18n="homeTechnicalHeading">Technical view</span></a>
@@ -36,6 +42,14 @@ export const HOME_SECTION = `
         <button type="submit" data-i18n="homeAskSubmit">Search</button>
         <p id="home-ask-error" class="error" role="alert"></p>
       </form>
+      <div id="home-conversation-status" class="inline-status" role="status" aria-live="polite"></div>
+      <div id="home-conversation" hidden>
+        <h3 id="home-conversation-heading" tabindex="-1"></h3>
+        <p id="home-conversation-meta" class="help"></p>
+        <button type="button" id="home-conversation-close" data-i18n="homeConversationClose">Close this conversation</button>
+        <ol id="home-conversation-moments" class="moments"></ol>
+        <p id="home-conversation-count" class="help"></p>
+      </div>
       <div id="home-answer">
         <h3 id="home-answer-heading" tabindex="-1" data-i18n="homeAnswerHeading" hidden>What I found</h3>
         <div id="home-answer-status" class="inline-status" role="status" aria-live="polite"></div>

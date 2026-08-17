@@ -129,11 +129,11 @@ import type {
 } from "./view-models.ts";
 /** Every view model stays importable from this facade, wherever it is declared. */
 export type * from "./view-models.ts";
+import type { ConversationSources } from "./conversations.ts";
 import {
-  readConversations,
-  type ConversationPage,
-  type ConversationSources,
-} from "./conversations.ts";
+  conversationArea,
+  type ConversationArea,
+} from "./conversation-facade.ts";
 
 export class GuiApplicationError extends Error {
   public readonly recovery: string;
@@ -422,11 +422,10 @@ export class GuiApplication {
       "Check local workspace permissions, then retry loading projects.",
     );
   }
-  /** The list the shell opens on. Composition lives in its own area (ADR-0035). */
-  public async listConversations(limit?: number): Promise<ConversationPage> {
-    return this.#run(
-      async () => readConversations(this.#conversationSources, limit),
-      "Check local workspace permissions, then retry loading your conversations.",
+  /** The area the shell opens on: its list, and the conversation a row opens (ADR-0035). */
+  public get conversations(): ConversationArea {
+    return conversationArea(this.#conversationSources, (operation, recovery) =>
+      this.#run(operation, recovery),
     );
   }
   public async dashboard(): Promise<GuiDashboard> {
@@ -604,6 +603,7 @@ export class GuiApplication {
       });
     }, "Name an existing readable directory that holds .jsonl transcripts, then list it again.");
   }
+
   public async importLocalTranscript(
     projectId: string,
     filePath: string,

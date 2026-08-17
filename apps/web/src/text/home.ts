@@ -91,6 +91,79 @@ export const HOME_TEXT = Object.freeze({
     en: "Write what you are looking for first.",
     it: "Scrivi prima che cosa stai cercando.",
   },
+  /**
+   * A conversation a row opened. The words below name who spoke, because the
+   * stored constants are the domain's vocabulary and not a reader's.
+   */
+  homeConversationOpening: {
+    en: "Opening that conversation…",
+    it: "Sto aprendo quella conversazione…",
+  },
+  homeConversationGone: {
+    en: "That conversation is no longer here.",
+    it: "Quella conversazione non è più qui.",
+  },
+  homeConversationFailed: {
+    en: "That conversation could not be opened.",
+    it: "Non è stato possibile aprire quella conversazione.",
+  },
+  homeConversationClose: {
+    en: "Close this conversation",
+    it: "Chiudi questa conversazione",
+  },
+  homeConversationShown: {
+    en: "The first {shown} moments of {total}.",
+    it: "I primi {shown} momenti su {total}.",
+  },
+  homeConversationAll: {
+    en: "{count} moments, in the order they happened.",
+    it: "{count} momenti, nell'ordine in cui sono avvenuti.",
+  },
+  homeMomentUSER_MESSAGE: { en: "You wrote", it: "Hai scritto" },
+  /**
+   * The reply, named without naming who gave it: this screen may not promise an
+   * interlocutor, and a moment that already happened does not need one to be read.
+   */
+  homeMomentAGENT_MESSAGE: { en: "The reply", it: "La risposta" },
+  homeMomentTOOL_CALL: {
+    en: "A tool was used",
+    it: "È stato usato uno strumento",
+  },
+  homeMomentTOOL_RESULT: {
+    en: "A tool answered",
+    it: "Uno strumento ha risposto",
+  },
+  homeMomentCOMMAND_RESULT: {
+    en: "A command ran",
+    it: "È stato eseguito un comando",
+  },
+  homeMomentFILE_CHANGE: { en: "A file changed", it: "Un file è cambiato" },
+  homeMomentTEST_RESULT: {
+    en: "Tests ran",
+    it: "Sono stati eseguiti dei test",
+  },
+  homeMomentERROR: { en: "Something failed", it: "Qualcosa è andato storto" },
+  homeMomentUNKNOWN: { en: "A moment", it: "Un momento" },
+  /**
+   * The source a moment came from. It is the whole reason this screen can be
+   * believed, so it is stated on every moment rather than hidden behind a control.
+   */
+  homeMomentSource: {
+    en: "Record {position} of the imported transcript · fingerprint {hash}",
+    it: "Record {position} del transcript importato · impronta {hash}",
+  },
+  homeMomentOwnSource: {
+    en: "Written here · fingerprint {hash}",
+    it: "Scritto qui · impronta {hash}",
+  },
+  homeMomentElsewhere: {
+    en: "Kept as a separate file, and not shown here.",
+    it: "Conservato come file a parte, e non mostrato qui.",
+  },
+  homeMomentAsStored: {
+    en: "Shown exactly as it was stored.",
+    it: "Mostrato esattamente come è stato conservato.",
+  },
 });
 
 export const HOME_CATALOGUES = catalogues(HOME_TEXT);

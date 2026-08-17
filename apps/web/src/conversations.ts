@@ -20,6 +20,11 @@ import {
   sessionRows,
   type ConversationRow,
 } from "./conversation-list.ts";
+import {
+  noteDetail,
+  sessionDetail,
+  type ConversationDetail,
+} from "./conversation-detail.ts";
 
 /** Bounded like every other local read: a list nobody scrolls to the end of is still a cost. */
 export const CONVERSATION_LIMIT = 50;
@@ -111,5 +116,41 @@ export async function readConversations(
     rows: Object.freeze(ordered.slice(0, limit)),
     total: ordered.length,
     limit,
+  });
+}
+
+/**
+ * Reads one conversation, which is what a row in that list opens.
+ *
+ * Unlike the list, this reads a single project rather than every project: opening
+ * one conversation is the most frequent act in the shell, and paying for the whole
+ * workspace each time would make the cheapest gesture the most expensive one. A
+ * conversation without a project is a note, and notes are read from their own
+ * store.
+ *
+ * A conversation that is not there returns null rather than an empty one, so the
+ * interface can say it is gone instead of showing a conversation with no moments.
+ */
+export async function readConversation(
+  sources: ConversationSources,
+  query: Readonly<{ id: string; projectId: string | null; limit?: number }>,
+): Promise<ConversationDetail | null> {
+  if (query.projectId === null) {
+    const notes = await sources.notes.list();
+    const note = notes.find((conversation) => conversation.id === query.id);
+    return note === undefined
+      ? null
+      : noteDetail({ conversation: note, limit: query.limit });
+  }
+  const projectId = query.projectId;
+  const sessions = await sources.sessions.list(projectId);
+  const session = sessions.find((candidate) => candidate.id === query.id);
+  if (session === undefined) return null;
+  const projects = await sources.projects();
+  return sessionDetail({
+    session,
+    projectName:
+      projects.find((project) => project.id === projectId)?.name ?? null,
+    limit: query.limit,
   });
 }

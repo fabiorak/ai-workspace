@@ -31,11 +31,20 @@ export const HOME_BEHAVIOUR = `
     if (row.lastMomentAt) return dateTime(row.lastMomentAt);
     return message("homeUntitled");
   };
+  // Seconds are noise in a narrow column: a row says which minute, and the moment
+  // itself carries the exact instant when the conversation is opened.
+  let rowMomentFormatter = null;
+  const rowMoment = (value) => { const instant = new Date(value); if (Number.isNaN(instant.getTime())) return value; if (!rowMomentFormatter) rowMomentFormatter = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }); return rowMomentFormatter.format(instant); };
   const momentLabel = (count) => count === 0 ? message("homeNoMoments") : count === 1 ? message("homeOneMoment") : message("homeMoments", { count: number(count) });
   const renderConversationRow = (row) => {
     const item = document.createElement("li");
-    const link = document.createElement("a");
-    link.href = row.kind === "NOTES" ? "#/evidence" : "#/evidence";
+    // A button rather than a link: the row opens the conversation in place and does
+    // not go anywhere, and a link that changes no address lies to whoever reads the
+    // status bar or navigates by links.
+    const link = document.createElement("button");
+    link.type = "button";
+    link.dataset.conversation = row.id;
+    link.addEventListener("click", () => { void showConversation(row); });
     const title = document.createElement("span");
     title.className = "conversation-title";
     text(title, conversationTitle(row));
@@ -45,7 +54,13 @@ export const HOME_BEHAVIOUR = `
     // proper name. When ingestion found none, the agent stands in — that much is always
     // known — and a note shows neither, since nothing answered it.
     const ran = row.model || row.agent;
-    const parts = [row.kind === "NOTES" ? message("homeKindNOTES") : row.projectName, ran, momentLabel(row.momentCount)];
+    // The day group says which day; the row says which moment of it, because two
+    // sessions on the same day are told apart by their time and by what ran them.
+    // A session with no readable time says nothing rather than borrowing one.
+    // An untitled row already shows that time as its title, and saying it twice in
+    // one row is noise rather than information.
+    const when = row.lastMomentAt && row.title ? rowMoment(row.lastMomentAt) : null;
+    const parts = [when, row.kind === "NOTES" ? message("homeKindNOTES") : row.projectName, ran, momentLabel(row.momentCount)];
     // A linked Work Item contributes its state as a word, never as the constant that stores it.
     if (row.workState && catalogs.en["homeState" + row.workState]) parts.push(message("homeState" + row.workState));
     text(meta, parts.filter(Boolean).join(" · "));
@@ -72,6 +87,9 @@ export const HOME_BEHAVIOUR = `
     text(conversationStatus, "");
     if (page.total > page.rows.length) say(conversationCount, "homeCounted", { shown: number(page.rows.length), total: number(page.total) });
     else say(conversationCount, "homeAllShown", { count: number(page.total) });
+    // Redrawing the list builds new rows, so whichever one is open has to be marked
+    // again: an import that refreshes the list must not quietly unmark it.
+    markOpenRow();
   };
   // Grouping by the reader's own calendar day, mirroring the server-side rule. It runs here
   // because "today" has to mean the day the reader is living, and only the browser knows it.
@@ -97,6 +115,88 @@ export const HOME_BEHAVIOUR = `
       detail(conversationCount, cause);
     }
   };
+  // A row opens its own conversation, which is what ADR-0035 makes the unit of this
+  // shell. It opens in place, under the field that found it, rather than as a screen
+  // of its own: the list stays where it is, so the reader never loses the thread they
+  // were following. Each moment carries the record it came from and that record's
+  // fingerprint, because a conversation one cannot trace is a story, not evidence.
+  const homeConversation = document.getElementById("home-conversation");
+  const homeConversationStatus = document.getElementById("home-conversation-status");
+  const homeConversationHeading = document.getElementById("home-conversation-heading");
+  const homeConversationMeta = document.getElementById("home-conversation-meta");
+  const homeConversationMoments = document.getElementById("home-conversation-moments");
+  const homeConversationCount = document.getElementById("home-conversation-count");
+  let openConversation = null;
+  const markOpenRow = () => {
+    for (const button of conversationGroups.querySelectorAll("button[data-conversation]"))
+      if (button.dataset.conversation === openConversation) button.setAttribute("aria-current", "true");
+      else button.removeAttribute("aria-current");
+  };
+  const closeConversation = () => {
+    openConversation = null;
+    homeConversation.hidden = true;
+    homeConversationMoments.replaceChildren();
+    text(homeConversationStatus, "");
+    markOpenRow();
+  };
+  const momentSpeaker = (type) => message(catalogs.en["homeMoment" + type] ? "homeMoment" + type : "homeMomentUNKNOWN");
+  const renderMoment = (moment, kind) => {
+    const item = document.createElement("li");
+    item.className = "moment";
+    const who = document.createElement("p");
+    who.className = "card-kicker";
+    text(who, momentSpeaker(moment.type));
+    const body = document.createElement("p");
+    body.className = "moment-text";
+    // An empty text is a payload kept as a separate file. Saying so beats an empty
+    // paragraph, which reads as a moment that held nothing.
+    if (moment.text) text(body, moment.text);
+    else say(body, "homeMomentElsewhere");
+    const provenance = document.createElement("p");
+    provenance.className = "help";
+    const fingerprint = (moment.contentHash || "").slice(0, 12);
+    if (moment.sourcePosition === null) say(provenance, "homeMomentOwnSource", { hash: fingerprint });
+    else say(provenance, "homeMomentSource", { position: number(moment.sourcePosition), hash: fingerprint });
+    item.append(who, body, provenance);
+    if (moment.occurredAt) { const when = document.createElement("p"); when.className = "help"; text(when, dateTime(moment.occurredAt)); item.append(when); }
+    // Only an imported moment can fail to be the canonical envelope; a note never was
+    // one, so saying it there would answer a question nobody asked.
+    if (kind !== "NOTES" && !moment.fromCanonicalPayload && moment.text) { const raw = document.createElement("p"); raw.className = "help"; say(raw, "homeMomentAsStored"); item.append(raw); }
+    return item;
+  };
+  const renderConversation = (conversation) => {
+    homeConversationMoments.replaceChildren();
+    const opened = conversation.moments[0];
+    text(homeConversationHeading, conversation.title || (opened && opened.occurredAt ? dateTime(opened.occurredAt) : message("homeUntitled")));
+    const parts = [conversation.kind === "NOTES" ? message("homeKindNOTES") : conversation.projectName, conversation.model || conversation.agent];
+    text(homeConversationMeta, parts.filter(Boolean).join(" · "));
+    for (const moment of conversation.moments) homeConversationMoments.append(renderMoment(moment, conversation.kind));
+    if (conversation.total > conversation.moments.length) say(homeConversationCount, "homeConversationShown", { shown: number(conversation.moments.length), total: number(conversation.total) });
+    else say(homeConversationCount, "homeConversationAll", { count: number(conversation.total) });
+    homeConversation.hidden = false;
+    text(homeConversationStatus, "");
+    markOpenRow();
+    // The focus moves because a person asked for this conversation, not on the
+    // screen's own initiative, and it lands on the heading so a reader hears which
+    // conversation opened before its moments.
+    homeConversationHeading.focus();
+  };
+  const showConversation = async (row) => {
+    if (openConversation === row.id) { closeConversation(); return; }
+    openConversation = row.id;
+    say(homeConversationStatus, "homeConversationOpening");
+    const query = row.projectId ? "?project=" + encodeURIComponent(row.projectId) : "";
+    try {
+      renderConversation(await api("/api/conversations/" + encodeURIComponent(row.id) + query));
+    } catch (cause) {
+      openConversation = null;
+      homeConversation.hidden = true;
+      say(homeConversationStatus, "homeConversationFailed");
+      detail(homeConversationCount, cause);
+      markOpenRow();
+    }
+  };
+  document.getElementById("home-conversation-close").addEventListener("click", () => closeConversation());
   // The answer is the found material itself, with its provenance and the reason it came up.
   // Nothing is rewritten into prose here: what a reader sees is what is stored.
   const renderAnswer = (report) => {

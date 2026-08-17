@@ -23,19 +23,52 @@ function limitOf(value: string | null): number | undefined {
   return limit;
 }
 
+/**
+ * The id of one conversation, or null when the path is the list itself.
+ *
+ * Decoded before use so an id is compared as it was stored, and never joined to a
+ * path: it names a record, not a file.
+ */
+function conversationIdOf(pathname: string): string | null {
+  if (!pathname.startsWith("/api/conversations/")) return null;
+  const id = decodeURIComponent(pathname.slice("/api/conversations/".length));
+  return id.length === 0 || id.includes("/") ? null : id;
+}
+
 export async function handleConversationRoute(
   request: IncomingMessage,
   response: ServerResponse,
   url: URL,
   application: GuiApplication,
 ): Promise<boolean> {
-  if (request.method !== "GET" || url.pathname !== "/api/conversations")
-    return false;
+  if (request.method !== "GET") return false;
+  const id = conversationIdOf(url.pathname);
+  if (id === null && url.pathname !== "/api/conversations") return false;
   try {
+    if (id !== null) {
+      /**
+       * No caller-set bound here: the list bound is a page size, while a
+       * conversation is bounded by what it is, and one number that means two
+       * things is a number that will be wrong for one of them.
+       */
+      const conversation = await application.conversations.open({
+        id,
+        projectId: url.searchParams.get("project"),
+      });
+      if (conversation === null)
+        reject(
+          response,
+          404,
+          "That conversation is no longer here.",
+          "Return to your conversations and open another one from the list.",
+        );
+      else json(response, 200, conversation);
+      return true;
+    }
     json(
       response,
       200,
-      await application.listConversations(
+      await application.conversations.list(
         limitOf(url.searchParams.get("limit")),
       ),
     );

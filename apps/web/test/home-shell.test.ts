@@ -35,6 +35,68 @@ describe("the opening screen", () => {
     );
   });
 
+  /**
+   * The day group narrows a row to a day, which is not enough to tell two sessions of
+   * the same day apart. The row states its own time and what ran it, and a row with
+   * no readable time says nothing rather than borrowing one.
+   */
+  it("states the time of a row and the model that ran it", () => {
+    assert.match(APP_JS, /rowMoment\(row\.lastMomentAt\)/u);
+    assert.match(APP_JS, /const ran = row\.model \|\| row\.agent/u);
+    assert.match(APP_JS, /timeStyle: "short"/u);
+  });
+
+  /**
+   * A row used to be a link to a screen that showed no particular conversation, so
+   * the list was a catalogue: every row present, none of them openable. It opens in
+   * place now, which is why it is a button — a link that changes no address lies to
+   * whoever reads where it goes.
+   */
+  it("makes a row open its own conversation, in place", () => {
+    assert.match(APP_JS, /showConversation\(row\)/u);
+    assert.match(APP_JS, /"\/api\/conversations\/"/u);
+    assert.doesNotMatch(APP_JS, /link\.href = row\.kind/u);
+    assert.match(html, /id="home-conversation-moments"/u);
+    // The open row is named for assistive technology, not only shaded.
+    assert.match(APP_JS, /setAttribute\("aria-current", "true"\)/u);
+  });
+
+  /**
+   * Reachability was asserted; leaving was not. The menu offered three ways in and
+   * no way back, so whoever opened one of them had the browser's back button and
+   * nothing else — and the opening screen is the one place this shell promises.
+   */
+  it("offers a way back to the opening screen, not only ways into the others", () => {
+    const start = html.indexOf('class="primary-nav"');
+    assert.notEqual(start, -1);
+    const nav = html.slice(start, html.indexOf("</nav>", start));
+    assert.match(nav, /href="#\/home"/u);
+    assert.match(nav, /data-i18n="navHome"/u);
+  });
+
+  /**
+   * The list is drawn once, when the page loads. A write that adds to it and does
+   * not ask for a redraw leaves a person looking at the same emptiness they had
+   * before, which reads as an import that did nothing. Behaviour lives in a string,
+   * so this asserts the served source: it proves the call is written where it
+   * belongs, not that a browser ran it.
+   */
+  it("redraws the list after every write that adds to it", () => {
+    const handlerOf = (marker: string) => {
+      const start = APP_JS.indexOf(marker);
+      assert.notEqual(start, -1, `no write found for ${marker}`);
+      const end = APP_JS.indexOf("catch (cause)", start);
+      return APP_JS.slice(start, end === -1 ? undefined : end);
+    };
+    for (const write of [
+      'import-transcript"',
+      'import-sample"',
+      '"/api/general/conversations", { method: "POST"',
+      '/events", { method: "POST"',
+    ])
+      assert.match(handlerOf(write), /await loadConversations\(\)/u, write);
+  });
+
   it("offers the conversation list as a real list inside a landmark", () => {
     assert.match(
       html,

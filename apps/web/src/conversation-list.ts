@@ -13,6 +13,7 @@
  */
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
+import { readCanonicalPayload } from "@ai-workspace/historical-search";
 
 /** How the title was obtained, so a reader is never told a summary is a quotation. */
 export type ConversationTitleSource =
@@ -85,6 +86,12 @@ function latest(times: readonly (string | null)[]): string | null {
  * and a title is not worth that. Such a session stays untitled and the caller
  * names it by its date.
  *
+ * That inline text is a stored canonical payload, not a sentence: ingestion wraps
+ * every record in its provenance, so the first characters are the envelope rather
+ * than the question. It is read back through the reader of ADR-0032, decision A,
+ * the same one retrieval uses, so a title and a search result quote the same
+ * words. A payload that is not that envelope degrades to itself, unchanged.
+ *
  * Model and agent are copied through verbatim. A model name is a proper name, so
  * shortening or prettifying it would mean showing something the session did not
  * record; when ingestion found none, the row says none rather than guessing from
@@ -109,7 +116,7 @@ export function sessionRows(
       const title =
         question === undefined || question.payload.kind !== "INLINE_TEXT"
           ? null
-          : titleFrom(question.payload.text);
+          : titleFrom(readCanonicalPayload(question.payload.text).text);
       return Object.freeze({
         id: session.id,
         kind: "WORK_SESSION" as const,

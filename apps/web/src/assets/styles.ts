@@ -54,8 +54,15 @@ a { color: var(--accent-strong); }
  */
 .conversation-nav { min-height: 0; flex: 1 1 auto; overflow-y: auto; display: grid; align-content: start; gap: .1rem; }
 .conversation-nav ul { margin: 0 0 .5rem; padding: 0; list-style: none; display: grid; gap: .1rem; }
-.conversation-nav a { min-height: 2.75rem; display: grid; gap: .1rem; padding: .5rem .72rem; border-radius: .72rem; color: var(--sidebar-muted); text-decoration: none; }
-.conversation-nav a:hover { color: var(--sidebar-ink); background: rgba(255,255,255,.07); }
+/** A row is a button, because opening a conversation changes this page instead of leaving it. */
+.conversation-nav a, .conversation-nav button { min-height: 2.75rem; display: grid; gap: .1rem; padding: .5rem .72rem; border-radius: .72rem; color: var(--sidebar-muted); text-decoration: none; width: 100%; text-align: start; background: none; border: 0; font: inherit; cursor: pointer; }
+.conversation-nav a:hover, .conversation-nav button:hover { color: var(--sidebar-ink); background: rgba(255,255,255,.07); }
+/** The open row is marked by more than colour, so the mark survives on a screen that shows none. */
+.conversation-nav button[aria-current] { color: var(--sidebar-ink); background: rgba(255,255,255,.1); box-shadow: inset .18rem 0 0 currentColor; }
+.moments { margin: 0; padding: 0 0 0 1.2rem; display: grid; gap: .9rem; }
+.moment { padding: .1rem 0; }
+/** Line breaks a person typed are part of what they wrote, so they survive here. */
+.moment-text { margin: .15rem 0; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
 .conversation-title { color: var(--sidebar-ink); font-size: .87rem; font-weight: 650; }
 /** Italian runs longer than English, so the row wraps rather than being clipped to a fixed width. */
 .conversation-meta { color: var(--sidebar-muted); font-size: .7rem; overflow-wrap: anywhere; }

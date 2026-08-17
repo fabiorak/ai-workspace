@@ -53,6 +53,8 @@ describe("GUI conversation list route", () => {
     });
   /** The shape the route promises, so a changed field fails here instead of in a browser. */
   type Row = Readonly<{
+    id: string;
+    projectId: string | null;
     kind: string;
     projectName: string | null;
     title: string | null;
@@ -126,6 +128,90 @@ describe("GUI conversation list route", () => {
       "NOTES",
       "WORK_SESSION",
     ]);
+  });
+
+  /**
+   * A row that cannot be opened is a catalogue entry, not a conversation, and the
+   * list was exactly that until this route existed. What matters end to end is that
+   * opening one costs a single project read and that every moment arrives with the
+   * record it came from: a conversation nobody can trace is a story.
+   */
+  const opened = (id: string, query = "") =>
+    fetch(
+      `${server.origin}/api/conversations/${encodeURIComponent(id)}${query}`,
+      { headers: { cookie } },
+    );
+  type Moment = Readonly<{
+    type: string;
+    text: string;
+    fromCanonicalPayload: boolean;
+    sourcePosition: number | null;
+    contentHash: string | null;
+  }>;
+  type Detail = Readonly<{
+    id: string;
+    kind: string;
+    title: string | null;
+    moments: readonly Moment[];
+    total: number;
+  }>;
+
+  it("opens the session a row names, each moment carrying its own source", async () => {
+    const row = (await page()).rows.find(
+      (entry) => entry.kind === "WORK_SESSION",
+    );
+    assert.ok(row);
+    const response = await opened(
+      row.id,
+      `?project=${encodeURIComponent(row.projectId ?? "")}`,
+    );
+    assert.equal(response.status, 200);
+    const conversation = (await response.json()) as Detail;
+    assert.equal(conversation.id, row.id);
+    assert.equal(conversation.kind, "WORK_SESSION");
+    assert.equal(conversation.title, row.title);
+    assert.equal(conversation.moments.length, conversation.total);
+    assert.ok(conversation.moments.length > 0);
+    for (const moment of conversation.moments) {
+      assert.equal(typeof moment.contentHash, "string");
+      assert.equal(typeof moment.sourcePosition, "number");
+      assert.ok(moment.type.length > 0);
+    }
+  });
+
+  it("opens a note without naming a project, because a note has none", async () => {
+    const row = (await page()).rows.find((entry) => entry.kind === "NOTES");
+    assert.ok(row);
+    const conversation = (await (await opened(row.id)).json()) as Detail;
+    assert.equal(conversation.kind, "NOTES");
+    assert.equal(conversation.title, "Un appunto");
+    // Its own content hash stands in for an imported source it never had.
+    for (const moment of conversation.moments)
+      assert.equal(moment.sourcePosition, null);
+  });
+
+  it("says a conversation is gone instead of showing an empty one", async () => {
+    const response = await opened("session_missing");
+    assert.equal(response.status, 404);
+    const body = (await response.json()) as Readonly<{
+      message: string;
+      recovery: string;
+    }>;
+    assert.match(body.message, /no longer here/u);
+    assert.ok(body.recovery.length > 0);
+  });
+
+  it("refuses to open a conversation without the local session cookie", async () => {
+    const row = (await page()).rows[0];
+    assert.ok(row);
+    assert.equal(
+      (
+        await fetch(
+          `${server.origin}/api/conversations/${encodeURIComponent(row.id)}`,
+        )
+      ).status,
+      401,
+    );
   });
 
   it("carries the same restrictive headers as every other local response", async () => {

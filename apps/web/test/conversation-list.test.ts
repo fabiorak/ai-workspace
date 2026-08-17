@@ -167,6 +167,63 @@ describe("work session rows", () => {
     assert.equal(rows[0]?.agent, "Codex");
   });
 
+  /**
+   * The payload an import stores is the canonical envelope, not a sentence. Every
+   * other case here builds plain text, which is what a hand-written note holds and
+   * what no imported session ever holds, so the shape a person actually sees on the
+   * opening screen went unasserted.
+   */
+  it("titles a row with the words a person wrote, not the envelope around them", () => {
+    const stored = JSON.stringify({
+      recordUuid: "11111111-1111-4111-8111-111111111111",
+      recordType: "user",
+      isSidechain: false,
+      isMeta: false,
+      blockIndex: null,
+      blockType: "text",
+      text: "Chi può vedere le giacenze di magazzino?\n",
+    });
+    const rows = sessionRows({
+      projectName: "Demo",
+      sessions: [
+        session({
+          id: "s1",
+          events: [
+            event({
+              id: "e1",
+              sessionId: "s1",
+              payload: { kind: "INLINE_TEXT", text: stored },
+            }),
+          ],
+        }),
+      ],
+    });
+    assert.equal(rows[0]?.title, "Chi può vedere le giacenze di magazzino?");
+    assert.equal(rows[0]?.titleSource, "FIRST_QUESTION");
+  });
+
+  it("keeps a payload that is not that envelope exactly as it stands", () => {
+    const rows = sessionRows({
+      projectName: "Demo",
+      sessions: [
+        session({
+          id: "s1",
+          events: [
+            event({
+              id: "e1",
+              sessionId: "s1",
+              payload: {
+                kind: "INLINE_TEXT",
+                text: "una domanda scritta a mano",
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+    assert.equal(rows[0]?.title, "una domanda scritta a mano");
+  });
+
   it("takes the title from a question, not from an assistant message", () => {
     const rows = sessionRows({
       projectName: "Demo",
