@@ -333,6 +333,17 @@ Le conferme che restano sono quattro:
 
 Fuori da queste quattro, nessuna conferma.
 
+Un modello eseguito attraverso un adattatore che garantisce un confine
+esclusivamente locale non comporta un'uscita: riceve il contesto originale dopo
+gli stessi controlli di policy e dei dati `RESTRICTED`, senza anonimizzazione né
+conferma. Questa proprietà appartiene all'adattatore e non si deduce dal nome del
+modello, da un URL configurabile o dal solo uso di un indirizzo loopback. Una
+destinazione non classificata viene bloccata.
+
+[ADR-0036](../adr/0036-route-model-privacy-by-declared-execution-boundary.md)
+registra questo confine senza autorizzare alcun collegamento o esecuzione di un
+modello.
+
 ### 6.3 Il ribaltamento sull'anonimizzazione
 
 Questo è il punto in cui la visione cambia una postura registrata, e va detto

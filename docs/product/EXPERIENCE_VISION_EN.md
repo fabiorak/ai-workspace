@@ -326,6 +326,16 @@ Four confirmations remain:
 
 Outside those four, no confirmations.
 
+A model reached through an adapter that guarantees a local-only execution
+boundary is not an outbound operation: it receives original context after the
+same policy and `RESTRICTED`-data checks, without anonymisation or confirmation.
+That property belongs to the adapter and is not inferred from a model name, a
+configurable URL, or the use of a loopback address alone. An unclassified
+destination is blocked.
+
+[ADR-0036](../adr/0036-route-model-privacy-by-declared-execution-boundary.md)
+records this boundary without authorising any model connection or execution.
+
 ### 6.3 The reversal on anonymisation
 
 This is the point where the vision changes a recorded posture, and it must be said

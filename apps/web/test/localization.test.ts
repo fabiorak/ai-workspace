@@ -23,6 +23,21 @@ describe("GUI localization contract", () => {
     }
   });
 
+  it("describes work history instead of the former control plane", () => {
+    assert.equal(
+      GUI_CATALOGS.en.headerTagline,
+      "Your work history, on this computer",
+    );
+    assert.equal(
+      GUI_CATALOGS.it.headerTagline,
+      "La storia del tuo lavoro, sul tuo computer",
+    );
+    assert.doesNotMatch(
+      `${GUI_CATALOGS.en.headerTagline} ${GUI_CATALOGS.it.headerTagline}`,
+      /control plane|piano di controllo/iu,
+    );
+  });
+
   it("states a reason for every match rule and offers no search mode", () => {
     /**
      * One merged token set means there is no prose-or-code mode to pick and

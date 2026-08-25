@@ -30,7 +30,7 @@ export function shellHtml(csrfToken: string) {
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#/dashboard" data-i18n-label="brandLabel" aria-label="AI Workspace dashboard">
         <span class="brand-mark" aria-hidden="true">AW</span>
-        <span><strong>AI Workspace</strong><small data-i18n="headerTagline">Local-first control plane</small></span>
+        <span><strong>AI Workspace</strong><small data-i18n="headerTagline">Your work history, on this computer</small></span>
       </a>
 ${HOME_SIDEBAR}
       <div class="locality-card">
@@ -42,7 +42,7 @@ ${HOME_SIDEBAR}
       <header class="topbar">
         <button id="menu-toggle" class="menu-toggle" type="button" aria-controls="sidebar" aria-expanded="false"><span aria-hidden="true">☰</span><span class="visually-hidden" data-i18n="openMenu">Open navigation</span></button>
         <div>
-          <p class="eyebrow" id="page-eyebrow" data-i18n="headerTagline">Local-first control plane</p>
+          <p class="eyebrow" id="page-eyebrow" data-i18n="headerTagline">Your work history, on this computer</p>
           <h1 id="page-title" data-i18n="navHome">Your work</h1>
         </div>
         <div class="topbar-state"><span class="status-dot" aria-hidden="true"></span><span data-i18n="privateWorkspace">Private workspace</span></div>

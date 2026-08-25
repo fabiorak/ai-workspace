@@ -5,7 +5,7 @@ const EN = {
   language: "Language",
   english: "English",
   italian: "Italiano",
-  headerTagline: "Local-first control plane",
+  headerTagline: "Your work history, on this computer",
   headerPrivacy:
     "Your project data stays on this computer. This guided alpha makes no external requests.",
   skip: "Skip to the guided workflow",
@@ -664,7 +664,7 @@ const IT = {
   language: "Lingua",
   english: "English",
   italian: "Italiano",
-  headerTagline: "Piano di controllo local-first",
+  headerTagline: "La storia del tuo lavoro, sul tuo computer",
   headerPrivacy:
     "I dati del progetto restano su questo computer. Questa alpha guidata non effettua richieste esterne.",
   skip: "Vai al flusso guidato",

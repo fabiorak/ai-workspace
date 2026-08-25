@@ -14,6 +14,14 @@ const homeSection = (() => {
 })();
 
 describe("the opening screen", () => {
+  it("uses the work-history promise in its untranslated fallback", () => {
+    assert.equal(
+      (html.match(/Your work history, on this computer/gu) ?? []).length,
+      2,
+    );
+    assert.doesNotMatch(html, /Local-first control plane/u);
+  });
+
   it("is what a reader lands on, by address and by title", () => {
     assert.match(APP_JS, /replaceState\(null, "", "#\/home"\)/u);
     assert.match(APP_JS, /home: \["home"\]/u);
