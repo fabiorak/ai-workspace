@@ -57,3 +57,4 @@ Status: proposed | accepted | superseded
 - [ADR-0034: Propose a complete local anonymization for one approval](0034-propose-a-complete-local-anonymization-for-one-approval.md)
 - [ADR-0035: Use a conversational shell over local history](0035-use-a-conversational-shell-over-local-history.md)
 - [ADR-0036: Route model privacy by declared execution boundary](0036-route-model-privacy-by-declared-execution-boundary.md)
+- [ADR-0037: Compose restart summaries continuously and persist on confirmation](0037-compose-restart-summaries-continuously-and-persist-on-confirmation.md)
