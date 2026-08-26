@@ -11,6 +11,7 @@
  * their own work has a different reason to change than the screens it hosts.
  */
 import { HOME_SECTION, HOME_SIDEBAR } from "./home-shell.ts";
+import { PRIVACY_SECTION } from "./privacy-shell.ts";
 
 export function shellHtml(csrfToken: string) {
   return `<!doctype html>
@@ -48,6 +49,7 @@ ${HOME_SIDEBAR}
         <div class="topbar-state"><span class="status-dot" aria-hidden="true"></span><span data-i18n="privateWorkspace">Private workspace</span></div>
       </header>
       <main id="main" tabindex="-1">${HOME_SECTION}
+${PRIVACY_SECTION}
     <section aria-labelledby="dashboard-heading" id="dashboard">
       <div class="dashboard-hero">
         <div><p class="eyebrow" data-i18n="dashboardEyebrow">Workspace pulse</p><h2 id="dashboard-heading" tabindex="-1" data-i18n="dashboard">Workspace overview</h2>

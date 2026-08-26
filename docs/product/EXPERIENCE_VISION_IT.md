@@ -346,16 +346,18 @@ modello.
 
 ### 6.3 Il ribaltamento sull'anonimizzazione
 
-Questo è il punto in cui la visione cambia una postura registrata, e va detto
-senza ambiguità.
+Questo è il punto in cui la visione ha cambiato una postura registrata, e va detto
+senza ambiguità. ADR-0021 e ADR-0023 richiedevano in origine che **l'utente**
+indicasse gli esatti intervalli di byte da sostituire e confermasse ogni
+suggerimento uno per uno. Quella costruzione tecnica non è più il comportamento
+corrente del guscio: coordinate, digest e mapping sono dettagli interni.
 
-Oggi ADR-0021 e ADR-0023 stabiliscono che **l'utente** indica gli esatti intervalli
-di byte da sostituire e conferma ogni suggerimento uno per uno; nella GUI questo si
-traduce in una casella dove scrivere a mano un array JSON con `itemId`,
-`contentSha256` in 64 caratteri esadecimali, `byteStart` e `byteEnd`.
-
-Il nuovo bersaglio è: **il prodotto propone l'anonimizzazione già fatta, l'utente
-la guarda e dice sì.** La preoccupazione originale resta soddisfatta — niente esce
+Ora **il prodotto compone la proposta di anonimizzazione e applica tutte le
+sostituzioni per impostazione predefinita**. La persona controlla parole e testo
+trasformato leggibile: può togliere una proposta o selezionare un testo sfuggito,
+poi crea localmente la versione protetta. La futura conferma unica riguarda
+l'esatto testo trasformato soltanto quando questo sta davvero per uscire. La
+preoccupazione originale resta soddisfatta — niente esce
 senza che una persona abbia visto cosa esce — ma si sposta la fatica dal costruire
 al controllare, che è ciò che un essere umano sa fare bene. È il modello di
 Presidio: il rilevamento lo fa la macchina, la responsabilità resta della persona.
@@ -375,23 +377,23 @@ riguarda l'esatto testo trasformato.
 
 ## 7. Le conferme e i moduli che spariscono
 
-Elenco esplicito, così che nessuno lo reintroduca per abitudine. Ognuna di queste
-oggi esiste nell'interfaccia.
+Elenco esplicito, così che nessuno lo reintroduca per abitudine. Alcune di queste
+azioni appartengono ormai soltanto all'interfaccia ereditata.
 
-| Oggi                                                      | Domani                                      |
-| --------------------------------------------------------- | ------------------------------------------- |
-| «Crea una conversazione generale» prima di poter scrivere | si scrive e basta                           |
-| «Salva la domanda in GENERAL»                             | tutto è già salvato                         |
-| «Usa questo evento come prova per la memoria»             | il collegamento alla fonte è automatico     |
-| percorso del repository Git da scrivere a mano            | elenco delle cartelle trovate, da scegliere |
-| «Elenca i transcript» poi «importa un file»               | ciò che si trova è già aggiornato           |
-| budget di continuità e istruzioni «in byte UTF-8 esatti»  | non esistono più nell'interfaccia           |
-| array JSON con `byteStart` e `byteEnd`                    | il prodotto propone, l'utente approva       |
-| digest SHA-256 da incollare come «blocco» facoltativo     | verifica automatica, esito in una parola    |
-| «Anteprima del riepilogo» prima di «Crea riepilogo»       | il riepilogo si legge e si corregge         |
-| menù a tendina della custodia con **una sola voce**       | scompare                                    |
-| «Aggiorna» su cruscotto, memoria e registro               | si aggiorna da sé                           |
-| righe «Effect: …» e riquadri «Trust: …» su ogni modulo    | comportamento vero, dettaglio a richiesta   |
+| Interfaccia ereditata                                     | Bersaglio                                     |
+| --------------------------------------------------------- | --------------------------------------------- |
+| «Crea una conversazione generale» prima di poter scrivere | si scrive e basta                             |
+| «Salva la domanda in GENERAL»                             | tutto è già salvato                           |
+| «Usa questo evento come prova per la memoria»             | il collegamento alla fonte è automatico       |
+| percorso del repository Git da scrivere a mano            | elenco delle cartelle trovate, da scegliere   |
+| «Elenca i transcript» poi «importa un file»               | ciò che si trova è già aggiornato             |
+| budget di continuità e istruzioni «in byte UTF-8 esatti»  | non esistono più nell'interfaccia             |
+| array JSON con `byteStart` e `byteEnd`                    | il prodotto propone, l'utente rivede il testo |
+| digest SHA-256 da incollare come «blocco» facoltativo     | verifica automatica, esito in una parola      |
+| «Anteprima del riepilogo» prima di «Crea riepilogo»       | il riepilogo si legge e si corregge           |
+| menù a tendina della custodia con **una sola voce**       | scompare                                      |
+| «Aggiorna» su cruscotto, memoria e registro               | si aggiorna da sé                             |
+| righe «Effect: …» e riquadri «Trust: …» su ogni modulo    | comportamento vero, dettaglio a richiesta     |
 
 ---
 

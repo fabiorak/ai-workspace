@@ -5,9 +5,14 @@ import { APP_CSS, APP_JS, shellHtml } from "../src/assets.ts";
 import { GUI_CATALOGS, SUPPORTED_LOCALES } from "../src/index.ts";
 import { mergeCatalogues } from "../src/text/catalog.ts";
 import { HOME_CATALOGUES, HOME_TEXT } from "../src/text/home.ts";
+import { PRIVACY_CATALOGUES } from "../src/text/privacy.ts";
 
 const html = shellHtml("csrf-token");
-const catalogues = mergeCatalogues(GUI_CATALOGS, HOME_CATALOGUES);
+const catalogues = mergeCatalogues(
+  GUI_CATALOGS,
+  HOME_CATALOGUES,
+  PRIVACY_CATALOGUES,
+);
 const homeSection = (() => {
   const start = html.indexOf('<section aria-labelledby="home-heading"');
   return html.slice(start, html.indexOf("</section>", start));

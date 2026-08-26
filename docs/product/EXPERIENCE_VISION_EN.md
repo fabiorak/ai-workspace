@@ -338,19 +338,21 @@ records this boundary without authorising any model connection or execution.
 
 ### 6.3 The reversal on anonymisation
 
-This is the point where the vision changes a recorded posture, and it must be said
-without ambiguity.
+This is the point where the vision changed a recorded posture, and it must be said
+without ambiguity. ADR-0021 and ADR-0023 originally required **the user** to state
+the exact byte ranges to substitute and confirm every suggestion one by one. That
+technical construction is no longer the shell's current behaviour: coordinates,
+digests, and mappings are internal details.
 
-Today ADR-0021 and ADR-0023 establish that **the user** states the exact byte
-ranges to substitute and confirms every suggestion one by one; in the GUI this
-becomes a field in which to hand-write a JSON array with `itemId`,
-`contentSha256` as 64 hexadecimal characters, `byteStart`, and `byteEnd`.
-
-The new target is: **the product proposes the anonymisation already done, the user
-looks at it and says yes.** The original concern stays satisfied — nothing leaves
-without a person having seen what leaves — but the effort moves from constructing
-to checking, which is what a human being is good at. This is the Presidio model:
-the machine does the detection, the responsibility stays with the person.
+Now **the product composes the anonymisation proposal and applies every
+substitution by default**. The person reviews words and readable transformed text:
+they can remove a proposal or select text the software missed, then create the
+protected version locally. The future single confirmation covers the exact
+transformed text only when it is actually about to leave. The original concern
+stays satisfied — nothing leaves without a person having seen what leaves — but
+the effort moves from constructing to checking, which is what a human being is
+good at. It is Presidio's model: the machine does the detection, responsibility
+stays with the person.
 
 What does **not** change: substitution stays local, the mapping stays encrypted,
 restoration stays strict and all-or-nothing, and detection remains explicitly
@@ -367,23 +369,23 @@ transformed text.
 
 ## 7. The confirmations and forms that disappear
 
-An explicit list, so that nobody reintroduces them out of habit. Every one of
-these exists in the interface today.
+An explicit list, so that nobody reintroduces them out of habit. Some now belong
+only to the inherited interface.
 
-| Today                                                     | Tomorrow                                |
-| --------------------------------------------------------- | --------------------------------------- |
-| "Create a general conversation" before being able to type | you just type                           |
-| "Save the question in GENERAL"                            | everything is already saved             |
-| "Use this event as memory evidence"                       | the link to the source is automatic     |
-| Git repository path to type by hand                       | list of folders found, to pick from     |
-| "List transcripts" then "import one file"                 | what is there is already up to date     |
-| continuity and instruction budgets "in exact UTF-8 bytes" | no longer exist in the interface        |
-| JSON array with `byteStart` and `byteEnd`                 | the product proposes, the user approves |
-| SHA-256 digest to paste as an optional "pin"              | automatic verification, one-word result |
-| "Preview the summary" before "Create summary"             | the summary is read and corrected       |
-| custody dropdown with **one single entry**                | it disappears                           |
-| "Refresh" on dashboard, memory, and audit                 | it refreshes by itself                  |
-| "Effect: …" lines and "Trust: …" panels on every form     | real behaviour, detail on request       |
+| Inherited interface                                       | Target                                          |
+| --------------------------------------------------------- | ----------------------------------------------- |
+| "Create a general conversation" before being able to type | you just type                                   |
+| "Save the question in GENERAL"                            | everything is already saved                     |
+| "Use this event as memory evidence"                       | the link to the source is automatic             |
+| Git repository path to type by hand                       | list of folders found, to pick from             |
+| "List transcripts" then "import one file"                 | what is there is already up to date             |
+| continuity and instruction budgets "in exact UTF-8 bytes" | no longer exist in the interface                |
+| JSON array with `byteStart` and `byteEnd`                 | the product proposes, the user reviews the text |
+| SHA-256 digest to paste as an optional "pin"              | automatic verification, one-word result         |
+| "Preview the summary" before "Create summary"             | the summary is read and corrected               |
+| custody dropdown with **one single entry**                | it disappears                                   |
+| "Refresh" on dashboard, memory, and audit                 | it refreshes by itself                          |
+| "Effect: …" lines and "Trust: …" panels on every form     | real behaviour, detail on request               |
 
 ---
 
