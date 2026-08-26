@@ -44,17 +44,12 @@ export const SCHEMA_VERSION = 1;
 /** A query must answer within this budget at the measured corpus size. */
 const INTERACTIVE_BUDGET_MILLISECONDS = 150;
 
-/**
- * Directories and files that form the declared document corpus. `AGENTS.md` was
- * a root until assistant instruction files stopped being versioned in this
- * public repository. It still exists on the machines that use it, which is
- * exactly why it cannot stay: reading it would measure one machine instead of
- * the documentation a fresh clone contains.
- */
+/** Directories and files that form the declared document corpus. */
 export const CORPUS_ROOTS = Object.freeze([
   "docs",
   "README.md",
   "ROADMAP.md",
+  "AGENTS.md",
   "CONTRIBUTING.md",
   "SECURITY.md",
 ]);

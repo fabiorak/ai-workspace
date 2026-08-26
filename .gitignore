@@ -60,7 +60,6 @@ opensearch-data/
 .claude/
 .codex/
 .agents/
-AGENTS.md
 .idea/
 .vscode/*
 !.vscode/extensions.json
