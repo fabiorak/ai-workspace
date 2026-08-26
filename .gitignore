@@ -56,7 +56,11 @@ logs/
 postgres-data/
 opensearch-data/
 
-# Editor and operating-system files
+# Editor, assistant and operating-system files
+.claude/
+.codex/
+.agents/
+AGENTS.md
 .idea/
 .vscode/*
 !.vscode/extensions.json
