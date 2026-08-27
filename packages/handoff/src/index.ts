@@ -24,6 +24,11 @@ export {
   type RestartSummaryInput,
 } from "./restart-summary.ts";
 export {
+  draftNextAction,
+  type NextActionDraft,
+  type NextActionDraftSource,
+} from "./restart-point.ts";
+export {
   measureHandoffBreakEven,
   previewHandoffSize,
   attributeHandoffBytes,

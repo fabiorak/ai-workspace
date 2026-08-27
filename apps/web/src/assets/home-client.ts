@@ -128,6 +128,9 @@ export const HOME_BEHAVIOUR = `
     if (report.sessions > 0) {
       await loadConversations();
       say(conversationStatus, report.sessions === 1 ? "homeArrivedOne" : "homeArrived", { sessions: number(report.sessions), moments: number(report.moments) });
+      // Moments that arrived may have changed what an open conversation would take to
+      // resume, so its point is composed again rather than left as it was.
+      refreshRestartPoint();
     } else text(conversationStatus, "");
     // A folder that has gone missing is said out loud: work that silently stops
     // arriving reads like a quiet week rather than a moved directory.
@@ -155,6 +158,9 @@ export const HOME_BEHAVIOUR = `
     homeConversation.hidden = true;
     homeConversationMoments.replaceChildren();
     text(homeConversationStatus, "");
+    // The point belongs to the conversation, so closing the conversation closes it:
+    // a summary left behind would describe work nobody is looking at.
+    hideRestartPoint();
     markOpenRow();
   };
   const momentSpeaker = (type) => message(catalogs.en["homeMoment" + type] ? "homeMoment" + type : "homeMomentUNKNOWN");
@@ -193,10 +199,16 @@ export const HOME_BEHAVIOUR = `
     const parts = [conversation.kind === "NOTES" ? message("homeKindNOTES") : conversation.projectName, conversation.model || conversation.agent];
     text(homeConversationMeta, parts.filter(Boolean).join(" · "));
     for (const moment of conversation.moments) homeConversationMoments.append(renderMoment(moment, conversation.kind));
+    // The moments scroll in their own box, so a conversation opened after a long one
+    // starts at its own beginning rather than wherever the previous one was left.
+    homeConversationMoments.scrollTop = 0;
     if (conversation.total > conversation.moments.length) say(homeConversationCount, "homeConversationShown", { shown: number(conversation.moments.length), total: number(conversation.total) });
     else say(homeConversationCount, "homeConversationAll", { count: number(conversation.total) });
     homeConversation.hidden = false;
     text(homeConversationStatus, "");
+    // What it would take to pick this work up again sits at the end of it, composed
+    // rather than fetched, and expanded rather than behind a control (ADR-0037).
+    showRestartPoint(conversation);
     markOpenRow();
     // The focus moves because a person asked for this conversation, not on the
     // screen's own initiative, and it lands on the heading so a reader hears which
@@ -222,6 +234,9 @@ export const HOME_BEHAVIOUR = `
     } catch (cause) {
       openConversation = null;
       homeConversation.hidden = true;
+      // Whatever was open is gone, so the point of the previous conversation is dropped
+      // rather than left to be recomposed for a conversation nobody is reading.
+      hideRestartPoint();
       say(homeConversationStatus, "homeConversationFailed");
       detail(homeConversationCount, cause);
       markOpenRow();

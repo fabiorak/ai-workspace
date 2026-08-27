@@ -11,14 +11,21 @@ import { GUI_CATALOGS } from "../localization.ts";
 import { mergeCatalogues } from "../text/catalog.ts";
 import { HOME_CATALOGUES } from "../text/home.ts";
 import { PRIVACY_CATALOGUES } from "../text/privacy.ts";
+import { RESTART_POINT_CATALOGUES } from "../text/restart-point.ts";
 import { HOME_BEHAVIOUR } from "./home-client.ts";
 import { PRIVACY_BEHAVIOUR } from "./privacy-client.ts";
+import { RESTART_POINT_BEHAVIOUR } from "./restart-point-client.ts";
 
 export const APP_JS = `
 (() => {
   "use strict";
   const catalogs = ${JSON.stringify(
-    mergeCatalogues(GUI_CATALOGS, HOME_CATALOGUES, PRIVACY_CATALOGUES),
+    mergeCatalogues(
+      GUI_CATALOGS,
+      HOME_CATALOGUES,
+      PRIVACY_CATALOGUES,
+      RESTART_POINT_CATALOGUES,
+    ),
   )};
   const localeKey = "aiw-locale";
   const supported = new Set(Object.keys(catalogs));
@@ -477,6 +484,7 @@ export const APP_JS = `
   if (selectedProject) { importSection.hidden = false; transcriptSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; say(importStatus, "returningImport"); loadMemory(); loadWork(); loadPrivacyAudit(true); }
   ${PRIVACY_BEHAVIOUR}
   ${HOME_BEHAVIOUR}
+  ${RESTART_POINT_BEHAVIOUR}
   applyLocale();
   if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/home");
   renderRoute(false);

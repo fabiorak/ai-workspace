@@ -61,6 +61,17 @@ a { color: var(--accent-strong); }
 /** The open row is marked by more than colour, so the mark survives on a screen that shows none. */
 .conversation-nav button[aria-current] { color: var(--sidebar-ink); background: rgba(255,255,255,.1); box-shadow: inset .18rem 0 0 currentColor; }
 .moments { margin: 0; padding: 0 0 0 1.2rem; display: grid; gap: .9rem; }
+/**
+ * A conversation can hold hundreds of moments, and whatever follows it would then be
+ * reachable only by scrolling past all of them — which is the same as not being there.
+ * The moments scroll inside their own box, so what comes after stays in view.
+ *
+ * The box is focusable and named, because an area only a pointer can scroll is an
+ * area some readers cannot read at all. Its own focus ring is declared here: the
+ * shared rule covers controls, and this is not one.
+ */
+.moments-scroll { max-height: 60vh; overflow-y: auto; overscroll-behavior: contain; padding: .6rem .6rem .6rem 1.6rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface-soft); }
+.moments-scroll:focus-visible { outline: 3px solid #f0a500; outline-offset: 3px; }
 .moment { padding: .1rem 0; }
 /**
  * The moments the person wrote. A long conversation is mostly reply, so what a reader

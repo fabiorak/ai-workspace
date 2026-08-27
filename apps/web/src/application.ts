@@ -34,7 +34,6 @@ import {
 } from "@ai-workspace/general-project-link";
 import {
   Handoffs,
-  composeRestartSummary,
   previewHandoffSize,
   type CreateHandoffInput,
   type Handoff,
@@ -134,6 +133,11 @@ import {
   conversationArea,
   type ConversationArea,
 } from "./conversation-facade.ts";
+import { composeProjectRestartSummary } from "./project-restart-summary.ts";
+import {
+  restartPointArea,
+  type RestartPointArea,
+} from "./restart-point-facade.ts";
 import { transcriptArea, type TranscriptArea } from "./transcript-facade.ts";
 
 export class GuiApplicationError extends Error {
@@ -630,74 +634,43 @@ export class GuiApplication {
     }, "Keep the query, adjust the highlighted search field or filters, and retry.");
   }
   /**
-   * The summary a reader carries to another assistant, composed on demand from
-   * the authoritative stores.
-   *
-   * Nothing is selected by hand and nothing is persisted: this is a read, like
-   * the dashboard, and it is deliberately not a handoff. A handoff is durable
-   * evidence and asks for a Work Item, a chosen selection, and a written next
-   * action; this asks for a project and, optionally, the question just asked.
+   * The summary a reader carries to another assistant, composed on demand for a
+   * whole project. It is not a handoff and not a restart point: see
+   * `project-restart-summary.ts`.
    */
   public async restartSummary(
     input: Readonly<{ projectId: string; question?: string }>,
   ): Promise<GuiRestartSummary> {
-    return this.#run(async () => {
-      const project = (await this.#registry.list()).find(
-        (registered) => registered.id === input.projectId,
-      );
-      if (project === undefined)
-        throw new Error("Select a registered local project first.");
-      const memory = await this.#memory.list({
-        projectId: input.projectId,
-        limit: 100,
-      });
-      const question =
-        input.question === undefined || input.question.trim().length === 0
-          ? null
-          : input.question.trim();
-      const findings =
-        question === null
-          ? []
-          : (
-              await this.search({ projectId: input.projectId, text: question })
-            ).results.map((result) =>
-              Object.freeze({
-                eventId: result.eventId,
-                occurredAt: result.occurredAt,
-                snippet: result.snippet,
-                why: result.reasons
-                  .slice(0, 2)
-                  .map(
-                    (reason) => `"${reason.term}" reached "${reason.matched}"`,
-                  )
-                  .join(" and "),
-              }),
-            );
-      const summary = composeRestartSummary({
-        projectName: project.name,
-        branch: project.branch,
-        headCommit: project.headCommit,
-        isDirty: project.isDirty,
-        question,
-        decisions: memory.items
-          .filter((item) => item.validity === "ACTIVE")
-          .map((item) =>
-            Object.freeze({
-              content: item.content,
-              verification: item.verification,
-              sourceEventId: item.sources[0]?.eventId ?? null,
-            }),
-          ),
-        findings,
-      });
-      return Object.freeze({
-        projectId: input.projectId,
-        text: summary.text,
-        exactBytes: summary.exactBytes,
-        omissions: summary.omissions,
-        effect: "READ_ONLY_LOCAL_SUMMARY_NOT_PERSISTED_AND_NOT_SENT" as const,
-      });
-    }, "Select a registered project, then prepare the summary again.");
+    return this.#run(
+      () =>
+        composeProjectRestartSummary(
+          {
+            projects: () => this.#registry.list(),
+            notes: async (projectId) =>
+              (await this.#memory.list({ projectId, limit: 100 })).items,
+            search: (projectId, text) => this.search({ projectId, text }),
+          },
+          input,
+        ),
+      "Select a registered project, then prepare the summary again.",
+    );
+  }
+  /**
+   * The restart point at the end of a work conversation (ADR-0037). Composition
+   * goes through the preview path, so opening this area writes nothing.
+   */
+  public get restartPoints(): RestartPointArea {
+    return restartPointArea(
+      {
+        sessions: this.#conversationSources.sessions,
+        workItems: this.#conversationSources.workItems,
+        notes: async (projectId, limit) =>
+          (await this.#memory.list({ projectId, validity: "ACTIVE", limit }))
+            .items,
+        compose: (input) => this.#handoffs.preview(input),
+      },
+      (operation, recovery) => this.#run(operation, recovery),
+    );
   }
 
   public async searchAllProjects(

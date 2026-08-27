@@ -111,6 +111,14 @@ export const HOME_TEXT = Object.freeze({
     en: "Close this conversation",
     it: "Chiudi questa conversazione",
   },
+  /**
+   * The scrolling box the moments live in. It is named because a reader who arrives
+   * by keyboard lands on it, and "list" alone would not say which list.
+   */
+  homeConversationMomentsLabel: {
+    en: "The moments of this conversation",
+    it: "I momenti di questa conversazione",
+  },
   homeConversationShown: {
     en: "The first {shown} moments of {total}.",
     it: "I primi {shown} momenti su {total}.",

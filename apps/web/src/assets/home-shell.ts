@@ -11,6 +11,8 @@
  * still reading, and interrupting them is worse than being late.
  */
 
+import { RESTART_POINT_BLOCK } from "./restart-point-shell.ts";
+
 /**
  * Replaces the nine-entry menu: the work itself, then the things that are not work.
  * The work names itself first, because a menu that can only be entered is one a
@@ -47,8 +49,8 @@ export const HOME_SECTION = `
         <h3 id="home-conversation-heading" tabindex="-1"></h3>
         <p id="home-conversation-meta" class="help"></p>
         <button type="button" id="home-conversation-close" data-i18n="homeConversationClose">Close this conversation</button>
-        <ol id="home-conversation-moments" class="moments"></ol>
-        <p id="home-conversation-count" class="help"></p>
+        <ol id="home-conversation-moments" class="moments moments-scroll" tabindex="0" data-i18n-label="homeConversationMomentsLabel" aria-label="The moments of this conversation"></ol>
+        <p id="home-conversation-count" class="help"></p>${RESTART_POINT_BLOCK}
       </div>
       <div id="home-answer">
         <h3 id="home-answer-heading" tabindex="-1" data-i18n="homeAnswerHeading" hidden>What I found</h3>

@@ -1,0 +1,192 @@
+/**
+ * The restart point that sits at the end of a work conversation, composed as pure
+ * functions over already-read values.
+ *
+ * ADR-0037 makes composition continuous and silent: it goes through the
+ * non-persisting preview path, so the packet a person looks at here is the packet
+ * that would be fixed, and looking at it writes nothing. Fixing it is a separate,
+ * deliberate confirmation and does not exist yet.
+ *
+ * What the view carries is what somebody resuming the work needs to read: what the
+ * work is, what was decided, what is already known to have failed, where they were
+ * looking, and how the repository stands. What it deliberately does not carry is
+ * every identifier, digest, byte count and section-metadata constant the packet
+ * holds — those are the technical surface, and a reader who wants them has the
+ * handoff screens and the command line.
+ *
+ * Nothing here summarises or rewrites: each line is a stored value moved across.
+ */
+import type { WorkItem } from "@ai-workspace/core";
+import type { Handoff, MemorySnapshot } from "@ai-workspace/handoff";
+
+/**
+ * How many recent moments say where the reader was. Five is enough to recognise
+ * the thread again and short enough to read in one glance; the whole conversation
+ * is right above, so this is a pointer rather than a second copy of it.
+ */
+export const LOOKED_AT_LIMIT = 5;
+
+/**
+ * How many stored notes travel with the point. It is the bound `Handoffs` already
+ * applies to a memory selection, kept here so the count of what was left out can be
+ * stated before the packet refuses to hold it.
+ */
+export const NOTE_LIMIT = 20;
+
+export type RestartPointNote = Readonly<{
+  content: string;
+  /**
+   * Whether the person confirmed this note against evidence. Kept as the domain
+   * records it; the interface turns it into a word, because a reader deciding
+   * whether to trust a line needs to know that much.
+   */
+  verification: MemorySnapshot["verification"];
+}>;
+
+export type RestartPointMoment = Readonly<{
+  /** The stored event type. The interface says who spoke; no constant reaches a reader. */
+  type: string;
+  occurredAt: string | null;
+}>;
+
+/** What did not fit, counted rather than dropped in silence. */
+export type RestartPointOmission = Readonly<{
+  kind: "NOTES" | "MOMENTS";
+  count: number;
+}>;
+
+export type RestartPoint = Readonly<{
+  available: true;
+  conversationId: string;
+  /** The objective of the Work Item the open conversation belongs to. */
+  doing: string;
+  workState: WorkItem["status"];
+  decisions: readonly RestartPointNote[];
+  constraints: readonly RestartPointNote[];
+  failures: readonly RestartPointNote[];
+  lookedAt: readonly RestartPointMoment[];
+  /**
+   * The repository as the bounded capture found it. The commit is left out on
+   * purpose: it is a fingerprint, and this view speaks in branches and changes.
+   */
+  repository: Readonly<{
+    branch: string | null;
+    hasUnsavedChanges: boolean;
+    changedFiles: number;
+  }>;
+  composedAt: string;
+  omissions: readonly RestartPointOmission[];
+  effect: "COMPOSED_LOCALLY_NOT_SAVED_AND_NOT_SENT";
+}>;
+
+/**
+ * Why there is no restart point, when there is none.
+ *
+ * A conversation with no project is a note, and notes carry no work to resume. A
+ * work session that no Work Item points at has no objective to state, and picking
+ * one because it happens to be the only active candidate is exactly the inference
+ * ADR-0010 forbids: the reader is told what is missing instead.
+ */
+export type RestartPointUnavailable = Readonly<{
+  available: false;
+  reason: "NOT_A_WORK_CONVERSATION" | "NO_LINKED_WORK" | "NOTHING_IMPORTED_YET";
+}>;
+
+export const NOT_A_WORK_CONVERSATION: RestartPointUnavailable = Object.freeze({
+  available: false,
+  reason: "NOT_A_WORK_CONVERSATION",
+});
+export const NO_LINKED_WORK: RestartPointUnavailable = Object.freeze({
+  available: false,
+  reason: "NO_LINKED_WORK",
+});
+/**
+ * A session document with no moments in it. Composing would have to name a
+ * canonical event, and there is none to name, so nothing is composed rather than a
+ * point that cites evidence nobody imported.
+ */
+export const NOTHING_IMPORTED_YET: RestartPointUnavailable = Object.freeze({
+  available: false,
+  reason: "NOTHING_IMPORTED_YET",
+});
+
+/**
+ * The Work Item the open conversation declares.
+ *
+ * The link is a stored one: `WorkItemSource` records the session an item came
+ * from, so this reads a relationship rather than guessing at one. When several
+ * items point at the same session the most recently updated one wins, mirroring
+ * the rule the conversation list already shows a state with — one conversation
+ * resumes into one objective, and the stale one would misinform.
+ */
+export function workForSession(
+  items: readonly WorkItem[],
+  sessionId: string,
+): WorkItem | null {
+  let chosen: WorkItem | null = null;
+  for (const item of items)
+    if (
+      item.sources.some((source) => source.sessionId === sessionId) &&
+      (chosen === null || chosen.updatedAt < item.updatedAt)
+    )
+      chosen = item;
+  return chosen;
+}
+
+function noteOf(snapshot: MemorySnapshot): RestartPointNote {
+  return Object.freeze({
+    content: snapshot.content,
+    verification: snapshot.verification,
+  });
+}
+
+function notesOfType(
+  snapshots: readonly MemorySnapshot[],
+  type: MemorySnapshot["type"],
+): readonly RestartPointNote[] {
+  return Object.freeze(
+    snapshots.filter((snapshot) => snapshot.type === type).map(noteOf),
+  );
+}
+
+/**
+ * Turns the composed packet into what a reader sees.
+ *
+ * The packet is the source of every claim here, including the repository state,
+ * so the view cannot disagree with the point that would be fixed. The moments and
+ * the counts of what was left out arrive beside it, because they describe the
+ * reading that produced the packet rather than the packet itself.
+ */
+export function restartPointOf(
+  input: Readonly<{
+    handoff: Handoff;
+    conversationId: string;
+    workState: WorkItem["status"];
+    lookedAt: readonly RestartPointMoment[];
+    omissions: readonly RestartPointOmission[];
+  }>,
+): RestartPoint {
+  const selected = input.handoff.sections.selectedMemory.value;
+  return Object.freeze({
+    available: true as const,
+    conversationId: input.conversationId,
+    doing: input.handoff.sections.objective.value,
+    workState: input.workState,
+    decisions: notesOfType(selected, "DECISION"),
+    constraints: notesOfType(selected, "CONSTRAINT"),
+    failures: Object.freeze(
+      input.handoff.sections.knownFailures.value.map(noteOf),
+    ),
+    lookedAt: Object.freeze([...input.lookedAt]),
+    repository: Object.freeze({
+      branch: input.handoff.sections.repository.value.branch,
+      hasUnsavedChanges: input.handoff.sections.repository.value.dirty,
+      changedFiles: input.handoff.sections.repository.value.changedPaths.length,
+    }),
+    composedAt: input.handoff.createdAt,
+    omissions: Object.freeze(
+      input.omissions.filter((omission) => omission.count > 0),
+    ),
+    effect: "COMPOSED_LOCALLY_NOT_SAVED_AND_NOT_SENT" as const,
+  });
+}
