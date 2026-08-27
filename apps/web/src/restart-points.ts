@@ -24,6 +24,7 @@ import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
 import {
   LOOKED_AT_LIMIT,
+  MOMENT_TEXT_LIMIT,
   NOTE_LIMIT,
   NOTHING_IMPORTED_YET,
   NOT_A_WORK_CONVERSATION,
@@ -84,10 +85,36 @@ function lastQuestionOf(
   return null;
 }
 
+/**
+ * One readable line of a stored moment: line breaks collapsed, and a marked tail
+ * when it did not fit. Nothing is rewritten or summarised — the text is the stored
+ * text, cut where the bound falls.
+ */
+function oneLine(value: string): string {
+  const collapsed = value.replace(/\s+/gu, " ").trim();
+  return collapsed.length <= MOMENT_TEXT_LIMIT
+    ? collapsed
+    : `${collapsed.slice(0, MOMENT_TEXT_LIMIT - 1)}…`;
+}
+
 function momentOf(
   event: ImportedSession["events"][number],
 ): RestartPointMoment {
-  return Object.freeze({ type: event.type, occurredAt: event.occurredAt });
+  /**
+   * A payload held as an artifact is not inlined, exactly as the conversation above
+   * does not inline it: quoting a file this view never opened would be a claim
+   * about bytes nobody checked.
+   */
+  const read =
+    event.payload.kind === "INLINE_TEXT"
+      ? readCanonicalPayload(event.payload.text)
+      : null;
+  return Object.freeze({
+    type: event.type,
+    occurredAt: event.occurredAt,
+    text: read === null ? "" : oneLine(read.text),
+    fromCanonicalPayload: read?.parsed ?? false,
+  });
 }
 
 /**

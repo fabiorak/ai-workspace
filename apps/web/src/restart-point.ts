@@ -43,15 +43,41 @@ export type RestartPointNote = Readonly<{
   verification: MemorySnapshot["verification"];
 }>;
 
+/**
+ * How much of a moment is quoted. A line is enough to recognise what was being
+ * said; the conversation right above keeps the whole of it, so a longer quote here
+ * would be a second copy rather than a reminder.
+ */
+export const MOMENT_TEXT_LIMIT = 160;
+
+/**
+ * How many changed files are named. A reader looking for where they were needs the
+ * names, not an inventory: past this bound the rest is counted, like everything
+ * else that does not fit.
+ */
+export const CHANGED_PATH_LIMIT = 5;
+
 export type RestartPointMoment = Readonly<{
   /** The stored event type. The interface says who spoke; no constant reaches a reader. */
   type: string;
   occurredAt: string | null;
+  /**
+   * One line of what was said, the canonical envelope taken off and the length
+   * bounded. A speaker and a time say when the reader was there; this says what
+   * they were in the middle of, which is what somebody resuming is looking for.
+   */
+  text: string;
+  /**
+   * False when the payload was not the canonical envelope, so the interface can say
+   * the line is the raw stored text instead of pretending it read it. Also false
+   * for a payload held as an artifact, which this view never opens.
+   */
+  fromCanonicalPayload: boolean;
 }>;
 
 /** What did not fit, counted rather than dropped in silence. */
 export type RestartPointOmission = Readonly<{
-  kind: "NOTES" | "MOMENTS";
+  kind: "NOTES" | "MOMENTS" | "CHANGED_FILES";
   count: number;
 }>;
 
@@ -73,6 +99,12 @@ export type RestartPoint = Readonly<{
     branch: string | null;
     hasUnsavedChanges: boolean;
     changedFiles: number;
+    /**
+     * Which files they are, bounded by `CHANGED_PATH_LIMIT`. The count says how
+     * much is unsaved; the names say where the work was left, and a path is
+     * ordinary reading rather than a fingerprint.
+     */
+    changedPaths: readonly string[];
   }>;
   composedAt: string;
   omissions: readonly RestartPointOmission[];
@@ -167,6 +199,19 @@ export function restartPointOf(
   }>,
 ): RestartPoint {
   const selected = input.handoff.sections.selectedMemory.value;
+  const changed = input.handoff.sections.repository.value.changedPaths;
+  const named = changed.slice(0, CHANGED_PATH_LIMIT);
+  /**
+   * The files that did not fit are counted here rather than by the caller: the
+   * packet is the only thing that knows how many there were.
+   */
+  const omissions: readonly RestartPointOmission[] = [
+    ...input.omissions,
+    Object.freeze({
+      kind: "CHANGED_FILES" as const,
+      count: changed.length - named.length,
+    }),
+  ];
   return Object.freeze({
     available: true as const,
     conversationId: input.conversationId,
@@ -181,11 +226,12 @@ export function restartPointOf(
     repository: Object.freeze({
       branch: input.handoff.sections.repository.value.branch,
       hasUnsavedChanges: input.handoff.sections.repository.value.dirty,
-      changedFiles: input.handoff.sections.repository.value.changedPaths.length,
+      changedFiles: changed.length,
+      changedPaths: Object.freeze([...named]),
     }),
     composedAt: input.handoff.createdAt,
     omissions: Object.freeze(
-      input.omissions.filter((omission) => omission.count > 0),
+      omissions.filter((omission) => omission.count > 0),
     ),
     effect: "COMPOSED_LOCALLY_NOT_SAVED_AND_NOT_SENT" as const,
   });

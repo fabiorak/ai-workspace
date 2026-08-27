@@ -51,11 +51,27 @@ export const RESTART_POINT_BEHAVIOUR = `
     }
     return list;
   };
+  // Who spoke and when says the reader was here; the line of text says what they
+  // were in the middle of. Without it five moments are five timestamps, which is
+  // not where anybody was.
   const restartPointMoments = (moments) => {
     const list = document.createElement("ul");
     for (const moment of moments) {
       const item = document.createElement("li");
-      text(item, moment.occurredAt ? momentSpeaker(moment.type) + " · " + dateTime(moment.occurredAt) : momentSpeaker(moment.type));
+      const said = document.createElement("span");
+      if (moment.text) text(said, moment.text); else say(said, "pointMomentNoText");
+      const who = document.createElement("span");
+      who.className = "help";
+      text(who, moment.occurredAt ? momentSpeaker(moment.type) + " · " + dateTime(moment.occurredAt) : momentSpeaker(moment.type));
+      item.append(said, document.createTextNode(" · "), who);
+      // An unrecognised envelope means the line above is the raw stored text, and a
+      // reader weighing a quotation is told which of the two they are reading.
+      if (moment.text && !moment.fromCanonicalPayload) {
+        const raw = document.createElement("span");
+        raw.className = "help";
+        say(raw, "pointMomentRaw");
+        item.append(document.createTextNode(" · "), raw);
+      }
       list.append(item);
     }
     return list;
@@ -79,10 +95,20 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointBody.append(restartPointLabel("pointRepository"));
     restartPointBody.append(point.repository.branch ? restartPointSentence("pointOnBranch", { branch: point.repository.branch }) : restartPointSentence("pointNoBranch"));
     restartPointBody.append(point.repository.hasUnsavedChanges ? (point.repository.changedFiles === 1 ? restartPointSentence("pointRepositoryOneChanged") : restartPointSentence("pointRepositoryChanged", { count: number(point.repository.changedFiles) })) : restartPointSentence("pointRepositoryClean"));
+    // The count says how much is unsaved; the names say where the work was left.
+    if (point.repository.changedPaths.length > 0) {
+      const paths = document.createElement("ul");
+      for (const path of point.repository.changedPaths) {
+        const entry = document.createElement("li");
+        text(entry, path);
+        paths.append(entry);
+      }
+      restartPointBody.append(paths);
+    }
     // What did not fit is stated. A summary that looks whole while it is not is worse
     // than one that says how much it left out.
     for (const omission of point.omissions)
-      restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : "pointOmittedMoments", { count: number(omission.count) }));
+      restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : "pointOmittedChangedFiles", { count: number(omission.count) }));
     say(restartPointStatus, "pointComposed", { when: dateTime(point.composedAt) });
   };
   const composeRestartPoint = async (conversation) => {

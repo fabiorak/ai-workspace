@@ -147,6 +147,21 @@ describe("the restart point at the end of a work conversation", () => {
   it("states what did not fit", () => {
     assert.match(behaviour, /"pointOmittedNotes"/u);
     assert.match(behaviour, /"pointOmittedMoments"/u);
+    assert.match(behaviour, /"pointOmittedChangedFiles"/u);
+  });
+
+  /**
+   * The two things a reader needs in order to place themselves again: what was being
+   * said, and which files it was being said about.
+   */
+  it("quotes each moment and names the files with unsaved changes", () => {
+    assert.match(behaviour, /text\(said, moment\.text\)/u);
+    assert.match(behaviour, /"pointMomentNoText"/u);
+    assert.match(behaviour, /"pointMomentRaw"/u);
+    assert.match(
+      behaviour,
+      /for \(const path of point\.repository\.changedPaths\)/u,
+    );
   });
 
   it("shows a stored state as a word, never as the constant that stores it", () => {

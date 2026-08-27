@@ -75,6 +75,23 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "one file with unsaved changes",
     it: "un file con modifiche non salvate",
   },
+  /** A moment whose payload is kept as a file this view never opens. */
+  pointMomentNoText: {
+    en: "no text to quote here",
+    it: "nessun testo da citare qui",
+  },
+  /**
+   * Said when the stored envelope was not the canonical one, so the line is the raw
+   * stored text. A reader weighing a quotation needs to know which of the two it is.
+   */
+  pointMomentRaw: {
+    en: "raw stored text",
+    it: "testo grezzo come è stato conservato",
+  },
+  pointOmittedChangedFiles: {
+    en: "{count} further files with unsaved changes are not listed here.",
+    it: "Altri {count} file con modifiche non salvate non sono elencati qui.",
+  },
   pointOmittedNotes: {
     en: "{count} further notes are not included here.",
     it: "Altre {count} annotazioni non sono comprese qui.",

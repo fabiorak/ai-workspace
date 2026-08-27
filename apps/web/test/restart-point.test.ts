@@ -15,6 +15,8 @@ import {
   NOTE_LIMIT,
   restartPointOf,
   workForSession,
+  CHANGED_PATH_LIMIT,
+  MOMENT_TEXT_LIMIT,
 } from "../src/restart-point.ts";
 import { readRestartPoint } from "../src/restart-points.ts";
 
@@ -249,6 +251,8 @@ describe("what the restart point shows", () => {
       Object.freeze({
         type: "USER_MESSAGE",
         occurredAt: "2026-08-26T09:01:00.000Z",
+        text: "Where was I?",
+        fromCanonicalPayload: true,
       }),
     ],
     omissions: [
@@ -278,7 +282,42 @@ describe("what the restart point shows", () => {
       branch: "main",
       hasUnsavedChanges: true,
       changedFiles: 1,
+      changedPaths: ["apps/web/src/restart-point.ts"],
     });
+  });
+
+  /**
+   * A count says how much is unsaved and the names say where the work was left, so
+   * both travel. Past the bound the rest is counted like everything else that did
+   * not fit, rather than quietly disappearing.
+   */
+  it("names the changed files up to the bound and counts the rest", () => {
+    const paths = Array.from(
+      { length: CHANGED_PATH_LIMIT + 2 },
+      (_, index) => `apps/web/src/file-${index + 1}.ts`,
+    );
+    const many = restartPointOf({
+      handoff: handoff({
+        repository: section(
+          Object.freeze({
+            branch: "main",
+            head: "f".repeat(40),
+            dirty: true,
+            changedPaths: Object.freeze(paths),
+          }),
+        ),
+      }),
+      conversationId: "session-01",
+      workState: "ACTIVE",
+      lookedAt: [],
+      omissions: [],
+    });
+    assert.deepEqual(
+      many.repository.changedPaths,
+      paths.slice(0, CHANGED_PATH_LIMIT),
+    );
+    assert.equal(many.repository.changedFiles, paths.length);
+    assert.deepEqual(many.omissions, [{ kind: "CHANGED_FILES", count: 2 }]);
   });
 
   /**
@@ -409,10 +448,14 @@ describe("composing the restart point of a conversation", () => {
     assert.match(draft, /^Show what it would take to pick this up again/u);
     assert.match(draft, /Compose the restart point$/u);
     assert.equal(draft.includes("Here is what I found"), false);
-    assert.equal(
-      JSON.stringify(point).includes("Compose the restart point"),
-      false,
-    );
+    /**
+     * The assembled draft never reaches the screen. Looking for the last question
+     * inside the point stopped measuring that once moments started carrying a line
+     * of text: the question appears there because that is what the line is for. What
+     * must be absent is the draft as a whole, and any field that would hold one.
+     */
+    assert.equal(JSON.stringify(point).includes(draft), false);
+    assert.doesNotMatch(JSON.stringify(point), /nextAction|draft/u);
   });
 
   it("bounds the notes it carries and counts the rest", async () => {
@@ -431,6 +474,64 @@ describe("composing the restart point of a conversation", () => {
         : [],
       [{ kind: "NOTES", count: 4 }],
     );
+  });
+
+  /**
+   * Five speakers and five times say the reader was here, never what they were in
+   * the middle of. The line of text is what makes the section answer the question it
+   * is there for, and it says which of the two forms it is quoting.
+   */
+  it("quotes one line of every moment it shows, and says when it is raw text", async () => {
+    const canonical = JSON.stringify({
+      recordUuid: "record-01",
+      blockIndex: 0,
+      text: "The platform gate was still open\nand nobody had checked it",
+    });
+    const point = await readRestartPoint(
+      sources({
+        sessions: {
+          list: async () => [
+            session([
+              event(1, "USER_MESSAGE", canonical),
+              event(2, "AGENT_MESSAGE", "not an envelope at all"),
+            ]),
+          ],
+        },
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    const shown =
+      point !== null && point.available === true ? point.lookedAt : [];
+    assert.deepEqual(
+      shown.map((moment) => moment.text),
+      [
+        "The platform gate was still open and nobody had checked it",
+        "not an envelope at all",
+      ],
+    );
+    assert.deepEqual(
+      shown.map((moment) => moment.fromCanonicalPayload),
+      [true, false],
+    );
+  });
+
+  it("bounds a long moment at one line and marks the tail it cut", async () => {
+    const long = `${"platform ".repeat(40)}gate`;
+    const point = await readRestartPoint(
+      sources({
+        sessions: {
+          list: async () => [session([event(1, "USER_MESSAGE", long)])],
+        },
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    const quoted =
+      point !== null && point.available === true
+        ? (point.lookedAt[0]?.text ?? "")
+        : "";
+    assert.equal(quoted.length, MOMENT_TEXT_LIMIT);
+    assert.equal(quoted.endsWith("…"), true);
+    assert.equal(long.startsWith(quoted.slice(0, -1)), true);
   });
 
   it("asks for the packet of the declared Work Item, with no files nobody named", async () => {
