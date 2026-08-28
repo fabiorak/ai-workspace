@@ -91,6 +91,29 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "not confirmed yet",
     it: "ancora da confermare",
   },
+  pointNextAction: { en: "What to do next", it: "Che cosa fare adesso" },
+  /**
+   * Beside the field, not after it. ADR-0037 prefills the draft from local text and
+   * asks that the obligation to review it stay visible; a reader who meets the
+   * sentence before the text is less likely to take the text for a decision.
+   */
+  pointDraftReview: {
+    en: "A draft, put together from what you already wrote. Read it and change it as you like: nothing is saved.",
+    it: "Una bozza, messa insieme da ciò che hai già scritto. Leggila e cambiala come vuoi: non viene salvato niente.",
+  },
+  /** Where each part of the draft came from, so it reads as quotation and not as advice. */
+  pointDraftFromObjective: {
+    en: "from the objective of this work",
+    it: "dall'obiettivo di questo lavoro",
+  },
+  pointDraftFromQuestion: {
+    en: "from the last thing you asked",
+    it: "dall'ultima cosa che hai chiesto",
+  },
+  pointDraftMadeOf: {
+    en: "Put together {sources}.",
+    it: "Messa insieme {sources}.",
+  },
   pointOnBranch: { en: "On branch {branch}", it: "Sul ramo {branch}" },
   pointNoBranch: {
     en: "The branch could not be read.",

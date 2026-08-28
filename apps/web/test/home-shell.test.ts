@@ -35,11 +35,25 @@ describe("the opening screen", () => {
     assert.match(html, /<h1 id="page-title" data-i18n="navHome">/u);
   });
 
+  /**
+   * Measured over what a reader actually lands on. An opened conversation is hidden
+   * until one is opened and carries its own fields — the draft of what to do next
+   * among them — so counting those here would measure a screen nobody has reached
+   * yet, and would forbid the fields that belong to it.
+   */
   it("asks one question and needs no form filled in first", () => {
-    assert.match(homeSection, /<input id="home-ask" name="q" required/u);
-    assert.equal((homeSection.match(/<input /gu) ?? []).length, 1);
-    assert.equal((homeSection.match(/<select /gu) ?? []).length, 0);
-    assert.equal((homeSection.match(/<textarea/gu) ?? []).length, 0);
+    const landing =
+      homeSection.slice(0, homeSection.indexOf('<div id="home-conversation"')) +
+      homeSection.slice(homeSection.indexOf('<div id="home-answer">'));
+    assert.match(landing, /<input id="home-ask" name="q" required/u);
+    assert.equal((landing.match(/<input /gu) ?? []).length, 1);
+    assert.equal((landing.match(/<select /gu) ?? []).length, 0);
+    assert.equal((landing.match(/<textarea/gu) ?? []).length, 0);
+    assert.match(
+      homeSection.slice(homeSection.indexOf('<div id="home-conversation"')),
+      /<div id="home-conversation" hidden>/u,
+      "an opened conversation must not be part of the landing screen",
+    );
   });
 
   it("names the field with a visible label bound to its control", () => {

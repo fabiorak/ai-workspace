@@ -152,9 +152,10 @@ function momentOf(
  * path, which is why this names five rather than the twenty the packet would allow.
  *
  * The next-action draft is assembled because the packet cannot be built without
- * one, and is deliberately not returned: nothing has been proposed for review yet,
- * and a draft on screen with nowhere to confirm it would read as a decision
- * somebody already took.
+ * one, and is now returned as well: there is a place to review it. It stays what it
+ * was — the person's own words, the objective and the last thing they asked, quoted
+ * rather than paraphrased, with no model anywhere near it — and it travels with the
+ * mark that says it has to be reviewed.
  *
  * No test observation is passed, so the packet records none and the point says so,
  * beside the quoted moment that reported one: an outcome is something a person
@@ -213,6 +214,7 @@ export async function readRestartPoint(
     workState: work.status,
     lookedAt: recent.map(momentOf),
     saidAboutTests: saidAboutTestsIn(ordered),
+    nextAction: draft,
     omissions,
   });
 }

@@ -21,6 +21,14 @@ export const RESTART_POINT_BEHAVIOUR = `
   const restartPointBody = document.getElementById("restart-point-body");
   const restartPointOmissions = document.getElementById("restart-point-omissions");
   const restartPointError = document.getElementById("restart-point-error");
+  const restartPointDraft = document.getElementById("restart-point-draft");
+  const restartPointNext = document.getElementById("restart-point-next");
+  const restartPointDraftSource = document.getElementById("restart-point-draft-source");
+  // Whether the person has edited the draft. Composition repeats on its own when new
+  // moments arrive, and refilling the field then would delete a revision nobody asked
+  // to lose: the prefill applies to a field still holding exactly what was proposed.
+  let restartPointNextEdited = false;
+  restartPointNext.addEventListener("input", () => { restartPointNextEdited = true; });
   // Which conversation the point on screen belongs to, so an import can recompose the
   // right one and a closed conversation recomposes nothing at all.
   let restartPointFor = null;
@@ -29,6 +37,12 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPoint.hidden = true;
     restartPointBody.replaceChildren();
     restartPointOmissions.replaceChildren();
+    // A draft belongs to one conversation. Leaving it behind would offer the next
+    // reader a proposal about work they did not open.
+    restartPointDraft.hidden = true;
+    restartPointNext.value = "";
+    restartPointNextEdited = false;
+    text(restartPointDraftSource, "");
     text(restartPointStatus, "");
     text(restartPointError, "");
   };
@@ -102,6 +116,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     // Nothing to compose is said as what is missing, never as an empty summary: a
     // work item is not chosen on the reader's behalf here.
     if (!point.available) {
+      restartPointDraft.hidden = true;
       say(restartPointStatus, point.reason === "NOT_A_WORK_CONVERSATION" ? "pointNotWork" : point.reason === "NO_LINKED_WORK" ? "pointNoWork" : "pointNothingImported");
       return;
     }
@@ -149,6 +164,13 @@ export const RESTART_POINT_BEHAVIOUR = `
     // than one that says how much it left out.
     for (const omission of point.omissions)
       restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
+    // The draft is the person's own words put back in front of them, so it is offered
+    // in a field and never as a statement. It says what it was assembled from, and it
+    // is not refilled over a revision.
+    restartPointDraft.hidden = false;
+    if (!restartPointNextEdited) restartPointNext.value = point.nextAction.text;
+    const from = point.nextAction.assembledFrom.map((source) => message(source === "WORK_ITEM_OBJECTIVE" ? "pointDraftFromObjective" : "pointDraftFromQuestion"));
+    say(restartPointDraftSource, "pointDraftMadeOf", { sources: from.join(" · ") });
     say(restartPointStatus, "pointComposed", { when: dateTime(point.composedAt) });
   };
   const composeRestartPoint = async (conversation) => {

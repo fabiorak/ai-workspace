@@ -282,7 +282,6 @@ describe("composing a restart point over HTTP", () => {
         "schemaVersion",
         "exactBytes",
         "metadata",
-        "nextAction",
         "sessionId",
       ])
         assert.equal(
@@ -290,6 +289,19 @@ describe("composing a restart point over HTTP", () => {
           false,
           `${forbidden} reached the composed answer`,
         );
+    });
+
+    /**
+     * The draft of what to do next is the one thing here that is meant to be edited,
+     * so it does travel — as the person's own words, and never without the mark that
+     * says it has to be read before anything is fixed.
+     */
+    it("carries the next action as a draft that says it needs review", async () => {
+      const body = (await point()).body as {
+        nextAction: { text: string; needsReview: boolean };
+      };
+      assert.equal(body.nextAction.needsReview, true);
+      assert.ok(body.nextAction.text.length > 0);
     });
   });
 });

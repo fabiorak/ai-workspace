@@ -9,6 +9,11 @@
  * It is a labelled region rather than a `<section>` on purpose: the routing rule in
  * the client hides and shows the direct `<section>` children of `main`, and a nested
  * one inside a conversation would read as a page of its own to that rule.
+ *
+ * The draft of what to do next is a field rather than a paragraph because it exists
+ * to be revised: ADR-0037 prefills it from local text the person already wrote and
+ * requires the review obligation to stay visible, which a sentence beside an
+ * editable field says better than a read-only line would.
  */
 export const RESTART_POINT_BLOCK = `
         <div id="restart-point" class="result-card" role="region" aria-labelledby="restart-point-heading" hidden>
@@ -17,5 +22,11 @@ export const RESTART_POINT_BLOCK = `
           <div id="restart-point-status" class="inline-status" role="status" aria-live="polite"></div>
           <div id="restart-point-body"></div>
           <div id="restart-point-omissions" class="help"></div>
+          <div id="restart-point-draft" hidden>
+            <label for="restart-point-next" data-i18n="pointNextAction">What to do next</label>
+            <p id="restart-point-draft-review" class="help" data-i18n="pointDraftReview">A draft, put together from what you already wrote. Read it and change it as you like: nothing is saved.</p>
+            <textarea id="restart-point-next" rows="4" aria-describedby="restart-point-draft-review restart-point-draft-source"></textarea>
+            <p id="restart-point-draft-source" class="help"></p>
+          </div>
           <p id="restart-point-error" class="error" role="alert"></p>
         </div>`;

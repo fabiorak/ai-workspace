@@ -184,6 +184,51 @@ describe("the restart point at the end of a work conversation", () => {
       assert.ok(catalogues[locale].pointTestsSaid?.trim());
   });
 
+  /**
+   * The draft exists to be revised, so it is a labelled field with the review
+   * obligation beside it, and it says which of the person's own words it was put
+   * together from. What it must never be is a sentence presented as a decision.
+   */
+  it("offers the next action as a draft to review, and says what it is made of", () => {
+    const draft = conversation.slice(
+      conversation.indexOf('id="restart-point-draft"'),
+    );
+    assert.match(draft, /<label for="restart-point-next"/u);
+    assert.match(draft, /<textarea id="restart-point-next"/u);
+    assert.match(draft, /aria-describedby="restart-point-draft-review/u);
+    assert.match(
+      behaviour,
+      /restartPointNext\.value = point\.nextAction\.text/u,
+    );
+    for (const key of [
+      "pointNextAction",
+      "pointDraftReview",
+      "pointDraftFromObjective",
+      "pointDraftFromQuestion",
+      "pointDraftMadeOf",
+    ])
+      for (const locale of SUPPORTED_LOCALES)
+        assert.ok(catalogues[locale][key]?.trim(), `${locale}.${key} is empty`);
+  });
+
+  /**
+   * Composition repeats on its own when moments arrive. Refilling the field then
+   * would delete a revision the person did not ask to lose.
+   */
+  it("never refills a draft the person has revised", () => {
+    assert.match(behaviour, /restartPointNextEdited = true/u);
+    assert.match(
+      behaviour,
+      /if \(!restartPointNextEdited\) restartPointNext\.value/u,
+    );
+    /** A draft belongs to one conversation and does not follow the reader elsewhere. */
+    const hide = behaviour.slice(behaviour.indexOf("const hideRestartPoint"));
+    assert.match(
+      hide.slice(0, hide.indexOf("const restartPointLabel")),
+      /restartPointNext\.value = ""/u,
+    );
+  });
+
   it("states what did not fit", () => {
     assert.match(behaviour, /"pointOmittedNotes"/u);
     assert.match(behaviour, /"pointOmittedMoments"/u);

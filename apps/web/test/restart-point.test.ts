@@ -6,6 +6,7 @@ import type { WorkItem, WorkItemId } from "@ai-workspace/core";
 import type {
   CreateHandoffInput,
   Handoff,
+  NextActionDraft,
   SectionMetadata,
   TestObservation,
 } from "@ai-workspace/handoff";
@@ -46,6 +47,13 @@ const note = (
     verification,
     confidence: "UNASSESSED" as const,
   });
+
+/** A draft as the composing path hands it over: the person's own words, to review. */
+const DRAFT: NextActionDraft = Object.freeze({
+  text: "Show what it would take to pick this up again",
+  needsReview: true,
+  assembledFrom: Object.freeze(["WORK_ITEM_OBJECTIVE" as const]),
+});
 
 const run = (
   command: string,
@@ -264,6 +272,7 @@ describe("what the restart point shows", () => {
       }),
     ],
     saidAboutTests: null,
+    nextAction: DRAFT,
     omissions: [
       Object.freeze({ kind: "NOTES" as const, count: 3 }),
       Object.freeze({ kind: "MOMENTS" as const, count: 0 }),
@@ -320,6 +329,7 @@ describe("what the restart point shows", () => {
       workState: "ACTIVE",
       lookedAt: [],
       saidAboutTests: null,
+      nextAction: DRAFT,
       omissions: [],
     });
     assert.deepEqual(
@@ -358,6 +368,7 @@ describe("what the restart point shows", () => {
       workState: "ACTIVE",
       lookedAt: [],
       saidAboutTests: null,
+      nextAction: DRAFT,
       omissions: [],
     });
     assert.deepEqual(observed.tests, [
@@ -385,6 +396,7 @@ describe("what the restart point shows", () => {
       workState: "ACTIVE",
       lookedAt: [],
       saidAboutTests: null,
+      nextAction: DRAFT,
       omissions: [],
     });
     assert.equal(many.tests.length, TEST_LIMIT);
@@ -499,10 +511,11 @@ describe("composing the restart point of a conversation", () => {
   /**
    * The packet cannot be built without a next action, and no model may write one.
    * The draft is the person's own text — the objective, and the last thing they
-   * asked — and it is never returned to the screen, because nothing has been
-   * proposed for review yet.
+   * asked — and it is now returned as well, because there is somewhere to review it.
+   * What must remain true is that it is theirs: nothing an assistant said enters it,
+   * and it always carries the mark that it has to be read before it is fixed.
    */
-  it("assembles the next action out of local text, and shows none of it", async () => {
+  it("assembles the next action out of the person's own words, to review", async () => {
     const spy = composer();
     const point = await readRestartPoint(
       sources({
@@ -523,14 +536,14 @@ describe("composing the restart point of a conversation", () => {
     assert.match(draft, /^Show what it would take to pick this up again/u);
     assert.match(draft, /Compose the restart point$/u);
     assert.equal(draft.includes("Here is what I found"), false);
-    /**
-     * The assembled draft never reaches the screen. Looking for the last question
-     * inside the point stopped measuring that once moments started carrying a line
-     * of text: the question appears there because that is what the line is for. What
-     * must be absent is the draft as a whole, and any field that would hold one.
-     */
-    assert.equal(JSON.stringify(point).includes(draft), false);
-    assert.doesNotMatch(JSON.stringify(point), /nextAction|draft/u);
+    /** The composed packet and the screen carry one and the same draft. */
+    const shown = point!.available === true ? point!.nextAction : null;
+    assert.equal(shown?.text, draft);
+    assert.equal(shown?.needsReview, true);
+    assert.deepEqual(shown?.assembledFrom, [
+      "WORK_ITEM_OBJECTIVE",
+      "LAST_QUESTION",
+    ]);
   });
 
   it("bounds the notes it carries and counts the rest", async () => {

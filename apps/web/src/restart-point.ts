@@ -21,6 +21,7 @@ import type { WorkItem } from "@ai-workspace/core";
 import type {
   Handoff,
   MemorySnapshot,
+  NextActionDraft,
   TestObservation,
 } from "@ai-workspace/handoff";
 
@@ -136,6 +137,17 @@ export type RestartPoint = Readonly<{
    * first thing a reader wants to know.
    */
   saidAboutTests: RestartPointMoment | null;
+  /**
+   * The draft of what to do next, prefilled and always marked as needing review.
+   *
+   * At the first step this was assembled and deliberately withheld, because there
+   * was nowhere to confirm it and a draft on screen with no confirmation reads as a
+   * decision somebody already took. Now there is a place to review it, so it is
+   * shown — still assembled out of the person's own words, never written by a
+   * model, and carrying what it was put together from so the interface can say
+   * where each part came from.
+   */
+  nextAction: NextActionDraft;
   /**
    * The repository as the bounded capture found it. The commit is left out on
    * purpose: it is a fingerprint, and this view speaks in branches and changes.
@@ -253,6 +265,7 @@ export function restartPointOf(
     workState: WorkItem["status"];
     lookedAt: readonly RestartPointMoment[];
     saidAboutTests: RestartPointMoment | null;
+    nextAction: NextActionDraft;
     omissions: readonly RestartPointOmission[];
   }>,
 ): RestartPoint {
@@ -289,6 +302,7 @@ export function restartPointOf(
     lookedAt: Object.freeze([...input.lookedAt]),
     tests: Object.freeze(runs.map(testOf)),
     saidAboutTests: input.saidAboutTests,
+    nextAction: input.nextAction,
     repository: Object.freeze({
       branch: input.handoff.sections.repository.value.branch,
       hasUnsavedChanges: input.handoff.sections.repository.value.dirty,
