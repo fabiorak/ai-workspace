@@ -125,6 +125,18 @@ export type RestartPoint = Readonly<{
    */
   tests: readonly RestartPointTest[];
   /**
+   * The most recent moment of the conversation that reported a test outcome, or
+   * null when none did.
+   *
+   * It is quoted, never interpreted. Every imported event is `UNTRUSTED` by
+   * construction — this is what an assistant wrote in its own record, not what
+   * somebody observed — so no outcome is derived from it and it never fills the
+   * recorded runs above. It is here because the summary shows the last five moments
+   * and an outcome further back would otherwise be nowhere at all, while it is the
+   * first thing a reader wants to know.
+   */
+  saidAboutTests: RestartPointMoment | null;
+  /**
    * The repository as the bounded capture found it. The commit is left out on
    * purpose: it is a fingerprint, and this view speaks in branches and changes.
    */
@@ -240,6 +252,7 @@ export function restartPointOf(
     conversationId: string;
     workState: WorkItem["status"];
     lookedAt: readonly RestartPointMoment[];
+    saidAboutTests: RestartPointMoment | null;
     omissions: readonly RestartPointOmission[];
   }>,
 ): RestartPoint {
@@ -275,6 +288,7 @@ export function restartPointOf(
     ),
     lookedAt: Object.freeze([...input.lookedAt]),
     tests: Object.freeze(runs.map(testOf)),
+    saidAboutTests: input.saidAboutTests,
     repository: Object.freeze({
       branch: input.handoff.sections.repository.value.branch,
       hasUnsavedChanges: input.handoff.sections.repository.value.dirty,

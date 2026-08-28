@@ -46,6 +46,17 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "No test run is recorded here, so nothing says whether this works.",
     it: "Non è registrata nessuna esecuzione delle prove: niente dice se questo funziona.",
   },
+  /**
+   * Said beside the most recent moment that reported an outcome. Every imported
+   * event is untrusted by construction, so the line is what was written in the
+   * conversation and not something anybody observed: a reader deciding whether to
+   * lean on it has to be told which of the two it is, exactly as with a note that
+   * was never confirmed.
+   */
+  pointTestsSaid: {
+    en: "Said in the conversation, not a recorded run",
+    it: "Detto nella conversazione, non un'esecuzione registrata",
+  },
   /** An outcome as a word. The stored constant never reaches a reader. */
   pointTestPassed: { en: "passed", it: "passate" },
   pointTestFailed: { en: "failed", it: "fallite" },

@@ -97,6 +97,28 @@ function oneLine(value: string): string {
     : `${collapsed.slice(0, MOMENT_TEXT_LIMIT - 1)}…`;
 }
 
+/**
+ * The most recent moment that reported a test outcome, wherever it sits.
+ *
+ * It is searched over the whole conversation rather than over the five moments
+ * shown, which is the entire reason it exists: an outcome twenty moments back is
+ * the answer to the first question a reader asks and today appears nowhere. It is
+ * quoted through the same reader as every other moment and never interpreted — the
+ * event is `UNTRUSTED`, so what it says is what an assistant wrote, not an
+ * observation. A moment already among the five shown is still returned here: the
+ * tests section has to answer on its own, because this summary is meant to be
+ * readable away from the conversation it sits under.
+ */
+function saidAboutTestsIn(
+  ordered: readonly ImportedSession["events"][number][],
+): RestartPointMoment | null {
+  for (let index = ordered.length - 1; index >= 0; index--) {
+    const event = ordered[index]!;
+    if (event.type === "TEST_RESULT") return momentOf(event);
+  }
+  return null;
+}
+
 function momentOf(
   event: ImportedSession["events"][number],
 ): RestartPointMoment {
@@ -134,8 +156,9 @@ function momentOf(
  * and a draft on screen with nowhere to confirm it would read as a decision
  * somebody already took.
  *
- * No test observation is passed, so the packet records none and the point says so.
- * That is the whole of it here: an outcome is something a person states, and
+ * No test observation is passed, so the packet records none and the point says so,
+ * beside the quoted moment that reported one: an outcome is something a person
+ * states, and
  * composing asks nothing and writes nothing, so there is nowhere yet to state one.
  * The alternatives were both refused — running anything is out of scope, and
  * reading an outcome off a clean repository or a note that mentions the tests is
@@ -189,6 +212,7 @@ export async function readRestartPoint(
     conversationId: session.id,
     workState: work.status,
     lookedAt: recent.map(momentOf),
+    saidAboutTests: saidAboutTestsIn(ordered),
     omissions,
   });
 }

@@ -158,6 +158,32 @@ describe("the restart point at the end of a work conversation", () => {
     assert.match(RESTART_POINT_TEXT.pointNoTests.it, /Non è registrata/u);
   });
 
+  /**
+   * A quoted outcome is what an assistant wrote, not what anybody observed, and the
+   * two must not be readable as the same thing: the line carries its provenance in
+   * words, and no result word stands beside it.
+   */
+  it("quotes what was said about the tests, and says it is a quotation", () => {
+    assert.match(behaviour, /if \(point\.saidAboutTests\)/u);
+    assert.match(behaviour, /text\(line, point\.saidAboutTests\.text\)/u);
+    assert.match(behaviour, /message\("pointTestsSaid"\)/u);
+    const quoted = behaviour.slice(
+      behaviour.indexOf("if (point.saidAboutTests)"),
+    );
+    for (const outcome of [
+      "pointTestPassed",
+      "pointTestFailed",
+      "pointTestNotRun",
+    ])
+      assert.doesNotMatch(
+        quoted.slice(0, quoted.indexOf("restartPointBody.append(said)")),
+        new RegExp(`"${outcome}"`, "u"),
+        "a quotation must not be dressed as an outcome",
+      );
+    for (const locale of SUPPORTED_LOCALES)
+      assert.ok(catalogues[locale].pointTestsSaid?.trim());
+  });
+
   it("states what did not fit", () => {
     assert.match(behaviour, /"pointOmittedNotes"/u);
     assert.match(behaviour, /"pointOmittedMoments"/u);

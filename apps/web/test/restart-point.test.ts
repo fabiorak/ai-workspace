@@ -263,6 +263,7 @@ describe("what the restart point shows", () => {
         fromCanonicalPayload: true,
       }),
     ],
+    saidAboutTests: null,
     omissions: [
       Object.freeze({ kind: "NOTES" as const, count: 3 }),
       Object.freeze({ kind: "MOMENTS" as const, count: 0 }),
@@ -318,6 +319,7 @@ describe("what the restart point shows", () => {
       conversationId: "session-01",
       workState: "ACTIVE",
       lookedAt: [],
+      saidAboutTests: null,
       omissions: [],
     });
     assert.deepEqual(
@@ -355,6 +357,7 @@ describe("what the restart point shows", () => {
       conversationId: "session-01",
       workState: "ACTIVE",
       lookedAt: [],
+      saidAboutTests: null,
       omissions: [],
     });
     assert.deepEqual(observed.tests, [
@@ -381,6 +384,7 @@ describe("what the restart point shows", () => {
       conversationId: "session-01",
       workState: "ACTIVE",
       lookedAt: [],
+      saidAboutTests: null,
       omissions: [],
     });
     assert.equal(many.tests.length, TEST_LIMIT);
@@ -631,5 +635,42 @@ describe("composing the restart point of a conversation", () => {
     });
     assert.equal(spy.asked[0]?.testState, undefined);
     assert.deepEqual(point!.available === true ? point!.tests : null, []);
+    assert.equal(
+      point!.available === true ? point!.saidAboutTests : "missing",
+      null,
+    );
+  });
+
+  /**
+   * The answer to "do the tests pass" is usually in the conversation and nowhere
+   * else. Only five moments are shown, so an outcome further back appeared nowhere
+   * at all: it is searched over the whole conversation, quoted, and left as a
+   * quotation — no outcome is derived from it and the recorded runs stay empty.
+   */
+  it("quotes the most recent moment that reported an outcome, however far back", async () => {
+    const moments = [
+      event(1, "TEST_RESULT", "npm test failed 3"),
+      event(2, "TEST_RESULT", "npm test passed 1"),
+      ...Array.from({ length: LOOKED_AT_LIMIT + 1 }, (_, index) =>
+        event(index + 3, "AGENT_MESSAGE", `Moment ${index + 3}`),
+      ),
+    ];
+    const point = await readRestartPoint(
+      sources({ sessions: { list: async () => [session(moments)] } }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    const said = point!.available === true ? point!.saidAboutTests : null;
+    assert.equal(said?.text, "npm test passed 1");
+    assert.equal(said?.type, "TEST_RESULT");
+    assert.equal(said?.occurredAt, "2026-08-26T09:02:00.000Z");
+    assert.equal(said?.fromCanonicalPayload, false);
+    /** Quoted, never read as a result: nothing derives a recorded run from it. */
+    assert.deepEqual(point!.available === true ? point!.tests : null, []);
+    assert.equal(
+      point!.available === true &&
+        point!.lookedAt.some((moment) => moment.text === "npm test passed 1"),
+      false,
+      "the quoted outcome is older than the moments shown, which is the point",
+    );
   });
 });

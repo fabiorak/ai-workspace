@@ -113,6 +113,25 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointBody.append(restartPointLabel("pointFailures"), restartPointNotes(point.failures, "pointNoFailures"));
     restartPointBody.append(restartPointLabel("pointLookedAt"), restartPointMoments(point.lookedAt));
     restartPointBody.append(restartPointLabel("pointTests"), restartPointTests(point.tests));
+    // The answer to "do the tests pass" is often in the conversation and nowhere else,
+    // and only the last five moments are shown. It is quoted with its provenance said
+    // out loud, never as an outcome: no word of result stands beside it.
+    if (point.saidAboutTests) {
+      const said = document.createElement("p");
+      const line = document.createElement("span");
+      if (point.saidAboutTests.text) text(line, point.saidAboutTests.text); else say(line, "pointMomentNoText");
+      const source = document.createElement("span");
+      source.className = "help";
+      text(source, message("pointTestsSaid") + (point.saidAboutTests.occurredAt ? " · " + dateTime(point.saidAboutTests.occurredAt) : ""));
+      said.append(line, document.createTextNode(" · "), source);
+      if (point.saidAboutTests.text && !point.saidAboutTests.fromCanonicalPayload) {
+        const raw = document.createElement("span");
+        raw.className = "help";
+        say(raw, "pointMomentRaw");
+        said.append(document.createTextNode(" · "), raw);
+      }
+      restartPointBody.append(said);
+    }
     restartPointBody.append(restartPointLabel("pointRepository"));
     restartPointBody.append(point.repository.branch ? restartPointSentence("pointOnBranch", { branch: point.repository.branch }) : restartPointSentence("pointNoBranch"));
     restartPointBody.append(point.repository.hasUnsavedChanges ? (point.repository.changedFiles === 1 ? restartPointSentence("pointRepositoryOneChanged") : restartPointSentence("pointRepositoryChanged", { count: number(point.repository.changedFiles) })) : restartPointSentence("pointRepositoryClean"));
