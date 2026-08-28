@@ -58,6 +58,11 @@ export type RestartPointSources = Readonly<{
    * so this module cannot accidentally hold the one that writes.
    */
   compose(input: CreateHandoffInput): Promise<Handoff>;
+  /**
+   * The packets already fixed for this work, most recent first, as `Handoffs.list`
+   * orders them. A read: nothing here creates, replaces or supersedes one.
+   */
+  fixed(projectId: string, workItemId: string): Promise<readonly Handoff[]>;
 }>;
 
 /**
@@ -140,6 +145,25 @@ function momentOf(
 }
 
 /**
+ * What this work has already fixed, read from the packets themselves.
+ *
+ * The date says which summary a new one would follow; the identity stays out of the
+ * view, as every other identity does. The command of the most recent recorded run
+ * travels so the field can be offered filled — that is the person's own text handed
+ * back — while the outcome never does: it is the part that asserts something, and an
+ * assertion carried over from a week ago would be somebody else's claim about today.
+ */
+function fixedOf(packets: readonly Handoff[]): RestartPoint["fixed"] {
+  const latest = packets[0];
+  if (latest === undefined) return null;
+  return Object.freeze({
+    count: packets.length,
+    at: latest.createdAt,
+    testCommand: latest.sections.testState.value[0]?.command ?? null,
+  });
+}
+
+/**
  * Composes the restart point of one conversation, or says why there is none.
  *
  * Null means the conversation itself is gone, which the interface answers
@@ -215,6 +239,7 @@ export async function readRestartPoint(
     lookedAt: recent.map(momentOf),
     saidAboutTests: saidAboutTestsIn(ordered),
     nextAction: draft,
+    fixed: fixedOf(await sources.fixed(projectId, work.id)),
     omissions,
   });
 }

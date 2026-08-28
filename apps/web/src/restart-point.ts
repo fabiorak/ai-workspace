@@ -149,6 +149,21 @@ export type RestartPoint = Readonly<{
    */
   nextAction: NextActionDraft;
   /**
+   * What this work has already fixed, or null when nothing has been.
+   *
+   * It carries the date of the most recent packet rather than its identity, because
+   * a reader is told which summary a new one would follow and never asked to handle
+   * an identifier. The command of its recorded run comes along so the field can be
+   * offered already filled: a command is text the person wrote, and offering it back
+   * repeats their words. No outcome is ever carried over — that is the part that
+   * asserts something, and it is stated again every time or not at all.
+   */
+  fixed: Readonly<{
+    count: number;
+    at: string;
+    testCommand: string | null;
+  }> | null;
+  /**
    * The repository as the bounded capture found it. The commit is left out on
    * purpose: it is a fingerprint, and this view speaks in branches and changes.
    */
@@ -266,6 +281,7 @@ export function restartPointOf(
     lookedAt: readonly RestartPointMoment[];
     saidAboutTests: RestartPointMoment | null;
     nextAction: NextActionDraft;
+    fixed: RestartPoint["fixed"];
     omissions: readonly RestartPointOmission[];
   }>,
 ): RestartPoint {
@@ -303,6 +319,7 @@ export function restartPointOf(
     tests: Object.freeze(runs.map(testOf)),
     saidAboutTests: input.saidAboutTests,
     nextAction: input.nextAction,
+    fixed: input.fixed,
     repository: Object.freeze({
       branch: input.handoff.sections.repository.value.branch,
       hasUnsavedChanges: input.handoff.sections.repository.value.dirty,

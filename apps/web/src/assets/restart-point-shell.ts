@@ -27,6 +27,18 @@ export const RESTART_POINT_BLOCK = `
             <p id="restart-point-draft-review" class="help" data-i18n="pointDraftReview">A draft, put together from what you already wrote. Read it and change it as you like: nothing is saved.</p>
             <textarea id="restart-point-next" rows="4" aria-describedby="restart-point-draft-review restart-point-draft-source"></textarea>
             <p id="restart-point-draft-source" class="help"></p>
+            <label for="restart-point-test-command" data-i18n="pointTestCommand">Test command</label>
+            <input id="restart-point-test-command" type="text" aria-describedby="restart-point-tests-optional">
+            <label for="restart-point-test-outcome" data-i18n="pointTestOutcome">How it went</label>
+            <select id="restart-point-test-outcome" aria-describedby="restart-point-tests-optional">
+              <option value="" data-i18n="pointTestOutcomeNone">not stated</option>
+              <option value="passed" data-i18n="pointTestPassed">passed</option>
+              <option value="failed" data-i18n="pointTestFailed">failed</option>
+              <option value="not-run" data-i18n="pointTestNotRun">not run</option>
+            </select>
+            <label for="restart-point-test-at" data-i18n="pointTestWhen">When it ran</label>
+            <input id="restart-point-test-at" type="datetime-local" aria-describedby="restart-point-tests-optional">
+            <p id="restart-point-tests-optional" class="help" data-i18n="pointTestsOptional">Optional. Left empty, nothing about the tests is recorded — and nothing is guessed either.</p>
           </div>
           <p id="restart-point-error" class="error" role="alert"></p>
         </div>`;

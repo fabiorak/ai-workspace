@@ -114,6 +114,24 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "Put together {sources}.",
     it: "Messa insieme {sources}.",
   },
+  pointTestCommand: { en: "Test command", it: "Comando delle prove" },
+  pointTestOutcome: { en: "How it went", it: "Com'è andata" },
+  pointTestWhen: { en: "When it ran", it: "Quando è stata eseguita" },
+  /**
+   * The default. An outcome nobody chose is not "not run": that is itself a claim,
+   * and the difference between saying nothing and saying it did not run is the whole
+   * reason this option is here.
+   */
+  pointTestOutcomeNone: { en: "not stated", it: "non dichiarato" },
+  pointTestsOptional: {
+    en: "Optional. Left empty, nothing about the tests is recorded — and nothing is guessed either.",
+    it: "Facoltativo. Se lo lasci vuoto non viene registrato niente sulle prove, e niente viene indovinato.",
+  },
+  /** Said when the command comes back from the last summary that was fixed. */
+  pointTestCommandRepeated: {
+    en: "The command you recorded last time. The outcome is never carried over.",
+    it: "Il comando che hai registrato l'ultima volta. L'esito non viene mai riportato.",
+  },
   pointOnBranch: { en: "On branch {branch}", it: "Sul ramo {branch}" },
   pointNoBranch: {
     en: "The branch could not be read.",

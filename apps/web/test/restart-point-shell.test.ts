@@ -229,6 +229,53 @@ describe("the restart point at the end of a work conversation", () => {
     );
   });
 
+  /**
+   * The three parts of a recorded run, all optional, with the outcome defaulting to
+   * nothing said. An unchosen outcome must not become "not run": that is a claim of
+   * its own, and the whole point of the empty option is the difference between the
+   * two.
+   */
+  it("asks how the tests went without ever answering for the person", () => {
+    const draft = conversation.slice(
+      conversation.indexOf('id="restart-point-draft"'),
+    );
+    assert.match(draft, /<input id="restart-point-test-command"/u);
+    assert.match(draft, /<select id="restart-point-test-outcome"/u);
+    assert.match(
+      draft,
+      /<input id="restart-point-test-at" type="datetime-local"/u,
+    );
+    const outcome = draft.slice(
+      draft.indexOf('id="restart-point-test-outcome"'),
+    );
+    assert.match(
+      outcome.slice(0, outcome.indexOf("</select>")),
+      /<option value="" data-i18n="pointTestOutcomeNone">/u,
+      "the first option must be the one that states nothing",
+    );
+    assert.doesNotMatch(behaviour, /restartPointTestOutcome\.value = [^"]/u);
+    for (const key of [
+      "pointTestCommand",
+      "pointTestOutcome",
+      "pointTestWhen",
+      "pointTestOutcomeNone",
+      "pointTestsOptional",
+      "pointTestCommandRepeated",
+    ])
+      for (const locale of SUPPORTED_LOCALES)
+        assert.ok(catalogues[locale][key]?.trim(), `${locale}.${key} is empty`);
+  });
+
+  /** A command already recorded comes back; a stated outcome never does. */
+  it("offers back the command of the last fixed summary, and says so", () => {
+    assert.match(
+      behaviour,
+      /restartPointTestCommand\.value = point\.fixed\.testCommand/u,
+    );
+    assert.match(behaviour, /"pointTestCommandRepeated"/u);
+    assert.doesNotMatch(behaviour, /point\.fixed\.outcome|fixed\.testOutcome/u);
+  });
+
   it("states what did not fit", () => {
     assert.match(behaviour, /"pointOmittedNotes"/u);
     assert.match(behaviour, /"pointOmittedMoments"/u);

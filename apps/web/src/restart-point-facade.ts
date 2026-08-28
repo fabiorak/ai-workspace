@@ -7,12 +7,43 @@
  * keeps what a facade owes its callers: no store internals, and every failure
  * carrying its own recovery.
  */
+import type { ActiveMemory } from "@ai-workspace/active-memory";
+import type { Handoffs } from "@ai-workspace/handoff";
+
+import type { ConversationSources } from "./conversations.ts";
 import type { FacadeGuard } from "./conversation-facade.ts";
 import type { RestartPoint, RestartPointUnavailable } from "./restart-point.ts";
 import {
   readRestartPoint,
   type RestartPointSources,
 } from "./restart-points.ts";
+
+/**
+ * Binds the area to the stores it reads, so the host does not spell out four
+ * closures over its own private fields.
+ *
+ * Composing goes through `preview`, which never persists, and the fixed packets are
+ * read through `list`, which only reads: the area is handed the two paths it is
+ * allowed to take and cannot reach for the one that writes.
+ */
+export function restartPointSources(
+  stores: Readonly<{
+    conversations: ConversationSources;
+    memory: ActiveMemory;
+    handoffs: Handoffs;
+  }>,
+): RestartPointSources {
+  return Object.freeze({
+    sessions: stores.conversations.sessions,
+    workItems: stores.conversations.workItems,
+    notes: async (projectId: string, limit: number) =>
+      (await stores.memory.list({ projectId, validity: "ACTIVE", limit }))
+        .items,
+    compose: (input) => stores.handoffs.preview(input),
+    fixed: (projectId: string, workItemId: string) =>
+      stores.handoffs.list(projectId, workItemId),
+  });
+}
 
 export type RestartPointArea = Readonly<{
   /**

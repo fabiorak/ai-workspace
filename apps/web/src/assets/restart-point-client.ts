@@ -29,6 +29,15 @@ export const RESTART_POINT_BEHAVIOUR = `
   // to lose: the prefill applies to a field still holding exactly what was proposed.
   let restartPointNextEdited = false;
   restartPointNext.addEventListener("input", () => { restartPointNextEdited = true; });
+  const restartPointTestCommand = document.getElementById("restart-point-test-command");
+  const restartPointTestOutcome = document.getElementById("restart-point-test-outcome");
+  const restartPointTestAt = document.getElementById("restart-point-test-at");
+  const restartPointTestsOptional = document.getElementById("restart-point-tests-optional");
+  // The command is the person's own text handed back, so it may be offered filled; it
+  // stops being offered the moment they change it. The outcome is never offered: it is
+  // the part that asserts something, and it is chosen every time or left unstated.
+  let restartPointTestCommandEdited = false;
+  restartPointTestCommand.addEventListener("input", () => { restartPointTestCommandEdited = true; });
   // Which conversation the point on screen belongs to, so an import can recompose the
   // right one and a closed conversation recomposes nothing at all.
   let restartPointFor = null;
@@ -42,6 +51,11 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointDraft.hidden = true;
     restartPointNext.value = "";
     restartPointNextEdited = false;
+    restartPointTestCommand.value = "";
+    restartPointTestCommandEdited = false;
+    restartPointTestOutcome.value = "";
+    restartPointTestAt.value = "";
+    say(restartPointTestsOptional, "pointTestsOptional");
     text(restartPointDraftSource, "");
     text(restartPointStatus, "");
     text(restartPointError, "");
@@ -171,6 +185,12 @@ export const RESTART_POINT_BEHAVIOUR = `
     if (!restartPointNextEdited) restartPointNext.value = point.nextAction.text;
     const from = point.nextAction.assembledFrom.map((source) => message(source === "WORK_ITEM_OBJECTIVE" ? "pointDraftFromObjective" : "pointDraftFromQuestion"));
     say(restartPointDraftSource, "pointDraftMadeOf", { sources: from.join(" · ") });
+    // A command recorded last time comes back as a starting point, and the sentence
+    // beside the fields says both that it was repeated and that the outcome was not.
+    if (!restartPointTestCommandEdited && point.fixed && point.fixed.testCommand) {
+      restartPointTestCommand.value = point.fixed.testCommand;
+      say(restartPointTestsOptional, "pointTestCommandRepeated");
+    } else if (!restartPointTestCommandEdited) say(restartPointTestsOptional, "pointTestsOptional");
     say(restartPointStatus, "pointComposed", { when: dateTime(point.composedAt) });
   };
   const composeRestartPoint = async (conversation) => {

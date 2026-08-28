@@ -223,6 +223,7 @@ const sources = (
   workItems: { list: async () => [work()] },
   notes: async () => [storedNote(1)],
   compose: async () => handoff(),
+  fixed: async () => [],
   ...overrides,
 });
 
@@ -273,6 +274,7 @@ describe("what the restart point shows", () => {
     ],
     saidAboutTests: null,
     nextAction: DRAFT,
+    fixed: null,
     omissions: [
       Object.freeze({ kind: "NOTES" as const, count: 3 }),
       Object.freeze({ kind: "MOMENTS" as const, count: 0 }),
@@ -330,6 +332,7 @@ describe("what the restart point shows", () => {
       lookedAt: [],
       saidAboutTests: null,
       nextAction: DRAFT,
+      fixed: null,
       omissions: [],
     });
     assert.deepEqual(
@@ -369,6 +372,7 @@ describe("what the restart point shows", () => {
       lookedAt: [],
       saidAboutTests: null,
       nextAction: DRAFT,
+      fixed: null,
       omissions: [],
     });
     assert.deepEqual(observed.tests, [
@@ -397,6 +401,7 @@ describe("what the restart point shows", () => {
       lookedAt: [],
       saidAboutTests: null,
       nextAction: DRAFT,
+      fixed: null,
       omissions: [],
     });
     assert.equal(many.tests.length, TEST_LIMIT);
@@ -544,6 +549,38 @@ describe("composing the restart point of a conversation", () => {
       "WORK_ITEM_OBJECTIVE",
       "LAST_QUESTION",
     ]);
+  });
+
+  /**
+   * A command is text the person wrote, so it is handed back to save them writing it
+   * again. An outcome is a claim about now, so last week's is never handed back.
+   */
+  it("carries the command of the last fixed run, and never its outcome", async () => {
+    const point = await readRestartPoint(
+      sources({
+        fixed: async () => [
+          handoff({
+            testState: section(Object.freeze([run("npm run check", "FAIL")])),
+          }),
+          handoff(),
+        ],
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    const fixed = point!.available === true ? point!.fixed : null;
+    assert.equal(fixed?.count, 2);
+    assert.equal(fixed?.at, "2026-08-27T09:00:00.000Z");
+    assert.equal(fixed?.testCommand, "npm run check");
+    assert.equal(JSON.stringify(fixed).includes("FAIL"), false);
+    assert.equal(JSON.stringify(fixed).includes("handoff-01"), false);
+  });
+
+  it("says nothing has been fixed when nothing has", async () => {
+    const point = await readRestartPoint(sources(), {
+      conversationId: "session-01",
+      projectId: "project-01",
+    });
+    assert.equal(point!.available === true ? point!.fixed : "missing", null);
   });
 
   it("bounds the notes it carries and counts the rest", async () => {
