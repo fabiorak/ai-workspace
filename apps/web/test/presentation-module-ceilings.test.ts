@@ -15,7 +15,7 @@ import { describe, it } from "node:test";
 const CEILINGS = Object.freeze({
   "application.ts": 1295,
   "localization.ts": 1401,
-  "server.ts": 1139,
+  "server.ts": 803,
 });
 
 /** Counts terminated lines, so the number matches what a line-counting tool reports. */
