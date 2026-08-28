@@ -275,6 +275,7 @@ describe("what the restart point shows", () => {
     saidAboutTests: null,
     nextAction: DRAFT,
     fixed: null,
+    composition: "composition-mark",
     omissions: [
       Object.freeze({ kind: "NOTES" as const, count: 3 }),
       Object.freeze({ kind: "MOMENTS" as const, count: 0 }),
@@ -333,6 +334,7 @@ describe("what the restart point shows", () => {
       saidAboutTests: null,
       nextAction: DRAFT,
       fixed: null,
+      composition: "composition-mark",
       omissions: [],
     });
     assert.deepEqual(
@@ -373,6 +375,7 @@ describe("what the restart point shows", () => {
       saidAboutTests: null,
       nextAction: DRAFT,
       fixed: null,
+      composition: "composition-mark",
       omissions: [],
     });
     assert.deepEqual(observed.tests, [
@@ -402,6 +405,7 @@ describe("what the restart point shows", () => {
       saidAboutTests: null,
       nextAction: DRAFT,
       fixed: null,
+      composition: "composition-mark",
       omissions: [],
     });
     assert.equal(many.tests.length, TEST_LIMIT);

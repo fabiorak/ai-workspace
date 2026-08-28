@@ -38,6 +38,12 @@ export const RESTART_POINT_BEHAVIOUR = `
   // the part that asserts something, and it is chosen every time or left unstated.
   let restartPointTestCommandEdited = false;
   restartPointTestCommand.addEventListener("input", () => { restartPointTestCommandEdited = true; });
+  const restartPointFollows = document.getElementById("restart-point-follows");
+  const restartPointFixButton = document.getElementById("restart-point-fix");
+  const restartPointFixStatus = document.getElementById("restart-point-fix-status");
+  // The mark of the composition on screen. It travels back untouched so the server can
+  // refuse a confirmation that no longer describes what was read; it is never shown.
+  let restartPointComposition = null;
   // Which conversation the point on screen belongs to, so an import can recompose the
   // right one and a closed conversation recomposes nothing at all.
   let restartPointFor = null;
@@ -56,6 +62,10 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointTestOutcome.value = "";
     restartPointTestAt.value = "";
     say(restartPointTestsOptional, "pointTestsOptional");
+    restartPointComposition = null;
+    text(restartPointFollows, "");
+    text(restartPointFixStatus, "");
+    restartPointFixButton.disabled = false;
     text(restartPointDraftSource, "");
     text(restartPointStatus, "");
     text(restartPointError, "");
@@ -191,6 +201,11 @@ export const RESTART_POINT_BEHAVIOUR = `
       restartPointTestCommand.value = point.fixed.testCommand;
       say(restartPointTestsOptional, "pointTestCommandRepeated");
     } else if (!restartPointTestCommandEdited) say(restartPointTestsOptional, "pointTestsOptional");
+    // Which summary this one would follow, by date and never by identifier, said before
+    // the gesture: a permanent link is not something to discover afterwards.
+    restartPointComposition = point.composition;
+    if (point.fixed) say(restartPointFollows, "pointFollows", { when: dateTime(point.fixed.at) });
+    else say(restartPointFollows, "pointFollowsNothing");
     say(restartPointStatus, "pointComposed", { when: dateTime(point.composedAt) });
   };
   const composeRestartPoint = async (conversation) => {
@@ -214,6 +229,52 @@ export const RESTART_POINT_BEHAVIOUR = `
       detail(restartPointError, cause);
     }
   };
+  // The one write of this area, and it happens only here: no timer, no navigation and
+  // no arriving moment ever reaches it.
+  const outcomeStated = () => restartPointTestOutcome.value || null;
+  const fixRestartPoint = async () => {
+    if (!restartPointFor || !restartPointComposition) return;
+    const asked = restartPointFor.id;
+    restartPointFixButton.disabled = true;
+    text(restartPointError, "");
+    say(restartPointFixStatus, "pointFixing");
+    const query = restartPointFor.projectId ? "?project=" + encodeURIComponent(restartPointFor.projectId) : "";
+    try {
+      const result = await api("/api/conversations/" + encodeURIComponent(asked) + "/restart-point" + query, {
+        method: "POST",
+        body: JSON.stringify({
+          composition: restartPointComposition,
+          nextAction: restartPointNext.value,
+          test: { command: restartPointTestCommand.value, outcome: outcomeStated(), observedAt: restartPointTestAt.value || null },
+        }),
+      });
+      if (!restartPointFor || restartPointFor.id !== asked) return;
+      if (result.fixed) {
+        say(restartPointFixStatus, "pointFixedAt", { when: dateTime(result.at) });
+        // What was kept is now part of this work's history, so the summary is composed
+        // again: it is the same read that says which one a next summary would follow.
+        restartPointNextEdited = false;
+        restartPointTestCommandEdited = false;
+        void composeRestartPoint(restartPointFor);
+        return;
+      }
+      restartPointFixButton.disabled = false;
+      if (result.reason === "EMPTY_NEXT_ACTION") say(restartPointFixStatus, "pointFixEmpty");
+      else if (result.reason === "INCOMPLETE_TEST") say(restartPointFixStatus, "pointFixHalfTest");
+      else {
+        // The composition moved under the reader. Nothing was written, and the summary is
+        // recomposed at once so that confirming again is one gesture on what is now true.
+        say(restartPointFixStatus, "pointFixMoved");
+        void composeRestartPoint(restartPointFor);
+      }
+    } catch (cause) {
+      if (!restartPointFor || restartPointFor.id !== asked) return;
+      restartPointFixButton.disabled = false;
+      text(restartPointFixStatus, "");
+      detail(restartPointError, cause);
+    }
+  };
+  restartPointFixButton.addEventListener("click", () => { void fixRestartPoint(); });
   const showRestartPoint = (conversation) => { void composeRestartPoint(conversation); };
   // Recomposed rather than patched: the moments that arrived may have changed what was
   // decided, where the reader was, and how the repository stands, and a point assembled

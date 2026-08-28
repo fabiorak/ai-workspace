@@ -12,6 +12,8 @@
  * act, not a guess, which is what keeps this clear of the inference ADR-0010
  * forbids.
  */
+import { createHash } from "node:crypto";
+
 import { readCanonicalPayload } from "@ai-workspace/historical-search";
 import type { MemoryItem } from "@ai-workspace/active-memory";
 import type { WorkItem } from "@ai-workspace/core";
@@ -190,10 +192,48 @@ function fixedOf(packets: readonly Handoff[]): RestartPoint["fixed"] {
  * the inference ADR-0010 forbids. Asking for it belongs to the deliberate
  * confirmation, where the person already reviews the exact text that gets stored.
  */
-export async function readRestartPoint(
+/**
+ * Everything one composition produced: what a reader sees, and what would be
+ * written if they confirmed it.
+ *
+ * The two travel together because they must not be composed twice. Reading returns
+ * the point; confirming needs the same composition again, plus the memory and
+ * evidence identifiers the packet was assembled from, which the ordinary view never
+ * carries. A second construction would be a second read of moving stores, and the
+ * packet that got written could then cite something nobody looked at.
+ */
+export type RestartPointComposition = Readonly<{
+  point: RestartPoint;
+  built: CreateHandoffInput;
+  workItemId: string;
+  fixedCount: number;
+  predecessorId: string | null;
+}>;
+
+/**
+ * The mark of one composition, produced here and never by the caller.
+ *
+ * It covers exactly what a confirmation would write — every section of the packet,
+ * including the evidence each one cites — plus the lines of the moments the reader
+ * was shown. The packet's own identity and creation time are left out, because they
+ * are new on every composition and would make every mark differ from the last.
+ *
+ * It is a value the browser hands back untouched, so that a confirmation can be
+ * refused when it no longer describes what somebody read. It is never displayed.
+ */
+function markOf(
+  handoff: Handoff,
+  shown: readonly RestartPointMoment[],
+): string {
+  return createHash("sha256")
+    .update(JSON.stringify({ sections: handoff.sections, shown }), "utf8")
+    .digest("hex");
+}
+
+export async function composeRestartPoint(
   sources: RestartPointSources,
   query: Readonly<{ conversationId: string; projectId: string | null }>,
-): Promise<RestartPoint | RestartPointUnavailable | null> {
+): Promise<RestartPointComposition | RestartPointUnavailable | null> {
   if (query.projectId === null) return NOT_A_WORK_CONVERSATION;
   const projectId = query.projectId;
   const sessions = await sources.sessions.list(projectId);
@@ -225,21 +265,41 @@ export async function readRestartPoint(
     objective: work.objective,
     lastQuestion: lastQuestionOf(ordered),
   });
-  const handoff = await sources.compose({
+  const built: CreateHandoffInput = {
     projectId,
     workItemId: work.id,
     memoryIds: selected.map((note) => note.id),
     nextAction: draft.text,
     sourceEventIds: recent.map((event) => event.id),
+  };
+  const handoff = await sources.compose(built);
+  const already = await sources.fixed(projectId, work.id);
+  const lookedAt = recent.map(momentOf);
+  return Object.freeze({
+    point: restartPointOf({
+      handoff,
+      conversationId: session.id,
+      workState: work.status,
+      lookedAt,
+      saidAboutTests: saidAboutTestsIn(ordered),
+      nextAction: draft,
+      fixed: fixedOf(already),
+      composition: markOf(handoff, lookedAt),
+      omissions,
+    }),
+    built,
+    workItemId: work.id,
+    fixedCount: already.length,
+    predecessorId: already[0]?.id ?? null,
   });
-  return restartPointOf({
-    handoff,
-    conversationId: session.id,
-    workState: work.status,
-    lookedAt: recent.map(momentOf),
-    saidAboutTests: saidAboutTestsIn(ordered),
-    nextAction: draft,
-    fixed: fixedOf(await sources.fixed(projectId, work.id)),
-    omissions,
-  });
+}
+
+export async function readRestartPoint(
+  sources: RestartPointSources,
+  query: Readonly<{ conversationId: string; projectId: string | null }>,
+): Promise<RestartPoint | RestartPointUnavailable | null> {
+  const composed = await composeRestartPoint(sources, query);
+  return composed === null || "available" in composed
+    ? composed
+    : composed.point;
 }

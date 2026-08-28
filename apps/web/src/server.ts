@@ -5,6 +5,7 @@ import { GuiApplication, GuiApplicationError } from "./application.ts";
 import { dashboardFragmentHtml } from "./dashboard-view.ts";
 import { handleConversationRoute } from "./conversation-route.ts";
 import { handleHandoffPreviewRoute } from "./handoff-preview-route.ts";
+import { handleProjectRoute } from "./project-route.ts";
 import { handleTranscriptRoute } from "./transcript-route.ts";
 import { resolveGuiLocale } from "./localization.ts";
 import {
@@ -111,7 +112,15 @@ export async function startGuiServer(
         return send(response, "text/css; charset=utf-8", APP_CSS);
       if (request.method === "GET" && url.pathname === "/app.js")
         return send(response, "text/javascript; charset=utf-8", APP_JS);
-      if (await handleConversationRoute(request, response, url, application))
+      if (
+        await handleConversationRoute(
+          request,
+          response,
+          url,
+          application,
+          (r) => validMutation(r, origin, csrfToken),
+        )
+      )
         return;
       if (request.method === "GET" && url.pathname === "/api/projects")
         return json(response, 200, await application.listProjects());
@@ -494,20 +503,6 @@ export async function startGuiServer(
             }),
           );
         }
-        if (url.pathname === "/api/projects") {
-          const body = await readJson(request);
-          if (!record(body) || typeof body.path !== "string")
-            return reject(
-              response,
-              400,
-              "Enter a local Git repository directory.",
-            );
-          return json(
-            response,
-            201,
-            await application.registerProject(body.path),
-          );
-        }
         const instructionPreview =
           /^\/api\/projects\/([^/]+)\/instructions\/preview$/u.exec(
             url.pathname,
@@ -744,24 +739,8 @@ export async function startGuiServer(
             );
           return reject(response, 400, "Enter the documented lifecycle value.");
         }
-        const inspect = /^\/api\/projects\/([^/]+)\/inspect$/u.exec(
-          url.pathname,
-        );
-        if (inspect !== null)
-          return json(
-            response,
-            200,
-            await application.inspectProject(decodeURIComponent(inspect[1]!)),
-          );
-        const sample = /^\/api\/projects\/([^/]+)\/import-sample$/u.exec(
-          url.pathname,
-        );
-        if (sample !== null)
-          return json(
-            response,
-            200,
-            await application.importSample(decodeURIComponent(sample[1]!)),
-          );
+        if (await handleProjectRoute(request, response, url, application))
+          return;
         if (await handleTranscriptRoute(request, response, url, application))
           return;
       }

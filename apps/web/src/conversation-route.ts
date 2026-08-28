@@ -10,7 +10,10 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { GuiApplication } from "./application.ts";
 import { GuiApplicationError } from "./application.ts";
 import { json, reject } from "./http-plumbing.ts";
-import { handleRestartPointRoute } from "./restart-point-route.ts";
+import {
+  handleRestartPointRoute,
+  type MutationGuard,
+} from "./restart-point-route.ts";
 
 /** Same shape as the other list bounds in this interface, so one rule covers them all. */
 function limitOf(value: string | null): number | undefined {
@@ -41,15 +44,25 @@ export async function handleConversationRoute(
   response: ServerResponse,
   url: URL,
   application: GuiApplication,
+  authorizeWrite: MutationGuard,
 ): Promise<boolean> {
-  if (request.method !== "GET") return false;
   /**
    * What lives inside a conversation is routed by the module that owns the
    * conversation path, in its own module. It is asked first because an id is a
    * single segment here, so a longer path is not this route's to answer.
    */
-  if (await handleRestartPointRoute(request, response, url, application))
+  if (
+    await handleRestartPointRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )
+  )
     return true;
+  /** Everything else in this area is a read, and stays one. */
+  if (request.method !== "GET") return false;
   const id = conversationIdOf(url.pathname);
   if (id === null && url.pathname !== "/api/conversations") return false;
   try {

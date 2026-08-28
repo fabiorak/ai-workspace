@@ -13,9 +13,9 @@ import { describe, it } from "node:test";
  * more room in one of these modules is a change that belongs in a new module.
  */
 const CEILINGS = Object.freeze({
-  "application.ts": 1293,
+  "application.ts": 1291,
   "localization.ts": 1401,
-  "server.ts": 803,
+  "server.ts": 782,
 });
 
 /** Counts terminated lines, so the number matches what a line-counting tool reports. */

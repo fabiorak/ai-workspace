@@ -141,7 +141,7 @@ export class Handoffs {
         ? "VERIFIED"
         : "UNVERIFIED",
       "DERIVED",
-      Object.freeze(memory.flatMap((item) => item.sources)),
+      distinct(memory.flatMap((item) => item.sources)),
     );
     const userMeta = meta(
       "USER_INPUT",
@@ -339,6 +339,35 @@ function meta(
     sources,
   });
 }
+/**
+ * The distinct evidence a set of sections cites, in the order it was first seen.
+ *
+ * Two notes confirmed against the same canonical moment carry the same source, and a
+ * section that cited it twice could be built but never stored: the persisted form
+ * refuses a section whose references repeat, because a reference is a pointer and a
+ * pointer named twice says nothing new. Collapsing them here keeps that invariant
+ * where the duplicates arise instead of failing at the file.
+ */
+function distinct(
+  sources: readonly WorkItemSource[],
+): readonly WorkItemSource[] {
+  const seen = new Map<string, WorkItemSource>();
+  for (const source of sources) {
+    /** The same seven fields the persisted form compares, so the two agree by construction. */
+    const key = JSON.stringify([
+      source.eventId,
+      source.sessionId,
+      source.eventType,
+      source.trust,
+      source.sourceArtifactId,
+      source.sourcePosition,
+      source.sourceRecordHash,
+    ]);
+    if (!seen.has(key)) seen.set(key, source);
+  }
+  return Object.freeze([...seen.values()]);
+}
+
 function section<T>(metadata: SectionMetadata, value: T): HandoffSection<T> {
   return Object.freeze({ metadata, value });
 }

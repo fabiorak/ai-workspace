@@ -39,6 +39,10 @@ export const RESTART_POINT_BLOCK = `
             <label for="restart-point-test-at" data-i18n="pointTestWhen">When it ran</label>
             <input id="restart-point-test-at" type="datetime-local" aria-describedby="restart-point-tests-optional">
             <p id="restart-point-tests-optional" class="help" data-i18n="pointTestsOptional">Optional. Left empty, nothing about the tests is recorded — and nothing is guessed either.</p>
+            <p id="restart-point-follows" class="help"></p>
+            <button type="button" id="restart-point-fix" data-i18n="pointFix">Keep this summary</button>
+            <p id="restart-point-fix-effect" class="effect" data-i18n="pointFixEffect">Effect: writes one summary that is never changed again. Everything else on this screen stays as it is.</p>
+            <div id="restart-point-fix-status" class="inline-status" role="status" aria-live="polite"></div>
           </div>
           <p id="restart-point-error" class="error" role="alert"></p>
         </div>`;

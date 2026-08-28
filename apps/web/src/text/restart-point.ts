@@ -132,6 +132,47 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "The command you recorded last time. The outcome is never carried over.",
     it: "Il comando che hai registrato l'ultima volta. L'esito non viene mai riportato.",
   },
+  pointFix: { en: "Keep this summary", it: "Conserva questo riepilogo" },
+  /**
+   * Said before the gesture, not after it. Every other write in this product states
+   * its effect where the control is, and this one is permanent: a kept summary is
+   * never changed again, only followed by another.
+   */
+  pointFixEffect: {
+    en: "Effect: writes one summary that is never changed again. Everything else on this screen stays as it is.",
+    it: "Effetto: scrive un riepilogo che non verrà più modificato. Tutto il resto di questa schermata resta com'è.",
+  },
+  /** What this one would follow, said as a date because an identifier is not for reading. */
+  pointFollows: {
+    en: "This will follow the summary kept on {when}.",
+    it: "Questo seguirà il riepilogo conservato il {when}.",
+  },
+  pointFollowsNothing: {
+    en: "This would be the first summary kept for this work.",
+    it: "Questo sarebbe il primo riepilogo conservato per questo lavoro.",
+  },
+  pointFixing: { en: "Keeping…", it: "Sto conservando…" },
+  pointFixedAt: {
+    en: "Kept at {when}. It will not change again.",
+    it: "Conservato alle {when}. Non cambierà più.",
+  },
+  /**
+   * The three refusals. None of them writes anything, and each says what to do about
+   * it: something arrived while the person was reading, the field they were asked to
+   * review is empty, or half a test observation was written.
+   */
+  pointFixMoved: {
+    en: "Something arrived while you were reading, so nothing was kept. The summary above is up to date now: read it and confirm again.",
+    it: "Mentre leggevi è arrivato qualcosa, quindi non è stato conservato niente. Il riepilogo qui sopra è ora aggiornato: rileggilo e conferma di nuovo.",
+  },
+  pointFixEmpty: {
+    en: "Nothing was kept: what to do next cannot be empty.",
+    it: "Non è stato conservato niente: che cosa fare adesso non può restare vuoto.",
+  },
+  pointFixHalfTest: {
+    en: "Nothing was kept: a test needs both the command and how it went, or neither.",
+    it: "Non è stato conservato niente: per le prove servono sia il comando sia com'è andata, oppure nessuno dei due.",
+  },
   pointOnBranch: { en: "On branch {branch}", it: "Sul ramo {branch}" },
   pointNoBranch: {
     en: "The branch could not be read.",

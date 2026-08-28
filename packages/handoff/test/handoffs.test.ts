@@ -4,6 +4,7 @@ import type { MemoryItem } from "@ai-workspace/active-memory";
 import type { Handoff, HandoffStore } from "../src/index.ts";
 import {
   encodeHandoff,
+  encodePersistedHandoff,
   HandoffError,
   Handoffs,
   renderHandoff,
@@ -132,6 +133,22 @@ describe("Handoffs", () => {
     assert.ok(Object.isFrozen(value));
     assert.equal(JSON.parse(encodeHandoff(value)).id, "handoff");
     assert.match(renderHandoff(value), /Inspect sources:/u);
+  });
+  /**
+   * Two notes confirmed against the same canonical moment carry the same source.
+   * Before this was collapsed, such a packet could be built and then never stored:
+   * the persisted form refuses a section whose references repeat, so the failure
+   * surfaced at the file with a corruption message about perfectly good evidence.
+   */
+  it("cites the same evidence once when several notes share it", async () => {
+    const { handoffs } = fixture();
+    const value = await handoffs.create({
+      ...input,
+      memoryIds: ["memory", "memory-two", "memory-three"],
+    });
+    assert.deepEqual(value.sections.selectedMemory.metadata.sources, [source]);
+    assert.equal(value.sections.selectedMemory.value.length, 3);
+    assert.doesNotThrow(() => encodePersistedHandoff(value));
   });
   it("previews the same bounded packet without persisting it", async () => {
     const { handoffs, store } = fixture();

@@ -179,6 +179,16 @@ export type RestartPoint = Readonly<{
     changedPaths: readonly string[];
   }>;
   composedAt: string;
+  /**
+   * An opaque mark of this composition, produced by the reading side.
+   *
+   * A confirmation hands it back so that what gets written is what somebody read: if
+   * moments have arrived, notes have changed or the repository has moved since, the
+   * mark no longer matches and the confirmation is refused instead of fixing a packet
+   * nobody looked at. It is never displayed — it is here to travel back, not to be
+   * read — and it is deliberately not derived from anything a caller could compute.
+   */
+  composition: string;
   omissions: readonly RestartPointOmission[];
   effect: "COMPOSED_LOCALLY_NOT_SAVED_AND_NOT_SENT";
 }>;
@@ -282,6 +292,7 @@ export function restartPointOf(
     saidAboutTests: RestartPointMoment | null;
     nextAction: NextActionDraft;
     fixed: RestartPoint["fixed"];
+    composition: string;
     omissions: readonly RestartPointOmission[];
   }>,
 ): RestartPoint {
@@ -327,6 +338,7 @@ export function restartPointOf(
       changedPaths: Object.freeze([...named]),
     }),
     composedAt: input.handoff.createdAt,
+    composition: input.composition,
     omissions: Object.freeze(
       omissions.filter((omission) => omission.count > 0),
     ),

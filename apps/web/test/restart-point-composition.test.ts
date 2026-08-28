@@ -173,6 +173,8 @@ describe("composing a restart point over HTTP", () => {
   });
 
   describe("once the conversation carries work and notes", () => {
+    let workItemId: string;
+
     before(async () => {
       const conversation = (
         await read(
@@ -189,6 +191,7 @@ describe("composing a restart point over HTTP", () => {
           }),
         })
       ).json()) as { id: string };
+      workItemId = work.id;
       await api(
         `/api/projects/${encodeURIComponent(projectId)}/work-items/${encodeURIComponent(work.id)}/activate`,
         { method: "POST", body: JSON.stringify({ sourceEventIds: evidence }) },
@@ -302,6 +305,159 @@ describe("composing a restart point over HTTP", () => {
       };
       assert.equal(body.nextAction.needsReview, true);
       assert.ok(body.nextAction.text.length > 0);
+    });
+
+    /**
+     * The one write of this area. Everything below is asserted over the bytes of the
+     * local home and over the technical surface, never over an intention.
+     */
+    describe("keeping the summary", () => {
+      type Packet = Readonly<{
+        id: string;
+        createdAt: string;
+        predecessorId: string | null;
+        sections: {
+          nextAction: { value: string };
+          testState: { value: { command: string; outcome: string }[] };
+        };
+      }>;
+      const fix = async (body: Record<string, unknown>, headers = {}) => {
+        const response = await api(
+          `/api/conversations/${encodeURIComponent(conversationId)}/restart-point?project=${encodeURIComponent(projectId)}`,
+          { method: "POST", body: JSON.stringify(body), headers },
+        );
+        return {
+          status: response.status,
+          body: (await response.json()) as Record<string, unknown>,
+        };
+      };
+      const mark = async () =>
+        ((await point()).body as unknown as { composition: string })
+          .composition;
+      const kept = async () =>
+        (
+          await read(
+            `/api/projects/${encodeURIComponent(projectId)}/work-items/${encodeURIComponent(workItemId)}/handoffs`,
+          )
+        ).body as unknown as Packet[];
+
+      it("refuses a confirmation that carries no local write authorization", async () => {
+        const before = await snapshot(home);
+        const refused = await fix(
+          { composition: await mark(), nextAction: "Carry on" },
+          { "X-AI-Workspace-CSRF": "" },
+        );
+        assert.equal(refused.status, 403);
+        assert.deepEqual(await snapshot(home), before);
+      });
+
+      it("refuses a summary that moved while it was being read", async () => {
+        const before = await snapshot(home);
+        const refused = await fix({
+          composition: "a summary nobody composed",
+          nextAction: "Carry on",
+        });
+        assert.equal(refused.status, 200);
+        assert.deepEqual(refused.body, {
+          fixed: false,
+          reason: "COMPOSITION_CHANGED",
+        });
+        assert.deepEqual(await snapshot(home), before);
+      });
+
+      it("refuses an empty next action and half a test observation", async () => {
+        const before = await snapshot(home);
+        assert.equal(
+          (await fix({ composition: await mark(), nextAction: "   " })).body
+            .reason,
+          "EMPTY_NEXT_ACTION",
+        );
+        assert.equal(
+          (
+            await fix({
+              composition: await mark(),
+              nextAction: "Carry on",
+              test: { command: "npm run check", outcome: null },
+            })
+          ).body.reason,
+          "INCOMPLETE_TEST",
+        );
+        assert.deepEqual(await snapshot(home), before);
+      });
+
+      it("keeps the confirmed text and the run the person stated", async () => {
+        const answer = await fix({
+          composition: await mark(),
+          nextAction: "Read the platform gate log before touching anything",
+          test: {
+            command: "npm run check",
+            outcome: "failed",
+            observedAt: "2026-08-28T21:00",
+          },
+        });
+        assert.equal(answer.status, 201);
+        assert.equal(answer.body.fixed, true);
+        assert.equal(answer.body.followsOne, false);
+        const packets = await kept();
+        assert.equal(packets.length, 1);
+        assert.equal(
+          packets[0]!.sections.nextAction.value,
+          "Read the platform gate log before touching anything",
+        );
+        assert.deepEqual(
+          packets[0]!.sections.testState.value.map((entry) => [
+            entry.command,
+            entry.outcome,
+          ]),
+          [["npm run check", "FAIL"]],
+        );
+      });
+
+      /** ADR-0012: a packet is never rewritten, only followed by a successor. */
+      it("creates a successor and leaves the earlier one byte-identical", async () => {
+        const first = (await kept())[0]!;
+        const before = await snapshot(home);
+        const answer = await fix({
+          composition: await mark(),
+          nextAction: "Then run the whole suite again",
+        });
+        assert.equal(answer.body.followsOne, true);
+        const packets = await kept();
+        assert.equal(packets.length, 2);
+        const successor = packets.find((packet) => packet.id !== first.id)!;
+        assert.equal(successor.predecessorId, first.id);
+        assert.equal(
+          successor.sections.nextAction.value,
+          "Then run the whole suite again",
+        );
+        assert.deepEqual(
+          packets.find((packet) => packet.id === first.id),
+          first,
+        );
+        const after = await snapshot(home);
+        for (const [path, digest] of Object.entries(before))
+          assert.equal(
+            after[path],
+            digest,
+            `${path} changed while a successor was being written`,
+          );
+      });
+
+      /** Nothing about the run states an outcome nobody chose. */
+      it("keeps no observation when the fields were left alone", async () => {
+        await fix({
+          composition: await mark(),
+          nextAction: "Leave the tests unstated on purpose",
+          test: { command: "", outcome: null, observedAt: null },
+        });
+        const packets = await kept();
+        const latest = packets.find(
+          (packet) =>
+            packet.sections.nextAction.value ===
+            "Leave the tests unstated on purpose",
+        )!;
+        assert.deepEqual(latest.sections.testState.value, []);
+      });
     });
   });
 });

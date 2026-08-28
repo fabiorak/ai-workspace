@@ -8,11 +8,20 @@
  * carrying its own recovery.
  */
 import type { ActiveMemory } from "@ai-workspace/active-memory";
-import type { Handoffs } from "@ai-workspace/handoff";
+import type {
+  CreateHandoffInput,
+  Handoff,
+  Handoffs,
+} from "@ai-workspace/handoff";
 
 import type { ConversationSources } from "./conversations.ts";
 import type { FacadeGuard } from "./conversation-facade.ts";
 import type { RestartPoint, RestartPointUnavailable } from "./restart-point.ts";
+import {
+  fixRestartPoint,
+  type RestartPointFixInput,
+  type RestartPointFixResult,
+} from "./restart-point-fixing.ts";
 import {
   readRestartPoint,
   type RestartPointSources,
@@ -47,6 +56,12 @@ export function restartPointSources(
 
 export type RestartPointArea = Readonly<{
   /**
+   * Fixes the summary of one conversation, which is the only write in this area.
+   * The packet is composed again from the stores and refused when it no longer
+   * matches what was read.
+   */
+  fix(input: RestartPointFixInput): Promise<RestartPointFixResult>;
+  /**
    * The point of one conversation, or null when the conversation is not there. A
    * project-free id is a note, which is why the caller states the project instead
    * of the area guessing it.
@@ -57,10 +72,24 @@ export type RestartPointArea = Readonly<{
 }>;
 
 export function restartPointArea(
-  sources: RestartPointSources,
-  guard: FacadeGuard,
+  stores: Readonly<{
+    conversations: ConversationSources;
+    memory: ActiveMemory;
+    handoffs: Handoffs;
+    guard: FacadeGuard;
+    /** The one path that persists, handed over separately from everything that reads. */
+    write: (input: CreateHandoffInput) => Promise<Handoff>;
+  }>,
 ): RestartPointArea {
+  const sources = restartPointSources(stores);
+  const guard = stores.guard;
+  const write = stores.write;
   return Object.freeze({
+    fix: async (input: RestartPointFixInput) =>
+      guard(
+        async () => fixRestartPoint(sources, write, input),
+        "Nothing was written. Reload the conversation, read the summary as it stands now, and confirm again.",
+      ),
     open: async (
       query: Readonly<{ conversationId: string; projectId: string | null }>,
     ) =>

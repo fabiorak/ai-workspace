@@ -136,7 +136,6 @@ import {
 import { composeProjectRestartSummary } from "./project-restart-summary.ts";
 import {
   restartPointArea,
-  restartPointSources,
   type RestartPointArea,
 } from "./restart-point-facade.ts";
 import { transcriptArea, type TranscriptArea } from "./transcript-facade.ts";
@@ -661,14 +660,13 @@ export class GuiApplication {
    * goes through the preview path, so opening this area writes nothing.
    */
   public get restartPoints(): RestartPointArea {
-    return restartPointArea(
-      restartPointSources({
-        conversations: this.#conversationSources,
-        memory: this.#memory,
-        handoffs: this.#handoffs,
-      }),
-      (operation, recovery) => this.#run(operation, recovery),
-    );
+    return restartPointArea({
+      conversations: this.#conversationSources,
+      memory: this.#memory,
+      handoffs: this.#handoffs,
+      guard: (operation, recovery) => this.#run(operation, recovery),
+      write: (input) => this.#reindexAfter(() => this.#handoffs.create(input)),
+    });
   }
 
   public async searchAllProjects(
