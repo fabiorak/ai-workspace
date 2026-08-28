@@ -76,6 +76,26 @@ export const RESTART_POINT_BEHAVIOUR = `
     }
     return list;
   };
+  // A recorded run is said as the command, the outcome as a word, and when it was
+  // seen. Nothing is observed here, so no record at all is said in a sentence: a
+  // reader who found this part silent would be free to read the silence as green.
+  const restartPointTests = (tests) => {
+    if (tests.length === 0) return restartPointSentence("pointNoTests");
+    const list = document.createElement("ul");
+    for (const test of tests) {
+      const item = document.createElement("li");
+      const command = document.createElement("span");
+      text(command, test.command);
+      const outcome = document.createElement("span");
+      say(outcome, test.outcome === "PASS" ? "pointTestPassed" : test.outcome === "FAIL" ? "pointTestFailed" : "pointTestNotRun");
+      const when = document.createElement("span");
+      when.className = "help";
+      if (test.observedAt) say(when, "pointTestObservedAt", { when: dateTime(test.observedAt) }); else say(when, "pointTestNotObserved");
+      item.append(command, document.createTextNode(" · "), outcome, document.createTextNode(" · "), when);
+      list.append(item);
+    }
+    return list;
+  };
   const renderRestartPoint = (point) => {
     restartPointBody.replaceChildren();
     restartPointOmissions.replaceChildren();
@@ -92,6 +112,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointBody.append(restartPointLabel("pointConstraints"), restartPointNotes(point.constraints, "pointNoConstraints"));
     restartPointBody.append(restartPointLabel("pointFailures"), restartPointNotes(point.failures, "pointNoFailures"));
     restartPointBody.append(restartPointLabel("pointLookedAt"), restartPointMoments(point.lookedAt));
+    restartPointBody.append(restartPointLabel("pointTests"), restartPointTests(point.tests));
     restartPointBody.append(restartPointLabel("pointRepository"));
     restartPointBody.append(point.repository.branch ? restartPointSentence("pointOnBranch", { branch: point.repository.branch }) : restartPointSentence("pointNoBranch"));
     restartPointBody.append(point.repository.hasUnsavedChanges ? (point.repository.changedFiles === 1 ? restartPointSentence("pointRepositoryOneChanged") : restartPointSentence("pointRepositoryChanged", { count: number(point.repository.changedFiles) })) : restartPointSentence("pointRepositoryClean"));
@@ -108,7 +129,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     // What did not fit is stated. A summary that looks whole while it is not is worse
     // than one that says how much it left out.
     for (const omission of point.omissions)
-      restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : "pointOmittedChangedFiles", { count: number(omission.count) }));
+      restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
     say(restartPointStatus, "pointComposed", { when: dateTime(point.composedAt) });
   };
   const composeRestartPoint = async (conversation) => {

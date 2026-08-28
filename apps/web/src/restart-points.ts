@@ -133,6 +133,14 @@ function momentOf(
  * one, and is deliberately not returned: nothing has been proposed for review yet,
  * and a draft on screen with nowhere to confirm it would read as a decision
  * somebody already took.
+ *
+ * No test observation is passed, so the packet records none and the point says so.
+ * That is the whole of it here: an outcome is something a person states, and
+ * composing asks nothing and writes nothing, so there is nowhere yet to state one.
+ * The alternatives were both refused — running anything is out of scope, and
+ * reading an outcome off a clean repository or a note that mentions the tests is
+ * the inference ADR-0010 forbids. Asking for it belongs to the deliberate
+ * confirmation, where the person already reviews the exact text that gets stored.
  */
 export async function readRestartPoint(
   sources: RestartPointSources,

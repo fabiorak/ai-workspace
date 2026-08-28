@@ -7,6 +7,7 @@ import type {
   CreateHandoffInput,
   Handoff,
   SectionMetadata,
+  TestObservation,
 } from "@ai-workspace/handoff";
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
@@ -17,6 +18,7 @@ import {
   workForSession,
   CHANGED_PATH_LIMIT,
   MOMENT_TEXT_LIMIT,
+  TEST_LIMIT,
 } from "../src/restart-point.ts";
 import { readRestartPoint } from "../src/restart-points.ts";
 
@@ -44,6 +46,12 @@ const note = (
     verification,
     confidence: "UNASSESSED" as const,
   });
+
+const run = (
+  command: string,
+  outcome: TestObservation["outcome"],
+  observedAt: string | null = "2026-08-27T08:30:00.000Z",
+): TestObservation => Object.freeze({ command, outcome, observedAt });
 
 const handoff = (overrides: Partial<Handoff["sections"]> = {}): Handoff =>
   Object.freeze({
@@ -321,6 +329,69 @@ describe("what the restart point shows", () => {
   });
 
   /**
+   * Nothing observes a test run here, so a packet that records none leaves the list
+   * empty and the interface says the absence out loud. What must never happen is the
+   * silence being filled in — from a clean repository, or from a note that mentions
+   * the tests — because that would be an outcome nobody checked.
+   */
+  it("records no test run when the packet holds none, and infers none", () => {
+    assert.deepEqual(point.tests, []);
+    assert.equal(
+      point.omissions.some((omission) => omission.kind === "TESTS"),
+      false,
+    );
+  });
+
+  it("carries the command, the outcome and when it was seen", () => {
+    const observed = restartPointOf({
+      handoff: handoff({
+        testState: section(
+          Object.freeze([
+            run("npm run check", "FAIL"),
+            run("npm run build", "PASS", null),
+          ]),
+        ),
+      }),
+      conversationId: "session-01",
+      workState: "ACTIVE",
+      lookedAt: [],
+      omissions: [],
+    });
+    assert.deepEqual(observed.tests, [
+      {
+        command: "npm run check",
+        outcome: "FAIL",
+        observedAt: "2026-08-27T08:30:00.000Z",
+      },
+      { command: "npm run build", outcome: "PASS", observedAt: null },
+    ]);
+  });
+
+  it("shows the recorded runs up to the bound and counts the rest", () => {
+    const many = restartPointOf({
+      handoff: handoff({
+        testState: section(
+          Object.freeze(
+            Array.from({ length: TEST_LIMIT + 2 }, (_, index) =>
+              run(`npm run check -- suite-${index + 1}`, "PASS"),
+            ),
+          ),
+        ),
+      }),
+      conversationId: "session-01",
+      workState: "ACTIVE",
+      lookedAt: [],
+      omissions: [],
+    });
+    assert.equal(many.tests.length, TEST_LIMIT);
+    assert.equal(many.tests[0]?.command, "npm run check -- suite-1");
+    assert.deepEqual(
+      many.omissions.filter((omission) => omission.kind === "TESTS"),
+      [{ kind: "TESTS", count: 2 }],
+    );
+  });
+
+  /**
    * The ordinary view carries no fingerprint, no packet identity, and no byte
    * count. The conversation's own id stays, because the caller asked with it and
    * uses it to tell a late answer from a current one; it is never shown.
@@ -545,5 +616,20 @@ describe("composing the restart point of a conversation", () => {
     assert.equal(spy.asked[0]?.workItemId, "work-01");
     assert.equal(spy.asked[0]?.relevantFiles, undefined);
     assert.equal(spy.asked[0]?.predecessorId, undefined);
+  });
+
+  /**
+   * Composing asks nothing and writes nothing, so it cannot state an outcome on the
+   * person's behalf: an unasked test observation would be an observation nobody
+   * made. Stating one belongs to the deliberate confirmation.
+   */
+  it("states no test outcome nobody was asked for", async () => {
+    const spy = composer();
+    const point = await readRestartPoint(sources({ compose: spy.compose }), {
+      conversationId: "session-01",
+      projectId: "project-01",
+    });
+    assert.equal(spy.asked[0]?.testState, undefined);
+    assert.deepEqual(point!.available === true ? point!.tests : null, []);
   });
 });

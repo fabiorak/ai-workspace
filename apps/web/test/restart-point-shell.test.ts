@@ -140,14 +140,29 @@ describe("the restart point at the end of a work conversation", () => {
       "pointNoDecisions",
       "pointNoConstraints",
       "pointNoFailures",
+      "pointNoTests",
     ])
       assert.match(behaviour, new RegExp(`"${key}"`, "u"));
+  });
+
+  /**
+   * A reader who finds nothing about the tests is free to assume they pass, which is
+   * the assumption that costs most. The part is there, it says the outcome as a word,
+   * and it says the absence of a record as a sentence.
+   */
+  it("says how the tests stand, or that nothing says", () => {
+    assert.match(behaviour, /restartPointLabel\("pointTests"\)/u);
+    assert.match(behaviour, /restartPointTests\(point\.tests\)/u);
+    for (const key of ["pointTestPassed", "pointTestFailed", "pointTestNotRun"])
+      assert.match(behaviour, new RegExp(`"${key}"`, "u"));
+    assert.match(RESTART_POINT_TEXT.pointNoTests.it, /Non è registrata/u);
   });
 
   it("states what did not fit", () => {
     assert.match(behaviour, /"pointOmittedNotes"/u);
     assert.match(behaviour, /"pointOmittedMoments"/u);
     assert.match(behaviour, /"pointOmittedChangedFiles"/u);
+    assert.match(behaviour, /"pointOmittedTests"/u);
   });
 
   /**

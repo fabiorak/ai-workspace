@@ -9,7 +9,8 @@
  *
  * What the view carries is what somebody resuming the work needs to read: what the
  * work is, what was decided, what is already known to have failed, where they were
- * looking, and how the repository stands. What it deliberately does not carry is
+ * looking, what the tests were last recorded as saying, and how the repository
+ * stands. What it deliberately does not carry is
  * every identifier, digest, byte count and section-metadata constant the packet
  * holds — those are the technical surface, and a reader who wants them has the
  * handoff screens and the command line.
@@ -17,7 +18,11 @@
  * Nothing here summarises or rewrites: each line is a stored value moved across.
  */
 import type { WorkItem } from "@ai-workspace/core";
-import type { Handoff, MemorySnapshot } from "@ai-workspace/handoff";
+import type {
+  Handoff,
+  MemorySnapshot,
+  TestObservation,
+} from "@ai-workspace/handoff";
 
 /**
  * How many recent moments say where the reader was. Five is enough to recognise
@@ -57,6 +62,28 @@ export const MOMENT_TEXT_LIMIT = 160;
  */
 export const CHANGED_PATH_LIMIT = 5;
 
+/**
+ * How many recorded test runs are shown. The packet will hold fifty, which is an
+ * inventory rather than a state; past this bound the rest is counted, like
+ * everything else that does not fit.
+ */
+export const TEST_LIMIT = 5;
+
+/**
+ * One recorded test run, as the packet stored it.
+ *
+ * Nothing here is observed by this view, and nothing is inferred: a run nobody
+ * recorded stays absent, and the absence is stated rather than left to be read as a
+ * pass. A clean repository does not mean the tests were run, and a note that
+ * mentions them is a note, not an outcome.
+ */
+export type RestartPointTest = Readonly<{
+  command: string;
+  outcome: TestObservation["outcome"];
+  /** When the run was observed, or null when the record does not say. */
+  observedAt: string | null;
+}>;
+
 export type RestartPointMoment = Readonly<{
   /** The stored event type. The interface says who spoke; no constant reaches a reader. */
   type: string;
@@ -77,7 +104,7 @@ export type RestartPointMoment = Readonly<{
 
 /** What did not fit, counted rather than dropped in silence. */
 export type RestartPointOmission = Readonly<{
-  kind: "NOTES" | "MOMENTS" | "CHANGED_FILES";
+  kind: "NOTES" | "MOMENTS" | "CHANGED_FILES" | "TESTS";
   count: number;
 }>;
 
@@ -91,6 +118,12 @@ export type RestartPoint = Readonly<{
   constraints: readonly RestartPointNote[];
   failures: readonly RestartPointNote[];
   lookedAt: readonly RestartPointMoment[];
+  /**
+   * What the packet records about the tests, bounded by `TEST_LIMIT`. An empty list
+   * means nothing was recorded, and the interface says so in a sentence: somebody
+   * deciding whether this is safe to build on must not read silence as a pass.
+   */
+  tests: readonly RestartPointTest[];
   /**
    * The repository as the bounded capture found it. The commit is left out on
    * purpose: it is a fingerprint, and this view speaks in branches and changes.
@@ -182,6 +215,18 @@ function notesOfType(
 }
 
 /**
+ * Moves a recorded run across field by field, so a section that grows later cannot
+ * carry something into the ordinary view without somebody deciding it belongs there.
+ */
+function testOf(observation: TestObservation): RestartPointTest {
+  return Object.freeze({
+    command: observation.command,
+    outcome: observation.outcome,
+    observedAt: observation.observedAt,
+  });
+}
+
+/**
  * Turns the composed packet into what a reader sees.
  *
  * The packet is the source of every claim here, including the repository state,
@@ -201,15 +246,21 @@ export function restartPointOf(
   const selected = input.handoff.sections.selectedMemory.value;
   const changed = input.handoff.sections.repository.value.changedPaths;
   const named = changed.slice(0, CHANGED_PATH_LIMIT);
+  const recorded = input.handoff.sections.testState.value;
+  const runs = recorded.slice(0, TEST_LIMIT);
   /**
-   * The files that did not fit are counted here rather than by the caller: the
-   * packet is the only thing that knows how many there were.
+   * The files and the test runs that did not fit are counted here rather than by
+   * the caller: the packet is the only thing that knows how many there were.
    */
   const omissions: readonly RestartPointOmission[] = [
     ...input.omissions,
     Object.freeze({
       kind: "CHANGED_FILES" as const,
       count: changed.length - named.length,
+    }),
+    Object.freeze({
+      kind: "TESTS" as const,
+      count: recorded.length - runs.length,
     }),
   ];
   return Object.freeze({
@@ -223,6 +274,7 @@ export function restartPointOf(
       input.handoff.sections.knownFailures.value.map(noteOf),
     ),
     lookedAt: Object.freeze([...input.lookedAt]),
+    tests: Object.freeze(runs.map(testOf)),
     repository: Object.freeze({
       branch: input.handoff.sections.repository.value.branch,
       hasUnsavedChanges: input.handoff.sections.repository.value.dirty,

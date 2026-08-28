@@ -36,6 +36,28 @@ export const RESTART_POINT_TEXT = Object.freeze({
     it: "Che cosa è già andato storto",
   },
   pointLookedAt: { en: "Where you were", it: "Dove eri arrivato" },
+  pointTests: { en: "How the tests stand", it: "Come stanno le prove" },
+  /**
+   * Said when the packet records no run at all. It states the absence instead of
+   * leaving the part out, because a reader who sees nothing about the tests would
+   * otherwise be free to assume they pass — which is the assumption that costs most.
+   */
+  pointNoTests: {
+    en: "No test run is recorded here, so nothing says whether this works.",
+    it: "Non è registrata nessuna esecuzione delle prove: niente dice se questo funziona.",
+  },
+  /** An outcome as a word. The stored constant never reaches a reader. */
+  pointTestPassed: { en: "passed", it: "passate" },
+  pointTestFailed: { en: "failed", it: "fallite" },
+  pointTestNotRun: { en: "not run", it: "non eseguite" },
+  pointTestObservedAt: {
+    en: "recorded at {when}",
+    it: "registrata alle {when}",
+  },
+  pointTestNotObserved: {
+    en: "no time recorded",
+    it: "nessun orario registrato",
+  },
   pointRepository: {
     en: "How the repository stands",
     it: "Come sta il repository",
@@ -91,6 +113,10 @@ export const RESTART_POINT_TEXT = Object.freeze({
   pointOmittedChangedFiles: {
     en: "{count} further files with unsaved changes are not listed here.",
     it: "Altri {count} file con modifiche non salvate non sono elencati qui.",
+  },
+  pointOmittedTests: {
+    en: "{count} further recorded test runs are not listed here.",
+    it: "Altre {count} esecuzioni registrate delle prove non sono elencate qui.",
   },
   pointOmittedNotes: {
     en: "{count} further notes are not included here.",
