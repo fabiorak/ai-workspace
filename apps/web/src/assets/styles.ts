@@ -168,6 +168,12 @@ label { display: block; margin-block-start: .7rem; font-weight: 750; }
 input, select, textarea { width: min(100%, 48rem); display: block; margin-block: .28rem .75rem; padding: .72rem .82rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--surface); color: var(--ink); }
 textarea { min-height: 6rem; resize: vertical; }
 input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: .5rem; }
+/* Every rule above that sets \`display\` on an element or a class beats the browser's
+   own \`[hidden] { display: none }\`, so a button, an input or a labelled block marked
+   hidden stayed on screen: visible, reachable by keyboard, and clickable. This is
+   placed after them, and matches on the attribute, so hiding something means it is
+   hidden whatever else it is. */
+[hidden] { display: none; }
 fieldset { max-width: 48rem; margin-block: .75rem; border: 1px solid var(--border); border-radius: .7rem; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex="-1"]:focus { outline: 3px solid #f0a500; outline-offset: 3px; }
 .help, .effect { max-width: 70ch; color: var(--muted); }

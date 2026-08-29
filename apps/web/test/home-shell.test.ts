@@ -321,3 +321,34 @@ describe("shell text keys", () => {
       }
   });
 });
+
+/**
+ * Hiding something has to hide it.
+ *
+ * Found by looking, on 2026-08-29: the stylesheet sets `display` on `button`, on
+ * `input` and on several classes, and every one of those rules beats the browser's
+ * own `[hidden] { display: none }`. Six buttons across this interface are marked
+ * hidden — among them the ones that create a handoff, confirm aliases and load older
+ * audit events — and all six stayed on screen, reachable by keyboard and clickable.
+ * A control nobody meant to offer is worse than a missing one, so this is measured
+ * rather than left to the next person to rediscover.
+ */
+describe("what is marked hidden", () => {
+  it("is hidden however else it is styled", () => {
+    assert.match(APP_CSS, /\[hidden\] \{ display: none; \}/u);
+    const rule = APP_CSS.lastIndexOf("[hidden] { display: none; }");
+    for (const earlier of ["button {", "input, select, textarea {"])
+      assert.ok(
+        APP_CSS.indexOf(earlier) < rule,
+        `${earlier} sets display after the hidden rule, which would show hidden elements again`,
+      );
+  });
+
+  /** Every control the interface hides, so a new one cannot quietly rely on nothing. */
+  it("covers the controls this interface hides", () => {
+    const hidden = [
+      ...shellHtml("csrf-token").matchAll(/<button[^>]*hidden/gu),
+    ];
+    assert.ok(hidden.length >= 5);
+  });
+});
