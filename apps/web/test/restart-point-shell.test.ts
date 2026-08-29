@@ -389,6 +389,61 @@ describe("the restart point at the end of a work conversation", () => {
   });
 
   /**
+   * Where a quoted line came from, and what a reader should know about all of them.
+   * Both were added on 2026-08-29 after a real transcript put a bootstrap token on
+   * screen and kept its long replies in files no view opened.
+   */
+  describe("quoting an imported transcript", () => {
+    it("warns once, where the quoted lines are", () => {
+      assert.match(
+        behaviour,
+        /restartPointSentence\("pointImportedWarning"\)/u,
+      );
+      assert.equal(
+        [...behaviour.matchAll(/"pointImportedWarning"/gu)].length,
+        2,
+        "once for the composed summary and once for the photograph, never per line",
+      );
+      assert.match(RESTART_POINT_TEXT.pointImportedWarning.it, /credenziali/u);
+      assert.match(RESTART_POINT_TEXT.pointImportedWarning.en, /credentials/u);
+    });
+
+    /** It must not promise that anything was checked. */
+    it("promises no screening it does not do", () => {
+      assert.doesNotMatch(
+        RESTART_POINT_TEXT.pointImportedWarning.it,
+        /sicur|protett|verificat[oi]\b/iu,
+      );
+      assert.match(
+        RESTART_POINT_TEXT.pointImportedWarning.it,
+        /Non è stato controllato/u,
+      );
+    });
+
+    it("says when a line was read out of the moment's stored file", () => {
+      assert.match(behaviour, /moment\.fromArtifact/u);
+      assert.match(behaviour, /"pointMomentFromFile"/u);
+      assert.match(behaviour, /"pointMomentFileUnreadable"/u);
+      for (const key of [
+        "pointMomentFromFile",
+        "pointMomentFileUnreadable",
+        "pointImportedWarning",
+        "pointOmittedOperations",
+      ])
+        for (const locale of SUPPORTED_LOCALES)
+          assert.ok(
+            catalogues[locale][key]?.trim(),
+            `${locale}.${key} is empty`,
+          );
+    });
+
+    it("counts the operations it left out, apart from the moments that did not fit", () => {
+      assert.match(behaviour, /omission\.kind === "OPERATIONS"/u);
+      assert.match(RESTART_POINT_TEXT.pointOmittedOperations.it, /operazioni/u);
+    });
+  });
+
+  /**
    * The dead end, and the way out of it. A conversation nobody has declared as work
    * used to get a diagnosis and nothing else, which is what left a real transcript
    * unlinked for thirty-five days.

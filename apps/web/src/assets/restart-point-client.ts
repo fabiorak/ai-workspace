@@ -159,6 +159,14 @@ export const RESTART_POINT_BEHAVIOUR = `
         say(raw, "pointMomentRaw");
         item.append(document.createTextNode(" · "), raw);
       }
+      // A line read out of the moment's own stored file says so, and a file that could
+      // not be read says that instead: an empty line and a failed read are not the same.
+      if (moment.fromArtifact) {
+        const file = document.createElement("span");
+        file.className = "help";
+        say(file, moment.text ? "pointMomentFromFile" : "pointMomentFileUnreadable");
+        item.append(document.createTextNode(" · "), file);
+      }
       list.append(item);
     }
     return list;
@@ -212,7 +220,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointBody.append(restartPointLabel("pointDecisions"), restartPointNotes(point.decisions, "pointNoDecisions"));
     restartPointBody.append(restartPointLabel("pointConstraints"), restartPointNotes(point.constraints, "pointNoConstraints"));
     restartPointBody.append(restartPointLabel("pointFailures"), restartPointNotes(point.failures, "pointNoFailures"));
-    restartPointBody.append(restartPointLabel("pointLookedAt"), restartPointMoments(point.lookedAt));
+    restartPointBody.append(restartPointLabel("pointLookedAt"), restartPointSentence("pointImportedWarning"), restartPointMoments(point.lookedAt));
     // What was stated the last time a summary was kept. It is quoted with its own two
     // dates — when the run was seen, and when it was kept — so it reads as a fact of
     // that day. It is never what fills the outcome field below.
@@ -268,7 +276,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     // What did not fit is stated. A summary that looks whole while it is not is worse
     // than one that says how much it left out.
     for (const omission of point.omissions)
-      restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
+      restartPointOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "OPERATIONS" ? "pointOmittedOperations" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
     // The draft is the person's own words put back in front of them, so it is offered
     // in a field and never as a statement. It says what it was assembled from, and it
     // is not refilled over a revision.
@@ -324,7 +332,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointKeptBody.append(restartPointLabel("pointDecisions"), restartPointNotes(photograph.decisions, "pointNoDecisions"));
     restartPointKeptBody.append(restartPointLabel("pointConstraints"), restartPointNotes(photograph.constraints, "pointNoConstraints"));
     restartPointKeptBody.append(restartPointLabel("pointFailures"), restartPointNotes(photograph.failures, "pointNoFailures"));
-    restartPointKeptBody.append(restartPointLabel("pointLookedAt"), restartPointMoments(photograph.lookedAt));
+    restartPointKeptBody.append(restartPointLabel("pointLookedAt"), restartPointSentence("pointImportedWarning"), restartPointMoments(photograph.lookedAt));
     restartPointKeptBody.append(restartPointLabel("pointTests"), restartPointTests(photograph.tests, false));
     restartPointKeptBody.append(restartPointLabel("pointRepository"));
     restartPointKeptBody.append(photograph.repository.branch ? restartPointSentence("pointOnBranch", { branch: photograph.repository.branch }) : restartPointSentence("pointNoBranch"));
@@ -343,7 +351,7 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointKeptBody.append(restartPointLabel("keptNextAction"), confirmed);
     if (photograph.followsOne) restartPointKeptOmissions.append(restartPointSentence("keptFollowsOne"));
     for (const omission of photograph.omissions)
-      restartPointKeptOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
+      restartPointKeptOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "OPERATIONS" ? "pointOmittedOperations" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
   };
   const loadRestartPointKept = async () => {
     if (!restartPointFor) return;

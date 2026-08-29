@@ -79,3 +79,29 @@ export async function composeProjectRestartSummary(
     effect: "READ_ONLY_LOCAL_SUMMARY_NOT_PERSISTED_AND_NOT_SENT" as const,
   });
 }
+
+/**
+ * The area, bound to its sources.
+ *
+ * It left `application.ts` when the restart point needed room to read the moments
+ * ingestion keeps as files: a ceiling comes down when work moves out, and never goes
+ * up. Nothing about what this does changed.
+ */
+export function projectRestartSummaryArea(
+  sources: ProjectRestartSummarySources,
+  guard: <T>(operation: () => Promise<T>, recovery: string) => Promise<T>,
+): Readonly<{
+  compose(
+    input: Readonly<{ projectId: string; question?: string }>,
+  ): Promise<GuiRestartSummary>;
+}> {
+  return Object.freeze({
+    compose: async (
+      input: Readonly<{ projectId: string; question?: string }>,
+    ) =>
+      guard(
+        () => composeProjectRestartSummary(sources, input),
+        "Select a registered project, then prepare the summary again.",
+      ),
+  });
+}

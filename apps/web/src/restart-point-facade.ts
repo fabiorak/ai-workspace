@@ -50,6 +50,13 @@ export function restartPointSources(
 ): RestartPointSources {
   return Object.freeze({
     sessions: stores.conversations.sessions,
+    /**
+     * The moments ingestion kept as files are read through the same reader the
+     * conversation uses, so the two views quote a long moment identically.
+     */
+    ...(stores.conversations.artifact === undefined
+      ? {}
+      : { artifact: stores.conversations.artifact }),
     workItems: stores.conversations.workItems,
     notes: async (projectId: string, limit: number) =>
       (await stores.memory.list({ projectId, validity: "ACTIVE", limit }))

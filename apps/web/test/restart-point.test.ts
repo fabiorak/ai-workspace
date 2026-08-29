@@ -273,6 +273,7 @@ describe("what the restart point shows", () => {
         occurredAt: "2026-08-26T09:01:00.000Z",
         text: "Where was I?",
         fromCanonicalPayload: true,
+        fromArtifact: false,
       }),
     ],
     saidAboutTests: null,
@@ -951,5 +952,129 @@ describe("rereading the summary a work already kept", () => {
       ),
       null,
     );
+  });
+});
+
+/**
+ * Which moments answer "where you were", and where their text is read from.
+ *
+ * Both rules were changed by looking at a real transcript on 2026-08-29, not by
+ * reasoning: its last five moments were tool calls, and its long replies were kept as
+ * files no screen opened.
+ */
+describe("choosing and reading the moments shown", () => {
+  const typed = (
+    sequence: number,
+    type: string,
+  ): ImportedSession["events"][number] =>
+    Object.freeze({
+      ...event(sequence, "USER_MESSAGE", `Moment ${sequence}`),
+      type,
+    }) as ImportedSession["events"][number];
+
+  const shown = async (
+    events: readonly ImportedSession["events"][number][],
+    artifact?: (id: string) => Promise<string>,
+  ) => {
+    const point = await readRestartPoint(
+      sources({
+        sessions: { list: async () => [session(events)] },
+        ...(artifact === undefined ? {} : { artifact }),
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    return point!.available === true ? point! : null;
+  };
+
+  /** The mechanics of execution are the how, not the where. */
+  it("leaves out tool calls and their replies, and counts them", async () => {
+    const point = await shown([
+      typed(1, "USER_MESSAGE"),
+      typed(2, "AGENT_MESSAGE"),
+      typed(3, "TOOL_CALL"),
+      typed(4, "TOOL_RESULT"),
+      typed(5, "COMMAND_RESULT"),
+      typed(6, "TOOL_CALL"),
+    ]);
+    assert.deepEqual(
+      point!.lookedAt.map((moment) => moment.type),
+      ["USER_MESSAGE", "AGENT_MESSAGE"],
+    );
+    assert.equal(
+      point!.omissions.find((omission) => omission.kind === "OPERATIONS")
+        ?.count,
+      4,
+    );
+  });
+
+  /**
+   * The worst way to be wrong here would be a session that ended in a failure and a
+   * summary that never mentioned it.
+   */
+  it("keeps the short moments that change how work is picked up", async () => {
+    const point = await shown([
+      typed(1, "TEST_RESULT"),
+      typed(2, "ERROR"),
+      typed(3, "FILE_CHANGE"),
+      typed(4, "TOOL_CALL"),
+    ]);
+    assert.deepEqual(
+      point!.lookedAt.map((moment) => moment.type),
+      ["TEST_RESULT", "ERROR", "FILE_CHANGE"],
+    );
+  });
+
+  /** A conversation of pure mechanics says so rather than filling with commands. */
+  it("shows nothing rather than mechanics when there is nothing else", async () => {
+    const point = await readRestartPoint(
+      sources({
+        sessions: {
+          list: async () => [session([typed(1, "TOOL_CALL")])],
+        },
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    assert.deepEqual(point, {
+      available: false,
+      reason: "NOTHING_IMPORTED_YET",
+    });
+  });
+
+  const held = (sequence: number): ImportedSession["events"][number] =>
+    Object.freeze({
+      ...event(sequence, "AGENT_MESSAGE", ""),
+      payload: Object.freeze({
+        kind: "ARTIFACT" as const,
+        artifact: Object.freeze({ id: "artifact-long", byteLength: 9000 }),
+        mediaType: "application/json" as const,
+      }),
+    }) as ImportedSession["events"][number];
+
+  /** A moment longer than ingestion inlines used to be silent everywhere. */
+  it("reads a long moment from its stored file, and says where it read it", async () => {
+    const point = await shown([held(1)], async () =>
+      JSON.stringify({ text: "The long reply nobody could read before" }),
+    );
+    assert.equal(
+      point!.lookedAt[0]?.text,
+      "The long reply nobody could read before",
+    );
+    assert.equal(point!.lookedAt[0]?.fromArtifact, true);
+    assert.equal(point!.lookedAt[0]?.fromCanonicalPayload, true);
+  });
+
+  it("says the file could not be read instead of showing an empty moment", async () => {
+    const point = await shown([held(1)], async () => {
+      throw new Error("the artifact is gone");
+    });
+    assert.equal(point!.lookedAt[0]?.text, "");
+    assert.equal(point!.lookedAt[0]?.fromArtifact, true);
+  });
+
+  /** Without a reader the line is absent, and nothing pretends otherwise. */
+  it("carries no text when nothing can open artifacts", async () => {
+    const point = await shown([held(1)]);
+    assert.equal(point!.lookedAt[0]?.text, "");
+    assert.equal(point!.lookedAt[0]?.fromArtifact, false);
   });
 });

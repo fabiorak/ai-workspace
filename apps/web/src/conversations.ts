@@ -11,6 +11,8 @@
  * beside a title without inventing a relationship.
  */
 import type { WorkItem } from "@ai-workspace/core";
+
+import type { ArtifactReader } from "./moment-text.ts";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
@@ -42,6 +44,11 @@ export type ConversationSources = Readonly<{
   workItems: Readonly<{
     list(projectId: string): Promise<readonly WorkItem[]>;
   }>;
+  /**
+   * Reads a stored artifact, for the moments longer than ingestion inlines. Optional,
+   * so a caller without one still gets every inlined line.
+   */
+  artifact?: ArtifactReader;
 }>;
 
 export type ConversationPage = Readonly<{

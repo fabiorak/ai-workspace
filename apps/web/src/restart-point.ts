@@ -33,6 +33,32 @@ import type {
 export const LOOKED_AT_LIMIT = 5;
 
 /**
+ * Which kinds of moment answer "where you were".
+ *
+ * Chosen by looking, on 2026-08-29, at a real Claude Code session of 53 moments: its
+ * last five were three tool calls and two tool results — a build, a server start, a
+ * port check. True, and useless to somebody resuming: that is what was running, not
+ * where the work had got to. Real sessions end in execution, because that is how
+ * work goes; the synthetic corpus ended in conversation, which is why the plain
+ * "last five" survived until it met the real thing.
+ *
+ * So the mechanics of execution stay out — the call to a tool and its reply are the
+ * how — while the talk stays in, and with it the few short moments that change how
+ * somebody picks the work up: a test outcome, a failure, a file that moved. Leaving
+ * those to the type filter would have been the worst way to be wrong here, because a
+ * session that ended in an error would show five messages and never mention it.
+ *
+ * What is left out is counted and said, like everything else that does not fit.
+ */
+export const MOMENT_TYPES_SHOWN: readonly string[] = Object.freeze([
+  "USER_MESSAGE",
+  "AGENT_MESSAGE",
+  "TEST_RESULT",
+  "ERROR",
+  "FILE_CHANGE",
+]);
+
+/**
  * How many stored notes travel with the point. It is the bound `Handoffs` already
  * applies to a memory selection, kept here so the count of what was left out can be
  * stated before the packet refuses to hold it.
@@ -97,15 +123,27 @@ export type RestartPointMoment = Readonly<{
   text: string;
   /**
    * False when the payload was not the canonical envelope, so the interface can say
-   * the line is the raw stored text instead of pretending it read it. Also false
-   * for a payload held as an artifact, which this view never opens.
+   * the line is the raw stored text instead of pretending it read it.
    */
   fromCanonicalPayload: boolean;
+  /**
+   * True when the line was read from a stored artifact rather than from the moment
+   * itself. The moment is longer than ingestion inlines, so the view opened the file
+   * it points at; a reader weighing a quotation is told that much.
+   */
+  fromArtifact: boolean;
 }>;
 
-/** What did not fit, counted rather than dropped in silence. */
+/**
+ * What did not fit, counted rather than dropped in silence.
+ *
+ * `OPERATIONS` is separate from `MOMENTS` because the two are left out for different
+ * reasons: earlier moments did not fit, while the mechanics of execution are not what
+ * this section answers. A reader told only "48 moments are not listed" would not know
+ * that half of them were commands.
+ */
 export type RestartPointOmission = Readonly<{
-  kind: "NOTES" | "MOMENTS" | "CHANGED_FILES" | "TESTS";
+  kind: "NOTES" | "MOMENTS" | "OPERATIONS" | "CHANGED_FILES" | "TESTS";
   count: number;
 }>;
 

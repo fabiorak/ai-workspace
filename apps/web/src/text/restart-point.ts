@@ -225,6 +225,31 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "raw stored text",
     it: "testo grezzo come è stato conservato",
   },
+  /**
+   * Said beside a line read out of a stored file, because the moment was longer than
+   * ingestion inlines. A reader weighing a quotation is told where it was read from.
+   */
+  pointMomentFromFile: {
+    en: "read from the stored file of this moment",
+    it: "letto dal file conservato di questo momento",
+  },
+  /** The file is there and could not be read. Silence and failure must not look alike. */
+  pointMomentFileUnreadable: {
+    en: "the stored file of this moment could not be read",
+    it: "il file conservato di questo momento non è leggibile",
+  },
+  /**
+   * Said once, where imported text is shown.
+   *
+   * These lines come out of a transcript nobody verified, and a transcript records
+   * whatever was on screen — including credentials somebody pasted or a tool printed.
+   * Detection here is incomplete by construction, so the interface says so plainly
+   * instead of implying that what is shown has been cleared.
+   */
+  pointImportedWarning: {
+    en: "These lines are quoted from an imported transcript. It was not checked, and it can contain credentials or private data.",
+    it: "Queste righe sono citate da un transcript importato. Non è stato controllato e può contenere credenziali o dati riservati.",
+  },
   pointOmittedChangedFiles: {
     en: "{count} further files with unsaved changes are not listed here.",
     it: "Altri {count} file con modifiche non salvate non sono elencati qui.",
@@ -240,6 +265,16 @@ export const RESTART_POINT_TEXT = Object.freeze({
   pointOmittedMoments: {
     en: "{count} earlier moments are not listed here; they are in the conversation above.",
     it: "{count} momenti precedenti non sono elencati qui: stanno nella conversazione qui sopra.",
+  },
+  /**
+   * Counted apart from the moments that simply did not fit, because they are left out
+   * for a different reason: the call to a tool and its reply are how the work was
+   * done, not where it had got to. Saying how many there were keeps the reader from
+   * thinking the conversation was quieter than it was.
+   */
+  pointOmittedOperations: {
+    en: "{count} operations — commands and their replies — are not listed here; they are in the conversation above.",
+    it: "{count} operazioni — comandi e relative risposte — non sono elencate qui: stanno nella conversazione qui sopra.",
   },
   /**
    * Why there is nothing to compose. Each of these says what is missing instead of

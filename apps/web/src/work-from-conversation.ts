@@ -25,8 +25,8 @@
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 import type { WorkItem } from "@ai-workspace/core";
 
-import { LOOKED_AT_LIMIT, workForSession } from "./restart-point.ts";
-import { inOrder } from "./restart-points.ts";
+import { workForSession } from "./restart-point.ts";
+import { inOrder, momentsShown } from "./restart-points.ts";
 
 export type WorkFromConversationSources = Readonly<{
   sessions: Readonly<{
@@ -117,7 +117,7 @@ export async function startWorkFromConversation(
    */
   if (workForSession(await sources.workItems.list(projectId), session.id))
     return refusal("ALREADY_LINKED");
-  const recent = inOrder(session.events).slice(-LOOKED_AT_LIMIT);
+  const recent = momentsShown(inOrder(session.events));
   if (recent.length === 0) return refusal("NOTHING_IMPORTED_YET");
   const sourceEventIds = recent.map((event) => event.id);
   const created = await writes.create({

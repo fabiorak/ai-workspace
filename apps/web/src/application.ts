@@ -133,7 +133,7 @@ import {
   conversationArea,
   type ConversationArea,
 } from "./conversation-facade.ts";
-import { composeProjectRestartSummary } from "./project-restart-summary.ts";
+import { projectRestartSummaryArea } from "./project-restart-summary.ts";
 import {
   restartPointArea,
   type RestartPointArea,
@@ -276,7 +276,11 @@ export class GuiApplication {
       clock: () => new Date(),
     });
     const workItemStore = new JsonWorkItemStore(dependencies.workspaceHome);
+    /** Reads a stored artifact, so a long moment is quotable instead of silent. */
+    const artifact = async (artifactId: string) =>
+      (await this.#history.openArtifact(artifactId)).content;
     this.#conversationSources = Object.freeze({
+      artifact,
       projects: async () =>
         (await projectStore.load()).map((project) =>
           Object.freeze({ id: project.id, name: project.name }),
@@ -646,19 +650,15 @@ export class GuiApplication {
   public async restartSummary(
     input: Readonly<{ projectId: string; question?: string }>,
   ): Promise<GuiRestartSummary> {
-    return this.#run(
-      () =>
-        composeProjectRestartSummary(
-          {
-            projects: () => this.#registry.list(),
-            notes: async (projectId) =>
-              (await this.#memory.list({ projectId, limit: 100 })).items,
-            search: (projectId, text) => this.search({ projectId, text }),
-          },
-          input,
-        ),
-      "Select a registered project, then prepare the summary again.",
-    );
+    return projectRestartSummaryArea(
+      {
+        projects: () => this.#registry.list(),
+        notes: async (projectId) =>
+          (await this.#memory.list({ projectId, limit: 100 })).items,
+        search: (projectId, text) => this.search({ projectId, text }),
+      },
+      (operation, recovery) => this.#run(operation, recovery),
+    ).compose(input);
   }
   /**
    * The restart point at the end of a work conversation (ADR-0037). Composition

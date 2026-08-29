@@ -24,11 +24,13 @@ import {
 } from "@ai-workspace/handoff";
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
+import { momentTextOf, type ArtifactReader } from "./moment-text.ts";
 import {
   KEPT_NOT_A_WORK_CONVERSATION,
   KEPT_NO_LINKED_WORK,
   LOOKED_AT_LIMIT,
   MOMENT_TEXT_LIMIT,
+  MOMENT_TYPES_SHOWN,
   NOTE_LIMIT,
   NOTHING_IMPORTED_YET,
   NOTHING_KEPT_YET,
@@ -72,6 +74,12 @@ export type RestartPointSources = Readonly<{
    * orders them. A read: nothing here creates, replaces or supersedes one.
    */
   fixed(projectId: string, workItemId: string): Promise<readonly Handoff[]>;
+  /**
+   * Reads a stored artifact, for the moments ingestion did not inline. Optional: a
+   * caller that cannot open artifacts still gets every inlined line, and a moment
+   * held as a file says it carries no text rather than looking empty.
+   */
+  artifact?: ArtifactReader;
 }>;
 
 /**
@@ -83,6 +91,23 @@ export function inOrder(
   events: readonly ImportedSession["events"][number][],
 ): readonly ImportedSession["events"][number][] {
   return [...events].sort((left, right) => left.sequence - right.sequence);
+}
+
+/**
+ * The moments the summary shows, and therefore the evidence anything built from this
+ * conversation cites.
+ *
+ * One function because it is one rule: what a record cites is what somebody read. The
+ * summary, the work a conversation declares, and every packet built afterwards all
+ * ask here, so the three can never disagree about which moments were in front of the
+ * person.
+ */
+export function momentsShown(
+  ordered: readonly ImportedSession["events"][number][],
+): readonly ImportedSession["events"][number][] {
+  return ordered
+    .filter((event) => MOMENT_TYPES_SHOWN.includes(event.type))
+    .slice(-LOOKED_AT_LIMIT);
 }
 
 /** The last thing the person themselves asked, read through the canonical reader. */
@@ -100,18 +125,6 @@ function lastQuestionOf(
 }
 
 /**
- * One readable line of a stored moment: line breaks collapsed, and a marked tail
- * when it did not fit. Nothing is rewritten or summarised — the text is the stored
- * text, cut where the bound falls.
- */
-function oneLine(value: string): string {
-  const collapsed = value.replace(/\s+/gu, " ").trim();
-  return collapsed.length <= MOMENT_TEXT_LIMIT
-    ? collapsed
-    : `${collapsed.slice(0, MOMENT_TEXT_LIMIT - 1)}…`;
-}
-
-/**
  * The most recent moment that reported a test outcome, wherever it sits.
  *
  * It is searched over the whole conversation rather than over the five moments
@@ -123,33 +136,28 @@ function oneLine(value: string): string {
  * tests section has to answer on its own, because this summary is meant to be
  * readable away from the conversation it sits under.
  */
-function saidAboutTestsIn(
+async function saidAboutTestsIn(
   ordered: readonly ImportedSession["events"][number][],
-): RestartPointMoment | null {
+  readArtifact: ArtifactReader | null,
+): Promise<RestartPointMoment | null> {
   for (let index = ordered.length - 1; index >= 0; index--) {
     const event = ordered[index]!;
-    if (event.type === "TEST_RESULT") return momentOf(event);
+    if (event.type === "TEST_RESULT") return momentOf(event, readArtifact);
   }
   return null;
 }
 
-function momentOf(
+async function momentOf(
   event: ImportedSession["events"][number],
-): RestartPointMoment {
-  /**
-   * A payload held as an artifact is not inlined, exactly as the conversation above
-   * does not inline it: quoting a file this view never opened would be a claim
-   * about bytes nobody checked.
-   */
-  const read =
-    event.payload.kind === "INLINE_TEXT"
-      ? readCanonicalPayload(event.payload.text)
-      : null;
+  readArtifact: ArtifactReader | null,
+): Promise<RestartPointMoment> {
+  const read = await momentTextOf(event, MOMENT_TEXT_LIMIT, readArtifact);
   return Object.freeze({
     type: event.type,
     occurredAt: event.occurredAt,
-    text: read === null ? "" : oneLine(read.text),
-    fromCanonicalPayload: read?.parsed ?? false,
+    text: read.text,
+    fromCanonicalPayload: read.fromCanonicalPayload,
+    fromArtifact: read.fromArtifact,
   });
 }
 
@@ -267,10 +275,17 @@ export async function composeRestartPoint(
   );
   if (work === null) return NO_LINKED_WORK;
   const ordered = inOrder(session.events);
-  const recent = ordered.slice(-LOOKED_AT_LIMIT);
+  const recent = momentsShown(ordered);
   if (recent.length === 0) return NOTHING_IMPORTED_YET;
   const notes = await sources.notes(projectId, NOTES_READ);
   const selected = notes.slice(0, NOTE_LIMIT);
+  /**
+   * The two reasons a moment is not here are counted apart: the mechanics of
+   * execution were not this section's to show, and earlier talk did not fit.
+   */
+  const operations = ordered.filter(
+    (event) => !MOMENT_TYPES_SHOWN.includes(event.type),
+  ).length;
   const omissions: RestartPointOmission[] = [
     Object.freeze({
       kind: "NOTES" as const,
@@ -278,8 +293,9 @@ export async function composeRestartPoint(
     }),
     Object.freeze({
       kind: "MOMENTS" as const,
-      count: ordered.length - recent.length,
+      count: ordered.length - operations - recent.length,
     }),
+    Object.freeze({ kind: "OPERATIONS" as const, count: operations }),
   ];
   const draft = draftNextAction({
     objective: work.objective,
@@ -294,14 +310,16 @@ export async function composeRestartPoint(
   };
   const handoff = await sources.compose(built);
   const already = await sources.fixed(projectId, work.id);
-  const lookedAt = recent.map(momentOf);
+  const lookedAt = await Promise.all(
+    recent.map((event) => momentOf(event, sources.artifact ?? null)),
+  );
   return Object.freeze({
     point: restartPointOf({
       handoff,
       conversationId: session.id,
       workState: work.status,
       lookedAt,
-      saidAboutTests: saidAboutTestsIn(ordered),
+      saidAboutTests: await saidAboutTestsIn(ordered, sources.artifact ?? null),
       nextAction: draft,
       fixed: fixedOf(already),
       composition: markOf(handoff, lookedAt),
@@ -333,13 +351,16 @@ export async function readRestartPoint(
  * marked unreadable — the packet is permanent, so a citation it makes is part of
  * the record even when what it points at has gone.
  */
-function citedMoments(
+async function citedMoments(
   handoff: Handoff,
   sessions: readonly ImportedSession[],
-): Readonly<{
-  moments: readonly KeptRestartPointMoment[];
-  omitted: number;
-}> {
+  readArtifact: ArtifactReader | null,
+): Promise<
+  Readonly<{
+    moments: readonly KeptRestartPointMoment[];
+    omitted: number;
+  }>
+> {
   const cited = handoff.sections.sourceReferences.value;
   const shown = cited.slice(0, LOOKED_AT_LIMIT);
   const found = shown.map((reference) =>
@@ -365,12 +386,17 @@ function citedMoments(
    * and says it is unreadable, and it is the only line with no time beside it: what
    * cannot be read cannot be placed, and guessing a position would be inventing one.
    */
-  const readable = found
-    .filter((entry) => entry.event !== undefined)
-    .sort((left, right) => left.event!.sequence - right.event!.sequence)
-    .map((entry) =>
-      Object.freeze({ ...momentOf(entry.event!), readable: true }),
-    );
+  const readable = await Promise.all(
+    found
+      .filter((entry) => entry.event !== undefined)
+      .sort((left, right) => left.event!.sequence - right.event!.sequence)
+      .map(async (entry) =>
+        Object.freeze({
+          ...(await momentOf(entry.event!, readArtifact)),
+          readable: true,
+        }),
+      ),
+  );
   const unreadable = found
     .filter((entry) => entry.event === undefined)
     .map((entry) =>
@@ -417,7 +443,7 @@ export async function readKeptRestartPoint(
   if (work === null) return KEPT_NO_LINKED_WORK;
   const latest = (await sources.fixed(projectId, work.id))[0];
   if (latest === undefined) return NOTHING_KEPT_YET;
-  const cited = citedMoments(latest, sessions);
+  const cited = await citedMoments(latest, sessions, sources.artifact ?? null);
   return keptRestartPointOf({
     handoff: latest,
     lookedAt: cited.moments,
