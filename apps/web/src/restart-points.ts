@@ -79,7 +79,7 @@ export type RestartPointSources = Readonly<{
  * exactly as the conversation above them is ordered. A record whose timestamp an
  * adapter could not read keeps its place instead of sinking to one end.
  */
-function inOrder(
+export function inOrder(
   events: readonly ImportedSession["events"][number][],
 ): readonly ImportedSession["events"][number][] {
   return [...events].sort((left, right) => left.sequence - right.sequence);

@@ -550,3 +550,183 @@ describe("composing a restart point over HTTP", () => {
     });
   });
 });
+
+/**
+ * Declaring that a conversation is a piece of work, over HTTP.
+ *
+ * It lives beside the restart point's own tests because it is the step that makes
+ * that summary possible at all: before this, a conversation nobody had linked could
+ * only be told what was missing.
+ */
+describe("declaring a conversation as work over HTTP", () => {
+  let root: string,
+    home: string,
+    repository: string,
+    server: GuiServer,
+    cookie: string,
+    csrf: string,
+    projectId: string,
+    conversationId: string;
+
+  const api = (path: string, options: RequestInit = {}) =>
+    fetch(`${server.origin}${path}`, {
+      ...options,
+      headers: {
+        Cookie: cookie,
+        Origin: server.origin,
+        "Content-Type": "application/json",
+        "X-AI-Workspace-CSRF": csrf,
+        ...(options.headers ?? {}),
+      },
+    });
+
+  before(async () => {
+    root = await mkdtemp(join(tmpdir(), "ai-workspace-declare-work-"));
+    home = join(root, "home");
+    repository = join(root, "repository");
+    await mkdir(repository);
+    await execFileAsync("git", [
+      "-C",
+      repository,
+      "init",
+      "--initial-branch=main",
+    ]);
+    await writeFile(join(repository, "README.md"), "# Synthetic project\n");
+    await execFileAsync("git", ["-C", repository, "add", "README.md"]);
+    await execFileAsync("git", [
+      "-C",
+      repository,
+      "-c",
+      "user.name=Synthetic",
+      "-c",
+      "user.email=synthetic@example.invalid",
+      "commit",
+      "-m",
+      "initial",
+    ]);
+    server = await startGuiServer(
+      new GuiApplication({ workspaceHome: home, sampleSessionPath }),
+      {
+        bootstrapToken: "b".repeat(64),
+        sessionToken: "s".repeat(64),
+        csrfToken: "c".repeat(64),
+      },
+    );
+    const bootstrap = await fetch(server.bootstrapUrl, { redirect: "manual" });
+    cookie = bootstrap.headers.get("set-cookie")!.split(";", 1)[0]!;
+    const page = await fetch(`${server.origin}/`, {
+      headers: { Cookie: cookie },
+    });
+    csrf =
+      /name="aiw-csrf" content="([a-f0-9]+)"/u.exec(await page.text())?.[1] ??
+      "";
+    const project = (await (
+      await api("/api/projects", {
+        method: "POST",
+        body: JSON.stringify({ path: repository }),
+      })
+    ).json()) as { id: string };
+    projectId = project.id;
+    await api(`/api/projects/${encodeURIComponent(projectId)}/import-sample`, {
+      method: "POST",
+      body: "{}",
+    });
+    const rows = (await (await api("/api/conversations")).json()) as {
+      rows: { id: string; projectId: string | null }[];
+    };
+    conversationId = rows.rows.find((row) => row.projectId === projectId)!.id;
+  });
+
+  after(async () => {
+    await server.close();
+    await rm(root, { recursive: true, force: true });
+  });
+
+  const declare = (body: Record<string, unknown>, headers = {}) =>
+    api(
+      `/api/conversations/${encodeURIComponent(conversationId)}/work?project=${encodeURIComponent(projectId)}`,
+      { method: "POST", body: JSON.stringify(body), headers },
+    );
+  const point = async () =>
+    (await (
+      await api(
+        `/api/conversations/${encodeURIComponent(conversationId)}/restart-point?project=${encodeURIComponent(projectId)}`,
+      )
+    ).json()) as Record<string, unknown>;
+
+  it("refuses without local write authorization, and writes nothing", async () => {
+    const before = await snapshot(home);
+    const refused = await declare(
+      { objective: "Bring the fictional station back online" },
+      { "X-AI-Workspace-CSRF": "" },
+    );
+    assert.equal(refused.status, 403);
+    assert.deepEqual(await snapshot(home), before);
+  });
+
+  it("refuses an objective nobody wrote, and writes nothing", async () => {
+    const before = await snapshot(home);
+    const answer = await declare({ objective: "   " });
+    assert.equal(answer.status, 200);
+    assert.deepEqual(await answer.json(), {
+      started: false,
+      reason: "EMPTY_OBJECTIVE",
+    });
+    assert.deepEqual(await snapshot(home), before);
+  });
+
+  /** Before it exists, the summary can only say what is missing. */
+  it("turns the summary from a dead end into the work it names", async () => {
+    assert.deepEqual(await point(), {
+      available: false,
+      reason: "NO_LINKED_WORK",
+    });
+    const answer = await declare({
+      objective: "Bring the fictional station back online",
+    });
+    assert.equal(answer.status, 201);
+    assert.deepEqual(await answer.json(), { started: true, active: true });
+    const composed = await point();
+    assert.equal(composed.available, true);
+    assert.equal(composed.doing, "Bring the fictional station back online");
+    assert.equal(composed.workState, "ACTIVE");
+  });
+
+  /**
+   * The evidence the work declares is the evidence the summary shows: the same few
+   * moments, so a packet built from this work cites what somebody read.
+   */
+  it("declares exactly the moments the summary shows", async () => {
+    const items = (await (
+      await api(`/api/projects/${encodeURIComponent(projectId)}/work-items`)
+    ).json()) as { sources: { eventId: string; sessionId: string }[] }[];
+    const composed = (await point()) as unknown as {
+      lookedAt: { occurredAt: string }[];
+    };
+    assert.equal(items.length, 1);
+    assert.equal(items[0]!.sources.length, composed.lookedAt.length);
+    for (const source of items[0]!.sources)
+      assert.equal(source.sessionId, conversationId);
+  });
+
+  it("refuses a second work over the same conversation", async () => {
+    const answer = await declare({ objective: "A second objective" });
+    assert.equal(answer.status, 200);
+    assert.deepEqual(await answer.json(), {
+      started: false,
+      reason: "ALREADY_LINKED",
+    });
+    const items = (await (
+      await api(`/api/projects/${encodeURIComponent(projectId)}/work-items`)
+    ).json()) as unknown[];
+    assert.equal(items.length, 1);
+  });
+
+  it("answers a conversation that is not there", async () => {
+    const answer = await api(
+      `/api/conversations/session_missing/work?project=${encodeURIComponent(projectId)}`,
+      { method: "POST", body: JSON.stringify({ objective: "Anything" }) },
+    );
+    assert.equal(answer.status, 404);
+  });
+});

@@ -195,13 +195,13 @@ describe("GUI application facade", () => {
       const eventId = (
         await app.search({ projectId: project.id, text: "test" })
       ).results[0]!.eventId;
-      const work = await app.createWorkItem({
+      const work = await app.workItems.create({
         projectId: project.id,
         objective: "Preserve the synthetic greeting behavior.",
         sourceEventIds: [eventId],
       });
       assert.equal(work.status, "PROPOSED");
-      const active = await app.transitionWorkItem("activate", {
+      const active = await app.workItems.transition("activate", {
         projectId: project.id,
         workItemId: work.id,
         sourceEventIds: [eventId],
@@ -314,12 +314,12 @@ describe("GUI application facade", () => {
       const eventId = (
         await app.search({ projectId: project.id, text: "test" })
       ).results[0]!.eventId;
-      const work = await app.createWorkItem({
+      const work = await app.workItems.create({
         projectId: project.id,
         objective: "Review the synthetic profile composition.",
         sourceEventIds: [eventId],
       });
-      await app.transitionWorkItem("activate", {
+      await app.workItems.transition("activate", {
         projectId: project.id,
         workItemId: work.id,
         sourceEventIds: [eventId],
@@ -594,7 +594,7 @@ async function writeProfileCompositionFixtures(
         content: "Synthetic dashboard memory.",
         sourceEventIds: [eventId],
       });
-      await app.createWorkItem({
+      await app.workItems.create({
         projectId: project.id,
         objective: "Exercise the synthetic dashboard.",
         sourceEventIds: [eventId],

@@ -14,6 +14,7 @@ import {
   handleRestartPointRoute,
   type MutationGuard,
 } from "./restart-point-route.ts";
+import { handleWorkFromConversationRoute } from "./work-from-conversation-route.ts";
 
 /** Same shape as the other list bounds in this interface, so one rule covers them all. */
 function limitOf(value: string | null): number | undefined {
@@ -53,6 +54,16 @@ export async function handleConversationRoute(
    */
   if (
     await handleRestartPointRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )
+  )
+    return true;
+  if (
+    await handleWorkFromConversationRoute(
       request,
       response,
       url,

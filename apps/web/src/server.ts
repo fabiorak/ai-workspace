@@ -263,7 +263,7 @@ export async function startGuiServer(
           return json(
             response,
             200,
-            await application.listWorkItems(decodeURIComponent(workList[1]!)),
+            await application.workItems.list(decodeURIComponent(workList[1]!)),
           );
         const handoffList =
           /^\/api\/projects\/([^/]+)\/work-items\/([^/]+)\/handoffs$/u.exec(
@@ -312,7 +312,7 @@ export async function startGuiServer(
           return json(
             response,
             200,
-            await application.showWorkItem(
+            await application.workItems.show(
               decodeURIComponent(workItem[1]!),
               decodeURIComponent(workItem[2]!),
             ),
@@ -597,7 +597,7 @@ export async function startGuiServer(
           return json(
             response,
             201,
-            await application.createWorkItem({
+            await application.workItems.create({
               projectId: decodeURIComponent(createWork[1]!),
               objective: body.objective,
               sourceEventIds: body.sourceEventIds,
@@ -619,7 +619,7 @@ export async function startGuiServer(
           return json(
             response,
             200,
-            await application.transitionWorkItem(
+            await application.workItems.transition(
               workTransition[3] as "activate" | "block" | "complete" | "reopen",
               {
                 projectId: decodeURIComponent(workTransition[1]!),

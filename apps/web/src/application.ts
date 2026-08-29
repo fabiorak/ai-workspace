@@ -138,6 +138,11 @@ import {
   restartPointArea,
   type RestartPointArea,
 } from "./restart-point-facade.ts";
+import {
+  workFromConversationArea,
+  type WorkFromConversationArea,
+} from "./work-from-conversation-facade.ts";
+import { workItemArea, type WorkItemArea } from "./work-item-facade.ts";
 import { transcriptArea, type TranscriptArea } from "./transcript-facade.ts";
 
 export class GuiApplicationError extends Error {
@@ -669,6 +674,22 @@ export class GuiApplication {
     });
   }
 
+  /**
+   * Declaring that an open conversation is a piece of work.
+   *
+   * The evidence is composed by the area from the session itself, so the browser
+   * supplies only the objective the person wrote. Both domain writes are handed over
+   * explicitly, and both invalidate the reader that would otherwise not see them.
+   */
+  public get workFromConversation(): WorkFromConversationArea {
+    return workFromConversationArea({
+      conversations: this.#conversationSources,
+      workItems: this.#workItems,
+      guard: (operation, recovery) => this.#run(operation, recovery),
+      after: (write) => this.#reindexAfter(write),
+    });
+  }
+
   public async searchAllProjects(
     input: Omit<GuiSearchInput, "projectId" | "sessionId">,
   ): Promise<GuiGlobalSearchReport> {
@@ -905,31 +926,10 @@ export class GuiApplication {
       "Keep the reason, select current canonical evidence, and retry.",
     );
   }
-  public async listWorkItems(projectId: string): Promise<readonly WorkItem[]> {
-    return this.#run(
-      () => this.#workItems.list(projectId),
-      "Keep the selected project and retry loading Work Items.",
-    );
-  }
-  public async showWorkItem(projectId: string, workItemId: string) {
-    return this.#run(
-      () => this.#workItems.show(projectId, workItemId),
-      "Return to this project's Work Item list and retry.",
-    );
-  }
-  public async createWorkItem(input: Parameters<WorkItems["create"]>[0]) {
-    return this.#run(
-      () => this.#workItems.create(input),
-      "Keep the objective, select same-project canonical evidence, and retry.",
-    );
-  }
-  public async transitionWorkItem(
-    action: "activate" | "block" | "complete" | "reopen",
-    input: Parameters<WorkItems["activate"]>[0],
-  ) {
-    return this.#run(
-      () => this.#workItems[action](input),
-      "Reload the Work Item, select current evidence, and choose a valid lifecycle action.",
+  /** The Work Item lifecycle, kept in its own module (ADR-0035). */
+  public get workItems(): WorkItemArea {
+    return workItemArea(this.#workItems, (operation, recovery) =>
+      this.#run(operation, recovery),
     );
   }
   public async listHandoffs(projectId: string, workItemId: string) {
