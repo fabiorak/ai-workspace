@@ -38,6 +38,16 @@ export const RESTART_POINT_BEHAVIOUR = `
   // the part that asserts something, and it is chosen every time or left unstated.
   let restartPointTestCommandEdited = false;
   restartPointTestCommand.addEventListener("input", () => { restartPointTestCommandEdited = true; });
+  const restartPointKeptToggle = document.getElementById("restart-point-kept-toggle");
+  // The date of the summary the control offers, kept so that closing can put it back
+  // in the label. A control that says only "read the kept summary" would hide the one
+  // thing that distinguishes the photograph from what is already on screen.
+  let restartPointKeptToggleDate = "";
+  const restartPointKept = document.getElementById("restart-point-kept");
+  const restartPointKeptHeading = document.getElementById("restart-point-kept-heading");
+  const restartPointKeptStatus = document.getElementById("restart-point-kept-status");
+  const restartPointKeptBody = document.getElementById("restart-point-kept-body");
+  const restartPointKeptOmissions = document.getElementById("restart-point-kept-omissions");
   const restartPointFollows = document.getElementById("restart-point-follows");
   const restartPointFixButton = document.getElementById("restart-point-fix");
   const restartPointFixStatus = document.getElementById("restart-point-fix-status");
@@ -47,6 +57,16 @@ export const RESTART_POINT_BEHAVIOUR = `
   // Which conversation the point on screen belongs to, so an import can recompose the
   // right one and a closed conversation recomposes nothing at all.
   let restartPointFor = null;
+  // Closing empties it rather than only hiding it: a photograph left in the document
+  // is a summary of another day one keystroke away from being read as this one.
+  const closeRestartPointKept = () => {
+    restartPointKept.hidden = true;
+    restartPointKeptToggle.setAttribute("aria-expanded", "false");
+    restartPointKeptBody.replaceChildren();
+    restartPointKeptOmissions.replaceChildren();
+    text(restartPointKeptStatus, "");
+    text(restartPointKeptHeading, "");
+  };
   const hideRestartPoint = () => {
     restartPointFor = null;
     restartPoint.hidden = true;
@@ -63,6 +83,11 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointTestAt.value = "";
     say(restartPointTestsOptional, "pointTestsOptional");
     restartPointComposition = null;
+    // The photograph belongs to one work, and it closes with the conversation that
+    // opened it: leaving it behind would show the next reader a dated summary of
+    // work they did not open.
+    closeRestartPointKept();
+    restartPointKeptToggle.hidden = true;
     text(restartPointFollows, "");
     text(restartPointFixStatus, "");
     restartPointFixButton.disabled = false;
@@ -97,6 +122,18 @@ export const RESTART_POINT_BEHAVIOUR = `
     for (const moment of moments) {
       const item = document.createElement("li");
       const said = document.createElement("span");
+      // A kept summary cites moments by identity, so one of them may be gone by the
+      // time it is reread. The line stays and says so: the citation is part of a
+      // permanent record, and neither silence nor a substitute would be honest.
+      if (moment.readable === false) {
+        say(said, "keptMomentUnreadable");
+        const gone = document.createElement("span");
+        gone.className = "help";
+        text(gone, momentSpeaker(moment.type));
+        item.append(said, document.createTextNode(" · "), gone);
+        list.append(item);
+        continue;
+      }
       if (moment.text) text(said, moment.text); else say(said, "pointMomentNoText");
       const who = document.createElement("span");
       who.className = "help";
@@ -117,8 +154,12 @@ export const RESTART_POINT_BEHAVIOUR = `
   // A recorded run is said as the command, the outcome as a word, and when it was
   // seen. Nothing is observed here, so no record at all is said in a sentence: a
   // reader who found this part silent would be free to read the silence as green.
-  const restartPointTests = (tests) => {
-    if (tests.length === 0) return restartPointSentence("pointNoTests");
+  // \`elsewhere\` is true when a kept summary does record a run. The absence is still
+  // stated, but not with the sentence that ends "nothing says whether this works":
+  // the line right below it does say something, and a sentence that contradicts the
+  // line under it teaches a reader to skip both.
+  const restartPointTests = (tests, elsewhere) => {
+    if (tests.length === 0) return restartPointSentence(elsewhere ? "pointNoTestsYet" : "pointNoTests");
     const list = document.createElement("ul");
     for (const test of tests) {
       const item = document.createElement("li");
@@ -151,7 +192,26 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointBody.append(restartPointLabel("pointConstraints"), restartPointNotes(point.constraints, "pointNoConstraints"));
     restartPointBody.append(restartPointLabel("pointFailures"), restartPointNotes(point.failures, "pointNoFailures"));
     restartPointBody.append(restartPointLabel("pointLookedAt"), restartPointMoments(point.lookedAt));
-    restartPointBody.append(restartPointLabel("pointTests"), restartPointTests(point.tests));
+    // What was stated the last time a summary was kept. It is quoted with its own two
+    // dates — when the run was seen, and when it was kept — so it reads as a fact of
+    // that day. It is never what fills the outcome field below.
+    const keptRun = point.fixed && point.fixed.lastRecordedTest ? point.fixed.lastRecordedTest : null;
+    restartPointBody.append(restartPointLabel("pointTests"), restartPointTests(point.tests, keptRun !== null));
+    if (keptRun) {
+      const stated = document.createElement("p");
+      const command = document.createElement("span");
+      text(command, keptRun.command);
+      const outcome = document.createElement("span");
+      say(outcome, keptRun.outcome === "PASS" ? "pointTestPassed" : keptRun.outcome === "FAIL" ? "pointTestFailed" : "pointTestNotRun");
+      const when = document.createElement("span");
+      when.className = "help";
+      if (keptRun.observedAt) say(when, "pointTestObservedAt", { when: dateTime(keptRun.observedAt) }); else say(when, "pointTestNotObserved");
+      const source = document.createElement("span");
+      source.className = "help";
+      say(source, "pointTestsKept", { when: dateTime(point.fixed.at) });
+      stated.append(command, document.createTextNode(" · "), outcome, document.createTextNode(" · "), when, document.createTextNode(" · "), source);
+      restartPointBody.append(stated);
+    }
     // The answer to "do the tests pass" is often in the conversation and nowhere else,
     // and only the last five moments are shown. It is quoted with its provenance said
     // out loud, never as an outcome: no word of result stands beside it.
@@ -197,8 +257,11 @@ export const RESTART_POINT_BEHAVIOUR = `
     say(restartPointDraftSource, "pointDraftMadeOf", { sources: from.join(" · ") });
     // A command recorded last time comes back as a starting point, and the sentence
     // beside the fields says both that it was repeated and that the outcome was not.
-    if (!restartPointTestCommandEdited && point.fixed && point.fixed.testCommand) {
-      restartPointTestCommand.value = point.fixed.testCommand;
+    // Only the command is taken from it. The outcome is quoted above beside its date
+    // and never reaches this field: what is already in a field gets confirmed without
+    // being chosen, and an outcome nobody chose today is the one claim to avoid.
+    if (!restartPointTestCommandEdited && keptRun && keptRun.command) {
+      restartPointTestCommand.value = keptRun.command;
       say(restartPointTestsOptional, "pointTestCommandRepeated");
     } else if (!restartPointTestCommandEdited) say(restartPointTestsOptional, "pointTestsOptional");
     // Which summary this one would follow, by date and never by identifier, said before
@@ -206,7 +269,76 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPointComposition = point.composition;
     if (point.fixed) say(restartPointFollows, "pointFollows", { when: dateTime(point.fixed.at) });
     else say(restartPointFollows, "pointFollowsNothing");
+    // The photograph is offered only where there is one, and always by date. A summary
+    // already open is read again rather than left as it was: a confirmation just made
+    // it the previous one, and the reader would be looking at a photograph of a
+    // summary that is no longer the most recent.
+    if (point.fixed) {
+      restartPointKeptToggleDate = dateTime(point.fixed.at);
+      restartPointKeptToggle.hidden = false;
+      if (restartPointKept.hidden) say(restartPointKeptToggle, "keptOpen", { when: restartPointKeptToggleDate });
+      else { say(restartPointKeptToggle, "keptClose"); void loadRestartPointKept(); }
+    } else {
+      closeRestartPointKept();
+      restartPointKeptToggle.hidden = true;
+    }
     say(restartPointStatus, "pointComposed", { when: dateTime(point.composedAt) });
+  };
+  // The kept summary, rendered as the day it was kept. It reuses the lists of the
+  // composed one — a note, a moment, a run read the same way in both — and drops what
+  // a stored packet has no honest value for: no state of the work, no mark to confirm
+  // with, and a next action that is confirmed text rather than a draft.
+  const renderRestartPointKept = (photograph) => {
+    restartPointKeptBody.replaceChildren();
+    restartPointKeptOmissions.replaceChildren();
+    if (!photograph.kept) {
+      say(restartPointKeptStatus, photograph.reason === "NOTHING_KEPT_YET" ? "keptNothing" : photograph.reason === "NO_LINKED_WORK" ? "pointNoWork" : "pointNotWork");
+      return;
+    }
+    text(restartPointKeptStatus, "");
+    say(restartPointKeptHeading, "keptHeading", { when: dateTime(photograph.keptAt) });
+    const doing = document.createElement("p");
+    text(doing, photograph.doing);
+    restartPointKeptBody.append(restartPointLabel("pointDoing"), doing);
+    restartPointKeptBody.append(restartPointLabel("pointDecisions"), restartPointNotes(photograph.decisions, "pointNoDecisions"));
+    restartPointKeptBody.append(restartPointLabel("pointConstraints"), restartPointNotes(photograph.constraints, "pointNoConstraints"));
+    restartPointKeptBody.append(restartPointLabel("pointFailures"), restartPointNotes(photograph.failures, "pointNoFailures"));
+    restartPointKeptBody.append(restartPointLabel("pointLookedAt"), restartPointMoments(photograph.lookedAt));
+    restartPointKeptBody.append(restartPointLabel("pointTests"), restartPointTests(photograph.tests, false));
+    restartPointKeptBody.append(restartPointLabel("pointRepository"));
+    restartPointKeptBody.append(photograph.repository.branch ? restartPointSentence("pointOnBranch", { branch: photograph.repository.branch }) : restartPointSentence("pointNoBranch"));
+    restartPointKeptBody.append(photograph.repository.hasUnsavedChanges ? (photograph.repository.changedFiles === 1 ? restartPointSentence("pointRepositoryOneChanged") : restartPointSentence("pointRepositoryChanged", { count: number(photograph.repository.changedFiles) })) : restartPointSentence("pointRepositoryClean"));
+    if (photograph.repository.changedPaths.length > 0) {
+      const paths = document.createElement("ul");
+      for (const path of photograph.repository.changedPaths) {
+        const entry = document.createElement("li");
+        text(entry, path);
+        paths.append(entry);
+      }
+      restartPointKeptBody.append(paths);
+    }
+    const confirmed = document.createElement("p");
+    text(confirmed, photograph.nextAction);
+    restartPointKeptBody.append(restartPointLabel("keptNextAction"), confirmed);
+    if (photograph.followsOne) restartPointKeptOmissions.append(restartPointSentence("keptFollowsOne"));
+    for (const omission of photograph.omissions)
+      restartPointKeptOmissions.append(restartPointSentence(omission.kind === "NOTES" ? "pointOmittedNotes" : omission.kind === "MOMENTS" ? "pointOmittedMoments" : omission.kind === "TESTS" ? "pointOmittedTests" : "pointOmittedChangedFiles", { count: number(omission.count) }));
+  };
+  const loadRestartPointKept = async () => {
+    if (!restartPointFor) return;
+    const asked = restartPointFor.id;
+    const query = restartPointFor.projectId ? "?project=" + encodeURIComponent(restartPointFor.projectId) : "";
+    try {
+      const photograph = await api("/api/conversations/" + encodeURIComponent(asked) + "/restart-point/kept" + query);
+      if (!restartPointFor || restartPointFor.id !== asked) return;
+      renderRestartPointKept(photograph);
+    } catch (cause) {
+      if (!restartPointFor || restartPointFor.id !== asked) return;
+      restartPointKeptBody.replaceChildren();
+      restartPointKeptOmissions.replaceChildren();
+      say(restartPointKeptStatus, "keptFailed");
+      detail(restartPointError, cause);
+    }
   };
   const composeRestartPoint = async (conversation) => {
     restartPointFor = { id: conversation.id, projectId: conversation.projectId || null };
@@ -275,6 +407,20 @@ export const RESTART_POINT_BEHAVIOUR = `
     }
   };
   restartPointFixButton.addEventListener("click", () => { void fixRestartPoint(); });
+  // Asked for, never arriving on its own: the composed summary is the one that speaks
+  // without being asked, and a second summary appearing beside it would leave a reader
+  // to work out which of the two is about today.
+  restartPointKeptToggle.addEventListener("click", () => {
+    if (!restartPointKept.hidden) {
+      closeRestartPointKept();
+      say(restartPointKeptToggle, "keptOpen", { when: restartPointKeptToggleDate });
+      return;
+    }
+    restartPointKept.hidden = false;
+    restartPointKeptToggle.setAttribute("aria-expanded", "true");
+    say(restartPointKeptToggle, "keptClose");
+    void loadRestartPointKept();
+  });
   const showRestartPoint = (conversation) => { void composeRestartPoint(conversation); };
   // Recomposed rather than patched: the moments that arrived may have changed what was
   // decided, where the reader was, and how the repository stands, and a point assembled

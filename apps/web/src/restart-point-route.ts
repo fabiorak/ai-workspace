@@ -23,6 +23,14 @@ import { json, readJson, record, reject } from "./http-plumbing.ts";
 import type { RestartPointTestInput } from "./restart-point-fixing.ts";
 
 const PATH = /^\/api\/conversations\/([^/]+)\/restart-point$/u;
+/**
+ * The photograph of the last kept summary, one path below the summary itself.
+ *
+ * It is a read of a packet that already exists, so it is a GET and no mutation guard
+ * applies. It sits under the conversation for the same reason the summary does: the
+ * server reads which work this conversation declares, instead of being told.
+ */
+const KEPT_PATH = /^\/api\/conversations\/([^/]+)\/restart-point\/kept$/u;
 
 /** Whether the browser may write here, decided by the host and passed down. */
 export type MutationGuard = (request: IncomingMessage) => boolean;
@@ -100,10 +108,26 @@ export async function handleRestartPointRoute(
   authorizeWrite: MutationGuard,
 ): Promise<boolean> {
   if (request.method !== "GET" && request.method !== "POST") return false;
-  const match = PATH.exec(url.pathname);
+  const kept = request.method === "GET" ? KEPT_PATH.exec(url.pathname) : null;
+  const match = kept ?? PATH.exec(url.pathname);
   if (match === null) return false;
   const conversationId = decodeURIComponent(match[1]!);
   try {
+    if (kept !== null) {
+      const photograph = await application.restartPoints.openKept({
+        conversationId,
+        projectId: url.searchParams.get("project"),
+      });
+      if (photograph === null)
+        reject(
+          response,
+          404,
+          "That conversation is no longer here.",
+          "Return to your conversations and open another one from the list.",
+        );
+      else json(response, 200, photograph);
+      return true;
+    }
     if (request.method === "POST") {
       if (!authorizeWrite(request))
         reject(
@@ -130,6 +154,13 @@ export async function handleRestartPointRoute(
   } catch (error) {
     if (error instanceof GuiApplicationError)
       reject(response, 400, error.message, error.recovery);
+    else if (kept !== null)
+      reject(
+        response,
+        500,
+        "The summary kept for this work could not be read.",
+        "Nothing was changed. The kept summary is unaltered: check local workspace permissions, then reload the conversation.",
+      );
     else
       reject(
         response,

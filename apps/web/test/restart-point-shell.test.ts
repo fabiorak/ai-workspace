@@ -73,13 +73,27 @@ describe("the restart point at the end of a work conversation", () => {
       assert.ok(catalogues[locale].homeConversationMomentsLabel?.trim());
   });
 
-  /** ADR-0037 shows it expanded, so there is nothing to open and nothing to close. */
+  /**
+   * ADR-0037 shows it expanded, so there is nothing to open and nothing to close.
+   *
+   * The photograph of a kept summary lives inside this block and does open, which is
+   * how two summaries stay apart, so the measurement is on the composed part: from
+   * the start of the block to the control that offers the photograph, nothing opens,
+   * closes or collapses.
+   */
   it("is neither collapsed nor closable", () => {
     const block = conversation.slice(
       conversation.indexOf('id="restart-point"'),
     );
-    assert.doesNotMatch(block, /<details|<summary|aria-expanded/u);
+    const composed = block.slice(
+      0,
+      block.indexOf('id="restart-point-kept-toggle"'),
+    );
+    assert.notEqual(composed.length, 0);
+    assert.doesNotMatch(composed, /<details|<summary|aria-expanded/u);
     assert.doesNotMatch(block, /restart-point-close/u);
+    /** The one thing that opens is the photograph, and nothing else. */
+    assert.deepEqual([...block.matchAll(/aria-expanded/gu)].length, 1);
   });
 
   it("is a named region announced politely", () => {
@@ -152,7 +166,10 @@ describe("the restart point at the end of a work conversation", () => {
    */
   it("says how the tests stand, or that nothing says", () => {
     assert.match(behaviour, /restartPointLabel\("pointTests"\)/u);
-    assert.match(behaviour, /restartPointTests\(point\.tests\)/u);
+    assert.match(
+      behaviour,
+      /restartPointTests\(point\.tests, keptRun !== null\)/u,
+    );
     for (const key of ["pointTestPassed", "pointTestFailed", "pointTestNotRun"])
       assert.match(behaviour, new RegExp(`"${key}"`, "u"));
     assert.match(RESTART_POINT_TEXT.pointNoTests.it, /Non è registrata/u);
@@ -266,14 +283,37 @@ describe("the restart point at the end of a work conversation", () => {
         assert.ok(catalogues[locale][key]?.trim(), `${locale}.${key} is empty`);
   });
 
-  /** A command already recorded comes back; a stated outcome never does. */
-  it("offers back the command of the last fixed summary, and says so", () => {
+  /**
+   * A command already recorded comes back into the field; a stated outcome never
+   * does. The run travels whole now, because the tests section quotes it beside its
+   * date, so the measurement is on the field: only the command reaches it, and the
+   * outcome control is never assigned from anything the server sent.
+   */
+  it("offers back the command of the last fixed summary, and never its outcome", () => {
     assert.match(
       behaviour,
-      /restartPointTestCommand\.value = point\.fixed\.testCommand/u,
+      /restartPointTestCommand\.value = keptRun\.command/u,
     );
     assert.match(behaviour, /"pointTestCommandRepeated"/u);
-    assert.doesNotMatch(behaviour, /point\.fixed\.outcome|fixed\.testOutcome/u);
+    assert.doesNotMatch(
+      behaviour,
+      /restartPointTestOutcome\.value = (?!"")/u,
+      "an outcome must never be prefilled: a filled field gets confirmed by inertia",
+    );
+  });
+
+  /**
+   * The run stated when the last summary was kept, quoted beside its own date.
+   * Quoting it answers the first question a reader asks; it is not the same act as
+   * putting it back in the field they are about to confirm.
+   */
+  it("quotes the run recorded in the last kept summary, with where it came from", () => {
+    assert.match(behaviour, /"pointTestsKept"/u);
+    assert.match(behaviour, /keptRun\.outcome === "PASS"/u);
+    assert.match(behaviour, /"pointNoTestsYet"/u);
+    for (const key of ["pointTestsKept", "pointNoTestsYet"])
+      for (const locale of SUPPORTED_LOCALES)
+        assert.ok(catalogues[locale][key]?.trim(), `${locale}.${key} is empty`);
   });
 
   it("states what did not fit", () => {
@@ -346,5 +386,106 @@ describe("the restart point at the end of a work conversation", () => {
           /\b(assistant|assistente|chat|model|modello)\b/iu,
           `${locale}.${key} must not imply something answers`,
         );
+  });
+
+  /**
+   * The photograph of the last kept summary. Two summaries on one screen is the risk
+   * of this zone, so what is measured here is what keeps them apart: one is asked
+   * for, and it carries its date where a reader cannot miss it.
+   */
+  describe("the summary already kept", () => {
+    it("is a labelled region of its own, opened by a control that says so", () => {
+      assert.match(conversation, /id="restart-point-kept"/u);
+      assert.match(conversation, /id="restart-point-kept-toggle"/u);
+      const toggle = conversation.slice(
+        conversation.indexOf('id="restart-point-kept-toggle"'),
+      );
+      assert.match(
+        toggle.slice(0, toggle.indexOf(">")),
+        /aria-expanded="false"/u,
+      );
+      assert.match(
+        toggle.slice(0, toggle.indexOf(">")),
+        /aria-controls="restart-point-kept"/u,
+      );
+      const region = conversation.slice(
+        conversation.indexOf('id="restart-point-kept"'),
+      );
+      assert.match(
+        region.slice(0, region.indexOf(">")),
+        /role="region" aria-labelledby="restart-point-kept-heading"/u,
+      );
+    });
+
+    it("carries its date in its own heading and in the control that opens it", () => {
+      assert.match(
+        behaviour,
+        /"keptHeading", \{ when: dateTime\(photograph\.keptAt\) \}/u,
+      );
+      assert.match(
+        behaviour,
+        /"keptOpen", \{ when: restartPointKeptToggleDate \}/u,
+      );
+      assert.match(RESTART_POINT_TEXT.keptHeading.it, /\{when\}/u);
+      assert.match(RESTART_POINT_TEXT.keptOpen.it, /\{when\}/u);
+    });
+
+    /** It arrives only when asked for, and never composes anything on its way. */
+    it("is read from its own path, and only on request", () => {
+      assert.match(behaviour, /"\/restart-point\/kept"/u);
+      assert.match(
+        behaviour,
+        /restartPointKeptToggle\.addEventListener\("click"/u,
+      );
+      assert.doesNotMatch(
+        behaviour,
+        /refreshRestartPoint = \(\) => \{[^}]*loadRestartPointKept/u,
+        "an arriving moment must not open a photograph nobody asked for",
+      );
+    });
+
+    it("shows the confirmed text as confirmed, not as a draft to review", () => {
+      assert.match(behaviour, /"keptNextAction"/u);
+      assert.match(behaviour, /text\(confirmed, photograph\.nextAction\)/u);
+      assert.doesNotMatch(
+        behaviour,
+        /photograph\.nextAction\.text|pointDraftReview.*photograph/u,
+      );
+    });
+
+    it("says when a cited moment can no longer be read", () => {
+      assert.match(behaviour, /"keptMomentUnreadable"/u);
+      assert.match(behaviour, /moment\.readable === false/u);
+    });
+
+    it("says when a work has kept nothing yet", () => {
+      assert.match(behaviour, /"keptNothing"/u);
+      assert.match(behaviour, /"NOTHING_KEPT_YET"/u);
+    });
+
+    it("keeps its sentences in both languages", () => {
+      for (const key of [
+        "keptOpen",
+        "keptClose",
+        "keptHeading",
+        "keptHelp",
+        "keptNextAction",
+        "keptFollowsOne",
+        "keptMomentUnreadable",
+        "keptNothing",
+        "keptFailed",
+      ])
+        for (const locale of SUPPORTED_LOCALES)
+          assert.ok(
+            catalogues[locale][key]?.trim(),
+            `${locale}.${key} is empty`,
+          );
+    });
+
+    /** The photograph is of that day, so it must not state the state of now. */
+    it("says out loud that it is not the state of now", () => {
+      assert.match(RESTART_POINT_TEXT.keptHelp.it, /non è lo stato di adesso/u);
+      assert.match(RESTART_POINT_TEXT.keptHelp.en, /not the state of now/u);
+    });
   });
 });

@@ -161,7 +161,17 @@ export type RestartPoint = Readonly<{
   fixed: Readonly<{
     count: number;
     at: string;
-    testCommand: string | null;
+    /**
+     * The run recorded in the most recent kept summary, or null when it recorded
+     * none.
+     *
+     * The command travels so the field can be offered already filled. The outcome
+     * travels only to be quoted beside its date: it is a fact of that day, stated
+     * by the person, and the tests section is the one place a reader looks for it.
+     * It must never prefill the outcome field — a value already chosen is a value
+     * confirmed by inertia, and that is the assertion nobody made about today.
+     */
+    lastRecordedTest: RestartPointTest | null;
   }> | null;
   /**
    * The repository as the bounded capture found it. The commit is left out on
@@ -343,5 +353,129 @@ export function restartPointOf(
       omissions.filter((omission) => omission.count > 0),
     ),
     effect: "COMPOSED_LOCALLY_NOT_SAVED_AND_NOT_SENT" as const,
+  });
+}
+
+/**
+ * One moment a kept packet cites, read again from the session it came from.
+ *
+ * The packet stores which event it cited, not what the event said, so the line has
+ * to be read from the store a second time. When the event is no longer there the
+ * moment is still listed and says so: a citation that quietly disappears would make
+ * a summary look complete while it is missing the part somebody leaned on, and a
+ * substitute would be worse than either.
+ */
+export type KeptRestartPointMoment = Readonly<{
+  type: string;
+  occurredAt: string | null;
+  text: string;
+  fromCanonicalPayload: boolean;
+  /** False when the cited event could not be read again. Nothing else is filled then. */
+  readable: boolean;
+}>;
+
+/**
+ * A summary that was kept, read as the photograph of the day it was kept.
+ *
+ * It is deliberately not a `RestartPoint`. That type carries four values a stored
+ * packet does not have — the state of the work, the mark of a composition, how many
+ * summaries exist today, and a next action marked as a draft to be reviewed — and
+ * filling them with today's values would make a dated photograph state things about
+ * the present. What is missing here is missing on purpose: there is nothing to
+ * confirm, so there is no mark; the next action was confirmed, so it is text and not
+ * a draft.
+ */
+export type KeptRestartPoint = Readonly<{
+  kept: true;
+  /** The day this became permanent. The interface puts it in the title. */
+  keptAt: string;
+  doing: string;
+  decisions: readonly RestartPointNote[];
+  constraints: readonly RestartPointNote[];
+  failures: readonly RestartPointNote[];
+  lookedAt: readonly KeptRestartPointMoment[];
+  tests: readonly RestartPointTest[];
+  /** The text somebody read and confirmed. Never a draft, never marked for review. */
+  nextAction: string;
+  repository: RestartPoint["repository"];
+  /**
+   * Whether this one followed another. It is a fact the packet itself records, so it
+   * belongs to the photograph; the count of everything kept since does not, and is
+   * left to the composed summary that speaks about today.
+   */
+  followsOne: boolean;
+  omissions: readonly RestartPointOmission[];
+}>;
+
+export type KeptRestartPointUnavailable = Readonly<{
+  kept: false;
+  reason: "NOT_A_WORK_CONVERSATION" | "NO_LINKED_WORK" | "NOTHING_KEPT_YET";
+}>;
+
+export const KEPT_NOT_A_WORK_CONVERSATION: KeptRestartPointUnavailable =
+  Object.freeze({ kept: false, reason: "NOT_A_WORK_CONVERSATION" });
+export const KEPT_NO_LINKED_WORK: KeptRestartPointUnavailable = Object.freeze({
+  kept: false,
+  reason: "NO_LINKED_WORK",
+});
+export const NOTHING_KEPT_YET: KeptRestartPointUnavailable = Object.freeze({
+  kept: false,
+  reason: "NOTHING_KEPT_YET",
+});
+
+/**
+ * Turns a kept packet into what a reader sees.
+ *
+ * Every claim comes from the packet, exactly as in the composed view, and through
+ * the same bounds and the same per-field moves: a section that grows later cannot
+ * reach a reader here without somebody deciding it belongs. The moments arrive
+ * beside it because rereading them is a second read of the sessions, which this
+ * pure function does not do.
+ */
+export function keptRestartPointOf(
+  input: Readonly<{
+    handoff: Handoff;
+    lookedAt: readonly KeptRestartPointMoment[];
+    omissions: readonly RestartPointOmission[];
+  }>,
+): KeptRestartPoint {
+  const changed = input.handoff.sections.repository.value.changedPaths;
+  const named = changed.slice(0, CHANGED_PATH_LIMIT);
+  const recorded = input.handoff.sections.testState.value;
+  const runs = recorded.slice(0, TEST_LIMIT);
+  const selected = input.handoff.sections.selectedMemory.value;
+  const omissions: readonly RestartPointOmission[] = [
+    ...input.omissions,
+    Object.freeze({
+      kind: "CHANGED_FILES" as const,
+      count: changed.length - named.length,
+    }),
+    Object.freeze({
+      kind: "TESTS" as const,
+      count: recorded.length - runs.length,
+    }),
+  ];
+  return Object.freeze({
+    kept: true as const,
+    keptAt: input.handoff.createdAt,
+    doing: input.handoff.sections.objective.value,
+    decisions: notesOfType(selected, "DECISION"),
+    constraints: notesOfType(selected, "CONSTRAINT"),
+    failures: Object.freeze(
+      input.handoff.sections.knownFailures.value.map(noteOf),
+    ),
+    lookedAt: Object.freeze([...input.lookedAt]),
+    tests: Object.freeze(runs.map(testOf)),
+    nextAction: input.handoff.sections.nextAction.value,
+    repository: Object.freeze({
+      branch: input.handoff.sections.repository.value.branch,
+      hasUnsavedChanges: input.handoff.sections.repository.value.dirty,
+      changedFiles: changed.length,
+      changedPaths: Object.freeze([...named]),
+    }),
+    followsOne: input.handoff.predecessorId !== null,
+    omissions: Object.freeze(
+      omissions.filter((omission) => omission.count > 0),
+    ),
   });
 }

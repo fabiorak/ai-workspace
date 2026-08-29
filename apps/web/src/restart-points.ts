@@ -25,14 +25,21 @@ import {
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
 import {
+  KEPT_NOT_A_WORK_CONVERSATION,
+  KEPT_NO_LINKED_WORK,
   LOOKED_AT_LIMIT,
   MOMENT_TEXT_LIMIT,
   NOTE_LIMIT,
   NOTHING_IMPORTED_YET,
+  NOTHING_KEPT_YET,
   NOT_A_WORK_CONVERSATION,
   NO_LINKED_WORK,
+  keptRestartPointOf,
   restartPointOf,
   workForSession,
+  type KeptRestartPoint,
+  type KeptRestartPointMoment,
+  type KeptRestartPointUnavailable,
   type RestartPoint,
   type RestartPointMoment,
   type RestartPointOmission,
@@ -150,18 +157,31 @@ function momentOf(
  * What this work has already fixed, read from the packets themselves.
  *
  * The date says which summary a new one would follow; the identity stays out of the
- * view, as every other identity does. The command of the most recent recorded run
- * travels so the field can be offered filled — that is the person's own text handed
- * back — while the outcome never does: it is the part that asserts something, and an
- * assertion carried over from a week ago would be somebody else's claim about today.
+ * view, as every other identity does. The run recorded in the most recent packet
+ * travels whole: the command so the field can be offered filled, and the outcome so
+ * the tests section can quote what was stated and when.
+ *
+ * Quoting it is not carrying it over. What the interface may never do is put that
+ * outcome back in the field somebody is about to confirm, because a value already
+ * chosen gets confirmed by inertia and would become an assertion about today that
+ * nobody made. Beside its own date, in a line that says where it came from, it is
+ * the answer to the first question a reader asks.
  */
 function fixedOf(packets: readonly Handoff[]): RestartPoint["fixed"] {
   const latest = packets[0];
   if (latest === undefined) return null;
+  const recorded = latest.sections.testState.value[0];
   return Object.freeze({
     count: packets.length,
     at: latest.createdAt,
-    testCommand: latest.sections.testState.value[0]?.command ?? null,
+    lastRecordedTest:
+      recorded === undefined
+        ? null
+        : Object.freeze({
+            command: recorded.command,
+            outcome: recorded.outcome,
+            observedAt: recorded.observedAt,
+          }),
   });
 }
 
@@ -302,4 +322,107 @@ export async function readRestartPoint(
   return composed === null || "available" in composed
     ? composed
     : composed.point;
+}
+
+/**
+ * Reads the moments a kept packet cites, from the sessions of its project.
+ *
+ * The packet stores the identity of each cited event and nothing of what it said,
+ * so the line is read again rather than kept twice: no second copy of the text, and
+ * no index. An event that cannot be read again keeps its place in the list and is
+ * marked unreadable — the packet is permanent, so a citation it makes is part of
+ * the record even when what it points at has gone.
+ */
+function citedMoments(
+  handoff: Handoff,
+  sessions: readonly ImportedSession[],
+): Readonly<{
+  moments: readonly KeptRestartPointMoment[];
+  omitted: number;
+}> {
+  const cited = handoff.sections.sourceReferences.value;
+  const shown = cited.slice(0, LOOKED_AT_LIMIT);
+  const found = shown.map((reference) =>
+    Object.freeze({
+      reference,
+      event: sessions
+        .find((session) => session.id === reference.sessionId)
+        ?.events.find((candidate) => candidate.id === reference.eventId),
+    }),
+  );
+  /**
+   * Back into the order they happened in.
+   *
+   * The stored order is not it: the persisted form holds the citations as sorted
+   * identifiers, which is what lets it share one source table, so what comes back is
+   * alphabetical. Under "where you were" that reads as five unrelated moments, and
+   * the composed summary right above shows the same kind of list in sequence. The
+   * stored sequence is the ordering rule the rest of the product already uses, so a
+   * moment whose timestamp no adapter could read keeps its place rather than sinking
+   * to one end.
+   *
+   * A citation that can no longer be read has no sequence to sort by. It goes last
+   * and says it is unreadable, and it is the only line with no time beside it: what
+   * cannot be read cannot be placed, and guessing a position would be inventing one.
+   */
+  const readable = found
+    .filter((entry) => entry.event !== undefined)
+    .sort((left, right) => left.event!.sequence - right.event!.sequence)
+    .map((entry) =>
+      Object.freeze({ ...momentOf(entry.event!), readable: true }),
+    );
+  const unreadable = found
+    .filter((entry) => entry.event === undefined)
+    .map((entry) =>
+      Object.freeze({
+        type: entry.reference.eventType,
+        occurredAt: null,
+        text: "",
+        fromCanonicalPayload: false,
+        readable: false,
+      }),
+    );
+  return Object.freeze({
+    moments: Object.freeze([...readable, ...unreadable]),
+    omitted: cited.length - shown.length,
+  });
+}
+
+/**
+ * The most recent summary kept for the work this conversation belongs to.
+ *
+ * It reads the same relationships the composed summary reads — the session, then the
+ * Work Item that declares it — so a photograph and the summary above it can never be
+ * about two different pieces of work. Null means the conversation itself is gone;
+ * everything else says what is missing, including a work that has kept nothing yet.
+ *
+ * Nothing here composes, previews or writes: the packet already exists, and this
+ * reads it.
+ */
+export async function readKeptRestartPoint(
+  sources: RestartPointSources,
+  query: Readonly<{ conversationId: string; projectId: string | null }>,
+): Promise<KeptRestartPoint | KeptRestartPointUnavailable | null> {
+  if (query.projectId === null) return KEPT_NOT_A_WORK_CONVERSATION;
+  const projectId = query.projectId;
+  const sessions = await sources.sessions.list(projectId);
+  const session = sessions.find(
+    (candidate) => candidate.id === query.conversationId,
+  );
+  if (session === undefined) return null;
+  const work = workForSession(
+    await sources.workItems.list(projectId),
+    session.id,
+  );
+  if (work === null) return KEPT_NO_LINKED_WORK;
+  const latest = (await sources.fixed(projectId, work.id))[0];
+  if (latest === undefined) return NOTHING_KEPT_YET;
+  const cited = citedMoments(latest, sessions);
+  return keptRestartPointOf({
+    handoff: latest,
+    lookedAt: cited.moments,
+    omissions: [
+      Object.freeze({ kind: "MOMENTS" as const, count: cited.omitted }),
+    ],
+  });
 }

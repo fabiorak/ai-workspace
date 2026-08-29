@@ -47,6 +47,28 @@ export const RESTART_POINT_TEXT = Object.freeze({
     it: "Non è registrata nessuna esecuzione delle prove: niente dice se questo funziona.",
   },
   /**
+   * Said instead of the sentence above when a kept summary does record a run. The
+   * absence is still stated — this summary records nothing — but the second half of
+   * the sentence above would be untrue, because the line beside it does say
+   * something about whether this works.
+   */
+  pointNoTestsYet: {
+    en: "Nothing about the tests is recorded in this summary yet.",
+    it: "In questo riepilogo non è ancora registrata nessuna esecuzione delle prove.",
+  },
+  /**
+   * The run stated the last time a summary was kept, quoted beside its own date.
+   *
+   * It is a fact of that day, said by the person, and it is the first thing somebody
+   * resuming wants to know. Quoting it is not carrying it over: the outcome field is
+   * never prefilled with it, because a value already chosen would be confirmed by
+   * inertia and become a claim about today that nobody made.
+   */
+  pointTestsKept: {
+    en: "You stated this when you kept the summary of {when}",
+    it: "L'hai dichiarato quando hai conservato il riepilogo del {when}",
+  },
+  /**
    * Said beside the most recent moment that reported an outcome. Every imported
    * event is untrusted by construction, so the line is what was written in the
    * conversation and not something anybody observed: a reader deciding whether to
@@ -235,6 +257,57 @@ export const RESTART_POINT_TEXT = Object.freeze({
   pointNothingImported: {
     en: "No moment of this conversation has arrived yet.",
     it: "Di questa conversazione non è ancora arrivato nessun momento.",
+  },
+  /**
+   * The kept summary, reread.
+   *
+   * Two summaries on one screen is the risk this vocabulary exists to manage. The
+   * composed one stays open and speaks in the present; this one is opened on request
+   * and carries its date in its own title, so a reader always knows which of the two
+   * they are in.
+   */
+  keptOpen: {
+    en: "Read the summary kept on {when}",
+    it: "Rileggi il riepilogo conservato il {when}",
+  },
+  keptClose: {
+    en: "Close the kept summary",
+    it: "Chiudi il riepilogo conservato",
+  },
+  keptHeading: {
+    en: "The summary kept on {when}",
+    it: "Il riepilogo conservato il {when}",
+  },
+  /** Said inside it, so the photograph cannot be read as the state of now. */
+  keptHelp: {
+    en: "How things stood that day, as it was kept. It never changes, and it is not the state of now.",
+    it: "Com'erano le cose quel giorno, come sono state conservate. Non cambia più, e non è lo stato di adesso.",
+  },
+  /** The confirmed text, which is not a draft and carries no obligation to review. */
+  keptNextAction: {
+    en: "What to do next, as it was confirmed",
+    it: "Che cosa fare adesso, come è stato confermato",
+  },
+  keptFollowsOne: {
+    en: "This one followed an earlier summary.",
+    it: "Questo riepilogo ne segue uno precedente.",
+  },
+  /**
+   * A moment the packet cites that cannot be read again. It is listed rather than
+   * dropped: the citation is part of a permanent record, and a summary that quietly
+   * loses one would look complete while missing what somebody leaned on.
+   */
+  keptMomentUnreadable: {
+    en: "this moment can no longer be read here",
+    it: "questo momento non è più leggibile qui",
+  },
+  keptNothing: {
+    en: "No summary has been kept for this work yet.",
+    it: "Per questo lavoro non è ancora stato conservato nessun riepilogo.",
+  },
+  keptFailed: {
+    en: "The kept summary could not be read.",
+    it: "Non è stato possibile rileggere il riepilogo conservato.",
   },
 });
 

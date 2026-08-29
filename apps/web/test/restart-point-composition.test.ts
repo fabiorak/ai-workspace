@@ -443,6 +443,95 @@ describe("composing a restart point over HTTP", () => {
           );
       });
 
+      /**
+       * The photograph of what was kept, over the same conversation path.
+       *
+       * It is asserted after the successor exists, because that is when the two can
+       * disagree: the composed summary speaks about now, and this one must still be
+       * the day it was kept.
+       */
+      describe("rereading what was kept", () => {
+        const photograph = () =>
+          read(
+            `/api/conversations/${encodeURIComponent(conversationId)}/restart-point/kept?project=${encodeURIComponent(projectId)}`,
+          );
+
+        it("reads the packet without composing or writing anything", async () => {
+          const before = await snapshot(home);
+          const answer = await photograph();
+          assert.equal(answer.status, 200);
+          const kept = answer.body as unknown as {
+            kept: boolean;
+            keptAt: string;
+            doing: string;
+            nextAction: string;
+            lookedAt: { text: string; readable: boolean }[];
+            tests: { command: string; outcome: string }[];
+          };
+          assert.equal(kept.kept, true);
+          assert.equal(kept.doing, "Bring the fictional station back online");
+          /** The most recent one: the successor written just above. */
+          assert.equal(kept.nextAction, "Then run the whole suite again");
+          assert.ok(kept.lookedAt.length > 0);
+          assert.equal(
+            kept.lookedAt.every((moment) => moment.readable),
+            true,
+          );
+          await photograph();
+          assert.deepEqual(await snapshot(home), before);
+        });
+
+        /**
+         * A photograph is not something to confirm, and nothing in it may be read as
+         * a draft: the mark of a composition and the review flag are what would make
+         * either possible, so neither travels.
+         */
+        it("carries nothing to confirm, and no state of today", () => {
+          return photograph().then((answer) => {
+            const serialized = JSON.stringify(answer.body);
+            for (const forbidden of [
+              "composition",
+              "needsReview",
+              "workState",
+              "sourceRecordHash",
+              "artifactId",
+              "sessionId",
+            ])
+              assert.equal(
+                serialized.includes(forbidden),
+                false,
+                `${forbidden} reached the photograph`,
+              );
+          });
+        });
+
+        it("answers a conversation that is not there", async () => {
+          assert.equal(
+            (
+              await read(
+                `/api/conversations/session_missing/restart-point/kept?project=${encodeURIComponent(projectId)}`,
+              )
+            ).status,
+            404,
+          );
+        });
+
+        /**
+         * The one write of this area stays a POST on the summary itself. This path
+         * does not exist for writing at all — not a refused write, but no route —
+         * which is why the answer is 404 and not a validation failure.
+         */
+        it("does not exist as somewhere to write", async () => {
+          const before = await snapshot(home);
+          const response = await api(
+            `/api/conversations/${encodeURIComponent(conversationId)}/restart-point/kept?project=${encodeURIComponent(projectId)}`,
+            { method: "POST", body: "{}" },
+          );
+          assert.equal(response.status, 404);
+          assert.deepEqual(await snapshot(home), before);
+        });
+      });
+
       /** Nothing about the run states an outcome nobody chose. */
       it("keeps no observation when the fields were left alone", async () => {
         await fix({

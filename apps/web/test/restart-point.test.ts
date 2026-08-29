@@ -21,7 +21,10 @@ import {
   MOMENT_TEXT_LIMIT,
   TEST_LIMIT,
 } from "../src/restart-point.ts";
-import { readRestartPoint } from "../src/restart-points.ts";
+import {
+  readKeptRestartPoint,
+  readRestartPoint,
+} from "../src/restart-points.ts";
 
 const METADATA: SectionMetadata = Object.freeze({
   origin: "WORK_ITEM",
@@ -556,10 +559,12 @@ describe("composing the restart point of a conversation", () => {
   });
 
   /**
-   * A command is text the person wrote, so it is handed back to save them writing it
-   * again. An outcome is a claim about now, so last week's is never handed back.
+   * The run recorded last time travels whole, because the tests section quotes it
+   * beside its date and a quotation without its outcome answers nothing. What must
+   * never happen with the outcome is the prefill, and that is measured where the
+   * prefill lives: on the served client, in `restart-point-shell.test.ts`.
    */
-  it("carries the command of the last fixed run, and never its outcome", async () => {
+  it("carries the run recorded in the last fixed summary, and no identity", async () => {
     const point = await readRestartPoint(
       sources({
         fixed: async () => [
@@ -574,9 +579,20 @@ describe("composing the restart point of a conversation", () => {
     const fixed = point!.available === true ? point!.fixed : null;
     assert.equal(fixed?.count, 2);
     assert.equal(fixed?.at, "2026-08-27T09:00:00.000Z");
-    assert.equal(fixed?.testCommand, "npm run check");
-    assert.equal(JSON.stringify(fixed).includes("FAIL"), false);
+    assert.equal(fixed?.lastRecordedTest?.command, "npm run check");
+    assert.equal(fixed?.lastRecordedTest?.outcome, "FAIL");
     assert.equal(JSON.stringify(fixed).includes("handoff-01"), false);
+  });
+
+  /** A work whose last summary recorded no run says so, rather than inventing one. */
+  it("carries no recorded run when the last fixed summary recorded none", async () => {
+    const point = await readRestartPoint(
+      sources({ fixed: async () => [handoff()] }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    const fixed = point!.available === true ? point!.fixed : null;
+    assert.equal(fixed?.count, 1);
+    assert.equal(fixed?.lastRecordedTest, null);
   });
 
   it("says nothing has been fixed when nothing has", async () => {
@@ -725,6 +741,215 @@ describe("composing the restart point of a conversation", () => {
         point!.lookedAt.some((moment) => moment.text === "npm test passed 1"),
       false,
       "the quoted outcome is older than the moments shown, which is the point",
+    );
+  });
+});
+
+/**
+ * A summary that was kept, read again.
+ *
+ * Everything here is asserted over the packet, because the packet is the whole
+ * source: a photograph that quietly borrowed a value from today would be the one
+ * failure this view exists to prevent.
+ */
+describe("rereading the summary a work already kept", () => {
+  const reference = (sequence: number, eventType = "AGENT_MESSAGE") =>
+    Object.freeze({
+      eventId: `event-${sequence}`,
+      sessionId: "session-01",
+      eventType,
+      trust: "UNTRUSTED",
+      sourceArtifactId: "artifact-01",
+      sourcePosition: sequence,
+      sourceRecordHash: "b".repeat(64),
+    });
+
+  const kept = (overrides: Partial<Handoff["sections"]> = {}) =>
+    handoff({
+      nextAction: section(
+        "Read the platform gate log before touching anything",
+      ),
+      testState: section(Object.freeze([run("npm run check", "PASS")])),
+      sourceReferences: section(Object.freeze([reference(1), reference(2)])),
+      ...overrides,
+    });
+
+  const moments = [
+    event(1, "USER_MESSAGE", "Where was I?"),
+    event(2, "AGENT_MESSAGE", "Halfway through the gate log"),
+  ];
+
+  const reread = (
+    overrides: Partial<Parameters<typeof readRestartPoint>[0]> = {},
+  ) =>
+    readKeptRestartPoint(
+      sources({
+        sessions: { list: async () => [session(moments)] },
+        fixed: async () => [kept()],
+        ...overrides,
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+
+  it("says what the packet says, in the words of the summary", async () => {
+    const photograph = await reread();
+    assert.equal(photograph?.kept, true);
+    if (photograph?.kept !== true) return;
+    assert.equal(photograph.keptAt, "2026-08-27T09:00:00.000Z");
+    assert.equal(photograph.doing, "Finish the restart point");
+    assert.deepEqual(
+      photograph.decisions.map((entry) => entry.content),
+      ["Composing is not fixing"],
+    );
+    assert.deepEqual(
+      photograph.constraints.map((entry) => entry.content),
+      ["Nothing leaves the computer"],
+    );
+    assert.deepEqual(
+      photograph.failures.map((entry) => entry.content),
+      ["The byte-range form was unusable"],
+    );
+    assert.deepEqual(photograph.tests, [
+      {
+        command: "npm run check",
+        outcome: "PASS",
+        observedAt: "2026-08-27T08:30:00.000Z",
+      },
+    ]);
+    assert.equal(photograph.repository.branch, "main");
+    assert.equal(photograph.repository.hasUnsavedChanges, true);
+    assert.deepEqual(photograph.repository.changedPaths, [
+      "apps/web/src/restart-point.ts",
+    ]);
+  });
+
+  /**
+   * The confirmed text is not a draft. Marking it for review would tell a reader to
+   * revise something that was decided and can no longer be changed, and the mark of
+   * a composition would offer a photograph as something to confirm.
+   */
+  it("carries the confirmed next action, with nothing to review and nothing to confirm", async () => {
+    const photograph = await reread();
+    if (photograph?.kept !== true) return assert.fail("nothing was kept");
+    assert.equal(
+      photograph.nextAction,
+      "Read the platform gate log before touching anything",
+    );
+    const serialized = JSON.stringify(photograph);
+    for (const forbidden of [
+      "needsReview",
+      "composition",
+      "workState",
+      "assembledFrom",
+    ])
+      assert.equal(
+        serialized.includes(forbidden),
+        false,
+        `${forbidden} reached a photograph, which has no value for it`,
+      );
+  });
+
+  /**
+   * The stored citations come back sorted by identifier, because the persisted form
+   * shares one source table. Under "where you were" that is not an order at all.
+   */
+  it("puts the cited moments back in the order they happened", async () => {
+    const photograph = await readKeptRestartPoint(
+      sources({
+        sessions: { list: async () => [session([...moments].reverse())] },
+        fixed: async () => [
+          kept({
+            sourceReferences: section(
+              Object.freeze([reference(2), reference(1)]),
+            ),
+          }),
+        ],
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    if (photograph?.kept !== true) return assert.fail("nothing was kept");
+    assert.deepEqual(
+      photograph.lookedAt.map((moment) => moment.text),
+      ["Where was I?", "Halfway through the gate log"],
+    );
+  });
+
+  /**
+   * A packet is permanent, so a citation it makes stays part of the record even when
+   * what it points at has gone. Dropping the line would make the summary look whole.
+   */
+  it("declares a cited moment that can no longer be read, and never replaces it", async () => {
+    const photograph = await readKeptRestartPoint(
+      sources({
+        sessions: { list: async () => [session([moments[0]!])] },
+        fixed: async () => [kept()],
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    if (photograph?.kept !== true) return assert.fail("nothing was kept");
+    assert.equal(photograph.lookedAt.length, 2);
+    const gone = photograph.lookedAt[1]!;
+    assert.equal(gone.readable, false);
+    assert.equal(gone.type, "AGENT_MESSAGE");
+    assert.equal(gone.text, "");
+    assert.equal(gone.occurredAt, null);
+  });
+
+  it("says the packet followed another one, when it did", async () => {
+    const photograph = await readKeptRestartPoint(
+      sources({
+        sessions: { list: async () => [session(moments)] },
+        fixed: async () => [
+          Object.freeze({ ...kept(), predecessorId: "handoff-00" }) as Handoff,
+        ],
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    assert.equal(photograph?.kept === true && photograph.followsOne, true);
+    const first = await reread();
+    assert.equal(first?.kept === true && first.followsOne, false);
+  });
+
+  /** The most recent one, as `Handoffs.list` already orders them. */
+  it("rereads the most recent packet and not an earlier one", async () => {
+    const photograph = await readKeptRestartPoint(
+      sources({
+        sessions: { list: async () => [session(moments)] },
+        fixed: async () => [
+          kept({ nextAction: section("The most recent one") }),
+          kept({ nextAction: section("An older one") }),
+        ],
+      }),
+      { conversationId: "session-01", projectId: "project-01" },
+    );
+    assert.equal(
+      photograph?.kept === true ? photograph.nextAction : null,
+      "The most recent one",
+    );
+  });
+
+  it("says what is missing instead of showing an empty photograph", async () => {
+    assert.deepEqual(await reread({ fixed: async () => [] }), {
+      kept: false,
+      reason: "NOTHING_KEPT_YET",
+    });
+    assert.deepEqual(await reread({ workItems: { list: async () => [] } }), {
+      kept: false,
+      reason: "NO_LINKED_WORK",
+    });
+    assert.deepEqual(
+      await readKeptRestartPoint(
+        sources({ sessions: { list: async () => [session(moments)] } }),
+        { conversationId: "session-01", projectId: null },
+      ),
+      { kept: false, reason: "NOT_A_WORK_CONVERSATION" },
+    );
+    assert.equal(
+      await readKeptRestartPoint(
+        sources({ sessions: { list: async () => [session(moments)] } }),
+        { conversationId: "session-99", projectId: "project-01" },
+      ),
+      null,
     );
   });
 });

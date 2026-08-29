@@ -16,13 +16,19 @@ import type {
 
 import type { ConversationSources } from "./conversations.ts";
 import type { FacadeGuard } from "./conversation-facade.ts";
-import type { RestartPoint, RestartPointUnavailable } from "./restart-point.ts";
+import type {
+  KeptRestartPoint,
+  KeptRestartPointUnavailable,
+  RestartPoint,
+  RestartPointUnavailable,
+} from "./restart-point.ts";
 import {
   fixRestartPoint,
   type RestartPointFixInput,
   type RestartPointFixResult,
 } from "./restart-point-fixing.ts";
 import {
+  readKeptRestartPoint,
   readRestartPoint,
   type RestartPointSources,
 } from "./restart-points.ts";
@@ -69,6 +75,13 @@ export type RestartPointArea = Readonly<{
   open(
     query: Readonly<{ conversationId: string; projectId: string | null }>,
   ): Promise<RestartPoint | RestartPointUnavailable | null>;
+  /**
+   * The most recent summary already kept for this work, read as it was stored.
+   * A read of an existing packet: it composes nothing and previews nothing.
+   */
+  openKept(
+    query: Readonly<{ conversationId: string; projectId: string | null }>,
+  ): Promise<KeptRestartPoint | KeptRestartPointUnavailable | null>;
 }>;
 
 export function restartPointArea(
@@ -96,6 +109,13 @@ export function restartPointArea(
       guard(
         async () => readRestartPoint(sources, query),
         "Nothing was saved. Reload the conversation, and check that its project and local notes are still readable.",
+      ),
+    openKept: async (
+      query: Readonly<{ conversationId: string; projectId: string | null }>,
+    ) =>
+      guard(
+        async () => readKeptRestartPoint(sources, query),
+        "Nothing was changed. The kept summary is unaltered: reload the conversation and open it again.",
       ),
   });
 }

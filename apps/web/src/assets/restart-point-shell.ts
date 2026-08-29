@@ -14,6 +14,12 @@
  * to be revised: ADR-0037 prefills it from local text the person already wrote and
  * requires the review obligation to stay visible, which a sentence beside an
  * editable field says better than a read-only line would.
+ *
+ * The summary already kept is the one part here that does open and close. Two
+ * summaries visible at once is the risk of this screen, so the photograph is asked
+ * for, carries its date in its own heading, and is a nested labelled region of its
+ * own: the composed summary stays what ADR-0037 made it, always open and speaking in
+ * the present.
  */
 export const RESTART_POINT_BLOCK = `
         <div id="restart-point" class="result-card" role="region" aria-labelledby="restart-point-heading" hidden>
@@ -43,6 +49,14 @@ export const RESTART_POINT_BLOCK = `
             <button type="button" id="restart-point-fix" data-i18n="pointFix">Keep this summary</button>
             <p id="restart-point-fix-effect" class="effect" data-i18n="pointFixEffect">Effect: writes one summary that is never changed again. Everything else on this screen stays as it is.</p>
             <div id="restart-point-fix-status" class="inline-status" role="status" aria-live="polite"></div>
+          </div>
+          <button type="button" id="restart-point-kept-toggle" aria-expanded="false" aria-controls="restart-point-kept" hidden></button>
+          <div id="restart-point-kept" class="result-card" role="region" aria-labelledby="restart-point-kept-heading" hidden>
+            <h5 id="restart-point-kept-heading"></h5>
+            <p class="help" data-i18n="keptHelp">How things stood that day, as it was kept. It never changes, and it is not the state of now.</p>
+            <div id="restart-point-kept-status" class="inline-status" role="status" aria-live="polite"></div>
+            <div id="restart-point-kept-body"></div>
+            <div id="restart-point-kept-omissions" class="help"></div>
           </div>
           <p id="restart-point-error" class="error" role="alert"></p>
         </div>`;
