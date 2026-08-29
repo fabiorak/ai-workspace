@@ -254,6 +254,56 @@ export const RESTART_POINT_TEXT = Object.freeze({
     en: "This conversation is not linked to any work, so there is no objective to carry over.",
     it: "Questa conversazione non è collegata a nessun lavoro, quindi non c'è un obiettivo da riportare.",
   },
+  /**
+   * Saying what is missing and then stopping is a diagnosis without a remedy, and it
+   * is what left a real transcript unlinked for thirty-five days. These sentences turn
+   * that dead end into the one gesture that ends it, in the same place.
+   *
+   * The heading of the whole region changes with them: "to pick this up again"
+   * promises a summary, and in this state there is nothing yet to pick up.
+   */
+  startHeading: {
+    en: "Make this conversation a piece of work",
+    it: "Fai di questa conversazione un lavoro",
+  },
+  startObjective: { en: "What is this work", it: "Che lavoro è questo" },
+  /**
+   * Which moments the record will cite, said before it cites them. It is the rule the
+   * summary already follows — what a record cites is what somebody read — and here it
+   * is stated rather than assumed, because these moments will be the evidence of every
+   * packet this work ever produces.
+   */
+  startHelp: {
+    en: "Written by you, in your own words. It will cite the most recent moments of this conversation, the ones shown above.",
+    it: "Lo scrivi tu, con parole tue. Citerà i momenti più recenti di questa conversazione, quelli mostrati qui sopra.",
+  },
+  startButton: { en: "Declare this work", it: "Dichiara questo lavoro" },
+  /** Said before the gesture, and it names both writes, because the gesture does both. */
+  startEffect: {
+    en: "Effect: creates the work and marks it as in progress. Nothing is sent anywhere.",
+    it: "Effetto: crea il lavoro e lo segna come in corso. Non viene inviato niente da nessuna parte.",
+  },
+  startWorking: { en: "Declaring…", it: "Sto dichiarando…" },
+  startDone: {
+    en: "Created, and marked as in progress.",
+    it: "Creato, e segnato come in corso.",
+  },
+  /**
+   * The second write did not go through. A proposed Work Item is a real state, so the
+   * screen says both halves of the truth instead of a failure that hides what exists.
+   */
+  startDoneNotActive: {
+    en: "The work was created, but not marked as in progress. Its state below says so.",
+    it: "Il lavoro è stato creato, ma non segnato come in corso. Lo stato qui sotto lo dice.",
+  },
+  startEmpty: {
+    en: "Nothing was created: write what this work is.",
+    it: "Non è stato creato niente: scrivi che lavoro è questo.",
+  },
+  startAlready: {
+    en: "Nothing was created: this conversation already has work. Reload it to see the summary.",
+    it: "Non è stato creato niente: questa conversazione ha già un lavoro. Ricaricala per vedere il riepilogo.",
+  },
   pointNothingImported: {
     en: "No moment of this conversation has arrived yet.",
     it: "Di questa conversazione non è ancora arrivato nessun momento.",

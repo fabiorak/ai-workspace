@@ -38,6 +38,11 @@ export const RESTART_POINT_BEHAVIOUR = `
   // the part that asserts something, and it is chosen every time or left unstated.
   let restartPointTestCommandEdited = false;
   restartPointTestCommand.addEventListener("input", () => { restartPointTestCommandEdited = true; });
+  const restartPointHeading = document.getElementById("restart-point-heading");
+  const restartPointStart = document.getElementById("restart-point-start");
+  const restartPointObjective = document.getElementById("restart-point-objective");
+  const restartPointStartButton = document.getElementById("restart-point-start-button");
+  const restartPointStartStatus = document.getElementById("restart-point-start-status");
   const restartPointKeptToggle = document.getElementById("restart-point-kept-toggle");
   // The date of the summary the control offers, kept so that closing can put it back
   // in the label. A control that says only "read the kept summary" would hide the one
@@ -72,6 +77,13 @@ export const RESTART_POINT_BEHAVIOUR = `
     restartPoint.hidden = true;
     restartPointBody.replaceChildren();
     restartPointOmissions.replaceChildren();
+    // An objective belongs to the conversation it describes, so it does not survive
+    // the conversation closing, and the heading goes back to what it says by default.
+    restartPointStart.hidden = true;
+    restartPointObjective.value = "";
+    restartPointStartButton.disabled = false;
+    text(restartPointStartStatus, "");
+    say(restartPointHeading, "pointHeading");
     // A draft belongs to one conversation. Leaving it behind would offer the next
     // reader a proposal about work they did not open.
     restartPointDraft.hidden = true;
@@ -183,8 +195,17 @@ export const RESTART_POINT_BEHAVIOUR = `
     if (!point.available) {
       restartPointDraft.hidden = true;
       say(restartPointStatus, point.reason === "NOT_A_WORK_CONVERSATION" ? "pointNotWork" : point.reason === "NO_LINKED_WORK" ? "pointNoWork" : "pointNothingImported");
+      // Saying what is missing and stopping there is a diagnosis with no remedy. The
+      // gesture is offered only where it would work: notes carry no work, and a
+      // conversation with no moments has nothing for a record to cite.
+      const canStart = point.reason === "NO_LINKED_WORK";
+      restartPointStart.hidden = !canStart;
+      say(restartPointHeading, canStart ? "startHeading" : "pointHeading");
+      restartPointKeptToggle.hidden = true;
       return;
     }
+    restartPointStart.hidden = true;
+    say(restartPointHeading, "pointHeading");
     const doing = document.createElement("p");
     text(doing, point.doing + (catalogs.en["homeState" + point.workState] ? " · " + message("homeState" + point.workState) : ""));
     restartPointBody.append(restartPointLabel("pointDoing"), doing);
@@ -406,6 +427,41 @@ export const RESTART_POINT_BEHAVIOUR = `
       detail(restartPointError, cause);
     }
   };
+  // The write that ends the dead end. One gesture, both halves of it declared above,
+  // and the summary recomposed straight after: what was missing is now there, and the
+  // same screen shows it without anybody navigating anywhere.
+  const startWorkHere = async () => {
+    if (!restartPointFor || !restartPointFor.projectId) return;
+    const asked = restartPointFor.id;
+    restartPointStartButton.disabled = true;
+    text(restartPointError, "");
+    say(restartPointStartStatus, "startWorking");
+    try {
+      const result = await api("/api/conversations/" + encodeURIComponent(asked) + "/work?project=" + encodeURIComponent(restartPointFor.projectId), {
+        method: "POST",
+        body: JSON.stringify({ objective: restartPointObjective.value }),
+      });
+      if (!restartPointFor || restartPointFor.id !== asked) return;
+      if (result.started) {
+        // Both halves of the truth: a work that exists and is not in progress is a
+        // real state, and the summary below will show it for what it is.
+        say(restartPointStartStatus, result.active ? "startDone" : "startDoneNotActive");
+        restartPointObjective.value = "";
+        void composeRestartPoint(restartPointFor);
+        return;
+      }
+      restartPointStartButton.disabled = false;
+      if (result.reason === "EMPTY_OBJECTIVE") say(restartPointStartStatus, "startEmpty");
+      else if (result.reason === "ALREADY_LINKED") say(restartPointStartStatus, "startAlready");
+      else say(restartPointStartStatus, "pointNothingImported");
+    } catch (cause) {
+      if (!restartPointFor || restartPointFor.id !== asked) return;
+      restartPointStartButton.disabled = false;
+      text(restartPointStartStatus, "");
+      detail(restartPointError, cause);
+    }
+  };
+  restartPointStartButton.addEventListener("click", () => { void startWorkHere(); });
   restartPointFixButton.addEventListener("click", () => { void fixRestartPoint(); });
   // Asked for, never arriving on its own: the composed summary is the one that speaks
   // without being asked, and a second summary appearing beside it would leave a reader

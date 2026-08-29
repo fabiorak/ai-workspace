@@ -28,6 +28,14 @@ export const RESTART_POINT_BLOCK = `
           <div id="restart-point-status" class="inline-status" role="status" aria-live="polite"></div>
           <div id="restart-point-body"></div>
           <div id="restart-point-omissions" class="help"></div>
+          <div id="restart-point-start" hidden>
+            <label for="restart-point-objective" data-i18n="startObjective">What is this work</label>
+            <p id="restart-point-start-help" class="help" data-i18n="startHelp">Written by you, in your own words. It will cite the most recent moments of this conversation, the ones shown above.</p>
+            <textarea id="restart-point-objective" rows="2" aria-describedby="restart-point-start-help"></textarea>
+            <button type="button" id="restart-point-start-button" data-i18n="startButton">Declare this work</button>
+            <p id="restart-point-start-effect" class="effect" data-i18n="startEffect">Effect: creates the work and marks it as in progress. Nothing is sent anywhere.</p>
+            <div id="restart-point-start-status" class="inline-status" role="status" aria-live="polite"></div>
+          </div>
           <div id="restart-point-draft" hidden>
             <label for="restart-point-next" data-i18n="pointNextAction">What to do next</label>
             <p id="restart-point-draft-review" class="help" data-i18n="pointDraftReview">A draft, put together from what you already wrote. Read it and change it as you like: nothing is saved.</p>

@@ -389,6 +389,102 @@ describe("the restart point at the end of a work conversation", () => {
   });
 
   /**
+   * The dead end, and the way out of it. A conversation nobody has declared as work
+   * used to get a diagnosis and nothing else, which is what left a real transcript
+   * unlinked for thirty-five days.
+   */
+  describe("declaring the work from here", () => {
+    it("offers the objective, the effect and the control, in the conversation", () => {
+      assert.match(conversation, /id="restart-point-start"/u);
+      assert.match(conversation, /<textarea id="restart-point-objective"/u);
+      assert.match(conversation, /id="restart-point-start-button"/u);
+      const start = conversation.slice(
+        conversation.indexOf('id="restart-point-start"'),
+      );
+      const block = start.slice(0, start.indexOf("restart-point-draft"));
+      assert.match(block, /data-i18n="startObjective"/u);
+      assert.match(block, /class="effect" data-i18n="startEffect"/u);
+      assert.match(block, /aria-describedby="restart-point-start-help"/u);
+    });
+
+    /** The gesture does two things, so the sentence beside it names two things. */
+    it("declares both writes before the gesture", () => {
+      for (const locale of SUPPORTED_LOCALES)
+        assert.ok(catalogues[locale].startEffect?.trim());
+      assert.match(RESTART_POINT_TEXT.startEffect.it, /crea il lavoro/u);
+      assert.match(RESTART_POINT_TEXT.startEffect.it, /in corso/u);
+      assert.match(RESTART_POINT_TEXT.startEffect.en, /creates the work/u);
+      assert.match(RESTART_POINT_TEXT.startEffect.en, /in progress/u);
+    });
+
+    /** Which moments the record will cite, said before it cites them. */
+    it("says what the work will cite", () => {
+      assert.match(RESTART_POINT_TEXT.startHelp.it, /momenti più recenti/u);
+      assert.match(RESTART_POINT_TEXT.startHelp.en, /most recent moments/u);
+    });
+
+    /**
+     * Offered only where it would work. Notes carry no work, and a conversation with
+     * no moments has nothing for a record to cite.
+     */
+    it("is offered only when the conversation has work to declare", () => {
+      assert.match(behaviour, /point\.reason === "NO_LINKED_WORK"/u);
+      assert.match(behaviour, /restartPointStart\.hidden = !canStart/u);
+    });
+
+    /** The heading promises a summary; in this state there is nothing to pick up. */
+    it("changes the heading of the region while there is no work", () => {
+      assert.match(
+        behaviour,
+        /say\(restartPointHeading, canStart \? "startHeading" : "pointHeading"\)/u,
+      );
+    });
+
+    /** A proposed work is a real state, and the screen says both halves of it. */
+    it("says whether it was also marked as in progress", () => {
+      assert.match(
+        behaviour,
+        /result\.active \? "startDone" : "startDoneNotActive"/u,
+      );
+      assert.match(
+        RESTART_POINT_TEXT.startDoneNotActive.it,
+        /non segnato come in corso/u,
+      );
+    });
+
+    it("recomposes the summary straight after, without navigating anywhere", () => {
+      const gesture = behaviour.slice(behaviour.indexOf("const startWorkHere"));
+      assert.match(
+        gesture.slice(
+          0,
+          gesture.indexOf("restartPointStartButton.addEventListener"),
+        ),
+        /composeRestartPoint\(restartPointFor\)/u,
+      );
+    });
+
+    it("keeps its sentences in both languages", () => {
+      for (const key of [
+        "startHeading",
+        "startObjective",
+        "startHelp",
+        "startButton",
+        "startEffect",
+        "startWorking",
+        "startDone",
+        "startDoneNotActive",
+        "startEmpty",
+        "startAlready",
+      ])
+        for (const locale of SUPPORTED_LOCALES)
+          assert.ok(
+            catalogues[locale][key]?.trim(),
+            `${locale}.${key} is empty`,
+          );
+    });
+  });
+
+  /**
    * The photograph of the last kept summary. Two summaries on one screen is the risk
    * of this zone, so what is measured here is what keeps them apart: one is asked
    * for, and it carries its date where a reader cannot miss it.
