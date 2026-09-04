@@ -65,6 +65,12 @@ export const HOME_BEHAVIOUR = `
     if (row.workState && catalogs.en["homeState" + row.workState]) parts.push(message("homeState" + row.workState));
     text(meta, parts.filter(Boolean).join(" · "));
     link.append(title, meta);
+    if (row.restartSignal && catalogs.en["homeRestartSignal" + row.restartSignal]) {
+      const signal = document.createElement("span");
+      signal.className = "conversation-signal";
+      say(signal, "homeRestartSignal" + row.restartSignal);
+      link.append(signal);
+    }
     item.append(link);
     return item;
   };
@@ -164,7 +170,7 @@ export const HOME_BEHAVIOUR = `
     markOpenRow();
   };
   const momentSpeaker = (type) => message(catalogs.en["homeMoment" + type] ? "homeMoment" + type : "homeMomentUNKNOWN");
-  const renderMoment = (moment, kind) => {
+  const renderMoment = (moment, conversation) => {
     const item = document.createElement("li");
     // What the person wrote themselves is what a reader scrolls a long conversation to
     // find, so those moments carry their own surface. The line above already names who
@@ -189,7 +195,46 @@ export const HOME_BEHAVIOUR = `
     if (moment.occurredAt) { const when = document.createElement("p"); when.className = "help"; text(when, dateTime(moment.occurredAt)); item.append(when); }
     // Only an imported moment can fail to be the canonical envelope; a note never was
     // one, so saying it there would answer a question nobody asked.
-    if (kind !== "NOTES" && !moment.fromCanonicalPayload && moment.text) { const raw = document.createElement("p"); raw.className = "help"; say(raw, "homeMomentAsStored"); item.append(raw); }
+    if (conversation.kind !== "NOTES" && !moment.fromCanonicalPayload && moment.text) { const raw = document.createElement("p"); raw.className = "help"; say(raw, "homeMomentAsStored"); item.append(raw); }
+    // A long payload is opened only after this explicit gesture. The request names the
+    // conversation and event, never the artifact: the server resolves that immutable
+    // reference after proving the event belongs here and verifies its bytes before use.
+    if (moment.textStoredSeparately) {
+      const open = document.createElement("button");
+      open.type = "button";
+      say(open, "homeMomentOpen");
+      const status = document.createElement("p");
+      status.className = "help";
+      status.setAttribute("role", "status");
+      const error = document.createElement("p");
+      error.className = "error";
+      error.setAttribute("role", "alert");
+      open.addEventListener("click", async () => {
+        open.disabled = true;
+        say(status, "homeMomentOpening");
+        text(error, "");
+        const query = conversation.projectId ? "?project=" + encodeURIComponent(conversation.projectId) : "";
+        try {
+          const reading = await api("/api/conversations/" + encodeURIComponent(conversation.id) + "/moments/" + encodeURIComponent(moment.id) + query);
+          if (reading.available) {
+            text(body, reading.text);
+            say(status, "homeMomentOpened");
+            if (!reading.fromCanonicalPayload) { const raw = document.createElement("p"); raw.className = "help"; say(raw, "homeMomentAsStored"); item.append(raw); }
+            open.remove();
+          } else {
+            say(body, "homeMomentUnavailable");
+            text(status, "");
+            open.disabled = false;
+          }
+        } catch (cause) {
+          text(status, "");
+          detail(error, cause);
+          open.disabled = false;
+          open.focus();
+        }
+      });
+      item.append(open, status, error);
+    }
     return item;
   };
   const renderConversation = (conversation) => {
@@ -198,7 +243,7 @@ export const HOME_BEHAVIOUR = `
     text(homeConversationHeading, conversation.title || (opened && opened.occurredAt ? dateTime(opened.occurredAt) : message("homeUntitled")));
     const parts = [conversation.kind === "NOTES" ? message("homeKindNOTES") : conversation.projectName, conversation.model || conversation.agent];
     text(homeConversationMeta, parts.filter(Boolean).join(" · "));
-    for (const moment of conversation.moments) homeConversationMoments.append(renderMoment(moment, conversation.kind));
+    for (const moment of conversation.moments) homeConversationMoments.append(renderMoment(moment, conversation));
     // The moments scroll in their own box, so a conversation opened after a long one
     // starts at its own beginning rather than wherever the previous one was left.
     homeConversationMoments.scrollTop = 0;

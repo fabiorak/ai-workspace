@@ -120,6 +120,7 @@ describe("an opened work session", () => {
     });
     assert.equal(detail.moments[0]?.text, "");
     assert.equal(detail.moments[0]?.fromCanonicalPayload, false);
+    assert.equal(detail.moments[0]?.textStoredSeparately, true);
   });
 
   it("keeps a payload that is not the canonical envelope exactly as stored", () => {
@@ -138,6 +139,7 @@ describe("an opened work session", () => {
     });
     assert.equal(detail.moments[0]?.text, "testo di un altro adattatore");
     assert.equal(detail.moments[0]?.fromCanonicalPayload, false);
+    assert.equal(detail.moments[0]?.textStoredSeparately, false);
   });
 
   it("bounds what it shows and says how much it left out", () => {

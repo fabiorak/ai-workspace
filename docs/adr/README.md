@@ -58,3 +58,5 @@ Status: proposed | accepted | superseded
 - [ADR-0035: Use a conversational shell over local history](0035-use-a-conversational-shell-over-local-history.md)
 - [ADR-0036: Route model privacy by declared execution boundary](0036-route-model-privacy-by-declared-execution-boundary.md)
 - [ADR-0037: Compose restart summaries continuously and persist on confirmation](0037-compose-restart-summaries-continuously-and-persist-on-confirmation.md)
+- [ADR-0038: Keep restart actions conversation-scoped and explicit](0038-keep-restart-actions-conversation-scoped-and-explicit.md)
+- [ADR-0039: Start proactive restart proposals with two observable signals](0039-start-proactive-restart-proposals-with-two-observable-signals.md)

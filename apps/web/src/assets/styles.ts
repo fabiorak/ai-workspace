@@ -85,6 +85,7 @@ a { color: var(--accent-strong); }
 .conversation-title { color: var(--sidebar-ink); font-size: .87rem; font-weight: 650; }
 /** Italian runs longer than English, so the row wraps rather than being clipped to a fixed width. */
 .conversation-meta { color: var(--sidebar-muted); font-size: .7rem; overflow-wrap: anywhere; }
+.conversation-signal { color: var(--sidebar-ink); border-inline-start: .18rem solid #f0a500; padding-inline-start: .45rem; font-size: .7rem; line-height: 1.35; }
 .conversation-nav .help { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .68rem; }
 .conversation-nav .inline-status { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .72rem; }
 .technical-nav { display: grid; gap: .3rem; max-width: 32rem; }

@@ -310,8 +310,10 @@ describe("work session rows", () => {
         session({ id: "s1", events: [event({ id: "e1", sessionId: "s1" })] }),
       ],
       workStateBySession: { s1: "BLOCKED" },
+      restartSignalBySession: { s1: "CONTEXT_PRESSURE" },
     });
     assert.equal(rows[0]?.workState, "BLOCKED");
+    assert.equal(rows[0]?.restartSignal, "CONTEXT_PRESSURE");
   });
 });
 
@@ -374,6 +376,7 @@ describe("ordering and grouping", () => {
       lastMomentAt,
       momentCount: 1,
       workState: null,
+      restartSignal: null,
       model: "claude-sonnet-4-5",
       agent: "Claude Code",
     });

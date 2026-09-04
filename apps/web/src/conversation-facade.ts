@@ -6,8 +6,16 @@
  * rather than in the host class. The host keeps what a facade owes its callers —
  * one entry point, no store internals, every failure carrying its own recovery.
  */
-import type { ConversationPage, ConversationSources } from "./conversations.ts";
-import { readConversation, readConversations } from "./conversations.ts";
+import type {
+  ConversationMomentReading,
+  ConversationPage,
+  ConversationSources,
+} from "./conversations.ts";
+import {
+  readConversation,
+  readConversationMoment,
+  readConversations,
+} from "./conversations.ts";
 import type { ConversationDetail } from "./conversation-detail.ts";
 
 /**
@@ -29,6 +37,14 @@ export type ConversationArea = Readonly<{
   open(
     query: Readonly<{ id: string; projectId: string | null; limit?: number }>,
   ): Promise<ConversationDetail | null>;
+  /** Reads one separately stored moment, still scoped by its conversation. */
+  openMoment(
+    query: Readonly<{
+      id: string;
+      projectId: string | null;
+      eventId: string;
+    }>,
+  ): Promise<ConversationMomentReading | null>;
 }>;
 
 export function conversationArea(
@@ -47,6 +63,11 @@ export function conversationArea(
       guard(
         async () => readConversation(sources, query),
         "Return to your conversations and open another one from the list.",
+      ),
+    openMoment: async (query) =>
+      guard(
+        async () => readConversationMoment(sources, query),
+        "Keep the conversation open, restore or reimport its local artifact, then retry.",
       ),
   });
 }

@@ -40,6 +40,19 @@ function conversationIdOf(pathname: string): string | null {
   return id.length === 0 || id.includes("/") ? null : id;
 }
 
+/** A moment is addressed through its conversation, never through an artifact ID. */
+function conversationMomentOf(
+  pathname: string,
+): Readonly<{ id: string; eventId: string }> | null {
+  const match = /^\/api\/conversations\/([^/]+)\/moments\/([^/]+)$/u.exec(
+    pathname,
+  );
+  if (match === null) return null;
+  const id = decodeURIComponent(match[1]!);
+  const eventId = decodeURIComponent(match[2]!);
+  return id.length === 0 || eventId.length === 0 ? null : { id, eventId };
+}
+
 export async function handleConversationRoute(
   request: IncomingMessage,
   response: ServerResponse,
@@ -74,9 +87,26 @@ export async function handleConversationRoute(
     return true;
   /** Everything else in this area is a read, and stays one. */
   if (request.method !== "GET") return false;
+  const moment = conversationMomentOf(url.pathname);
   const id = conversationIdOf(url.pathname);
-  if (id === null && url.pathname !== "/api/conversations") return false;
+  if (moment === null && id === null && url.pathname !== "/api/conversations")
+    return false;
   try {
+    if (moment !== null) {
+      const reading = await application.conversations.openMoment({
+        ...moment,
+        projectId: url.searchParams.get("project"),
+      });
+      if (reading === null)
+        reject(
+          response,
+          404,
+          "That separately stored moment is no longer here.",
+          "Keep the conversation open and retry another moment.",
+        );
+      else json(response, 200, reading);
+      return true;
+    }
     if (id !== null) {
       /**
        * No caller-set bound here: the list bound is a page size, while a

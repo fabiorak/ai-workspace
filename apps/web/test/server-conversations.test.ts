@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -61,6 +61,7 @@ describe("GUI conversation list route", () => {
     titleSource: string;
     momentCount: number;
     workState: string | null;
+    restartSignal: string | null;
     model: string | null;
     agent: string | null;
   }>;
@@ -142,9 +143,11 @@ describe("GUI conversation list route", () => {
       { headers: { cookie } },
     );
   type Moment = Readonly<{
+    id: string;
     type: string;
     text: string;
     fromCanonicalPayload: boolean;
+    textStoredSeparately: boolean;
     sourcePosition: number | null;
     contentHash: string | null;
   }>;
@@ -177,6 +180,65 @@ describe("GUI conversation list route", () => {
       assert.equal(typeof moment.sourcePosition, "number");
       assert.ok(moment.type.length > 0);
     }
+  });
+
+  it("opens one long moment without exposing an artifact identifier", async () => {
+    const row = (await page()).rows.find(
+      (entry) => entry.kind === "WORK_SESSION",
+    );
+    assert.ok(row?.projectId);
+    const phrase = "questa risposta vive nel file separato ";
+    const transcriptPath = join(root, "long-session.jsonl");
+    await writeFile(
+      transcriptPath,
+      `${JSON.stringify({
+        parentUuid: null,
+        isSidechain: false,
+        userType: "external",
+        cwd: "/synthetic/project",
+        version: "9.9.9",
+        gitBranch: "main",
+        type: "user",
+        uuid: "99999999-9999-4999-8999-999999999999",
+        sessionId: "synthetic-long-session",
+        timestamp: "2026-08-29T10:00:00.000Z",
+        message: { role: "user", content: phrase.repeat(180) },
+      })}\n`,
+      "utf8",
+    );
+    const imported = await application.transcripts.import(
+      row.projectId,
+      transcriptPath,
+    );
+    const response = await opened(
+      imported.sessionId,
+      `?project=${encodeURIComponent(row.projectId)}`,
+    );
+    assert.equal(response.status, 200);
+    const conversation = (await response.json()) as Detail;
+    const moment = conversation.moments.find(
+      (candidate) => candidate.textStoredSeparately,
+    );
+    assert.ok(moment);
+    assert.equal(moment.text, "");
+
+    const readingResponse = await fetch(
+      `${server.origin}/api/conversations/${encodeURIComponent(imported.sessionId)}/moments/${encodeURIComponent(moment.id)}?project=${encodeURIComponent(row.projectId)}`,
+      { headers: { cookie } },
+    );
+    assert.equal(readingResponse.status, 200);
+    const reading = (await readingResponse.json()) as Readonly<{
+      eventId: string;
+      available: boolean;
+      text: string;
+      fromCanonicalPayload: boolean;
+      artifactId?: string;
+    }>;
+    assert.equal(reading.eventId, moment.id);
+    assert.equal(reading.available, true);
+    assert.match(reading.text, /questa risposta vive nel file separato/u);
+    assert.equal(reading.fromCanonicalPayload, true);
+    assert.equal(reading.artifactId, undefined);
   });
 
   it("opens a note without naming a project, because a note has none", async () => {

@@ -127,6 +127,18 @@ export const HOME_TEXT = Object.freeze({
     en: "{count} moments, in the order they happened.",
     it: "{count} momenti, nell'ordine in cui sono avvenuti.",
   },
+  homeRestartSignalCONTEXT_PRESSURE: {
+    en: "Restart summary suggested: estimated context pressure.",
+    it: "Riepilogo per ripartire consigliato: pressione del contesto stimata.",
+  },
+  homeRestartSignalNEW_MATERIAL: {
+    en: "Restart summary suggested: new moments since the kept summary.",
+    it: "Riepilogo per ripartire consigliato: nuovi momenti dopo quello conservato.",
+  },
+  homeRestartSignalCONTEXT_PRESSURE_AND_NEW_MATERIAL: {
+    en: "Restart summary suggested: estimated context pressure and new moments since the kept summary.",
+    it: "Riepilogo per ripartire consigliato: pressione del contesto stimata e nuovi momenti dopo quello conservato.",
+  },
   homeMomentUSER_MESSAGE: { en: "You wrote", it: "Hai scritto" },
   /**
    * The reply, named without naming who gave it: this screen may not promise an
@@ -165,8 +177,24 @@ export const HOME_TEXT = Object.freeze({
     it: "Scritto qui · impronta {hash}",
   },
   homeMomentElsewhere: {
-    en: "Kept as a separate file, and not shown here.",
-    it: "Conservato come file a parte, e non mostrato qui.",
+    en: "Kept as a separate local file.",
+    it: "Conservato come file locale separato.",
+  },
+  homeMomentOpen: {
+    en: "Read this moment",
+    it: "Leggi questo momento",
+  },
+  homeMomentOpening: {
+    en: "Reading and verifying its local file…",
+    it: "Sto leggendo e verificando il file locale…",
+  },
+  homeMomentOpened: {
+    en: "A bounded excerpt was read from its integrity-verified local file.",
+    it: "È stato letto un estratto limitato del file locale verificato nella sua integrità.",
+  },
+  homeMomentUnavailable: {
+    en: "Its local file could not be read and verified, so no text is shown.",
+    it: "Non è stato possibile leggere e verificare il file locale, quindi il testo non viene mostrato.",
   },
   homeMomentAsStored: {
     en: "Shown exactly as it was stored.",

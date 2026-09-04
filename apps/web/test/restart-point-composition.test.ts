@@ -584,6 +584,16 @@ describe("declaring a conversation as work over HTTP", () => {
     root = await mkdtemp(join(tmpdir(), "ai-workspace-declare-work-"));
     home = join(root, "home");
     repository = join(root, "repository");
+    const longSampleSessionPath = join(root, "long-sample-session.jsonl");
+    const sampleRecords = (await readFile(sampleSessionPath, "utf8"))
+      .trimEnd()
+      .split("\n")
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+    sampleRecords[0]!.syntheticPadding = "x".repeat(205 * 1024);
+    await writeFile(
+      longSampleSessionPath,
+      `${sampleRecords.map((record) => JSON.stringify(record)).join("\n")}\n`,
+    );
     await mkdir(repository);
     await execFileAsync("git", [
       "-C",
@@ -605,7 +615,10 @@ describe("declaring a conversation as work over HTTP", () => {
       "initial",
     ]);
     server = await startGuiServer(
-      new GuiApplication({ workspaceHome: home, sampleSessionPath }),
+      new GuiApplication({
+        workspaceHome: home,
+        sampleSessionPath: longSampleSessionPath,
+      }),
       {
         bootstrapToken: "b".repeat(64),
         sessionToken: "s".repeat(64),
@@ -690,6 +703,14 @@ describe("declaring a conversation as work over HTTP", () => {
     assert.equal(composed.available, true);
     assert.equal(composed.doing, "Bring the fictional station back online");
     assert.equal(composed.workState, "ACTIVE");
+
+    const listed = (await (await api("/api/conversations")).json()) as {
+      rows: { id: string; restartSignal: string | null }[];
+    };
+    assert.equal(
+      listed.rows.find((row) => row.id === conversationId)?.restartSignal,
+      "CONTEXT_PRESSURE",
+    );
   });
 
   /**

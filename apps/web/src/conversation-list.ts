@@ -18,6 +18,8 @@ import { readCanonicalPayload } from "@ai-workspace/historical-search";
 /** How the title was obtained, so a reader is never told a summary is a quotation. */
 export type ConversationTitleSource =
   "FIRST_QUESTION" | "GIVEN_TITLE" | "UNTITLED";
+export type RestartSignal =
+  "CONTEXT_PRESSURE" | "NEW_MATERIAL" | "CONTEXT_PRESSURE_AND_NEW_MATERIAL";
 
 export type ConversationRow = Readonly<{
   id: string;
@@ -31,6 +33,8 @@ export type ConversationRow = Readonly<{
   momentCount: number;
   /** Present only when a Work Item is linked; the lifecycle itself is unchanged. */
   workState: string | null;
+  /** Why the existing restart point is worth reviewing now, never an action itself. */
+  restartSignal: RestartSignal | null;
   /**
    * Which model ran that session, exactly as ingestion recorded it, and which
    * agent produced it. Both are null for notes a person wrote themselves, because
@@ -102,6 +106,7 @@ export function sessionRows(
     projectName: string;
     sessions: readonly ImportedSession[];
     workStateBySession?: Readonly<Record<string, string>>;
+    restartSignalBySession?: Readonly<Record<string, RestartSignal>>;
   }>,
 ): readonly ConversationRow[] {
   return Object.freeze(
@@ -132,6 +137,7 @@ export function sessionRows(
         ]),
         momentCount: ordered.length,
         workState: input.workStateBySession?.[session.id] ?? null,
+        restartSignal: input.restartSignalBySession?.[session.id] ?? null,
         model: session.model,
         agent: session.agent,
       });
@@ -168,6 +174,7 @@ export function noteRows(
         ]),
         momentCount: conversation.events.length,
         workState: null,
+        restartSignal: null,
         model: null,
         agent: null,
       });

@@ -71,7 +71,6 @@ import {
   HighConfidenceRestrictedDataScreen,
   JsonSessionStore,
   LocalHistoricalEventReader,
-  LocalSessionReader,
   LocalTranscriptSourceStore,
 } from "@ai-workspace/local-session-ingestion";
 import { JsonWorkItemStore } from "@ai-workspace/local-work-items";
@@ -129,6 +128,7 @@ import type {
 /** Every view model stays importable from this facade, wherever it is declared. */
 export type * from "./view-models.ts";
 import type { ConversationSources } from "./conversations.ts";
+import { localConversationSources } from "./conversation-sources.ts";
 import {
   conversationArea,
   type ConversationArea,
@@ -279,15 +279,13 @@ export class GuiApplication {
     /** Reads a stored artifact, so a long moment is quotable instead of silent. */
     const artifact = async (artifactId: string) =>
       (await this.#history.openArtifact(artifactId)).content;
-    this.#conversationSources = Object.freeze({
+    this.#conversationSources = localConversationSources({
+      workspaceHome: dependencies.workspaceHome,
       artifact,
-      projects: async () =>
-        (await projectStore.load()).map((project) =>
-          Object.freeze({ id: project.id, name: project.name }),
-        ),
-      sessions: new LocalSessionReader(dependencies.workspaceHome),
+      projects: projectStore,
       notes: generalStore,
       workItems: workItemStore,
+      handoffs: () => this.#handoffs,
     });
     this.#workItems = new WorkItems({
       store: workItemStore,

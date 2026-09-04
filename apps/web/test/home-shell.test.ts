@@ -91,6 +91,17 @@ describe("the opening screen", () => {
     assert.match(APP_JS, /timeStyle: "short"/u);
   });
 
+  it("states why a restart summary is suggested without showing byte counts", () => {
+    const start = APP_JS.indexOf("const renderConversationRow");
+    const end = APP_JS.indexOf("const renderConversations", start);
+    const render = APP_JS.slice(start, end);
+    assert.match(render, /row\.restartSignal/u);
+    assert.match(render, /homeRestartSignal/u);
+    assert.match(render, /conversation-signal/u);
+    assert.doesNotMatch(render, /byte/u);
+    assert.match(APP_CSS, /\.conversation-signal \{[^}]*border-inline-start/u);
+  });
+
   /**
    * A row used to be a link to a screen that showed no particular conversation, so
    * the list was a catalogue: every row present, none of them openable. It opens in
@@ -104,6 +115,21 @@ describe("the opening screen", () => {
     assert.match(html, /id="home-conversation-moments"/u);
     // The open row is named for assistive technology, not only shaded.
     assert.match(APP_JS, /setAttribute\("aria-current", "true"\)/u);
+  });
+
+  it("opens a separately stored moment only through its conversation", () => {
+    const start = APP_JS.indexOf("const renderMoment");
+    const end = APP_JS.indexOf("const renderConversation", start);
+    assert.notEqual(start, -1);
+    assert.notEqual(end, -1);
+    const render = APP_JS.slice(start, end);
+    assert.match(render, /moment\.textStoredSeparately/u);
+    assert.match(render, /"\/api\/conversations\/"/u);
+    assert.match(render, /"\/moments\/"/u);
+    assert.match(render, /encodeURIComponent\(moment\.id\)/u);
+    assert.doesNotMatch(render, /artifactId/u);
+    assert.match(render, /open\.disabled = true/u);
+    assert.match(render, /open\.focus\(\)/u);
   });
 
   /**

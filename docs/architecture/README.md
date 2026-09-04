@@ -246,7 +246,9 @@ before one global limit, and reject inconsistent or partial scope. `GENERAL_ONLY
 works without projects; project-only APIs and CLI remain unchanged and exclude
 General. The GUI enriches project results with safe name/ID and requires an
 explicit project selection before existing event/source routes are used. Raw source artifacts
-are opened only after explicit user action. ADR-0008 records the bounded
+are opened only after explicit user action. Artifact-backed conversation moments
+are resolved through their conversation and event, and their integrity-checked
+local file is read only on the reader's request. ADR-0008 records the bounded
 literal-search strategy and the triggers for selecting an index; ADR-0018,
 ADR-0019, and ADR-0020 record General scope, persistence, and additive project
 links. Scoped retrieval validates every configured link against its exact

@@ -47,6 +47,12 @@ export type ConversationMoment = Readonly<{
    */
   fromCanonicalPayload: boolean;
   /**
+   * True when the readable payload is an immutable artifact instead of inline
+   * session data. The artifact identifier stays on the server: the client only
+   * needs to know that an explicit, scoped read is available.
+   */
+  textStoredSeparately: boolean;
+  /**
    * Where the moment came from, so its integrity is checkable. Null for a note a
    * person wrote here, which has no imported source and never claimed one; its
    * own content hash stands in its place.
@@ -99,6 +105,7 @@ function momentOf(
      */
     text: read === null ? "" : read.text,
     fromCanonicalPayload: read?.parsed ?? false,
+    textStoredSeparately: event.payload.kind === "ARTIFACT",
     sourcePosition: event.source.position,
     contentHash: event.source.recordHash,
   });
@@ -170,6 +177,7 @@ export function noteDetail(
           occurredAt: event.occurredAt,
           text: event.content,
           fromCanonicalPayload: false,
+          textStoredSeparately: false,
           sourcePosition: null,
           contentHash: event.contentSha256,
         }),

@@ -12,7 +12,7 @@
  */
 import type { WorkItem } from "@ai-workspace/core";
 
-import type { ArtifactReader } from "./moment-text.ts";
+import { momentTextOf, type ArtifactReader } from "./moment-text.ts";
 import type { GeneralConversation } from "@ai-workspace/general-conversation";
 import type { ImportedSession } from "@ai-workspace/session-ingestion";
 
@@ -21,6 +21,7 @@ import {
   orderConversations,
   sessionRows,
   type ConversationRow,
+  type RestartSignal,
 } from "./conversation-list.ts";
 import {
   noteDetail,
@@ -30,6 +31,8 @@ import {
 
 /** Bounded like every other local read: a list nobody scrolls to the end of is still a cost. */
 export const CONVERSATION_LIMIT = 50;
+/** Pilot selected from the first explicitly linked real work (ADR-0039). */
+export const RESTART_PRESSURE_BYTES = 200 * 1024;
 
 export type ConversationSources = Readonly<{
   projects(): Promise<readonly Readonly<{ id: string; name: string }>[]>;
@@ -43,6 +46,12 @@ export type ConversationSources = Readonly<{
   notes: Readonly<{ list(): Promise<readonly GeneralConversation[]> }>;
   workItems: Readonly<{
     list(projectId: string): Promise<readonly WorkItem[]>;
+  }>;
+  handoffs?: Readonly<{
+    list(
+      projectId: string,
+      workItemId: string,
+    ): Promise<readonly Readonly<{ createdAt: string }>[]>;
   }>;
   /**
    * Reads a stored artifact, for the moments longer than ingestion inlines. Optional,
@@ -58,6 +67,14 @@ export type ConversationPage = Readonly<{
   limit: number;
 }>;
 
+/** What one deliberate read of a separately stored moment can honestly say. */
+export type ConversationMomentReading = Readonly<{
+  eventId: string;
+  available: boolean;
+  text: string;
+  fromCanonicalPayload: boolean;
+}>;
+
 /**
  * Maps each session to the status of a Work Item linked to it.
  *
@@ -65,9 +82,9 @@ export type ConversationPage = Readonly<{
  * wins. That is a display choice, not a lifecycle change: the list shows one
  * state per row, and showing the stale one would misinform.
  */
-function statesBySession(
+function workBySession(
   items: readonly WorkItem[],
-): Readonly<Record<string, string>> {
+): ReadonlyMap<string, WorkItem> {
   const chosen = new Map<string, WorkItem>();
   for (const item of items)
     for (const source of item.sources) {
@@ -75,6 +92,12 @@ function statesBySession(
       if (current === undefined || current.updatedAt < item.updatedAt)
         chosen.set(source.sessionId, item);
     }
+  return chosen;
+}
+
+function statesBySession(
+  chosen: ReadonlyMap<string, WorkItem>,
+): Readonly<Record<string, string>> {
   return Object.freeze(
     Object.fromEntries(
       [...chosen.entries()].map(([sessionId, item]) => [
@@ -83,6 +106,58 @@ function statesBySession(
       ]),
     ),
   );
+}
+
+async function restartSignalsBySession(
+  sources: ConversationSources,
+  projectId: string,
+  sessions: readonly ImportedSession[],
+  chosen: ReadonlyMap<string, WorkItem>,
+): Promise<Readonly<Record<string, RestartSignal>>> {
+  const signals: Record<string, RestartSignal> = {};
+  const works = [...new Set(chosen.values())];
+  await Promise.all(
+    works.map(async (work) => {
+      const linked = new Set(work.sources.map((source) => source.sessionId));
+      const workSessions = sessions.filter((session) => linked.has(session.id));
+      const importedBytes = workSessions.reduce(
+        (total, session) =>
+          total + (session.latestSourceArtifact?.byteLength ?? 0),
+        0,
+      );
+      const pressure = importedBytes >= RESTART_PRESSURE_BYTES;
+      const fixed =
+        (await sources.handoffs?.list(projectId, work.id).catch(() => [])) ??
+        [];
+      const lastFixedAt = fixed.reduce<string | null>(
+        (latest, handoff) =>
+          latest === null || handoff.createdAt > latest
+            ? handoff.createdAt
+            : latest,
+        null,
+      );
+      const newMaterial =
+        lastFixedAt !== null &&
+        workSessions.some((session) =>
+          session.events.some(
+            (event) =>
+              event.occurredAt !== null && event.occurredAt > lastFixedAt,
+          ),
+        );
+      const signal: RestartSignal | null =
+        pressure && newMaterial
+          ? "CONTEXT_PRESSURE_AND_NEW_MATERIAL"
+          : pressure
+            ? "CONTEXT_PRESSURE"
+            : newMaterial
+              ? "NEW_MATERIAL"
+              : null;
+      if (signal === null) return;
+      for (const [sessionId, selected] of chosen)
+        if (selected === work) signals[sessionId] = signal;
+    }),
+  );
+  return Object.freeze(signals);
 }
 
 /**
@@ -104,10 +179,17 @@ export async function readConversations(
           sources.sessions.list(project.id),
           sources.workItems.list(project.id).catch(() => []),
         ]);
+        const chosen = workBySession(items);
         return sessionRows({
           projectName: project.name,
           sessions,
-          workStateBySession: statesBySession(items),
+          workStateBySession: statesBySession(chosen),
+          restartSignalBySession: await restartSignalsBySession(
+            sources,
+            project.id,
+            sessions,
+            chosen,
+          ),
         });
       } catch {
         return [];
@@ -159,5 +241,34 @@ export async function readConversation(
     projectName:
       projects.find((project) => project.id === projectId)?.name ?? null,
     limit: query.limit,
+  });
+}
+
+/**
+ * Opens only the artifact named by an event that belongs to the requested
+ * conversation. Neither the artifact identifier nor a filesystem path comes
+ * from the client, so this read cannot be widened into an artifact browser.
+ */
+export async function readConversationMoment(
+  sources: ConversationSources,
+  query: Readonly<{
+    id: string;
+    projectId: string | null;
+    eventId: string;
+  }>,
+): Promise<ConversationMomentReading | null> {
+  if (query.projectId === null) return null;
+  const sessions = await sources.sessions.list(query.projectId);
+  const session = sessions.find((candidate) => candidate.id === query.id);
+  const event = session?.events.find(
+    (candidate) => candidate.id === query.eventId,
+  );
+  if (event === undefined || event.payload.kind !== "ARTIFACT") return null;
+  const read = await momentTextOf(event, 16_384, sources.artifact ?? null);
+  return Object.freeze({
+    eventId: event.id,
+    available: read.text.length > 0,
+    text: read.text,
+    fromCanonicalPayload: read.fromCanonicalPayload,
   });
 }
