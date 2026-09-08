@@ -1,3 +1,5 @@
+import { continuationArea } from "./continuation-facade.ts";
+import { composeHandoffProfile } from "./profile-context.ts";
 import { randomUUID } from "node:crypto";
 import { basename, join } from "node:path";
 import {
@@ -44,7 +46,6 @@ import {
   type HistoricalSearchQuery,
 } from "@ai-workspace/historical-search";
 import {
-  composeProfileInstructions,
   composeInstructions,
   type EffectiveInstructions,
 } from "@ai-workspace/instruction-manager";
@@ -343,27 +344,17 @@ export class GuiApplication {
         throw new Error(
           "The profile-governed Context Pack project is not registered locally.",
         );
-      const [profile, bundle, handoff] = await Promise.all([
-        agentProfileReader.read(input.projectId, input.profile),
-        instructionReader.read(input.projectId, input.bundles),
-        this.#handoffs.show(input.projectId, input.workItemId, input.handoffId),
-      ]);
-      const composition = composeProfileInstructions(profile.bundle, bundle, {
-        model: input.model,
-        ...(input.task === undefined ? {} : { task: input.task }),
-      });
-      const contextPack = expandContextPack(
-        buildContextPack({
-          handoff,
-          instructions: composition.instructions,
-          budgets: composition.selection.budgets,
-        }),
+      const handoff = await this.#handoffs.show(
+        input.projectId,
+        input.workItemId,
+        input.handoffId,
       );
+      const composition = await composeHandoffProfile(handoff, input);
       return Object.freeze({
-        profile,
+        profile: composition.profile,
         selection: composition.selection,
         instructions: composition.instructions,
-        contextPack,
+        contextPack: composition.expandedContextPack,
         effect:
           "READ_ONLY_NOT_INSTALLED_PERSISTED_DELIVERED_OR_EXECUTED" as const,
       });
@@ -658,6 +649,10 @@ export class GuiApplication {
       (operation, recovery) => this.#run(operation, recovery),
     ).compose(input);
   }
+  public get continuations() {
+    return continuationArea(this.#conversationSources, this.#handoffs);
+  }
+
   /**
    * The restart point at the end of a work conversation (ADR-0037). Composition
    * goes through the preview path, so opening this area writes nothing.

@@ -64,6 +64,17 @@ and unchanged Context Pack schema-v2 builder into a transient envelope.
 Context include/exclude selectors remain descriptive; no resolver, persistence,
 delivery, permission, or execution boundary is introduced.
 
+Conversation continuation preparation is available through the application area's
+`continuations.prepare(query, target)` read-only operation. It resolves the work
+from the conversation and reads the latest handoff in the handoff service's
+canonical order. The technical result includes the dated handoff identity,
+profile-governed schema-v2 Context Pack, expanded privacy input, exact omissions,
+source provenance, and separately observed repository differences. Missing work,
+handoff, or target and incoherent local inputs return explicit recovery reasons.
+Profile composition is shared with the existing technical preview. Preparation
+performs no audit, persistence, authorization, or delivery; the conversation GUI
+and explicit privacy preparation remain subsequent increments.
+
 The selector-measurement increment adds a separate experiment-only projection
 inside `packages/context-builder`. Eight explicit `handoff.*` selectors map
 one-to-one to existing continuity sections; objective, repository, next action,
