@@ -42,7 +42,8 @@
     "measure:claude-headless": "node scripts/claude-headless-qualification-measurement.ts",
     "test": "node --test apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
     "test:watch": "node --test --watch apps/*/test/*.test.ts integrations/*/test/*.test.ts packages/*/test/*.test.ts",
-    "typecheck": "tsc --noEmit --pretty false"
+    "typecheck": "tsc --noEmit --pretty false",
+    "measure:continuation": "node scripts/continuation-measurement.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
