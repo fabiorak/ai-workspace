@@ -1,3 +1,4 @@
+import { handleContinuationRoute } from "./continuation-route.ts";
 /**
  * The authenticated read route behind the conversation list.
  *
@@ -77,6 +78,16 @@ export async function handleConversationRoute(
     return true;
   if (
     await handleWorkFromConversationRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )
+  )
+    return true;
+  if (
+    await handleContinuationRoute(
       request,
       response,
       url,

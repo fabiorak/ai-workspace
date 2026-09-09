@@ -72,8 +72,18 @@ profile-governed schema-v2 Context Pack, expanded privacy input, exact omissions
 source provenance, and separately observed repository differences. Missing work,
 handoff, or target and incoherent local inputs return explicit recovery reasons.
 Profile composition is shared with the existing technical preview. Preparation
-performs no audit, persistence, authorization, or delivery; the conversation GUI
-and explicit privacy preparation remain subsequent increments.
+performs no audit, persistence, authorization, or delivery. The conversation GUI
+now offers a separate local privacy preparation: validated transient recipient
+configuration, an audited POST covering context and the complete next question,
+review of suggested or manually selected words, and an exact protected-text
+preview. The canonical Context Pack remains unchanged. A transient privacy
+projection includes the user question as an additional user-authored instruction;
+its byte accounting includes the expanded sources and question. The final JSON
+envelope is serialized before review and authorization. Existing encrypted v1/v2
+mappings and passphrase custody are reused; no new mapping schema is introduced.
+Proposals expire, are scoped to their conversation, and are consumed once before
+protection. Changed sources, policy or recipient configuration require a new
+proposal. Sending and storing a model response remain subsequent increments.
 
 The selector-measurement increment adds a separate experiment-only projection
 inside `packages/context-builder`. Eight explicit `handoff.*` selectors map

@@ -1,3 +1,5 @@
+import { CONTINUATION_CATALOGUES } from "../text/continuation.ts";
+import { CONTINUATION_BEHAVIOUR } from "./continuation-client.ts";
 /**
  * The single script served at `/app.js`.
  *
@@ -25,6 +27,7 @@ export const APP_JS = `
       HOME_CATALOGUES,
       PRIVACY_CATALOGUES,
       RESTART_POINT_CATALOGUES,
+      CONTINUATION_CATALOGUES,
     ),
   )};
   const localeKey = "aiw-locale";
@@ -485,6 +488,7 @@ export const APP_JS = `
   ${PRIVACY_BEHAVIOUR}
   ${HOME_BEHAVIOUR}
   ${RESTART_POINT_BEHAVIOUR}
+  ${CONTINUATION_BEHAVIOUR}
   applyLocale();
   if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/home");
   renderRoute(false);

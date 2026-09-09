@@ -86,3 +86,25 @@ npm run cli -- session import --project <project-id> \
 ```
 
 It never discovers provider state, invokes an agent, or accesses a network.
+
+## Prepare a continuation from a conversation
+
+Open a work conversation and choose **Continue with another assistant**. First
+declare the work and keep its summary if you have not done so. The preparation
+shows the recipient, the date of that summary and any observed repository change.
+**Back to the summary** keeps your next question while you review or replace the
+starting point.
+
+Use **Set up the recipient** to select the model and your reviewed local profile,
+privacy policy and instruction files. Configuration is local and lasts until the
+application restarts; it does not verify an account or credential. No credential
+is entered in the browser.
+
+Write the next question and any names to protect, then prepare the privacy review.
+This explicit action records a local privacy decision; opening the preparation
+does not. Read the complete text, deselect unwanted suggestions, and select missed
+words directly in the text. A passphrase is required when creating replacements
+so the existing encrypted mapping can restore them later. The exact protected
+version remains local. Detection is incomplete, and a privacy policy refusal
+must be resolved before another preparation. Sending and saving an assistant's
+response are not available in this increment.

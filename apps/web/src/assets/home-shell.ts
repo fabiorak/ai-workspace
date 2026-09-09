@@ -1,3 +1,4 @@
+import { CONTINUATION_BLOCK } from "./continuation-shell.ts";
 /**
  * The opening screen's markup: three zones and no form to fill in.
  *
@@ -50,7 +51,7 @@ export const HOME_SECTION = `
         <p id="home-conversation-meta" class="help"></p>
         <button type="button" id="home-conversation-close" data-i18n="homeConversationClose">Close this conversation</button>
         <ol id="home-conversation-moments" class="moments moments-scroll" tabindex="0" data-i18n-label="homeConversationMomentsLabel" aria-label="The moments of this conversation"></ol>
-        <p id="home-conversation-count" class="help"></p>${RESTART_POINT_BLOCK}
+        <p id="home-conversation-count" class="help"></p>${CONTINUATION_BLOCK}${RESTART_POINT_BLOCK}
       </div>
       <div id="home-answer">
         <h3 id="home-answer-heading" tabindex="-1" data-i18n="homeAnswerHeading" hidden>What I found</h3>

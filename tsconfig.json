@@ -81,7 +81,8 @@
       ],
       "@ai-workspace/tolerant-retrieval": [
         "./packages/tolerant-retrieval/src/index.ts"
-      ]
+      ],
+      "@ai-workspace/model-delivery": ["./packages/model-delivery/src/index.ts"]
     },
     "types": ["node"]
   },

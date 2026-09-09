@@ -13,7 +13,7 @@ import { describe, it } from "node:test";
  * more room in one of these modules is a change that belongs in a new module.
  */
 const CEILINGS = Object.freeze({
-  "application.ts": 1284,
+  "application.ts": 1279,
   "localization.ts": 1401,
   "server.ts": 782,
 });

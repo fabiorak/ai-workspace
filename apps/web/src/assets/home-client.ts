@@ -160,6 +160,7 @@ export const HOME_BEHAVIOUR = `
       else button.removeAttribute("aria-current");
   };
   const closeConversation = () => {
+    setContinuationConversation(null);
     openConversation = null;
     homeConversation.hidden = true;
     homeConversationMoments.replaceChildren();
@@ -271,6 +272,7 @@ export const HOME_BEHAVIOUR = `
     const showing = currentPage() === "home";
     if (showing && openConversation === row.id) { closeConversation(); return; }
     if (!showing) openPage("home", false);
+    setContinuationConversation(row);
     openConversation = row.id;
     say(homeConversationStatus, "homeConversationOpening");
     const query = row.projectId ? "?project=" + encodeURIComponent(row.projectId) : "";
