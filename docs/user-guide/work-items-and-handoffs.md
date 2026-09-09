@@ -106,5 +106,12 @@ does not. Read the complete text, deselect unwanted suggestions, and select miss
 words directly in the text. A passphrase is required when creating replacements
 so the existing encrypted mapping can restore them later. The exact protected
 version remains local. Detection is incomplete, and a privacy policy refusal
-must be resolved before another preparation. Sending and saving an assistant's
-response are not available in this increment.
+must be resolved before another preparation. When the host has an explicitly configured transport, a separate confirmation
+button sends the exact protected text once, with a maximum of 512 output tokens
+and a 30 second timeout. If you protected names, enter the same passphrase again
+before confirming. A successful response is restored and saved in the same
+conversation; prepare and review the next question separately. An uncertain
+outcome or local failure never retries automatically. Default startup has no
+transport configured. Use the synthetic journey described in
+[the manual check](../development/continuation-manual-check.md) to try this path
+without a provider.

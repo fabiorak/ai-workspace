@@ -1,5 +1,26 @@
 import { catalogues, type TextEntries } from "./catalog.ts";
 export const CONTINUATION_TEXT = {
+  continueSendLimits: {
+    en: "One request, at most 512 output tokens, 30 second timeout. If names were protected, enter the same passphrase again before confirming. Review the exact text above. A retry needs a new review and may duplicate cost.",
+    it: "Una richiesta, massimo 512 token di risposta, timeout di 30 secondi. Se hai protetto nomi, reinserisci la stessa passphrase prima di confermare. Rileggi il testo esatto sopra. Riprovare richiede una nuova revisione e può duplicare il costo.",
+  },
+  continueSend: {
+    en: "Confirm and send once",
+    it: "Conferma e invia una volta",
+  },
+  continueResponse: { en: "Saved response", it: "Risposta conservata" },
+  continueSending: {
+    en: "Request in progress. Do not send again.",
+    it: "Richiesta in corso. Non inviare di nuovo.",
+  },
+  continueSaved: {
+    en: "Response saved in this conversation. You can prepare the next question.",
+    it: "Risposta conservata in questa conversazione. Puoi preparare la prossima domanda.",
+  },
+  continueDeliveryProblem: {
+    en: "Delivery or local saving did not complete: {reason}. No automatic retry. Check the attempt before preparing another request; data may already have been sent.",
+    it: "Invio o salvataggio locale non completato: {reason}. Nessun tentativo automatico. Controlla il tentativo prima di preparare una nuova richiesta: i dati potrebbero essere già stati inviati.",
+  },
   continueOpen: {
     en: "Continue with another assistant",
     it: "Continua con un altro assistente",
@@ -9,8 +30,8 @@ export const CONTINUATION_TEXT = {
     it: "Prepara la continuazione",
   },
   continueLocal: {
-    en: "Local preparation. Nothing is sent. Sending and saving the assistant's answer are not available yet.",
-    it: "Preparazione locale. Non viene inviato nulla. L'invio e il salvataggio della risposta dell'assistente non sono ancora disponibili.",
+    en: "Preparation is local. A separate confirmation is available only when the host has a configured transport.",
+    it: "La preparazione è locale. La conferma di invio è disponibile solo quando il server ha un trasporto configurato.",
   },
   continueBack: { en: "Back to the summary", it: "Torna al riepilogo" },
   continueQuestion: {

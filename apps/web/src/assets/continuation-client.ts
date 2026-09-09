@@ -3,9 +3,13 @@ export const CONTINUATION_BEHAVIOUR = `
   let continuationFor = null, continuationGeneration = 0, continuationProposal = null;
   const continuationQuestions = new Map();
   let continuationSelected = [], continuationManual = [];
+let continuationAuthorization = null;
   const continuationPath = (action = "") => "/api/conversations/" + encodeURIComponent(continuationFor.id) + "/continuation" + action + "?project=" + encodeURIComponent(continuationFor.projectId);
   const continuationClearReview = () => {
-    continuationProposal = null; continuationSelected = []; continuationManual = [];
+    continuationProposal = null;
+  continuationAuthorization = null;
+  continuationElement("delivery").hidden = true;
+  continuationElement("response").hidden = true; continuationSelected = []; continuationManual = [];
     continuationElement("review").hidden = true; continuationElement("final").hidden = true;
     continuationElement("items").replaceChildren(); continuationElement("suggestions").replaceChildren();
     continuationElement("text").value = ""; continuationElement("passphrase").value = "";
@@ -93,7 +97,27 @@ export const CONTINUATION_BEHAVIOUR = `
     continuationElement("protect").disabled = true;
     try {
       const answer = await continuationRequest("/protect", { proposal, selected: continuationSelected, manual: continuationManual, passphrase });
-      if (answer) { continuationElement("final").hidden = false; continuationElement("text").value = answer.text; continuationElement("text").focus(); }
+      if (answer) { continuationAuthorization = answer.authorizationId; continuationElement("delivery").hidden = !continuationAuthorization; continuationElement("send").disabled = false; continuationElement("final").hidden = false; continuationElement("text").value = answer.text; continuationElement("text").focus(); }
     } finally { continuationElement("protect").disabled = false; }
   });
+continuationElement("send").addEventListener("click", async () => {
+  if (!continuationAuthorization) return;
+  const authorizationId = continuationAuthorization;
+  continuationAuthorization = null;
+  continuationElement("send").disabled = true;
+  const generation = continuationGeneration;
+  const passphrase = continuationElement("passphrase").value;
+  continuationElement("passphrase").value = "";
+  say(continuationElement("status"), "continueSending");
+  try {
+    const answer = await api(continuationPath("/send"), { method: "POST", body: JSON.stringify({ authorizationId, passphrase }) });
+    if (generation !== continuationGeneration) return;
+    if (!answer.ready) { say(continuationElement("status"), "continueDeliveryProblem", { reason: answer.reason }); return; }
+    continuationElement("response").hidden = false;
+    continuationElement("response-text").value = answer.text;
+    say(continuationElement("status"), "continueSaved");
+    continuationElement("question").value = "";
+    continuationElement("question").focus();
+  } catch { if (generation === continuationGeneration) say(continuationElement("status"), "continueDeliveryProblem", { reason: "UNKNOWN" }); }
+});
 `;

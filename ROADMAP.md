@@ -39,6 +39,13 @@ agent and skill profiles, and deterministic Context Packs with exact UTF-8 byte
 budgets, shared source provenance, and declared omissions. Nothing previewed is
 installed, resolved, delivered, or executed.
 
+**Conversation continuation.** Current linked-session evidence now accompanies
+the kept photograph, with explicit read limits and omissions. Six synthetic
+evidence checks pass. A guarded confirmation, strict output restoration, response
+persistence and second preparation are exercised through HTTP with an injected
+fake transport. The default host still enables no provider; live quality and
+cost remain unmeasured.
+
 **Privacy.** Preview per-model data policy decisions, review and apply
 reversible pseudonymization over exact user-reviewed spans with encrypted local
 mappings and passphrase-wrapped custody, restore pseudonymized output strictly

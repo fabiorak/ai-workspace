@@ -77,13 +77,18 @@ now offers a separate local privacy preparation: validated transient recipient
 configuration, an audited POST covering context and the complete next question,
 review of suggested or manually selected words, and an exact protected-text
 preview. The canonical Context Pack remains unchanged. A transient privacy
-projection includes the user question as an additional user-authored instruction;
-its byte accounting includes the expanded sources and question. The final JSON
-envelope is serialized before review and authorization. Existing encrypted v1/v2
+projection includes the question and current linked-session readings as separate
+items. Its byte accounting includes evidence and the complete question; exact
+transport text is serialized as readable sections before confirmation.
+Existing encrypted v1/v2
 mappings and passphrase custody are reused; no new mapping schema is introduced.
 Proposals expire, are scoped to their conversation, and are consumed once before
 protection. Changed sources, policy or recipient configuration require a new
-proposal. Sending and storing a model response remain subsequent increments.
+proposal. The guarded conversation-scoped send route uses ADR-0040's durable coordinator
+only when the host explicitly injects a transport. Output is strictly restored,
+checked for restricted content, and stored in the same conversation. The next
+preparation reads that answer as untrusted evidence. Default startup enables no
+transport or credential lookup. ADR-0041 documents limits and provenance.
 
 The selector-measurement increment adds a separate experiment-only projection
 inside `packages/context-builder`. Eight explicit `handoff.*` selectors map

@@ -96,6 +96,13 @@ test("A6 fake journey prepares, protects, delivers once, stores the response and
       [{ entityType: "CUSTOMER", alias: "Synthetic Customer" }],
     );
     assert.equal(secondPreparation.ready, true);
+    if (secondPreparation.ready)
+      assert.ok(
+        secondPreparation.items.some((item) =>
+          item.text.includes(delivered.text),
+        ),
+        "The second turn must receive the previous answer",
+      );
     const replay = await fixture.app.continuations.recordResponse(
       fixture.query,
       {

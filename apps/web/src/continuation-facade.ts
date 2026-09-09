@@ -1,3 +1,5 @@
+import type { DeliveryTransport } from "@ai-workspace/model-delivery";
+import { continuationEvidence } from "./continuation-evidence.ts";
 import { ContinuationWorkflow } from "./continuation-workflow.ts";
 import type { PrivacyDecisionAudit } from "@ai-workspace/privacy-audit";
 import type { ModelConversationWriter } from "./model-conversation.ts";
@@ -16,6 +18,7 @@ export function continuationArea(
   home: string,
   audit: PrivacyDecisionAudit,
   conversationWriter?: ModelConversationWriter,
+  transport?: DeliveryTransport,
 ) {
   const sources = {
     sessions: conversations.sessions,
@@ -26,15 +29,19 @@ export function continuationArea(
       validateRepository: handoffs.validateRepository.bind(handoffs),
     },
     compose: composeHandoffProfile,
+    evidence: (work: Parameters<typeof continuationEvidence>[1]) =>
+      continuationEvidence(conversations, work),
   };
   const workflow = new ContinuationWorkflow(
     sources,
     home,
     audit,
     conversationWriter,
+    transport,
   );
   return Object.freeze({
     open: workflow.open.bind(workflow),
+    send: workflow.send.bind(workflow),
     configure: workflow.configure.bind(workflow),
     propose: workflow.propose.bind(workflow),
     protect: workflow.protect.bind(workflow),

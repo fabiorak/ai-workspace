@@ -140,7 +140,8 @@ test("conversation privacy preparation uses scoped local actions and the complet
       });
       assert.equal(result.ready, true);
       assert.equal(result.authorized, false);
-      assert.equal(JSON.parse(result.text).at(-1).content, question);
+      assert.ok(result.text.endsWith(question));
+      assert.ok(result.text.startsWith("Continuation context"));
       assert.ok(result.text.includes(f.handoff.sections.nextAction.value));
       assert.equal(
         (

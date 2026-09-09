@@ -157,8 +157,29 @@ test("browser keeps questions by conversation, discards stale results and remove
     model: "model",
     keptAt: "2026-09-08",
   };
+  response = {
+    ...(response as object),
+    authorizationId: "synthetic-one-use-confirmation",
+  };
   await element("continuation-protect").fire("click");
   assert.equal(element("continuation-text").value, "exact protected text");
+  assert.equal(element("continuation-delivery").hidden, false);
+  element("continuation-passphrase").value = "synthetic repeated passphrase";
+  response = { ready: true, text: "Stored synthetic answer" };
+  await element("continuation-send").fire("click");
+  assert.equal(
+    element("continuation-response-text").value,
+    "Stored synthetic answer",
+  );
+  assert.equal(element("continuation-passphrase").value, "");
+  assert.equal(element("continuation-status").textContent, "continueSaved");
+  const sentCount = requests.length;
+  await element("continuation-send").fire("click");
+  assert.equal(requests.length, sentCount);
+  assert.deepEqual(requests.at(-1)?.body, {
+    authorizationId: "synthetic-one-use-confirmation",
+    passphrase: "synthetic repeated passphrase",
+  });
   await element("continuation-question").fire("input");
   assert.equal(element("continuation-text").value, "");
   assert.equal(element("continuation-final").hidden, true);

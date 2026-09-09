@@ -21,7 +21,7 @@ export async function handleContinuationRoute(
   authorizeWrite: MutationGuard,
 ): Promise<boolean> {
   const match =
-    /^\/api\/conversations\/([^/]+)\/continuation(?:\/(configure|propose|protect))?$/u.exec(
+    /^\/api\/conversations\/([^/]+)\/continuation(?:\/(configure|propose|protect|send))?$/u.exec(
       url.pathname,
     );
   if (!match) return false;
@@ -45,7 +45,25 @@ export async function handleContinuationRoute(
     }
     const body = await readJson(request);
     if (!record(body)) throw new Error("INVALID_INPUT");
-    if (match[2] === "configure") {
+    if (match[2] === "send") {
+      if (
+        Object.keys(body).some(
+          (key) => !["authorizationId", "passphrase"].includes(key),
+        ) ||
+        typeof body.authorizationId !== "string" ||
+        typeof body.passphrase !== "string"
+      )
+        throw new Error("INVALID_INPUT");
+      json(
+        response,
+        200,
+        await app.continuations.send(
+          query,
+          body.authorizationId,
+          body.passphrase,
+        ),
+      );
+    } else if (match[2] === "configure") {
       if (
         Object.keys(body).some(
           (key) =>

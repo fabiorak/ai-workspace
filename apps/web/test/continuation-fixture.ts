@@ -1,10 +1,11 @@
+import type { DeliveryTransport } from "@ai-workspace/model-delivery";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildSyntheticAgentProfile } from "../../../packages/instruction-manager/test/synthetic-agent-profile.ts";
 import { GuiApplication } from "../src/application.ts";
-export async function continuationFixture() {
+export async function continuationFixture(transport?: DeliveryTransport) {
   const root = await mkdtemp(join(tmpdir(), "aiw-continuation-flow-"));
   const home = join(root, "home"),
     repository = join(root, "repository");
@@ -25,6 +26,7 @@ export async function continuationFixture() {
   );
   const app = new GuiApplication({
     workspaceHome: home,
+    ...(transport ? { continuationTransport: transport } : {}),
     sampleSessionPath: new URL(
       "../../../integrations/codex/test/fixtures/session.jsonl",
       import.meta.url,

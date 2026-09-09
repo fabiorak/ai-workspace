@@ -1,3 +1,5 @@
+import { ContinuationSending } from "./continuation-sending.ts";
+import type { DeliveryTransport } from "@ai-workspace/model-delivery";
 import { randomUUID } from "node:crypto";
 import type { ExpandedContextPackPreview } from "@ai-workspace/context-builder";
 import {
@@ -49,6 +51,7 @@ type Draft = {
   binding: string;
   expires: number;
   suggestions: readonly ReviewedSpanV2[];
+  auditHash: string;
 };
 export type ContinuationReviewInput = Readonly<{
   proposal: string;
@@ -63,6 +66,7 @@ const binding = (prepared: Prepared, target: ContinuationConfiguration) =>
 /** Per-application transient state. Restart loses configuration and proposals;
  * retained encrypted mappings and privacy audit use their existing stores. */
 export class ContinuationWorkflow {
+  readonly #sending: ContinuationSending | undefined;
   readonly #sources: ContinuationSources;
   readonly #home: string;
   readonly #audit: PrivacyDecisionAudit;
@@ -74,7 +78,12 @@ export class ContinuationWorkflow {
     home: string,
     audit: PrivacyDecisionAudit,
     conversationWriter?: ModelConversationWriter,
+    transport?: DeliveryTransport,
   ) {
+    this.#sending =
+      transport && conversationWriter
+        ? new ContinuationSending(home, transport, conversationWriter)
+        : undefined;
     this.#sources = sources;
     this.#home = home;
     this.#audit = audit;
@@ -93,7 +102,9 @@ export class ContinuationWorkflow {
       model: answer.model,
       keptAt: answer.handoffCreatedAt,
       changed: !answer.repository.matches,
-      omitted: answer.contextPack.omitted.length,
+      omitted:
+        answer.contextPack.omitted.length +
+        (answer.evidence?.omitted.length ?? 0),
       localOnly: true,
     };
   }
@@ -128,6 +139,7 @@ export class ContinuationWorkflow {
     const packet = continuationPrivacyInput(
       prepared.expandedContextPack,
       question,
+      prepared.evidence,
     );
     const policy = await new LocalModelDataPolicyReader().read(
       prepared.projectId,
@@ -138,7 +150,7 @@ export class ContinuationWorkflow {
       modelId: target.model,
       contextPack: packet,
     });
-    await this.#audit.record({
+    const audit = await this.#audit.record({
       projectId: prepared.projectId,
       workItemId: prepared.workItemId,
       handoffId: prepared.handoffId,
@@ -152,11 +164,13 @@ export class ContinuationWorkflow {
       preflightReportDigest: digestCanonical(preflight),
     });
     if (preflight.overallResult === "BLOCKED") return fail("PRIVACY_BLOCKED");
-    const suggestions = suggestEntityAliases({
-      modelId: target.model,
-      contextPack: packet,
-      dictionary: aliases,
-    }).suggestions;
+    const suggestions = aliases.length
+      ? suggestEntityAliases({
+          modelId: target.model,
+          contextPack: packet,
+          dictionary: aliases,
+        }).suggestions
+      : [];
     for (const [id, draft] of this.#drafts)
       if (draft.expires <= Date.now()) this.#drafts.delete(id);
     if (this.#drafts.size >= 20) return fail("CAPACITY");
@@ -173,6 +187,7 @@ export class ContinuationWorkflow {
       }),
       expires: Date.now() + 10 * 60_000,
       suggestions,
+      auditHash: audit.eventHash,
     });
     return {
       ready: true as const,
@@ -193,9 +208,19 @@ export class ContinuationWorkflow {
       model: target.model,
       keptAt: prepared.handoffCreatedAt,
       changed: !prepared.repository.matches,
-      omitted: prepared.contextPack.omitted.length,
+      omitted:
+        prepared.contextPack.omitted.length +
+        (prepared.evidence?.omitted.length ?? 0),
       localOnly: true,
     };
+  }
+  async send(
+    query: ContinuationQuery,
+    authorizationId: string,
+    passphrase: string,
+  ) {
+    if (!this.#sending) return fail("DELIVERY_NOT_CONFIGURED");
+    return this.#sending.send(query, authorizationId, passphrase);
   }
   async recordResponse(
     query: ContinuationQuery,
@@ -286,6 +311,7 @@ export class ContinuationWorkflow {
         entityType: "OTHER",
       });
     }
+    let mappingId: string | null = null;
     let items: readonly { id: string; content: string }[] =
       draft.packet.included;
     if (selections.length > 0) {
@@ -299,6 +325,7 @@ export class ContinuationWorkflow {
         attribution: "USER_REVIEWED",
         selections,
       };
+      mappingId = review.mappingSetId;
       const transform = (key: Uint8Array) =>
         selections.some((selection) => selection.entityType === "PROJECT")
           ? pseudonymizeContextPackV2({
@@ -375,9 +402,51 @@ export class ContinuationWorkflow {
       }
     }
     const serialized = serializeContinuation(items);
+    if (Buffer.byteLength(serialized) > 256 * 1024)
+      return fail("PAYLOAD_TOO_LARGE");
+    const authorizationId = this.#sending
+      ? await this.#sending.prepare({
+          query,
+          mappingId,
+          input: {
+            projectId: prepared.projectId,
+            workItemId: prepared.workItemId,
+            handoffId: prepared.handoffId,
+            model: prepared.model,
+            text: serialized,
+            bindingDigest: draft.binding,
+            preflightAuditEventHash: draft.auditHash,
+            providerKind: "OPENAI_RESPONSES",
+            destination: "EXTERNAL",
+            maxOutputTokens: 512,
+            timeoutMs: 30000,
+          },
+          current: async () => {
+            const target = this.#targets.get(query.projectId!);
+            if (!target) return "changed";
+            const current = await prepareContinuation(
+              this.#sources,
+              query,
+              target,
+            );
+            if (!current.prepared) return "changed";
+            const currentPolicy = await new LocalModelDataPolicyReader().read(
+              current.projectId,
+              target.policy,
+            );
+            return digestCanonical({
+              preparation: binding(current, target),
+              policy: currentPolicy.sourceDigest,
+            });
+          },
+        })
+      : null;
     return {
       ready: true as const,
       text: serialized,
+      authorizationId,
+      maxOutputTokens: 512,
+      timeoutMs: 30000,
       label: draft.target.label,
       model: prepared.model,
       keptAt: prepared.handoffCreatedAt,

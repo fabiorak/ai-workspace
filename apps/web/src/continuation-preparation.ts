@@ -1,3 +1,4 @@
+import type { continuationEvidence } from "./continuation-evidence.ts";
 import type { Handoffs } from "@ai-workspace/handoff";
 import type { RestartPointSources } from "./restart-points.ts";
 import { workForSession } from "./restart-point.ts";
@@ -21,6 +22,9 @@ export type ContinuationSources = Pick<RestartPointSources, "workItems"> &
     }>;
     handoffs: Pick<Handoffs, "list" | "show" | "validateRepository">;
     compose: typeof composeHandoffProfile;
+    evidence?: (
+      work: Parameters<typeof continuationEvidence>[1],
+    ) => ReturnType<typeof continuationEvidence>;
   }>;
 const recoveries = {
   NOT_A_WORK_CONVERSATION: "OPEN_WORK_CONVERSATION",
@@ -92,6 +96,7 @@ export async function prepareContinuation(
         destinationId: target.destinationId,
         model: target.model,
         ...composition,
+        evidence: await sources.evidence?.(work),
         repository,
         effect: "READ_ONLY_NOT_AUTHORIZED_PERSISTED_OR_SENT" as const,
       });

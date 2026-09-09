@@ -1,3 +1,5 @@
+import { continuationText } from "./continuation-text.ts";
+import type { continuationEvidence } from "./continuation-evidence.ts";
 import { createHash } from "node:crypto";
 import type {
   ContextItem,
@@ -8,7 +10,7 @@ export const textDigest = (value: string) =>
   createHash("sha256").update(value, "utf8").digest("hex");
 export const serializeContinuation = (
   items: readonly Pick<ContextItem, "id" | "content">[],
-) => JSON.stringify(items.map(({ id, content }) => ({ id, content })));
+) => continuationText(items);
 
 /** Transient privacy projection: the original packet and its accounting stay immutable.
  * Additional user instructions and provenance are screened as text too. No invented
@@ -16,6 +18,7 @@ export const serializeContinuation = (
 export function continuationPrivacyInput(
   packet: ExpandedContextPackPreview,
   question: string,
+  evidence?: Awaited<ReturnType<typeof continuationEvidence>>,
 ): ExpandedContextPackPreview {
   if (
     !question.trim() ||
@@ -35,6 +38,19 @@ export function continuationPrivacyInput(
     });
   const included = [
     ...packet.included,
+    ...(evidence
+      ? [
+          {
+            id: "continuation:evidence",
+            category: "CONTINUITY" as const,
+            sourceType: "CANONICAL_EVENT" as const,
+            sourceId: "current-linked-session-readings",
+            trust: "MIXED" as const,
+            content: JSON.stringify(evidence),
+            exactBytes: Buffer.byteLength(JSON.stringify(evidence)),
+          },
+        ]
+      : []),
     extra("continuation:question", question),
   ];
   const exactIncludedBytes = included.reduce(

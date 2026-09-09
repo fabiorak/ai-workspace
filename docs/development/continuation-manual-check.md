@@ -31,3 +31,19 @@ Report the step number and what differed from the expected result. No real
 transcript, account, key or paid request is needed for this check. The automated
 quality report separately records whether critical source evidence reaches the
 proposal; seeing a preview alone does not establish continuity quality.
+
+## Complete journey with a simulated response
+
+Run `npm run build`, then `npm run demo:continuation-journey`. This starts the
+server in a new synthetic home and prints its one-time URL and configuration
+paths. The simulated recipient is already configured. Follow steps 3-7 above,
+skipping recipient setup in step 5; do not reuse paths from an earlier demo. After the protected preview, re-enter the synthetic passphrase
+and choose "Confirm and send once". The reply visibly begins "SIMULATED RESPONSE"
+and says that no model was called. Check that the original customer name has
+been restored in the saved response.
+
+Write a second question and prepare another privacy review. Check that the prior
+simulated answer appears in the current linked-session evidence. Reopen the
+conversation to see its added assistant moment. Each new question requires its
+own review and confirmation. The normal `npm run gui` startup still has no
+transport enabled. Ctrl+C stops the demo server; its temporary home is retained.

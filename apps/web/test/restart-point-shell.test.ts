@@ -26,7 +26,9 @@ const conversation = (() => {
 const behaviour = (() => {
   const start = APP_JS.indexOf("const restartPoint = document.getElementById");
   assert.notEqual(start, -1);
-  return APP_JS.slice(start);
+  const end = APP_JS.indexOf("const continuationElement", start);
+  assert.notEqual(end, -1);
+  return APP_JS.slice(start, end);
 })();
 
 describe("the restart point at the end of a work conversation", () => {

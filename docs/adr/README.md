@@ -64,3 +64,5 @@ Status: proposed | accepted | superseded
 ## Proposed decisions
 
 - [ADR-0040: Coordinate explicit model delivery with durable attempts](0040-coordinate-explicit-model-delivery-with-durable-attempts.md)
+
+- [ADR-0041: Read current continuation evidence with explicit bounds](0041-read-current-continuation-evidence-with-explicit-bounds.md) - proposed.

@@ -5,6 +5,11 @@ import { measureContinuationQuality } from "./continuation-quality-fixture.ts";
 test("offline continuity report exposes missing evidence without treating a successful API call as quality", async () => {
   const report = await measureContinuationQuality();
   assert.equal(report.scenarios.length, 6);
+  assert.equal(
+    report.gate,
+    "PASS",
+    "All six independent evidence requirements must reach the proposal",
+  );
   assert.equal(report.providerCalls, 0);
   assert.ok(report.repositoryChangeDetected);
   assert.ok(report.privacyOriginalAbsent);

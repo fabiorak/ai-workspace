@@ -62,7 +62,7 @@ export type PrivacyItemDecision = Readonly<{
   itemId: string;
   category: ContextCategory;
   trust: "MIXED" | "USER_CONFIGURED";
-  sourceType: "HANDOFF_SECTION" | "INSTRUCTION_RULE";
+  sourceType: "HANDOFF_SECTION" | "INSTRUCTION_RULE" | "CANONICAL_EVENT";
   sourceId: string;
   exactBytes: number;
   contentSha256: string;

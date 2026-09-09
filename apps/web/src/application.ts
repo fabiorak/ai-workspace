@@ -1,3 +1,5 @@
+import type { DeliveryTransport } from "@ai-workspace/model-delivery";
+import { readContextPreview } from "./context-preview.ts";
 import { projectView } from "./project-view.ts";
 import { modelConversationWriter } from "./model-conversation.ts";
 import { continuationArea } from "./continuation-facade.ts";
@@ -19,8 +21,6 @@ import {
 } from "@ai-workspace/claude-code-adapter";
 import { WorkItems, type WorkItem } from "@ai-workspace/core";
 import {
-  buildContextPack,
-  expandContextPack,
   measureContextSelectorCorpus,
   type ExpandedContextPackPreview,
 } from "@ai-workspace/context-builder";
@@ -162,6 +162,7 @@ export class GuiApplicationError extends Error {
 }
 
 export class GuiApplication {
+  readonly #continuationTransport: DeliveryTransport | undefined;
   #continuationArea?: ReturnType<typeof continuationArea>;
   readonly #sessionStore: JsonSessionStore;
   readonly #artifactStore: FileArtifactStore;
@@ -201,8 +202,10 @@ export class GuiApplication {
     dependencies: Readonly<{
       workspaceHome: string;
       sampleSessionPath: string;
+      continuationTransport?: DeliveryTransport;
     }>,
   ) {
+    this.#continuationTransport = dependencies.continuationTransport;
     this.#workspaceHome = dependencies.workspaceHome;
     this.#sessionStore = new JsonSessionStore(dependencies.workspaceHome);
     this.#artifactStore = new FileArtifactStore(dependencies.workspaceHome);
@@ -666,6 +669,7 @@ export class GuiApplication {
         sessions: this.#sessionStore,
         artifacts: this.#artifactStore,
       }),
+      this.#continuationTransport,
     ));
   }
 
@@ -1004,27 +1008,11 @@ export class GuiApplication {
   public async previewContext(
     input: GuiContextPreviewInput,
   ): Promise<ExpandedContextPackPreview> {
-    return this.#run(async () => {
-      const handoff = await this.#handoffs.show(
-        input.projectId,
-        input.workItemId,
-        input.handoffId,
-      );
-      const instructions =
-        input.bundles.length === 0
-          ? undefined
-          : await this.#previewInstructions(input);
-      return expandContextPack(
-        buildContextPack({
-          handoff,
-          ...(instructions === undefined ? {} : { instructions }),
-          budgets: {
-            CONTINUITY: input.continuityBudget,
-            INSTRUCTIONS: input.instructionBudget,
-          },
-        }),
-      );
-    }, "Keep the explicit handoff, bundle paths, and byte budgets; correct the highlighted value and preview again.");
+    return this.#run(
+      () =>
+        readContextPreview(this.#handoffs, this.#previewInstructions, input),
+      "Keep the explicit handoff, bundle paths, and byte budgets; correct the highlighted value and preview again.",
+    );
   }
 
   public async previewProfileContext(

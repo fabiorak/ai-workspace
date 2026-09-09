@@ -11,7 +11,7 @@ export type ContextCategory = "CONTINUITY" | "INSTRUCTIONS";
 export type ContextItem = Readonly<{
   id: string;
   category: ContextCategory;
-  sourceType: "HANDOFF_SECTION" | "INSTRUCTION_RULE";
+  sourceType: "HANDOFF_SECTION" | "INSTRUCTION_RULE" | "CANONICAL_EVENT";
   sourceId: string;
   trust: "MIXED" | "USER_CONFIGURED";
   content: string;
@@ -602,7 +602,7 @@ function validateItem(item: ContextItem) {
     !isRecord(item) ||
     !boundedTextOrFalse(item.id, MAX_ID) ||
     !["CONTINUITY", "INSTRUCTIONS"].includes(String(item.category)) ||
-    !["HANDOFF_SECTION", "INSTRUCTION_RULE"].includes(
+    !["HANDOFF_SECTION", "INSTRUCTION_RULE", "CANONICAL_EVENT"].includes(
       String(item.sourceType),
     ) ||
     !boundedTextOrFalse(item.sourceId, MAX_SOURCE_TEXT) ||

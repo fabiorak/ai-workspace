@@ -1,3 +1,4 @@
+import { CONTINUATION_CATALOGUES } from "../src/text/continuation.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -14,6 +15,7 @@ const catalogues = mergeCatalogues(
   HOME_CATALOGUES,
   PRIVACY_CATALOGUES,
   RESTART_POINT_CATALOGUES,
+  CONTINUATION_CATALOGUES,
 );
 const homeSection = (() => {
   const start = html.indexOf('<section aria-labelledby="home-heading"');

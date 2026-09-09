@@ -45,7 +45,8 @@
     "typecheck": "tsc --noEmit --pretty false",
     "measure:continuation": "node scripts/continuation-measurement.ts",
     "measure:continuation-quality": "node scripts/continuation-quality-measurement.ts",
-    "demo:continuation": "node scripts/prepare-continuation-demo.ts"
+    "demo:continuation": "node scripts/prepare-continuation-demo.ts",
+    "demo:continuation-journey": "node scripts/serve-continuation-demo.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

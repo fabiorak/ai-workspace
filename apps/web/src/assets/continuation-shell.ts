@@ -32,5 +32,7 @@ export const CONTINUATION_BLOCK = `
     <button type="button" id="continuation-protect" data-i18n="continueProtect">Create the protected local version</button>
   </div>
   <div id="continuation-final" hidden><label for="continuation-text" data-i18n="continuePreview">Exact prepared text</label><textarea id="continuation-text" readonly rows="16"></textarea></div>
+  <div id="continuation-delivery" hidden><p data-i18n="continueSendLimits"></p><button type="button" id="continuation-send" data-i18n="continueSend">Confirm and send once</button></div>
+  <div id="continuation-response" hidden><label for="continuation-response-text" data-i18n="continueResponse">Saved response</label><textarea id="continuation-response-text" readonly rows="12"></textarea></div>
   <p id="continuation-error" class="error" role="alert"></p>
 </div>`;

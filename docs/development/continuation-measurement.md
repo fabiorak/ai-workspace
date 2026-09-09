@@ -46,8 +46,12 @@ FULL/BASE comparison. The original byte report's FULL value is an accounting
 reference only. Both timing arrays execute the same corpus measurement routine;
 their difference must not be interpreted as a preparation speedup.
 
-Current inspection also shows that the GUI stops at the protected text preview.
-The fake delivery journey invokes the delivery coordinator and response writer
-from the test, and does not demonstrate a GUI send/receive journey. Before a
-live probe, complete that integration and verify that a second preparation
-actually carries the preceding answer, not just that preparation returns ready.
+The six evidence requirements now pass with current linked-session readings.
+The byte-only FULL/BASE report remains a separate reference and has not become
+a live comparison. Missing, oversized or over-budget readings stay explicit.
+
+The HTTP journey now exercises confirmation, delivery through an injected fake
+transport, strict restoration and same-conversation persistence. It asserts
+that the next proposal includes the preceding response. The default GUI host
+still has no configured transport. Use `npm run demo:continuation-journey` for
+a fresh synthetic GUI with visibly simulated responses and no provider calls.

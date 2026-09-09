@@ -47,6 +47,9 @@
     "@ai-workspace/project-registry": "0.0.0",
     "@ai-workspace/privacy-gateway": "0.0.0",
     "@ai-workspace/privacy-audit": "0.0.0",
-    "@ai-workspace/session-ingestion": "0.0.0"
+    "@ai-workspace/session-ingestion": "0.0.0",
+    "@ai-workspace/model-delivery": "0.0.0",
+    "@ai-workspace/model-attempts": "0.0.0",
+    "@ai-workspace/local-model-attempts": "0.0.0"
   }
 }
