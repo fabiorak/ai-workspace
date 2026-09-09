@@ -11,8 +11,10 @@ type Reply = {
   localOnly: boolean;
   changed: boolean;
   authorized: boolean;
+  stored?: { duplicate: boolean };
   proposal: string;
   text: string;
+  model: string;
   items: { text: string }[];
   suggestions: { index: number; text: string }[];
 };
@@ -229,16 +231,6 @@ test("conversation privacy preparation uses scoped local actions and the complet
         manual: [],
         passphrase: "synthetic passphrase for review only",
       };
-      const directProposal = await f.app.continuations.propose(
-        f.query,
-        question,
-        [{ entityType: "CUSTOMER", alias: "Asteria Demo" }],
-      );
-      assert.ok(directProposal.ready);
-      await f.app.continuations.protect(f.query, {
-        ...body,
-        proposal: directProposal.proposal,
-      });
       const answers = await Promise.all([
         read("/protect", body),
         read("/protect", body),
@@ -246,6 +238,28 @@ test("conversation privacy preparation uses scoped local actions and the complet
       assert.equal(answers.filter((answer) => answer.ready).length, 1);
       const result = answers.find((answer) => answer.ready)!;
       assert.equal(result.text.includes("Asteria Demo"), false);
+      const recorded = await f.app.continuations.recordResponse(f.query, {
+        attemptId: "attempt-synthetic",
+        model: result.model,
+        text: result.text,
+        occurredAt: new Date().toISOString(),
+      });
+      assert.equal(recorded.ready, true);
+      if (recorded.ready) assert.equal(recorded.duplicate, false);
+      const duplicate = await f.app.continuations.recordResponse(f.query, {
+        attemptId: "attempt-synthetic",
+        model: result.model,
+        text: result.text,
+        occurredAt: new Date().toISOString(),
+      });
+      assert.equal(duplicate.ready, true);
+      if (duplicate.ready) assert.equal(duplicate.duplicate, true);
+      const sessions = await readdir(join(f.home, "sessions"));
+      assert.ok(
+        sessions.some(
+          (name) => name.startsWith("session_") && name.endsWith(".json"),
+        ),
+      );
       assert.ok(result.text.includes(f.handoff.sections.nextAction.value));
       assert.equal(result.text.includes("città"), true);
       assert.equal(result.text.includes("🛰️"), true);

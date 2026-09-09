@@ -1,5 +1,6 @@
 import { ContinuationWorkflow } from "./continuation-workflow.ts";
 import type { PrivacyDecisionAudit } from "@ai-workspace/privacy-audit";
+import type { ModelConversationWriter } from "./model-conversation.ts";
 import type { Handoffs } from "@ai-workspace/handoff";
 import type { ConversationSources } from "./conversations.ts";
 import { composeHandoffProfile } from "./profile-context.ts";
@@ -14,6 +15,7 @@ export function continuationArea(
   handoffs: Handoffs,
   home: string,
   audit: PrivacyDecisionAudit,
+  conversationWriter?: ModelConversationWriter,
 ) {
   const sources = {
     sessions: conversations.sessions,
@@ -25,12 +27,18 @@ export function continuationArea(
     },
     compose: composeHandoffProfile,
   };
-  const workflow = new ContinuationWorkflow(sources, home, audit);
+  const workflow = new ContinuationWorkflow(
+    sources,
+    home,
+    audit,
+    conversationWriter,
+  );
   return Object.freeze({
     open: workflow.open.bind(workflow),
     configure: workflow.configure.bind(workflow),
     propose: workflow.propose.bind(workflow),
     protect: workflow.protect.bind(workflow),
+    recordResponse: workflow.recordResponse.bind(workflow),
     prepare: (query: ContinuationQuery, target: ContinuationTarget | null) =>
       prepareContinuation(sources, query, target),
   });

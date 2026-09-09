@@ -21,6 +21,7 @@ import {
   type ReviewedSpanV2,
   type PseudonymReviewV2,
 } from "@ai-workspace/privacy-gateway";
+import type { ModelConversationWriter } from "./model-conversation.ts";
 import {
   prepareContinuation,
   type ContinuationQuery,
@@ -65,16 +66,19 @@ export class ContinuationWorkflow {
   readonly #sources: ContinuationSources;
   readonly #home: string;
   readonly #audit: PrivacyDecisionAudit;
+  readonly #conversationWriter: ModelConversationWriter | undefined;
   readonly #targets = new Map<string, ContinuationConfiguration>();
   readonly #drafts = new Map<string, Draft>();
   constructor(
     sources: ContinuationSources,
     home: string,
     audit: PrivacyDecisionAudit,
+    conversationWriter?: ModelConversationWriter,
   ) {
     this.#sources = sources;
     this.#home = home;
     this.#audit = audit;
+    this.#conversationWriter = conversationWriter;
   }
   async open(query: ContinuationQuery) {
     const target =
@@ -192,6 +196,30 @@ export class ContinuationWorkflow {
       omitted: prepared.contextPack.omitted.length,
       localOnly: true,
     };
+  }
+  async recordResponse(
+    query: ContinuationQuery,
+    input: Readonly<{
+      attemptId: string;
+      model: string;
+      text: string;
+      occurredAt: string;
+    }>,
+  ) {
+    if (!this.#conversationWriter || !query.projectId)
+      return fail("LOCAL_EVIDENCE_UNAVAILABLE");
+    const target = this.#targets.get(query.projectId);
+    if (!target || target.model !== input.model)
+      return fail("PREPARATION_CHANGED");
+    const stored = await this.#conversationWriter.store({
+      projectId: query.projectId,
+      conversationId: query.conversationId,
+      attemptId: input.attemptId,
+      model: input.model,
+      text: input.text,
+      occurredAt: input.occurredAt,
+    });
+    return { ready: true as const, ...stored, localOnly: true };
   }
   async protect(query: ContinuationQuery, input: ContinuationReviewInput) {
     const draft = this.#drafts.get(input.proposal);
@@ -346,9 +374,10 @@ export class ContinuationWorkflow {
         key.fill(0);
       }
     }
+    const serialized = serializeContinuation(items);
     return {
       ready: true as const,
-      text: serializeContinuation(items),
+      text: serialized,
       label: draft.target.label,
       model: prepared.model,
       keptAt: prepared.handoffCreatedAt,

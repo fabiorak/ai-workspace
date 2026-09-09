@@ -1,4 +1,5 @@
 import { projectView } from "./project-view.ts";
+import { modelConversationWriter } from "./model-conversation.ts";
 import { continuationArea } from "./continuation-facade.ts";
 import { composeHandoffProfile } from "./profile-context.ts";
 import { randomUUID } from "node:crypto";
@@ -162,6 +163,8 @@ export class GuiApplicationError extends Error {
 
 export class GuiApplication {
   #continuationArea?: ReturnType<typeof continuationArea>;
+  readonly #sessionStore: JsonSessionStore;
+  readonly #artifactStore: FileArtifactStore;
   readonly #registry: ProjectRegistry;
   readonly #ingestion: SessionIngestion;
   readonly #localIngestion: SessionIngestion;
@@ -201,6 +204,8 @@ export class GuiApplication {
     }>,
   ) {
     this.#workspaceHome = dependencies.workspaceHome;
+    this.#sessionStore = new JsonSessionStore(dependencies.workspaceHome);
+    this.#artifactStore = new FileArtifactStore(dependencies.workspaceHome);
     const projectStore = new JsonProjectRegistryStore(
       join(dependencies.workspaceHome, "projects.json"),
     );
@@ -657,6 +662,10 @@ export class GuiApplication {
       this.#handoffs,
       this.#workspaceHome,
       this.#privacyAudit,
+      modelConversationWriter({
+        sessions: this.#sessionStore,
+        artifacts: this.#artifactStore,
+      }),
     ));
   }
 
