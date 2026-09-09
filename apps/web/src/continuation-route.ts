@@ -21,7 +21,7 @@ export async function handleContinuationRoute(
   authorizeWrite: MutationGuard,
 ): Promise<boolean> {
   const match =
-    /^\/api\/conversations\/([^/]+)\/continuation(?:\/(configure|propose|protect|response))?$/u.exec(
+    /^\/api\/conversations\/([^/]+)\/continuation(?:\/(configure|propose|protect))?$/u.exec(
       url.pathname,
     );
   if (!match) return false;
