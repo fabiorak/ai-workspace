@@ -28,7 +28,8 @@ export const CONTINUATION_BLOCK = `
     <h5 tabindex="-1" id="continuation-review-heading" data-i18n="continueReview">Review the text and substitutions</h5>
     <p data-i18n="continueLimit"></p>
     <div id="continuation-items"></div><div id="continuation-suggestions"></div>
-    <label for="continuation-passphrase" data-i18n="continuePassphrase">Passphrase for restoring protected names (required when replacing words)</label><input id="continuation-passphrase" type="password" autocomplete="new-password">
+    <label for="continuation-passphrase" data-i18n="continuePassphrase">Passphrase for local name protection</label><input id="continuation-passphrase" type="password" autocomplete="new-password">
+    <p class="help" data-i18n="continuePassphraseHelp"></p>
     <button type="button" id="continuation-protect" data-i18n="continueProtect">Create the protected local version</button>
   </div>
   <div id="continuation-final" hidden><label for="continuation-text" data-i18n="continuePreview">Exact prepared text</label><textarea id="continuation-text" readonly rows="16"></textarea></div>

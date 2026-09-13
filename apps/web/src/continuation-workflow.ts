@@ -30,6 +30,7 @@ import {
   type ContinuationSources,
   type ContinuationTarget,
 } from "./continuation-preparation.ts";
+import { continuationItemText } from "./continuation-text.ts";
 import {
   continuationPrivacyInput,
   serializeContinuation,
@@ -192,7 +193,9 @@ export class ContinuationWorkflow {
     return {
       ready: true as const,
       proposal,
-      items: packet.included.map((item) => ({ text: item.content })),
+      items: packet.included.map((item) => ({
+        text: continuationItemText(item),
+      })),
       suggestions: suggestions.map((selection, index) => {
         const item = packet.included.find(
           (item) => item.id === selection.itemId,
@@ -312,6 +315,7 @@ export class ContinuationWorkflow {
       });
     }
     let mappingId: string | null = null;
+    let deliveryKey: Uint8Array | undefined;
     let items: readonly { id: string; content: string }[] =
       draft.packet.included;
     if (selections.length > 0) {
@@ -397,6 +401,7 @@ export class ContinuationWorkflow {
               (changed) => changed.itemId === item.id,
             )?.transformedContent ?? item.content,
         }));
+        deliveryKey = key.slice();
       } finally {
         key.fill(0);
       }
@@ -404,43 +409,53 @@ export class ContinuationWorkflow {
     const serialized = serializeContinuation(items);
     if (Buffer.byteLength(serialized) > 256 * 1024)
       return fail("PAYLOAD_TOO_LARGE");
-    const authorizationId = this.#sending
-      ? await this.#sending.prepare({
-          query,
-          mappingId,
-          input: {
-            projectId: prepared.projectId,
-            workItemId: prepared.workItemId,
-            handoffId: prepared.handoffId,
-            model: prepared.model,
-            text: serialized,
-            bindingDigest: draft.binding,
-            preflightAuditEventHash: draft.auditHash,
-            providerKind: "OPENAI_RESPONSES",
-            destination: "EXTERNAL",
-            maxOutputTokens: 512,
-            timeoutMs: 30000,
-          },
-          current: async () => {
-            const target = this.#targets.get(query.projectId!);
-            if (!target) return "changed";
-            const current = await prepareContinuation(
-              this.#sources,
+    const authorizationId = await (async () => {
+      try {
+        const id = this.#sending
+          ? await this.#sending.prepare({
               query,
-              target,
-            );
-            if (!current.prepared) return "changed";
-            const currentPolicy = await new LocalModelDataPolicyReader().read(
-              current.projectId,
-              target.policy,
-            );
-            return digestCanonical({
-              preparation: binding(current, target),
-              policy: currentPolicy.sourceDigest,
-            });
-          },
-        })
-      : null;
+              mappingId,
+              ...(deliveryKey ? { mappingKey: deliveryKey } : {}),
+              input: {
+                projectId: prepared.projectId,
+                workItemId: prepared.workItemId,
+                handoffId: prepared.handoffId,
+                model: prepared.model,
+                text: serialized,
+                bindingDigest: draft.binding,
+                preflightAuditEventHash: draft.auditHash,
+                providerKind: "OPENAI_RESPONSES",
+                destination: "EXTERNAL",
+                maxOutputTokens: 512,
+                timeoutMs: 30000,
+              },
+              current: async () => {
+                const target = this.#targets.get(query.projectId!);
+                if (!target) return "changed";
+                const current = await prepareContinuation(
+                  this.#sources,
+                  query,
+                  target,
+                );
+                if (!current.prepared) return "changed";
+                const currentPolicy =
+                  await new LocalModelDataPolicyReader().read(
+                    current.projectId,
+                    target.policy,
+                  );
+                return digestCanonical({
+                  preparation: binding(current, target),
+                  policy: currentPolicy.sourceDigest,
+                });
+              },
+            })
+          : null;
+        deliveryKey = undefined;
+        return id;
+      } finally {
+        deliveryKey?.fill(0);
+      }
+    })();
     return {
       ready: true as const,
       text: serialized,

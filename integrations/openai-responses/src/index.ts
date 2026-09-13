@@ -27,6 +27,7 @@ export class OpenAIResponsesError extends Error {
   }
 }
 const ENDPOINT = "https://api.openai.com/v1/responses";
+const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_OUTPUT_BYTES = 1024 * 1024;
 const bounded = (value: string, max: number) =>
   value.trim().length > 0 &&
@@ -36,6 +37,46 @@ const bounded = (value: string, max: number) =>
   );
 const object = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+const readJsonBounded = async (
+  response: Response,
+  maxBytes: number,
+): Promise<unknown | null> => {
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength !== null) {
+    const parsedLength = Number(declaredLength);
+    if (!Number.isSafeInteger(parsedLength) || parsedLength < 0) return null;
+    if (parsedLength > maxBytes) return null;
+  }
+  if (!response.body) return null;
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const next = await reader.read();
+      if (next.done) break;
+      total += next.value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(next.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    return null;
+  }
+};
 const textOf = (value: unknown): string | null => {
   if (!object(value) || !Array.isArray(value.output)) return null;
   const parts: string[] = [];
@@ -123,6 +164,7 @@ export class OpenAIResponsesTransport {
     try {
       const response = await this.#fetch(this.#endpoint, {
         method: "POST",
+        redirect: "error",
         headers: {
           Authorization: `Bearer ${this.#apiKey}`,
           "Content-Type": "application/json",
@@ -145,11 +187,13 @@ export class OpenAIResponsesTransport {
           ? { kind: "REJECTED" }
           : { kind: "UNKNOWN" };
       if (!response.ok) return { kind: "REJECTED" };
-      const value: unknown = await response.json();
+      const value = await readJsonBounded(response, MAX_RESPONSE_BYTES);
+      if (value === null) return { kind: "UNKNOWN" };
       const text = textOf(value);
       if (
         !text ||
         !object(value) ||
+        value.status !== "completed" ||
         typeof value.id !== "string" ||
         !bounded(value.id, 256)
       )

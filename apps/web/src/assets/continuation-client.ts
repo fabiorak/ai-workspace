@@ -71,7 +71,8 @@ let continuationAuthorization = null;
     continuationProposal = answer.proposal;
     answer.items.forEach((item, index) => {
       const area = document.createElement("textarea"); area.readOnly = true; area.rows = 5; area.value = item.text; area.setAttribute("aria-label", message("continueReview") + " " + (index + 1));
-      const button = document.createElement("button"); button.type = "button"; say(button, "continueProtectSelection");
+      const button = document.createElement("button"); button.type = "button"; button.disabled = true; say(button, "continueProtectSelection");
+      area.addEventListener("select", () => { button.disabled = area.selectionEnd <= area.selectionStart; });
       button.addEventListener("click", () => {
         if (area.selectionEnd <= area.selectionStart) return;
         const span = { item: index, start: area.selectionStart, end: area.selectionEnd };

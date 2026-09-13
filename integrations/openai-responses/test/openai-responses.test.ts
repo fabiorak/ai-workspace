@@ -30,6 +30,7 @@ test("Responses transport sends one bounded non-streaming request and normalizes
         200,
         {
           id: "resp_123",
+          status: "completed",
           output: [
             {
               type: "message",
@@ -57,6 +58,7 @@ test("Responses transport sends one bounded non-streaming request and normalizes
   const recorded = seen as unknown as { url: string; init: RequestInit };
   assert.equal(recorded.url, "https://api.openai.com/v1/responses");
   assert.equal(recorded.init.method, "POST");
+  assert.equal(recorded.init.redirect, "error");
   assert.equal(
     (recorded.init.headers as Record<string, string>).Authorization,
     "Bearer synthetic-secret",
@@ -102,6 +104,7 @@ test("malformed, oversized, incomplete and timed out responses never become comp
         200,
         {
           id: "resp",
+          status: "completed",
           output: [
             {
               content: [
@@ -115,8 +118,19 @@ test("malformed, oversized, incomplete and timed out responses never become comp
     async () =>
       response(200, {
         id: "resp",
+        status: "completed",
         output: [{ content: [{ type: "output_text", text: "answer" }] }],
       }),
+    async () =>
+      response(
+        200,
+        {
+          id: "resp",
+          status: "incomplete",
+          output: [{ content: [{ type: "output_text", text: "partial" }] }],
+        },
+        { "x-request-id": "req" },
+      ),
   ]) {
     const transport = new OpenAIResponsesTransport({
       apiKey: "synthetic-secret",
@@ -124,6 +138,19 @@ test("malformed, oversized, incomplete and timed out responses never become comp
     });
     assert.deepEqual(await transport.send(input), { kind: "UNKNOWN" });
   }
+  const oversizedBody = new OpenAIResponsesTransport({
+    apiKey: "synthetic-secret",
+    fetch: (async () =>
+      new Response('{"id":"resp","status":"completed","output":[]}', {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "content-length": String(2 * 1024 * 1024 + 1),
+          "x-request-id": "req",
+        },
+      })) as FetchLike,
+  });
+  assert.deepEqual(await oversizedBody.send(input), { kind: "UNKNOWN" });
   const timeout = new OpenAIResponsesTransport({
     apiKey: "synthetic-secret",
     fetch: (() =>

@@ -18,6 +18,7 @@ type Pending = {
   query: ContinuationQuery;
   input: DeliveryInput;
   mappingId: string | null;
+  mappingKey?: Uint8Array;
   expires: number;
   current: () => Promise<string>;
 };
@@ -40,7 +41,10 @@ export class ContinuationSending {
   }
   async prepare(pending: Omit<Pending, "expires">) {
     for (const [id, value] of this.#pending)
-      if (value.expires <= Date.now()) this.#pending.delete(id);
+      if (value.expires <= Date.now()) {
+        value.mappingKey?.fill(0);
+        this.#pending.delete(id);
+      }
     if (this.#pending.size >= 20) throw new Error("CAPACITY");
     await this.#delivery.initialize(pending.input.projectId);
     const prepared = this.#delivery.prepare(pending.input);
@@ -70,10 +74,12 @@ export class ContinuationSending {
     try {
       const mapping = pending.mappingId
         ? await (async () => {
-            key = await new PassphraseKeyCustody(this.home).unlock(
-              pending.mappingId!,
-              passphrase,
-            );
+            key = pending.mappingKey
+              ? pending.mappingKey.slice()
+              : await new PassphraseKeyCustody(this.home).unlock(
+                  pending.mappingId!,
+                  passphrase,
+                );
             return new EncryptedPrivacyMappingStore(this.home, key).read(
               pending.mappingId!,
             );

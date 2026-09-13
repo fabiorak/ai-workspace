@@ -124,6 +124,15 @@ test("conversation privacy preparation uses scoped local actions and the complet
       const draft = await propose();
       assert.equal(draft.ready, true);
       assert.equal(draft.items.at(-1)!.text, question);
+      assert.equal(
+        draft.items.some((item) => item.text.includes('"metadata"')),
+        false,
+        "review items must not expose the serialized metadata envelope",
+      );
+      assert.ok(
+        draft.items.some((item) => item.text.includes("Origin:")),
+        "review items must show readable content and provenance",
+      );
       assert.equal(draft.suggestions.length, 1);
       assert.equal(
         (await f.app.listPrivacyAudit(f.project.id)).total,

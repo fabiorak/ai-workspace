@@ -38,8 +38,9 @@ Use ADR-0040's coordinator through a guarded conversation-scoped POST /send.
 Only a host-injected transport enables confirmation; the default host loads no
 credentials and enables no transport. Confirm one exact prepared request, bounded
 to 512 output tokens and a 30 second timeout. Recheck context, target and policy
-before exposure. Unlock the exact retained mapping before sending, restore output
-strictly, screen restricted content, and persist a successful response in the
+before exposure. Unlock the exact retained mapping before sending; the review
+passphrase is entered once and the derived key is held only in memory. Restore
+output strictly, screen restricted content, and persist a successful response in the
 same conversation. An unknown outcome, failed restoration or local save never
 causes automatic replay. A later question prepares and reviews a new request.
 

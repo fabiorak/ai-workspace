@@ -18,7 +18,9 @@ the existing `ModelAttempts` service. Its bounded transient preparations contain
 the exact text, model, explicit external destination, output and timeout limits,
 project/work/handoff scope, privacy-audit hash and a binding digest of the reviewed
 configuration, instructions, policy, mapping and source state. Preparations expire
-and disappear at restart. Credentials never enter this contract.
+and disappear at restart. The privacy review accepts the passphrase once and keeps
+only the derived mapping key in memory until the authorized send. The passphrase
+and credentials never enter this contract.
 
 Confirmation consumes one opaque authorization synchronously before asynchronous
 work. The application revalidates the binding; a change requires recomposition

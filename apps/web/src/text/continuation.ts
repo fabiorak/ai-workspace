@@ -1,8 +1,8 @@
 import { catalogues, type TextEntries } from "./catalog.ts";
 export const CONTINUATION_TEXT = {
   continueSendLimits: {
-    en: "One request, at most 512 output tokens, 30 second timeout. If names were protected, enter the same passphrase again before confirming. Review the exact text above. A retry needs a new review and may duplicate cost.",
-    it: "Una richiesta, massimo 512 token di risposta, timeout di 30 secondi. Se hai protetto nomi, reinserisci la stessa passphrase prima di confermare. Rileggi il testo esatto sopra. Riprovare richiede una nuova revisione e può duplicare il costo.",
+    en: "One request, at most 512 output tokens, 30 second timeout. The passphrase protects the local name mapping for this request. Review the prepared text before confirming. A retry needs a new review and may duplicate cost.",
+    it: "Una richiesta, massimo 512 token di risposta, timeout di 30 secondi. La passphrase protegge la mappatura locale dei nomi per questa richiesta. Rileggi il testo preparato prima di confermare. Riprovare richiede una nuova revisione e può duplicare il costo.",
   },
   continueSend: {
     en: "Confirm and send once",
@@ -93,16 +93,20 @@ export const CONTINUATION_TEXT = {
     it: "Parte del contenuto non rientra nei limiti scelti. Controlla le omissioni prima di continuare.",
   },
   continueLimit: {
-    en: "Detection is incomplete. Review every text, deselect unwanted suggestions, and select any missed words before making the protected version.",
-    it: "Il rilevamento è incompleto. Rileggi tutti i testi, deseleziona le proposte non desiderate e seleziona le parole mancanti prima di creare la versione protetta.",
+    en: "Automatic detection can miss a name. Review the text and proposed substitutions before making the protected version.",
+    it: "Il rilevamento automatico può non trovare un nome. Controlla il testo e le sostituzioni proposte prima di creare la versione protetta.",
   },
   continueProtectSelection: {
     en: "Protect selected words",
     it: "Proteggi le parole selezionate",
   },
   continuePassphrase: {
-    en: "Passphrase for restoring protected names (required when replacing words)",
-    it: "Passphrase per ripristinare i nomi protetti (necessaria quando sostituisci parole)",
+    en: "Passphrase for local name protection",
+    it: "Passphrase per proteggere i nomi in locale",
+  },
+  continuePassphraseHelp: {
+    en: "Enter it once. It stays only in memory until this request finishes and is needed to restore protected names in the saved answer.",
+    it: "Inseriscila una volta. Resta solo in memoria fino alla fine di questa richiesta e serve a ripristinare i nomi protetti nella risposta conservata.",
   },
   continueProtect: {
     en: "Create the protected local version",

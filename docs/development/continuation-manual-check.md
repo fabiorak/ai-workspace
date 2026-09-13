@@ -37,8 +37,7 @@ proposal; seeing a preview alone does not establish continuity quality.
 Run `npm run build`, then `npm run demo:continuation-journey`. This starts the
 server in a new synthetic home and prints its one-time URL and configuration
 paths. The simulated recipient is already configured. Follow steps 3-7 above,
-skipping recipient setup in step 5; do not reuse paths from an earlier demo. After the protected preview, re-enter the synthetic passphrase
-and choose "Confirm and send once". The reply visibly begins "SIMULATED RESPONSE"
+skipping recipient setup in step 5; do not reuse paths from an earlier demo. After the protected preview, choose "Confirm and send once". The passphrase entered during review remains only in memory for this request. The reply visibly begins "SIMULATED RESPONSE"
 and says that no model was called. Check that the original customer name has
 been restored in the saved response.
 
