@@ -143,6 +143,14 @@ export const HOME_TEXT = Object.freeze({
     en: "{term} was already protected as {placeholder}.",
     it: "{term} era già protetto come {placeholder}.",
   },
+  homeProtectionTermConflict: {
+    en: "{term} is already protected as another kind of data. Keep that kind, or protect a different value.",
+    it: "{term} è già protetto come un altro tipo di dato. Tieni quel tipo, oppure proteggi un valore diverso.",
+  },
+  homeProtectionTermRefused: {
+    en: "{term} was not protected, and nothing changed. Check the value and try again.",
+    it: "{term} non è stato protetto e nulla è cambiato. Controlla il valore e riprova.",
+  },
   homeProtectionTermInvalid: {
     en: "Write at least two characters of the value to protect.",
     it: "Scrivi almeno due caratteri del valore da proteggere.",
@@ -424,6 +432,10 @@ export const HOME_TEXT = Object.freeze({
    * The source a moment came from. It is the whole reason this screen can be
    * believed, so it is stated on every moment rather than hidden behind a control.
    */
+  homeMomentSourceSummary: {
+    en: "Where this came from",
+    it: "Da dove viene",
+  },
   homeMomentSource: {
     en: "Record {position} of the imported transcript · fingerprint {hash}",
     it: "Record {position} del transcript importato · impronta {hash}",

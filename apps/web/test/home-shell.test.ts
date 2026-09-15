@@ -460,6 +460,53 @@ describe("the opening screen", () => {
       );
   });
 
+  /**
+   * A moment used to state its record number and content fingerprint on every
+   * line. That is what makes the screen checkable and also exactly what the
+   * ordinary path forbids, so it moved one gesture away instead of vanishing.
+   */
+  it("keeps record numbers and fingerprints one gesture away from a moment", () => {
+    const start = APP_JS.indexOf("const renderMoment");
+    const render = APP_JS.slice(
+      start,
+      APP_JS.indexOf("const renderConversation", start),
+    );
+    assert.match(render, /createElement\("details"\)/u);
+    assert.match(render, /moment-source/u);
+    assert.match(render, /homeMomentSourceSummary/u);
+    // The fingerprint is appended to the disclosure, never to the moment itself.
+    assert.match(render, /source\.append\(sourceSummary, provenance\)/u);
+    assert.doesNotMatch(render, /item\.append\([^)]*provenance/u);
+    for (const key of ["homeMomentSourceSummary"]) {
+      assert.ok(catalogues.en[key]?.trim());
+      assert.ok(catalogues.it[key]?.trim());
+    }
+  });
+
+  /**
+   * The route answers in English because it answers machines. Showing its wording
+   * put an English sentence inside an Italian interface, so the outcome is read
+   * from the status and said in the reader's own language.
+   */
+  it("says the outcome of a protected term in the reader's language", () => {
+    assert.match(APP_JS, /response\.status === 409/u);
+    assert.match(APP_JS, /homeProtectionTermConflict/u);
+    assert.match(APP_JS, /homeProtectionTermRefused/u);
+    for (const key of [
+      "homeProtectionTermConflict",
+      "homeProtectionTermRefused",
+    ]) {
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+    // The server's own wording never reaches the panel.
+    const form = APP_JS.slice(
+      APP_JS.indexOf("const protectionTermForm"),
+      APP_JS.indexOf("const openConversationPanel"),
+    );
+    assert.doesNotMatch(form, /detail\(status, cause\)/u);
+  });
+
   it("offers one reviewed way to protect a value the detector cannot find", () => {
     assert.match(APP_JS, /protectionTermForm/u);
     assert.match(APP_JS, /\/protected-terms/u);

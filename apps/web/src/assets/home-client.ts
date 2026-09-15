@@ -198,16 +198,25 @@ export const HOME_BEHAVIOUR = `
     // paragraph, which reads as a moment that held nothing.
     if (moment.text) text(body, moment.text);
     else say(body, "homeMomentElsewhere");
+    item.append(who, body);
+    if (moment.occurredAt) { const when = document.createElement("p"); when.className = "help"; text(when, dateTime(moment.occurredAt)); item.append(when); }
+    // Record number and fingerprint are what make this screen checkable, and also
+    // exactly what an ordinary reader should not have to read: they stay one gesture
+    // away instead of on every moment.
+    const source = document.createElement("details");
+    source.className = "moment-source";
+    const sourceSummary = document.createElement("summary");
+    say(sourceSummary, "homeMomentSourceSummary");
     const provenance = document.createElement("p");
     provenance.className = "help";
     const fingerprint = (moment.contentHash || "").slice(0, 12);
     if (moment.sourcePosition === null) say(provenance, "homeMomentOwnSource", { hash: fingerprint });
     else say(provenance, "homeMomentSource", { position: number(moment.sourcePosition), hash: fingerprint });
-    item.append(who, body, provenance);
-    if (moment.occurredAt) { const when = document.createElement("p"); when.className = "help"; text(when, dateTime(moment.occurredAt)); item.append(when); }
+    source.append(sourceSummary, provenance);
     // Only an imported moment can fail to be the canonical envelope; a note never was
     // one, so saying it there would answer a question nobody asked.
-    if (conversation.kind !== "NOTES" && !moment.fromCanonicalPayload && moment.text) { const raw = document.createElement("p"); raw.className = "help"; say(raw, "homeMomentAsStored"); item.append(raw); }
+    if (conversation.kind !== "NOTES" && !moment.fromCanonicalPayload && moment.text) { const raw = document.createElement("p"); raw.className = "help"; say(raw, "homeMomentAsStored"); source.append(raw); }
+    item.append(source);
     // A long payload is opened only after this explicit gesture. The request names the
     // conversation and event, never the artifact: the server resolves that immutable
     // reference after proving the event belongs here and verifies its bytes before use.
@@ -369,13 +378,21 @@ export const HOME_BEHAVIOUR = `
       if (term.length < 2) { say(status, "homeProtectionTermInvalid"); input.focus(); return; }
       submit.disabled = true;
       try {
-        const added = await api("/api/conversations/" + encodeURIComponent(openConversation) + "/protected-terms", {
+        // The outcome is read from the status, so the sentence a person reads is one
+        // of ours in their own language instead of the server's English wording.
+        const response = await fetch("/api/conversations/" + encodeURIComponent(openConversation) + "/protected-terms", {
           method: "POST",
+          headers: { "Content-Type": "application/json", "X-AI-Workspace-CSRF": csrf },
           body: JSON.stringify({ term, type: kind.value }),
         });
-        say(status, added.added ? "homeProtectionTermAdded" : "homeProtectionTermKnown", { term, placeholder: added.pseudonym });
-        input.value = "";
-      } catch (cause) { detail(status, cause); }
+        const value = await response.json().catch(() => null);
+        if (response.status === 409) say(status, "homeProtectionTermConflict", { term });
+        else if (!response.ok || !value) say(status, "homeProtectionTermRefused", { term });
+        else {
+          say(status, value.added ? "homeProtectionTermAdded" : "homeProtectionTermKnown", { term, placeholder: value.pseudonym });
+          input.value = "";
+        }
+      } catch { say(status, "homeProtectionTermRefused", { term }); }
       submit.disabled = false;
       input.focus();
     });
