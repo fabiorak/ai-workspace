@@ -211,6 +211,7 @@ cover:
   [agent and skill profiles](docs/user-guide/agent-skill-profiles.md), and
   [profile-governed context](docs/user-guide/profile-governed-context.md);
 - [privacy preflight](docs/user-guide/privacy-preflight.md),
+  [automatic privacy protection](docs/user-guide/automatic-privacy-protection.md),
   [reversible privacy transformation](docs/user-guide/reversible-privacy-transformation.md),
   and
   [strict pseudonymized-output restoration](docs/user-guide/pseudonymized-output-restoration.md).

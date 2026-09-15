@@ -90,6 +90,65 @@ checked for restricted content, and stored in the same conversation. The next
 preparation reads that answer as untrusted evidence. Default startup enables no
 transport or credential lookup. ADR-0041 documents limits and provenance.
 
+ADR-0042 proposes replacing that manual continuation sequence as the primary GUI
+with a provider-neutral `ConversationTurn`. Its public request contains only the
+conversation, claimed project or General scope, target, exact user text, and a
+client request identity. The server resolves Work Item and optional handoff, and
+the idempotency port binds duplicate clicks to the exact request before a later
+delivery boundary can expose content. A missing handoff selects reduced context;
+it no longer blocks an ordinary turn. The U0 package defines this contract and
+ports only: no route, transport, credential, persistence adapter, or GUI behavior
+is enabled yet.
+
+ADR-0043 defines stable per-project and General pseudonym maps whose keys are
+managed by the local single-user application, with legacy passphrase custody kept
+for additive migration and optional higher-protection workflows. ADR-0044
+separately defines bounded versioned local target configuration while keeping
+credentials process-only.
+
+The U1 web shell makes the conversation the primary GUI surface and moves
+historical search to its own route. The newest stored conversation opens on
+arrival without taking focus, selecting the open row is idempotent, and
+consecutive technical moments are grouped behind a disclosure. The composer,
+per-conversation session-only model choice, context explanation, and automatic
+protection explanation are present, but submission intentionally produces only
+a clearly labeled client-local fake response. U1 adds no route, persistence,
+provider, credential lookup, or network delivery. The previous continuation
+controls remain hidden as compatibility structure for later migration; they are
+not the ordinary path.
+
+U2 implements ADR-0044 with the provider-neutral `model-targets` package and the
+`local-model-targets` JSON adapter. The versioned bounded document keeps target
+metadata, a global default, project selections, and conversation selections;
+resolution precedence is conversation, project, then default. Writes use an
+owner lock, expected revision, restrictive permissions, and atomic publication.
+The ordinary conversation endpoint returns only target ID and validated display
+name, while Settings owns the technical metadata. No credential, provider
+transport, response, endpoint override, or authorization is stored. The selected
+target survives host restart.
+
+U3 composes the provider-neutral `ConversationTurn` behind a single authenticated
+conversation-scoped POST. The server resolves scope, target, optional Work Item
+and optional handoff, then composes again immediately before `ModelDelivery`
+claims exposure. General and project conversations without a handoff use a
+bounded reduced context made from conversation evidence and active memory from
+explicitly linked projects. Exact duplicate request identities share the first
+result; changed content conflicts, source changes refuse before exposure, and an
+unknown post-exposure result is cached without automatic retry. Completed pairs
+are retained atomically with model-target attribution. The standard host injects
+only a local simulated transport and performs no provider or network request.
+
+U4 inserts the provider-neutral `PiiDetector` port and stable pseudonymization
+contract immediately before model delivery. The default deterministic detector
+and previously known stable values produce readable typed placeholders. One
+app-managed 32-byte key and one authenticated encrypted map are stored separately
+per authoritative project scope, with a distinct General scope; both adapters
+enforce bounds, private modes, owner locks, atomic publication, and strict schema
+validation. Restoration rejects unknown typed placeholders before persistence.
+Settings reports the residual local-account threat and offers an additive,
+round-trip-verified import for immutable v1/v2 passphrase-protected mappings.
+The browser never selects scope or receives keys, maps, originals, or paths.
+
 The selector-measurement increment adds a separate experiment-only projection
 inside `packages/context-builder`. Eight explicit `handoff.*` selectors map
 one-to-one to existing continuity sections; objective, repository, next action,

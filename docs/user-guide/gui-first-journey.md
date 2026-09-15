@@ -28,40 +28,57 @@ AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
 
 ## The short path
 
-The page you land on is your own work: the conversations you have had, most
-recent first, and one field to search them. Nothing has to be set up first.
+The page you land on is a conversation. Your conversations remain in the
+sidebar, most recent first; the newest one opens automatically without moving
+keyboard focus. Select an already open row again and it stays open.
 
-**1. Ask.** Type what you are looking for. Search forgives accents,
-capitalization, ordinary Italian and English word endings, and single character
-typing errors, and ranks results by relevance. **Every result says why it
-matched** — the word you typed, the word it reached, and how — which is what lets
-you recognise a plausible but wrong result for what it is. The answer is composed
-from what is already on this computer; nothing is sent anywhere. See
-[historical search](historical-search.md) for the bounds.
+**1. Write.** Type in the composer at the bottom of the conversation. Enter adds
+a new line and Ctrl+Enter sends. U4 submits one conversation-scoped request to
+the authenticated loopback server. The standard server uses a clearly labeled
+local simulated transport: no model, credential, external API, or network is
+used. A completed user/assistant pair is retained atomically in the same
+conversation and the answer is brought into view. Before the transport sees the
+message, the built-in detector replaces supported personal-data patterns with
+stable readable placeholders. The returned text is restored locally before it
+is saved.
 
-**2. Carry the answer away.** When the answer comes from a project, **Prepare the
-summary** composes a passage you can copy into a different assistant so it can
-continue without replaying the conversation: repository state, what is currently
-decided, and the results you were just looking at, each with where it came from.
-It is composed from what is already stored, is never saved, and never leaves this
-computer.
+**2. Choose what the next message would use.** Configure named model targets in
+**Settings**, then choose one in the conversation header. The default and the
+choice for a stored conversation survive a host restart. The conversation sees
+only the target ID and validated display name; technical metadata stays in
+Settings. **Context** explains what the preview can see. **Automatic protection**
+explains the privacy boundary and the replacement count for the last message.
+Routine turns require no privacy preview, manual name entry, or passphrase. None
+of these controls stores provider credentials or enables a real provider or
+external network in the standard host.
 
-That is the whole path.
+If Settings reports an earlier passphrase-protected mapping, its dedicated
+one-time import form can add those reviewed values to the new stable project map.
+The old passphrase is cleared from the form after the attempt. Migration derives
+the project from the encrypted legacy mapping, verifies a local round trip, and
+does not rewrite or delete the original ciphertext. See
+[automatic privacy protection](automatic-privacy-protection.md).
+
+**3. Search separately when you need history.** Choose **Search history** in the
+sidebar. Search forgives accents, capitalization, ordinary Italian and English
+word endings, and single character typing errors, and ranks results by relevance.
+Every result says why it matched. Results are composed from what is already on
+this computer; nothing is sent anywhere. See
+[historical search](historical-search.md) for the bounds. A project result can
+still prepare a summary for another assistant from that dedicated search view.
 
 ### Bringing in history you already have
 
-The list starts empty until there is something to list. Two ways to fill it:
-
-- **write.** A question you type is kept, belongs to no project, and can be
-  linked to one later without changing where it lives;
-- **import sessions.** Open **Projects**, register the directory of a local Git
-  repository, then choose **Import the safe sample session** for the bundled
-  fictional fixture, or **Import your own sessions** to name the directory
-  holding your Claude Code transcripts, list it, and import a file. Listing reads
-  names, sizes, and modification times only; no transcript is opened until you
-  select it. Read [importing your own local
-  transcripts](local-transcripts.md) first — it covers where that content is
-  stored and what not to import.
+The list starts empty until there is something stored. In U3, **New chat** is
+created as a durable General conversation on its first completed turn. To bring
+in existing work,
+open **Projects**, register the directory of a local Git repository, then choose
+**Import the safe sample session** for the bundled fictional fixture, or
+**Import your own sessions** to name the directory holding your Claude Code
+transcripts, list it, and import a file. Listing reads names, sizes, and
+modification times only; no transcript is opened until you select it. Read
+[importing your own local transcripts](local-transcripts.md) first - it covers
+where that content is stored and what not to import.
 
 Imported sessions appear in the list on their own, titled with the first question
 you asked in them, with the most recently active at the top. Each row also names
@@ -71,9 +88,11 @@ names the agent instead, which is always recorded.
 
 ## What else is there
 
-The sidebar holds your conversations, then **Projects**, **Settings**, and
-**Technical view**. On a narrow screen, reveal the sidebar with the labeled menu
-button.
+The sidebar holds **New chat**, **Search history**, your conversations, then
+**Projects**, **Settings**, and **Technical view**. On a narrow screen, reveal
+the sidebar with the labeled menu button. Tool calls, tool results, commands,
+file changes, and test results are grouped behind a single technical-activity
+disclosure in the conversation instead of interrupting its ordinary reading.
 
 The technical view is where provenance, integrity verification, exact states, and
 the original vocabulary live. The interface is being rebuilt one part at a time,
@@ -132,8 +151,11 @@ instructions, agents, or skills. Models, tools, translation services, and
 external network requests remain inactive. Profile declarations are inspected as
 `USER_CONFIGURED` inert data and grant no permission. Context Pack preview does
 not search history, read repository files, choose sources automatically, persist
-a pack, or send a prompt. Reviewed pseudonymization is manual and non
-authorizing, and is not complete PII detection.
+a pack, or send a prompt. Automatic and reviewed pseudonymization are
+non-authorizing, and neither is complete PII detection. The app-managed key and
+encrypted stable map are separate private local files, but a process able to read
+the complete workspace home can read both; this is the explicit residual threat
+of the default single-user mode.
 
 Errors explain a recovery action inline. Re-import is idempotent, empty results
 keep your query and filters, and going back does not clear the current search.

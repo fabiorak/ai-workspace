@@ -57,6 +57,8 @@ postgres-data/
 opensearch-data/
 
 # Editor, assistant and operating-system files
+.playwright-mcp/
+/ai-workspace-home*.png
 .claude/
 .codex/
 .agents/
@@ -74,3 +76,6 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+
+ripresa.txt

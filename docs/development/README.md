@@ -11,6 +11,8 @@ Measurement reports:
 - [Selector continuity evidence retention](selector-continuity-evidence-retention.md)
 - [Reviewed entity candidate discovery corpus](entity-candidate-discovery-corpus.md)
 - [Reviewed entity candidate discovery observations](entity-candidate-discovery-observations.md)
+- [Rizzo PII evaluation protocol](rizzo-pii-evaluation.md)
+- [Rizzo PII evaluation observations](rizzo-pii-evaluation-observations.md)
 - [Privacy mapping schema-v2 compatibility corpus](privacy-schema-v2-compatibility-corpus.md)
 - [Tolerant search corpus](tolerant-search-corpus.md)
 - [Unified retrieval corpus](unified-retrieval-corpus.md)
@@ -158,6 +160,27 @@ Run `npm run measure:output-restoration` to reproduce the deterministic
 whole-token restoration is production eligible; the known-only baseline stays
 harness-only.
 
+## Automatic stable privacy maps
+
+U4 adds the `PiiDetector` port and stable-map transformation in
+`packages/privacy-gateway`, app-managed local key custody in
+`integrations/local-key-custody`, and encrypted revisioned map persistence in
+`integrations/local-privacy-mapping`. Tests must use only synthetic values and
+temporary `AI_WORKSPACE_HOME` directories. Cover stable reuse across restarts and
+models, provider non-exposure, strict unknown-placeholder handling, private file
+modes, corruption, and additive legacy migration. Never inspect a developer's
+real workspace home or commit generated keys, mapping ciphertext, or migration
+artifacts.
+
+U5 evaluates the current built-in detector and an optional pinned Rizzo PII
+sidecar against the entirely synthetic, exact-span
+[Rizzo PII evaluation protocol](rizzo-pii-evaluation.md). Run
+`npm run measure:rizzo-pii` for the safe built-in baseline. A Rizzo run requires
+an explicitly started CPU sidecar on numeric loopback; it remains a
+development-only measurement and does not change the production default.
+The measured rejection and bounded results are recorded in the
+[Rizzo PII evaluation observations](rizzo-pii-evaluation-observations.md).
+
 Sprint 32 freezes the non-content privacy-decision audit schema, synthetic
 reviewable/blocked cases, canonical bytes, chaining, fixed 1,000-event bound,
 and failure matrix in the [Privacy Decision Audit Corpus](privacy-audit-corpus.md).
@@ -277,6 +300,28 @@ assertions build a synthetic home in a temporary directory rather than reading a
 real one.
 
 ## Architecture decisions
+
+The U1 conversation-shell behavior is covered by
+`apps/web/test/home-shell.test.ts` and
+`apps/web/test/restart-point-shell.test.ts`. These tests verify the separate
+history route, idempotent conversation selection, technical-activity grouping,
+keyboard submission, local fake response, and compatibility with the existing
+restart-point structure. They are source-level and HTTP-suite checks, not a
+substitute for the 1440x900 and 390x850 browser acceptance pass.
+
+U2 adds pure target-resolution tests in `packages/model-targets/test`, adapter
+qualification in `integrations/local-model-targets/test`, and authenticated HTTP
+restart coverage in `apps/web/test/model-target-route.test.ts`. The tests use
+only synthetic metadata and temporary homes. They verify precedence, exact
+configuration, expected-revision concurrency, restrictive permissions,
+corruption handling, safe conversation views, and persistence of an A-to-B
+conversation selection across a server restart. No test contacts a provider.
+
+U3 adds direct coordination tests for pre-exposure recomposition and
+post-exposure uncertainty, plus an authenticated HTTP journey covering one-call
+duplicate suppression, General reduced context, no-handoff project context and
+retained display-name attribution. Loopback server tests require the environment
+to permit local port binding.
 
 Material decisions are recorded in `docs/adr/`. New ADRs use the next numeric
 identifier and start with `proposed` status. An accepted ADR is updated rather

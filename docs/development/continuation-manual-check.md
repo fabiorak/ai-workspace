@@ -1,48 +1,54 @@
-# Synthetic continuation GUI check
+# Synthetic conversation GUI check
 
-This check uses a temporary home and invented content. It exercises the current
-local preview; provider delivery is not enabled in the GUI.
+This check uses a temporary home and invented content. It exercises the ordinary
+conversation turn with the local simulated transport; no provider is enabled in
+the GUI.
+
+The earlier "Continue with another assistant" panel is gone. Its manual name
+list, passphrase, exact-text preview and separate confirmation were replaced by
+one message and one **Send**. Steps that referred to those controls no longer
+apply; see the migration window below for what remains behind the HTTP API.
 
 1. From the repository root, run `npm run build`, then
-   `npm run demo:continuation`.
-2. Copy and run the exact `start` command printed by the demo. It sets
-   `AI_WORKSPACE_HOME` to the temporary home. Keep that terminal open.
-3. Open the one-time loopback URL printed by the server. Open the imported
-   conversation titled "Add a fictional greeting and verify it.".
-4. Read the work summary and open its kept snapshot. Check that the snapshot
-   date and the recorded next action are understandable.
-5. Choose "Continue with another assistant" (or the equivalent Italian label).
-   Open recipient setup. Enter "Synthetic assistant" as the recipient name,
-   the printed `model`, the `profile.path`, the `policy.path`, and each of the
-   three `bundles[].path` values on a separate instruction-file line. Leave
-   the optional task empty. Apply these settings.
-6. Ask "Ask Synthetic Customer which failure to inspect next.". Enter
-   "Synthetic Customer" in the names field and prepare the review.
-7. Select the proposed customer-name substitutions. Enter a synthetic
-   passphrase of at least four words and create the protected version.
-   Check that the original name is absent from the final text. This is the
-   current end of the GUI path; a provider response is not expected.
-8. Repeat the labels/navigation check after switching language in Settings.
-   Use Tab and Enter to check that the controls remain reachable.
-9. Stop the server with Ctrl+C. The temporary home is deliberately retained
-   for investigation; rerunning the demo creates another isolated home.
+   `npm run demo:continuation-journey`. It starts the server in a new synthetic
+   home, configures the simulated recipient, and prints a one-time URL.
+2. Open the printed URL and select the imported conversation. The most recent
+   messages are shown without scrolling the page.
+3. Check the header: the conversation title, its project, and the model selector
+   for the next message. Changing the model must not change the conversation.
+4. Open **Automatic protection** beside the composer. Write `Synthetic Customer`
+   in **Also protect this value**, choose **Customer**, and select **Protect it**.
+   The panel reports the placeholder that value now has.
+5. Close the panel and write `Ask Synthetic Customer which failure to inspect
+next.` in the composer. Send it with the button or with `Ctrl+Enter`.
+6. Check that the answer appears below your message without scrolling, that it
+   begins `SIMULATED RESPONSE`, that it says no model was called, and that
+   `Synthetic Customer` is restored in the visible text.
+7. Reopen **Automatic protection** and check the number of replacements in the
+   last message.
+8. Write a second message and check that the previous answer is part of the
+   conversation. Reopen the conversation and check that both moments are kept.
+9. Repeat the labels and navigation check after switching language in Settings.
+   Use Tab, Enter and Escape to check that the composer, the model selector and
+   the panel remain reachable and that Escape returns focus.
+10. Stop the server with Ctrl+C. The temporary home is deliberately retained for
+    investigation; rerunning the demo creates another isolated home.
 
 Report the step number and what differed from the expected result. No real
-transcript, account, key or paid request is needed for this check. The automated
-quality report separately records whether critical source evidence reaches the
-proposal; seeing a preview alone does not establish continuity quality.
+transcript, account, key or paid request is needed for this check. Seeing an
+answer alone does not establish continuity quality: the automated quality report
+separately records whether critical source evidence reaches the request.
 
-## Complete journey with a simulated response
+## Legacy continuation API migration window
 
-Run `npm run build`, then `npm run demo:continuation-journey`. This starts the
-server in a new synthetic home and prints its one-time URL and configuration
-paths. The simulated recipient is already configured. Follow steps 3-7 above,
-skipping recipient setup in step 5; do not reuse paths from an earlier demo. After the protected preview, choose "Confirm and send once". The passphrase entered during review remains only in memory for this request. The reply visibly begins "SIMULATED RESPONSE"
-and says that no model was called. Check that the original customer name has
-been restored in the saved response.
+The conversation screen no longer serves any continuation control, and the
+browser no longer ships its behaviour. The HTTP routes under
+`/api/conversations/:id/continuation` and the workflow behind them are retained
+for one documented migration window, so an existing local integration keeps
+working while it moves to `POST /api/conversations/:id/turn`.
 
-Write a second question and prepare another privacy review. Check that the prior
-simulated answer appears in the current linked-session evidence. Reopen the
-conversation to see its added assistant moment. Each new question requires its
-own review and confirmation. The normal `npm run gui` startup still has no
-transport enabled. Ctrl+C stops the demo server; its temporary home is retained.
+Within that window the legacy routes are API-only: they are not reachable from
+the GUI, they gain no new capability, and they keep their own passphrase-based
+mapping custody. New work uses the conversation turn, the app-managed key and
+the reviewed-term route `POST /api/conversations/:id/protected-terms`. Removing
+the legacy routes is a separate, explicit change.

@@ -18,6 +18,16 @@ never matched text. It changes no runtime package export, GUI, facade, mapping,
 policy, delivery, or execution path. See the frozen
 [corpus](../docs/development/entity-candidate-discovery-corpus.md).
 
+`npm run measure:rizzo-pii` runs the U5 privacy-detector baseline over 140
+bounded IT/EN fixtures created entirely in code. With no arguments it measures
+only the production built-in detector and records Rizzo as `NOT_RUN`. To measure
+the pinned Rizzo 2.0.0 application with model 1.5.0, start its CPU sidecar on
+loopback and pass `-- --rizzo-endpoint=http://127.0.0.1:5005`. The runner rejects
+non-loopback endpoints, redirects, incompatible versions and non-CPU devices.
+It writes only aggregate scores, timings and digests under ignored
+`.ai-workspace/measurements/`; it does not change the production detector. See
+the [frozen protocol](../docs/development/rizzo-pii-evaluation.md).
+
 `npm run measure:delivery-authorization` runs the Sprint 33 frozen
 development-only authorization corpus twice. It uses only test-owned synthetic
 intent metadata, an in-memory single-use store, and a synthetic adapter; it
