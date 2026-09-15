@@ -16,6 +16,8 @@ import {
   type MutationGuard,
 } from "./restart-point-route.ts";
 import { handleWorkFromConversationRoute } from "./work-from-conversation-route.ts";
+import { handleConversationTurnRoute } from "./conversation-turn-route.ts";
+import { handleProtectedTermRoute } from "./protected-term-route.ts";
 
 /** Same shape as the other list bounds in this interface, so one rule covers them all. */
 function limitOf(value: string | null): number | undefined {
@@ -66,6 +68,26 @@ export async function handleConversationRoute(
    * conversation path, in its own module. It is asked first because an id is a
    * single segment here, so a longer path is not this route's to answer.
    */
+  if (
+    await handleConversationTurnRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )
+  )
+    return true;
+  if (
+    await handleProtectedTermRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )
+  )
+    return true;
   if (
     await handleRestartPointRoute(
       request,

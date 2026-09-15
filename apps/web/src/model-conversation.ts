@@ -20,7 +20,14 @@ export type ModelConversationWriter = Readonly<{
   ): Promise<
     Readonly<{ sessionId: string; eventId: string; duplicate: boolean }>
   >;
+  storeTurn(
+    turn: ModelConversationTurn,
+  ): Promise<
+    Readonly<{ sessionId: string; eventId: string; duplicate: boolean }>
+  >;
 }>;
+export type ModelConversationTurn = ModelConversationResponse &
+  Readonly<{ userText: string; targetId: string; displayName: string }>;
 const digest = (value: string) =>
   createHash("sha256").update(value, "utf8").digest("hex");
 const recordHash = (response: ModelConversationResponse) =>
@@ -109,6 +116,101 @@ export function modelConversationWriter(
       return Object.freeze({
         sessionId: existing.id,
         eventId,
+        duplicate: false,
+      });
+    },
+    storeTurn: async (turn) => {
+      if (
+        !turn.projectId.trim() ||
+        !turn.conversationId.trim() ||
+        !turn.attemptId.trim() ||
+        !turn.model.trim() ||
+        !turn.targetId.trim() ||
+        !turn.displayName.trim() ||
+        !turn.userText.trim() ||
+        !turn.text.trim() ||
+        !turn.userText.isWellFormed() ||
+        !turn.text.isWellFormed() ||
+        Buffer.byteLength(turn.userText) > 64 * 1024 ||
+        Buffer.byteLength(turn.text) > 1024 * 1024
+      )
+        throw new Error("Invalid generated conversation turn.");
+      const existing = await dependencies.sessions.load(turn.conversationId);
+      if (!existing || existing.projectId !== turn.projectId)
+        throw new Error("The conversation is unavailable.");
+      const previous = existing.events.find(
+        (event) =>
+          event.source.sourceType.startsWith("MODEL_CONVERSATION") &&
+          event.source.sourceSessionId === turn.attemptId,
+      );
+      const turnHash = digest(
+        JSON.stringify({
+          attemptId: turn.attemptId,
+          userText: turn.userText,
+          text: turn.text,
+          model: turn.model,
+          targetId: turn.targetId,
+          displayName: turn.displayName,
+        }),
+      );
+      if (previous) {
+        if (previous.source.recordHash !== turnHash)
+          throw new Error(
+            "Generated conversation identity is already used by different content.",
+          );
+        return Object.freeze({
+          sessionId: existing.id,
+          eventId: previous.id,
+          duplicate: true,
+        });
+      }
+      const artifact = await dependencies.artifacts.put(
+        Buffer.from(turn.text, "utf8"),
+      );
+      const position = existing.events.length + 1;
+      const userEvent: SessionEvent = Object.freeze({
+        id: `event_${digest(`${existing.id}:${position}:${turn.attemptId}:user`)}`,
+        sessionId: existing.id,
+        sequence: position,
+        type: "USER_MESSAGE",
+        occurredAt: turn.occurredAt,
+        trust: "UNTRUSTED",
+        payload: Object.freeze({ kind: "INLINE_TEXT", text: turn.userText }),
+        source: Object.freeze({
+          artifactId: existing.latestSourceArtifact.id,
+          sourceType: "CONVERSATION_TURN",
+          sourceSessionId: turn.attemptId,
+          position,
+          recordHash: digest(turn.userText),
+        }),
+      });
+      const assistantEvent: SessionEvent = Object.freeze({
+        id: `event_${digest(`${existing.id}:${position + 1}:${turn.attemptId}:assistant`)}`,
+        sessionId: existing.id,
+        sequence: position + 1,
+        type: "AGENT_MESSAGE",
+        occurredAt: turn.occurredAt,
+        trust: "UNTRUSTED",
+        payload: Object.freeze({ kind: "INLINE_TEXT", text: turn.text }),
+        source: Object.freeze({
+          artifactId: artifact.id,
+          sourceType: `MODEL_CONVERSATION:${turn.displayName}`,
+          sourceSessionId: turn.attemptId,
+          position: position + 1,
+          recordHash: turnHash,
+        }),
+      });
+      const now = (dependencies.clock ?? (() => new Date()))().toISOString();
+      const candidate: ImportedSession = Object.freeze({
+        ...existing,
+        lastImportedAt: now,
+        latestSourceArtifact: artifact,
+        events: Object.freeze([...existing.events, userEvent, assistantEvent]),
+      });
+      await dependencies.sessions.append(candidate, existing.events.length);
+      return Object.freeze({
+        sessionId: existing.id,
+        eventId: assistantEvent.id,
         duplicate: false,
       });
     },

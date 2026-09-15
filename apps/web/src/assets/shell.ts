@@ -10,7 +10,11 @@
  * separates presentation by responsibility, and the shell that lands a reader on
  * their own work has a different reason to change than the screens it hosts.
  */
-import { HOME_SECTION, HOME_SIDEBAR } from "./home-shell.ts";
+import {
+  HOME_SEARCH_SECTION,
+  HOME_SECTION,
+  HOME_SIDEBAR,
+} from "./home-shell.ts";
 import { PRIVACY_SECTION } from "./privacy-shell.ts";
 
 export function shellHtml(csrfToken: string) {
@@ -29,7 +33,7 @@ export function shellHtml(csrfToken: string) {
   <a class="skip-link" href="#main" data-i18n="skip">Skip to the guided workflow</a>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#/dashboard" data-i18n-label="brandLabel" aria-label="AI Workspace dashboard">
+      <a class="brand" href="#/home" data-route="home" data-i18n-label="brandLabel" aria-label="AI Workspace dashboard">
         <span class="brand-mark" aria-hidden="true">AW</span>
         <span><strong>AI Workspace</strong><small data-i18n="headerTagline">Your work history, on this computer</small></span>
       </a>
@@ -49,6 +53,7 @@ ${HOME_SIDEBAR}
         <div class="topbar-state"><span class="status-dot" aria-hidden="true"></span><span data-i18n="privateWorkspace">Private workspace</span></div>
       </header>
       <main id="main" tabindex="-1">${HOME_SECTION}
+${HOME_SEARCH_SECTION}
 ${PRIVACY_SECTION}
     <section aria-labelledby="dashboard-heading" id="dashboard">
       <div class="dashboard-hero">
@@ -306,11 +311,48 @@ ${PRIVACY_SECTION}
     <section aria-labelledby="settings-heading" id="settings">
       <p class="eyebrow" data-i18n="settingsEyebrow">Workspace preferences</p>
       <h2 id="settings-heading" tabindex="-1" data-i18n="settingsTitle">Settings</h2>
-      <p data-i18n="settingsIntro">Presentation preferences stay in this browser and never leave this computer.</p>
+      <p data-i18n="settingsIntro">Presentation preferences stay in this browser. Bounded model target metadata is stored in the local workspace.</p>
       <div class="settings-grid">
         <article class="setting-card"><div><h3 data-i18n="language">Language</h3><p class="help" data-i18n="originalContent">Imported evidence and user-authored content remain in their original language. No translation service is used.</p></div><select id="gui-language" data-i18n-label="language" aria-label="Language"><option value="en" data-i18n="english">English</option><option value="it" data-i18n="italian">Italiano</option></select></article>
         <article class="setting-card"><div><h3 data-i18n="appearanceTitle">Appearance</h3><p class="help" data-i18n="appearanceBody">AI Workspace follows your operating-system light or dark theme and reduced-motion preference.</p></div><span class="setting-value" id="appearance-value" data-i18n="systemManaged">System managed</span></article>
-        <article class="setting-card"><div><h3 data-i18n="privacyTitle">Local preference storage</h3><p class="help" data-i18n="privacyBody">Only the language preference is stored in local browser storage. It contains no workspace content.</p></div><span class="setting-value" data-i18n="browserOnly">Browser only</span></article>
+        <article class="setting-card"><div><h3 data-i18n="privacyTitle">Local preference storage</h3><p class="help" data-i18n="privacyBody">The language preference stays in browser storage. Model target metadata is stored separately in the local workspace; credentials are never included.</p></div><span class="setting-value" data-i18n="browserOnly">Browser only</span></article>
+        <article class="setting-card"><div><h3 data-i18n="automaticProtectionSettingsTitle">Automatic protection</h3><p class="help" data-i18n="automaticProtectionSettingsBody">External messages are protected with a stable local map before delivery.</p></div><span class="setting-value" id="privacy-protection-status" data-i18n="automaticProtectionLoading">Checking locally...</span></article>
+      </div>
+      <div class="model-target-settings">
+        <h3 data-i18n="legacyMigrationTitle">Import earlier privacy mappings</h3>
+        <p class="help" data-i18n="legacyMigrationBody">If you created a passphrase-protected mapping with an earlier version, import it once into automatic protection. The original encrypted files are preserved.</p>
+        <p id="legacy-migration-summary" class="help" role="status" aria-live="polite"></p>
+        <form id="legacy-migration-form" hidden>
+          <label for="legacy-mapping-id" data-i18n="legacyMappingId">Earlier mapping identity</label><input id="legacy-mapping-id" required maxlength="256" autocomplete="off">
+          <label for="legacy-passphrase" data-i18n="legacyPassphrase">Earlier mapping passphrase</label><input id="legacy-passphrase" type="password" required minlength="16" maxlength="1024" autocomplete="current-password">
+          <button type="submit" data-i18n="legacyMigrate">Import into automatic protection</button>
+        </form>
+        <p id="legacy-migration-error" class="error" role="alert"></p>
+      </div>
+      <div class="model-target-settings">
+        <h3 data-i18n="modelTargetHeading">Model targets</h3>
+        <p class="help" data-i18n="modelTargetIntro">Named target metadata is stored locally. Credentials and provider access are not stored or enabled here.</p>
+        <div id="model-target-list"></div>
+        <form id="model-target-form">
+          <label for="model-target-id" data-i18n="modelTargetId">Target ID</label><input id="model-target-id" required maxlength="128">
+          <label for="model-target-name" data-i18n="modelTargetName">Display name</label><input id="model-target-name" required maxlength="120">
+          <label for="model-target-provider" data-i18n="modelTargetProvider">Provider kind</label><input id="model-target-provider" required maxlength="64" value="OPENAI_RESPONSES">
+          <label for="model-target-model" data-i18n="modelTargetModel">Model identifier</label><input id="model-target-model" required maxlength="256">
+          <label for="model-target-boundary" data-i18n="modelTargetBoundary">Execution boundary</label><select id="model-target-boundary"><option value="EXTERNAL_SERVICE">EXTERNAL_SERVICE</option><option value="LOCAL_ONLY">LOCAL_ONLY</option><option value="UNCLASSIFIED">UNCLASSIFIED</option></select>
+          <label for="model-target-profile" data-i18n="modelTargetProfile">Reviewed profile reference</label><input id="model-target-profile" required maxlength="2048">
+          <label for="model-target-policy" data-i18n="modelTargetPolicy">Reviewed policy reference</label><input id="model-target-policy" required maxlength="2048">
+          <label for="model-target-instructions" data-i18n="modelTargetInstructions">Instruction references, one per line</label><textarea id="model-target-instructions" required></textarea>
+          <label for="model-target-input-limit" data-i18n="modelTargetInputLimit">Maximum input bytes</label><input id="model-target-input-limit" type="number" min="1" max="1048576" value="65536" required>
+          <label for="model-target-output-limit" data-i18n="modelTargetOutputLimit">Maximum output bytes</label><input id="model-target-output-limit" type="number" min="1" max="1048576" value="16384" required>
+          <label class="checkbox-label"><input id="model-target-enabled" type="checkbox" checked><span data-i18n="modelTargetEnabledLabel">Enabled for selection</span></label>
+          <button type="submit" data-i18n="modelTargetSave">Save local target</button>
+        </form>
+        <form id="model-target-default-form">
+          <label for="model-target-default" data-i18n="modelTargetDefault">Default model target</label><select id="model-target-default"><option value="" data-i18n="modelTargetNoDefault">No default</option></select>
+          <button type="submit" data-i18n="modelTargetSaveDefault">Save default</button>
+        </form>
+        <p id="model-target-status" role="status" aria-live="polite"></p>
+        <p id="model-target-error" class="error" role="alert"></p>
       </div>
     </section>
     <section aria-labelledby="scripts-heading" id="scripts">

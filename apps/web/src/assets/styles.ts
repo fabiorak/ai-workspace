@@ -88,6 +88,9 @@ a { color: var(--accent-strong); }
 .conversation-signal { color: var(--sidebar-ink); border-inline-start: .18rem solid #f0a500; padding-inline-start: .45rem; font-size: .7rem; line-height: 1.35; }
 .conversation-nav .help { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .68rem; }
 .conversation-nav .inline-status { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .72rem; }
+.new-conversation, .conversation-search-link { min-height: 2.65rem; width: 100%; display: flex; align-items: center; gap: .55rem; padding: .58rem .72rem; border: 1px solid rgba(255,255,255,.18); border-radius: .72rem; color: var(--sidebar-ink); background: rgba(255,255,255,.06); text-decoration: none; font-weight: 720; }
+.new-conversation:hover, .conversation-search-link:hover { background: rgba(255,255,255,.12); }
+.conversation-search-link { border-color: transparent; color: var(--sidebar-muted); background: transparent; }
 .technical-nav { display: grid; gap: .3rem; max-width: 32rem; }
 .nav-label:first-child { margin-block-start: 0; }
 .nav-badge { padding: .12rem .4rem; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; font-size: .62rem; font-weight: 800; text-transform: uppercase; }
@@ -107,6 +110,56 @@ main { width: min(100%, 94rem); margin-inline: auto; padding: clamp(1rem, 3vw, 3
 section { margin-block: 0 1.5rem; padding: clamp(1rem, 2.6vw, 2rem); border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); box-shadow: var(--shadow); }
 section.route-hidden { display: none !important; }
 section > h2 { margin-block-start: 0; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.035em; }
+.conversation-page { position: relative; min-height: calc(100vh - 9.5rem); padding: 0; overflow: hidden; }
+.conversation-empty { max-width: 42rem; margin: auto; padding: clamp(2rem, 8vw, 6rem) clamp(1rem, 4vw, 3rem); text-align: center; }
+.conversation-opening { margin: 0; padding: .5rem 1.5rem; }
+.conversation-opening:empty { display: none; }
+.conversation-workspace { min-height: calc(100vh - 9.5rem); display: flex; flex-direction: column; }
+.conversation-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem clamp(1rem, 3vw, 2rem); border-block-end: 1px solid var(--border); }
+.conversation-header h2, .conversation-project { margin: 0; }
+.conversation-header h2 { font-size: 1.15rem; letter-spacing: -.02em; }
+.conversation-project { color: var(--muted); font-size: .75rem; }
+.conversation-actions, .composer-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+/* A flex item shrinks below its content, and a select that shrinks all the way
+   is a pair of arrows with the model name gone. It keeps a readable floor and
+   truncates instead, which is what zooming to 200% used to break. */
+.conversation-actions select, .conversation-actions button { width: auto; margin: 0; }
+.conversation-actions select { min-width: 10rem; max-width: 100%; text-overflow: ellipsis; }
+.conversation-feed { min-height: 12rem; flex: 1 1 20rem; overflow-y: auto; overscroll-behavior: contain; padding: 1.5rem clamp(1rem, 5vw, 4rem); list-style: none; }
+.conversation-feed > .moment { width: min(100%, 46rem); margin-inline: auto; padding-block: .55rem; }
+.conversation-feed > .moment-yours { width: min(calc(100% - 2rem), 38rem); margin-inline-end: max(0rem, calc((100% - 46rem) / 2)); padding: .8rem 1rem; border-inline-start: 0; border-radius: .8rem; }
+.conversation-feed .card-kicker { color: var(--muted); letter-spacing: .04em; text-transform: none; }
+.technical-activity { width: min(100%, 46rem); margin: .4rem auto; color: var(--muted); }
+.technical-activity summary { cursor: pointer; font-size: .8rem; font-weight: 720; }
+.technical-activity-list { margin-block-start: .6rem; padding-inline-start: 1.5rem; }
+.conversation-count { margin: 0; padding-inline: clamp(1rem, 5vw, 4rem); text-align: center; }
+.conversation-composer { position: sticky; inset-block-end: 0; z-index: 2; margin: 0; padding: .7rem clamp(1rem, 3vw, 2rem) 1rem; border: 0; background: linear-gradient(transparent, var(--surface) 20%); }
+.composer-box { width: min(100%, 48rem); margin-inline: auto; padding: .7rem; border: 1px solid var(--accent); border-radius: .9rem; background: var(--surface); box-shadow: 0 .5rem 1.5rem rgba(20,40,80,.08); }
+.composer-box textarea { width: 100%; min-height: 4rem; margin: 0; padding: .35rem; border: 0; background: transparent; resize: vertical; }
+.composer-box textarea:focus { outline: 0; }
+.composer-actions { justify-content: space-between; }
+.composer-actions button { width: auto; margin: 0; }
+/* Reads as a button on its own, and keeps its own hover: the shared button:hover
+   repaints the background with the accent, which left this muted label nearly
+   invisible on it, and unreadable in the dark theme. */
+.panel-button { border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-weight: 700; }
+.panel-button:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); background: var(--surface-soft); color: var(--ink); }
+.panel-button[aria-expanded="true"] { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); color: var(--ink); }
+.send-button { background: var(--accent); color: #fff; }
+.send-button:hover { background: var(--accent-strong); }
+.send-button:disabled { opacity: .45; cursor: default; }
+.composer-status { min-height: 1.25rem; margin: .35rem auto 0; width: min(100%, 48rem); font-size: .72rem; }
+.conversation-panel { position: absolute; z-index: 5; inset: 0 0 0 auto; width: min(24rem, 100%); padding: 1.25rem; overflow-y: auto; border-inline-start: 1px solid var(--border); background: var(--surface); box-shadow: -.8rem 0 2rem rgba(20,35,60,.12); }
+.conversation-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.conversation-panel-header h3 { margin: 0; }
+.conversation-panel-header button { width: auto; margin: 0; font-size: 1.35rem; }
+.protection-term { display: grid; gap: .35rem; margin-block-start: 1.25rem; padding-block-start: 1rem; border-block-start: 1px solid var(--border); }
+.protection-term label { font-size: .82rem; color: var(--muted); }
+.protection-term input, .protection-term select { width: 100%; margin: 0; }
+.protection-term .protection-term-add { width: auto; justify-self: start; margin-block-start: .35rem; }
+.protection-term-status:empty { display: none; }
+.protection-term-status { margin: 0; font-size: .82rem; color: var(--muted); }
+.legacy-continuation[hidden] { display: none; }
 .dashboard-hero { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block-end: 1.25rem; }
 .dashboard-hero h2 { margin: 0; font-size: clamp(2rem, 5vw, 3.35rem); line-height: 1.05; letter-spacing: -.06em; }
 .dashboard-hero p:not(.eyebrow) { max-width: 46rem; margin-block-end: 0; color: var(--muted); }
@@ -172,9 +225,8 @@ input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: 
 /* Every rule above that sets \`display\` on an element or a class beats the browser's
    own \`[hidden] { display: none }\`, so a button, an input or a labelled block marked
    hidden stayed on screen: visible, reachable by keyboard, and clickable. This is
-   placed after them, and matches on the attribute, so hiding something means it is
-   hidden whatever else it is. */
-[hidden] { display: none; }
+   matched with explicit priority at the end of the sheet, so hiding something
+   means it is hidden whatever else it is. */
 fieldset { max-width: 48rem; margin-block: .75rem; border: 1px solid var(--border); border-radius: .7rem; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex="-1"]:focus { outline: 3px solid #f0a500; outline-offset: 3px; }
 .help, .effect { max-width: 70ch; color: var(--muted); }
@@ -186,6 +238,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .setting-card h3, .setting-card p { margin-block: 0 .25rem; }
 .setting-card select { margin: 0; width: 100%; }
 .setting-value { justify-self: end; padding: .4rem .65rem; border-radius: 999px; background: var(--surface-soft); color: var(--muted); font-size: .78rem; font-weight: 750; }
+.model-target-settings { margin-block-start: 1.5rem; padding-block-start: 1.5rem; border-block-start: 1px solid var(--border); }
+.model-target-settings form { display: grid; grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr); gap: .65rem 1rem; align-items: center; margin-block: 1rem; }
+.model-target-settings form button { grid-column: 2; justify-self: start; width: auto; }
+.model-target-row { margin-block: .5rem; }
+.model-target-row h4 { margin: 0; }
 #scripts { min-height: 28rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 #scripts.route-hidden { display: none; }
 #scripts .notice { max-width: 42rem; text-align: start; }
@@ -223,7 +280,18 @@ footer { padding: 0 clamp(1rem, 3vw, 3rem) 2rem; color: var(--muted); font-size:
   .setting-card { grid-template-columns: 1fr; }
   .filter-chip button { width: auto; }
   .setting-value { justify-self: start; }
+  .model-target-settings form { grid-template-columns: 1fr; }
+  .model-target-settings form button { grid-column: 1; }
   button { width: 100%; }
+  .conversation-page, .conversation-workspace { min-height: calc(100vh - 7rem); }
+  .conversation-header { align-items: flex-start; flex-direction: column; }
+  .conversation-actions { width: 100%; }
+  .conversation-actions select { flex: 1 1 12rem; min-width: 10rem; }
+  .conversation-actions button, .composer-actions button { width: auto; }
+  .conversation-feed { padding: 1rem; }
+  .conversation-feed > .moment-yours { width: calc(100% - 1rem); margin-inline-end: 0; margin-inline-start: 1rem; }
+  .conversation-composer { padding-inline: .65rem; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+[hidden] { display: none !important; }
 `;

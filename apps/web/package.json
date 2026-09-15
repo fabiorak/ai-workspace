@@ -26,6 +26,7 @@
     "@ai-workspace/codex-adapter": "0.0.0",
     "@ai-workspace/core": "0.0.0",
     "@ai-workspace/context-builder": "0.0.0",
+    "@ai-workspace/conversation-turn": "0.0.0",
     "@ai-workspace/git-adapter": "0.0.0",
     "@ai-workspace/general-conversation": "0.0.0",
     "@ai-workspace/general-project-link": "0.0.0",
@@ -50,6 +51,8 @@
     "@ai-workspace/session-ingestion": "0.0.0",
     "@ai-workspace/model-delivery": "0.0.0",
     "@ai-workspace/model-attempts": "0.0.0",
-    "@ai-workspace/local-model-attempts": "0.0.0"
+    "@ai-workspace/local-model-attempts": "0.0.0",
+    "@ai-workspace/model-targets": "0.0.0",
+    "@ai-workspace/local-model-targets": "0.0.0"
   }
 }

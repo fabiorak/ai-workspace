@@ -1,4 +1,7 @@
 import type { DeliveryTransport } from "@ai-workspace/model-delivery";
+import { modelTargetArea } from "./model-target-area.ts";
+import { privacyProtectionArea } from "./privacy-protection-area.ts";
+import { conversationTurnArea } from "./conversation-turn-area.ts";
 import { readContextPreview } from "./context-preview.ts";
 import { projectView } from "./project-view.ts";
 import { modelConversationWriter } from "./model-conversation.ts";
@@ -164,6 +167,7 @@ export class GuiApplicationError extends Error {
 export class GuiApplication {
   readonly #continuationTransport: DeliveryTransport | undefined;
   #continuationArea?: ReturnType<typeof continuationArea>;
+  #conversationTurnArea?: ReturnType<typeof conversationTurnArea>;
   readonly #sessionStore: JsonSessionStore;
   readonly #artifactStore: FileArtifactStore;
   readonly #registry: ProjectRegistry;
@@ -197,7 +201,8 @@ export class GuiApplication {
   ) => Promise<GuiPrivacyPreflightPreview>;
   readonly #sampleSessionPath: string;
   readonly #workspaceHome: string;
-
+  public readonly modelTargets: ReturnType<typeof modelTargetArea>;
+  public readonly privacyProtection: ReturnType<typeof privacyProtectionArea>;
   public constructor(
     dependencies: Readonly<{
       workspaceHome: string;
@@ -207,6 +212,8 @@ export class GuiApplication {
   ) {
     this.#continuationTransport = dependencies.continuationTransport;
     this.#workspaceHome = dependencies.workspaceHome;
+    this.modelTargets = modelTargetArea(dependencies.workspaceHome);
+    this.privacyProtection = privacyProtectionArea(dependencies.workspaceHome);
     this.#sessionStore = new JsonSessionStore(dependencies.workspaceHome);
     this.#artifactStore = new FileArtifactStore(dependencies.workspaceHome);
     const projectStore = new JsonProjectRegistryStore(
@@ -235,10 +242,6 @@ export class GuiApplication {
       sessionStore: new JsonSessionStore(dependencies.workspaceHome),
       projects,
     });
-    // A real local transcript is read by its own tolerant adapter (ADR-0029), so
-    // the reviewed synthetic corpus keeps being read exactly as before. Only that
-    // adapter screens per record (ADR-0030): the core screen below stays
-    // fail-closed on whatever it receives.
     this.#localIngestion = new SessionIngestion({
       sourceAdapter: new ClaudeCodeLocalSessionSourceAdapter({
         restrictedDataClassifier: new HighConfidenceRestrictedDataClassifier(),
@@ -287,7 +290,6 @@ export class GuiApplication {
       clock: () => new Date(),
     });
     const workItemStore = new JsonWorkItemStore(dependencies.workspaceHome);
-    /** Reads a stored artifact, so a long moment is quotable instead of silent. */
     const artifact = async (artifactId: string) =>
       (await this.#history.openArtifact(artifactId)).content;
     this.#conversationSources = localConversationSources({
@@ -439,11 +441,29 @@ export class GuiApplication {
       "Check local workspace permissions, then retry loading projects.",
     );
   }
-  /** The area the shell opens on: its list, and the conversation a row opens (ADR-0035). */
   public get conversations(): ConversationArea {
     return conversationArea(this.#conversationSources, (operation, recovery) =>
       this.#run(operation, recovery),
     );
+  }
+  public get conversationTurns() {
+    return (this.#conversationTurnArea ??= conversationTurnArea({
+      home: this.#workspaceHome,
+      conversations: this.#conversationSources,
+      general: this.#general,
+      generalLinks: this.#generalLinks,
+      memory: this.#memory,
+      handoffs: this.#handoffs,
+      targets: this.modelTargets,
+      audit: this.#privacyAudit,
+      writer: modelConversationWriter({
+        sessions: this.#sessionStore,
+        artifacts: this.#artifactStore,
+      }),
+      ...(this.#continuationTransport
+        ? { transport: this.#continuationTransport }
+        : {}),
+    }));
   }
   public async dashboard(): Promise<GuiDashboard> {
     return this.#run(async () => {
@@ -595,7 +615,6 @@ export class GuiApplication {
       });
     }, "Keep the selected project, review the synthetic-only warning, and retry the safe sample import.");
   }
-  /** The transcripts area: what a person pointed at, and what has arrived since (ADR-0035). */
   public get transcripts(): TranscriptArea {
     return transcriptArea({
       discovery: this.#transcriptDiscovery,
@@ -641,11 +660,6 @@ export class GuiApplication {
       });
     }, "Keep the query, adjust the highlighted search field or filters, and retry.");
   }
-  /**
-   * The summary a reader carries to another assistant, composed on demand for a
-   * whole project. It is not a handoff and not a restart point: see
-   * `project-restart-summary.ts`.
-   */
   public async restartSummary(
     input: Readonly<{ projectId: string; question?: string }>,
   ): Promise<GuiRestartSummary> {
@@ -673,10 +687,6 @@ export class GuiApplication {
     ));
   }
 
-  /**
-   * The restart point at the end of a work conversation (ADR-0037). Composition
-   * goes through the preview path, so opening this area writes nothing.
-   */
   public get restartPoints(): RestartPointArea {
     return restartPointArea({
       conversations: this.#conversationSources,
@@ -687,13 +697,6 @@ export class GuiApplication {
     });
   }
 
-  /**
-   * Declaring that an open conversation is a piece of work.
-   *
-   * The evidence is composed by the area from the session itself, so the browser
-   * supplies only the objective the person wrote. Both domain writes are handed over
-   * explicitly, and both invalidate the reader that would otherwise not see them.
-   */
   public get workFromConversation(): WorkFromConversationArea {
     return workFromConversationArea({
       conversations: this.#conversationSources,

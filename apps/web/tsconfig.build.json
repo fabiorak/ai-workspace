@@ -93,7 +93,13 @@
       "path": "../../packages/model-attempts/tsconfig.build.json"
     },
     {
+      "path": "../../packages/model-targets/tsconfig.build.json"
+    },
+    {
       "path": "../../integrations/local-model-attempts/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/local-model-targets/tsconfig.build.json"
     }
   ]
 }

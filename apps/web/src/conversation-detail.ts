@@ -59,6 +59,8 @@ export type ConversationMoment = Readonly<{
    */
   sourcePosition: number | null;
   contentHash: string | null;
+  /** Validated configured name for a locally retained model turn. */
+  speaker: string | null;
 }>;
 
 export type ConversationDetail = Readonly<{
@@ -108,6 +110,9 @@ function momentOf(
     textStoredSeparately: event.payload.kind === "ARTIFACT",
     sourcePosition: event.source.position,
     contentHash: event.source.recordHash,
+    speaker: event.source.sourceType.startsWith("MODEL_CONVERSATION:")
+      ? event.source.sourceType.slice("MODEL_CONVERSATION:".length)
+      : null,
   });
 }
 
@@ -180,6 +185,10 @@ export function noteDetail(
           textStoredSeparately: false,
           sourcePosition: null,
           contentHash: event.contentSha256,
+          speaker:
+            event.type === "AGENT_MESSAGE"
+              ? event.provenance.displayName
+              : null,
         }),
       ),
     ),

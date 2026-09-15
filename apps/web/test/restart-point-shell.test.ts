@@ -19,14 +19,17 @@ const catalogues = mergeCatalogues(
   RESTART_POINT_CATALOGUES,
 );
 const conversation = (() => {
-  const start = html.indexOf('<div id="home-conversation" hidden>');
+  const start = html.indexOf('<div id="home-conversation"');
   assert.notEqual(start, -1);
-  return html.slice(start, html.indexOf('<div id="home-answer">', start));
+  return html.slice(
+    start,
+    html.indexOf('<section aria-labelledby="history-search-heading"', start),
+  );
 })();
 const behaviour = (() => {
   const start = APP_JS.indexOf("const restartPoint = document.getElementById");
   assert.notEqual(start, -1);
-  const end = APP_JS.indexOf("const continuationElement", start);
+  const end = APP_JS.indexOf("applyLocale();", start);
   assert.notEqual(end, -1);
   return APP_JS.slice(start, end);
 })();
@@ -49,15 +52,17 @@ describe("the restart point at the end of a work conversation", () => {
     const moments = conversation.slice(
       conversation.indexOf('id="home-conversation-moments"'),
     );
-    assert.match(moments.slice(0, 220), /class="moments moments-scroll"/u);
+    assert.match(moments.slice(0, 260), /class="[^"]*conversation-feed/u);
     assert.ok(
       conversation.indexOf("</ol>") <
         conversation.indexOf('id="restart-point"'),
       "the point must not scroll away with the moments",
     );
-    assert.match(APP_CSS, /\.moments-scroll \{[^}]*max-height/u);
-    assert.match(APP_CSS, /\.moments-scroll \{[^}]*overflow-y: auto/u);
-    assert.match(APP_JS, /homeConversationMoments\.scrollTop = 0/u);
+    assert.match(APP_CSS, /\.conversation-feed \{[^}]*overflow-y: auto/u);
+    assert.match(
+      APP_JS,
+      /homeConversationMoments\.scrollTop = homeConversationMoments\.scrollHeight/u,
+    );
   });
 
   /** An area only a pointer can scroll is an area some readers cannot read. */

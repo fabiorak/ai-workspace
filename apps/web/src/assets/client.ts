@@ -1,5 +1,3 @@
-import { CONTINUATION_CATALOGUES } from "../text/continuation.ts";
-import { CONTINUATION_BEHAVIOUR } from "./continuation-client.ts";
 /**
  * The single script served at `/app.js`.
  *
@@ -15,6 +13,7 @@ import { HOME_CATALOGUES } from "../text/home.ts";
 import { PRIVACY_CATALOGUES } from "../text/privacy.ts";
 import { RESTART_POINT_CATALOGUES } from "../text/restart-point.ts";
 import { HOME_BEHAVIOUR } from "./home-client.ts";
+import { MODEL_TARGET_BEHAVIOUR } from "./model-target-client.ts";
 import { PRIVACY_BEHAVIOUR } from "./privacy-client.ts";
 import { RESTART_POINT_BEHAVIOUR } from "./restart-point-client.ts";
 
@@ -27,7 +26,6 @@ export const APP_JS = `
       HOME_CATALOGUES,
       PRIVACY_CATALOGUES,
       RESTART_POINT_CATALOGUES,
-      CONTINUATION_CATALOGUES,
     ),
   )};
   const localeKey = "aiw-locale";
@@ -41,7 +39,7 @@ export const APP_JS = `
   // inner word from staying in the language the sentence was first written in.
   const resolve = (parameters) => { const filled = {}; for (const name of Object.keys(parameters || {})) { const value = parameters[name]; filled[name] = value && typeof value === "object" && typeof value.key === "string" ? message(value.key) : value; } return filled; };
   const render = (element) => { element.textContent = message(element.dataset.i18n, resolve(element.dataset.i18nArgs ? JSON.parse(element.dataset.i18nArgs) : null)); };
-  const applyLocale = () => { document.documentElement.lang = locale; document.getElementById("gui-language").value = locale; const translations = new Map(Object.keys(catalogs.en).map((key) => [catalogs.en[key], catalogs[locale][key]])); const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); while (walker.nextNode()) { const node = walker.currentNode; if (!originalText.has(node)) originalText.set(node, node.nodeValue); const original = originalText.get(node); const trimmed = original.trim(); const translated = translations.get(trimmed); if (translated) node.nodeValue = original.replace(trimmed, translated); } for (const element of document.querySelectorAll("[data-i18n]")) render(element); for (const element of document.querySelectorAll("[data-i18n-label]")) element.setAttribute("aria-label", message(element.dataset.i18nLabel)); };
+  const applyLocale = () => { document.documentElement.lang = locale; document.getElementById("gui-language").value = locale; const translations = new Map(Object.keys(catalogs.en).map((key) => [catalogs.en[key], catalogs[locale][key]])); const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); while (walker.nextNode()) { const node = walker.currentNode; if (!originalText.has(node)) originalText.set(node, node.nodeValue); const original = originalText.get(node); const trimmed = original.trim(); const translated = translations.get(trimmed); if (translated) node.nodeValue = original.replace(trimmed, translated); } for (const element of document.querySelectorAll("[data-i18n]")) render(element); for (const element of document.querySelectorAll("[data-i18n-label]")) element.setAttribute("aria-label", message(element.dataset.i18nLabel)); for (const element of document.querySelectorAll("[data-i18n-placeholder]")) element.setAttribute("placeholder", message(element.dataset.i18nPlaceholder)); };
   // Domain sentences arrive from the core packages in English and are not translated here.
   // They are shown under a localized label, so the reader always sees in their own language
   // what failed and what to do, with the untranslated technical detail clearly separated.
@@ -127,6 +125,7 @@ export const APP_JS = `
   const WORK_STATES = new Set(["PROPOSED", "ACTIVE", "BLOCKED", "COMPLETED"]);
   const pageSections = Object.freeze({
     home: ["home"],
+    history: ["history-search"],
     technical: ["technical"],
     dashboard: ["dashboard"],
     projects: ["welcome", "projects", "next-step", "import", "transcripts"],
@@ -140,6 +139,7 @@ export const APP_JS = `
   });
   const pageTitleKeys = Object.freeze({
     home: "navHome",
+    history: "homeSearchHeading",
     technical: "homeTechnicalHeading",
     dashboard: "navDashboard",
     projects: "navProjects",
@@ -486,9 +486,9 @@ export const APP_JS = `
   document.getElementById("context-selector-form").addEventListener("submit", async (event) => { event.preventDefault(); const error = document.getElementById("context-selector-error"); const content = document.getElementById("context-selector-content"); text(error, ""); if (!selectedProject || !selectedWork || !selectedHandoff) { say(error, "contextSelectorEmpty"); return; } const path = document.getElementById("context-selector-profile-path").value.trim(); const expectedDigest = document.getElementById("context-selector-profile-digest").value.trim(); try { const value = await api(workPath() + "/" + encodeURIComponent(selectedWork) + "/handoffs/" + encodeURIComponent(selectedHandoff) + "/context-selectors/preview", { method: "POST", body: JSON.stringify({ profile: { path, ...(expectedDigest ? { expectedDigest } : {}) } }) }); const measured = value.report.cases[0]; const budget = measured.budgets[0]; say(document.getElementById("context-selector-status"), "contextSelectorReady", { selected: String(measured.selectedCandidateBytes), baseline: String(measured.baselineCandidateBytes), reduction: String(measured.reductionPercentFromBaseline), loss: String(measured.safetyFloorLossCount), fit: budget.selectorPolicyFits ? "YES" : "NO" }); text(content, JSON.stringify(value, null, 2)); content.hidden = false; content.focus(); } catch (cause) { content.hidden = true; detail(error, cause); document.getElementById("context-selector-profile-path").focus(); } });
   if (selectedProject) { importSection.hidden = false; transcriptSection.hidden = false; memorySection.hidden = false; workSection.hidden = false; instructionSection.hidden = false; agentProfileSection.hidden = false; privacyAuditSection.hidden = false; say(importStatus, "returningImport"); loadMemory(); loadWork(); loadPrivacyAudit(true); }
   ${PRIVACY_BEHAVIOUR}
+  ${MODEL_TARGET_BEHAVIOUR}
   ${HOME_BEHAVIOUR}
   ${RESTART_POINT_BEHAVIOUR}
-  ${CONTINUATION_BEHAVIOUR}
   applyLocale();
   if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/home");
   renderRoute(false);
@@ -497,6 +497,7 @@ export const APP_JS = `
   // The list is drawn from what is already stored, then whatever arrived since is
   // brought in behind it. In that order, so the page answers immediately instead of
   // waiting on a directory read that may find nothing.
-  loadConversations().then(loadArrived);
+  loadPrivacyProtection();
+  loadModelTargets().then(loadConversations).then(loadArrived);
 })();
 `;

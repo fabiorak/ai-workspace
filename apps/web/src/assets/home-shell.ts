@@ -1,43 +1,80 @@
-import { CONTINUATION_BLOCK } from "./continuation-shell.ts";
-/**
- * The opening screen's markup: three zones and no form to fill in.
- *
- * ADR-0035 makes this the page a reader lands on, so it carries only what
- * answering "where was I" needs — the list of conversations, one field, and the
- * answer. The sidebar list is a real `<nav>` with a real list inside, because a
- * person moving by keyboard or screen reader navigates by landmark and by list,
- * and a pile of links is neither.
- *
- * Both live regions are polite: the list and the answer arrive while the reader is
- * still reading, and interrupting them is worse than being late.
- */
-
 import { RESTART_POINT_BLOCK } from "./restart-point-shell.ts";
 
 /**
- * Replaces the nine-entry menu: the work itself, then the things that are not work.
- * The work names itself first, because a menu that can only be entered is one a
- * person gets stuck in: without that entry the way back to the opening screen is the
- * browser's own back button, which is a shortcut rather than an offer.
+ * The primary navigation follows the approved conversation mockup. Search has a
+ * dedicated destination and never occupies the message composer.
  */
 export const HOME_SIDEBAR = `
+      <button id="home-new-conversation" class="new-conversation" type="button" data-i18n="homeNewConversation">New chat</button>
+      <a class="conversation-search-link" href="#/history" data-route="history"><span aria-hidden="true">⌕</span><span data-i18n="homeSearchNavigation">Search history</span></a>
       <nav class="conversation-nav" data-i18n-label="homeListLabel" aria-label="Your conversations">
         <p class="nav-label" data-i18n="homeListLabel">Your conversations</p>
-        <div id="conversation-status" class="inline-status" role="status" aria-live="polite" data-i18n="homeLoading">Reading your work…</div>
+        <div id="conversation-status" class="inline-status" role="status" aria-live="polite" data-i18n="homeLoading">Reading your work...</div>
         <div id="conversation-groups"></div>
         <p id="conversation-count" class="help"></p>
       </nav>
       <nav class="primary-nav" data-i18n-label="navLabel" aria-label="Workspace">
-        <a href="#/home" data-route="home"><span aria-hidden="true">⌂</span><span data-i18n="navHome">Your work</span></a>
         <a href="#/projects" data-route="projects"><span aria-hidden="true">◇</span><span data-i18n="navProjects">Projects</span></a>
         <a href="#/settings" data-route="settings"><span aria-hidden="true">⚙</span><span data-i18n="navSettings">Settings</span></a>
         <a href="#/technical" data-route="technical"><span aria-hidden="true">⌗</span><span data-i18n="homeTechnicalHeading">Technical view</span></a>
       </nav>`;
 
+/** The ordinary conversation surface. No model or network capability lives here. */
 export const HOME_SECTION = `
-    <section aria-labelledby="home-heading" id="home">
-      <h2 id="home-heading" tabindex="-1" data-i18n="navHome">Your work</h2>
-      <p data-i18n="homeIntro">Everything you have worked on, most recent first. Ask a question to search it.</p>
+    <section aria-labelledby="home-heading" id="home" class="conversation-page">
+      <h2 id="home-heading" class="visually-hidden" tabindex="-1" data-i18n="navHome">Conversations</h2>
+      <div id="home-empty" class="conversation-empty" hidden>
+        <p><strong data-i18n="homeEmpty">Nothing here yet.</strong></p>
+        <p data-i18n="homeEmptyDetail">Start a new chat or add a project to bring in conversations you already had.</p>
+      </div>
+      <div id="home-conversation-status" class="inline-status conversation-opening" role="status" aria-live="polite"></div>
+      <div id="home-conversation" class="conversation-workspace" hidden>
+        <header class="conversation-header">
+          <div>
+            <p id="home-conversation-meta" class="conversation-project"></p>
+            <h2 id="home-conversation-heading" tabindex="-1"></h2>
+          </div>
+          <div class="conversation-actions">
+            <label class="visually-hidden" for="home-conversation-model" data-i18n="homeModelLabel">Model for the next message</label>
+            <select id="home-conversation-model" data-i18n-label="homeModelLabel" aria-label="Model for the next message">
+              <option value="" data-i18n="modelTargetChoose">Choose a configured model</option>
+            </select>
+            <button type="button" id="home-context-open" class="panel-button" aria-expanded="false" aria-controls="home-conversation-panel" data-i18n="homeContextOpen">Context</button>
+          </div>
+        </header>
+        <ol id="home-conversation-moments" class="moments conversation-feed moments-scroll" tabindex="0" data-i18n-label="homeConversationMomentsLabel" aria-label="The messages in this conversation"></ol>
+        <p id="home-conversation-count" class="help conversation-count"></p>
+        <form id="home-composer" class="conversation-composer">
+          <div class="composer-box">
+            <label class="visually-hidden" for="home-message" data-i18n="homeMessageLabel">Write a message</label>
+            <textarea id="home-message" rows="2" data-i18n-label="homeMessageLabel" data-i18n-placeholder="homeMessagePlaceholder" aria-label="Write a message" placeholder="Write a message..." aria-describedby="home-composer-status home-composer-error"></textarea>
+            <div class="composer-actions">
+              <button type="button" id="home-protection-open" class="panel-button" aria-expanded="false" aria-controls="home-conversation-panel" data-i18n="homeProtectionOpen">Automatic protection</button>
+              <button type="submit" id="home-send" class="send-button" disabled data-i18n="homeSend">Send</button>
+            </div>
+          </div>
+          <p id="home-composer-status" class="help composer-status" role="status" aria-live="polite" data-i18n="homeTurnReady">Context updated. Ready to send one coordinated turn.</p>
+          <p id="home-composer-error" class="error" role="alert"></p>
+        </form>
+        <aside id="home-conversation-panel" class="conversation-panel" hidden aria-labelledby="home-panel-heading">
+          <div class="conversation-panel-header">
+            <h3 id="home-panel-heading" tabindex="-1"></h3>
+            <button type="button" id="home-panel-close" data-i18n-label="homePanelClose" aria-label="Close details">×</button>
+          </div>
+          <div id="home-panel-body"></div>
+        </aside>
+        <div class="legacy-continuation" hidden>
+          <button type="button" id="home-conversation-close" data-i18n="homeConversationClose">Close this conversation</button>
+          ${RESTART_POINT_BLOCK}
+        </div>
+      </div>
+    </section>`;
+
+/** Existing lexical search remains available, now as a separate destination. */
+export const HOME_SEARCH_SECTION = `
+    <section aria-labelledby="history-search-heading" id="history-search">
+      <h2 id="history-search-heading" tabindex="-1" data-i18n="homeSearchHeading">Search history</h2>
+      <p data-i18n="homeSearchIntro">Search conversations and notes already stored on this computer.</p>
       <form id="home-ask-form">
         <label for="home-ask" data-i18n="homeAskLabel">Search your history</label>
         <p id="home-ask-help" class="help" data-i18n="homeAskHelp">Answers are composed from what is already on this computer. Nothing is sent anywhere.</p>
@@ -45,14 +82,6 @@ export const HOME_SECTION = `
         <button type="submit" data-i18n="homeAskSubmit">Search</button>
         <p id="home-ask-error" class="error" role="alert"></p>
       </form>
-      <div id="home-conversation-status" class="inline-status" role="status" aria-live="polite"></div>
-      <div id="home-conversation" hidden>
-        <h3 id="home-conversation-heading" tabindex="-1"></h3>
-        <p id="home-conversation-meta" class="help"></p>
-        <button type="button" id="home-conversation-close" data-i18n="homeConversationClose">Close this conversation</button>
-        <ol id="home-conversation-moments" class="moments moments-scroll" tabindex="0" data-i18n-label="homeConversationMomentsLabel" aria-label="The moments of this conversation"></ol>
-        <p id="home-conversation-count" class="help"></p>${CONTINUATION_BLOCK}${RESTART_POINT_BLOCK}
-      </div>
       <div id="home-answer">
         <h3 id="home-answer-heading" tabindex="-1" data-i18n="homeAnswerHeading" hidden>What I found</h3>
         <div id="home-answer-status" class="inline-status" role="status" aria-live="polite"></div>
@@ -67,10 +96,6 @@ export const HOME_SECTION = `
         <button type="button" id="home-restart-copy" data-i18n="restartCopy" hidden>Copy the summary</button>
         <p id="home-restart-omissions" class="help"></p>
         <p id="home-restart-error" class="error" role="alert"></p>
-      </div>
-      <div id="home-empty" hidden>
-        <p><strong data-i18n="homeEmpty">Nothing here yet.</strong></p>
-        <p data-i18n="homeEmptyDetail">Write a question below and it is kept, or add a project to bring in the sessions you have already had.</p>
       </div>
     </section>
     <section aria-labelledby="technical-heading" id="technical">

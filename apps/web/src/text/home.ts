@@ -1,20 +1,268 @@
 /**
  * Every sentence the opening screen says, in both languages.
  *
- * Two rules shaped this vocabulary. Nothing here promises an assistant: the field
- * asks to search your history and the answer says it was composed from what is
- * already stored, because no model is connected and implying one would be the
- * largest expectation this product can fail. And nothing here is a domain
- * constant: the ordinary view carries no upper-case identifier, so a state
- * arrives as a word a person uses.
+ * U3 coordinates one server-side turn through a simulated local transport by
+ * default. No text may imply real provider access or credential storage.
  */
 import { catalogues } from "./catalog.ts";
 
 export const HOME_TEXT = Object.freeze({
-  navHome: { en: "Your work", it: "Il tuo lavoro" },
+  navHome: { en: "Conversations", it: "Conversazioni" },
   homeIntro: {
-    en: "Everything you have worked on, most recent first. Ask a question to search it.",
-    it: "Tutto ciò su cui hai lavorato, dal più recente. Fai una domanda per cercarci dentro.",
+    en: "Choose a conversation and continue from its latest message.",
+    it: "Scegli una conversazione e continua dal messaggio più recente.",
+  },
+  homeNewConversation: { en: "New chat", it: "Nuova chat" },
+  homeNewConversationTitle: {
+    en: "New conversation",
+    it: "Nuova conversazione",
+  },
+  homeSearchNavigation: { en: "Search history", it: "Cerca nella storia" },
+  homeSearchHeading: { en: "Search history", it: "Cerca nella storia" },
+  homeSearchIntro: {
+    en: "Search conversations and notes already stored on this computer.",
+    it: "Cerca nelle conversazioni e negli appunti già conservati su questo computer.",
+  },
+  homeModelLabel: {
+    en: "Model for the next message",
+    it: "Modello per il prossimo messaggio",
+  },
+  modelTargetChoose: {
+    en: "Choose a configured model",
+    it: "Scegli un modello configurato",
+  },
+  modelTargetHeading: { en: "Model targets", it: "Target dei modelli" },
+  modelTargetIntro: {
+    en: "Named target metadata is stored locally. Credentials and provider access are not stored or enabled here.",
+    it: "I metadati dei target sono conservati localmente. Credenziali e accesso ai provider non vengono conservati né abilitati qui.",
+  },
+  modelTargetId: { en: "Target ID", it: "ID target" },
+  modelTargetName: { en: "Display name", it: "Nome visualizzato" },
+  modelTargetProvider: { en: "Provider kind", it: "Tipo di provider" },
+  modelTargetModel: { en: "Model identifier", it: "Identificativo modello" },
+  modelTargetBoundary: {
+    en: "Execution boundary",
+    it: "Confine di esecuzione",
+  },
+  modelTargetProfile: {
+    en: "Reviewed profile reference",
+    it: "Riferimento al profilo revisionato",
+  },
+  modelTargetPolicy: {
+    en: "Reviewed policy reference",
+    it: "Riferimento alla policy revisionata",
+  },
+  modelTargetInstructions: {
+    en: "Instruction references, one per line",
+    it: "Riferimenti alle istruzioni, uno per riga",
+  },
+  modelTargetInputLimit: {
+    en: "Maximum input bytes",
+    it: "Byte massimi in ingresso",
+  },
+  modelTargetOutputLimit: {
+    en: "Maximum output bytes",
+    it: "Byte massimi in uscita",
+  },
+  modelTargetEnabledLabel: {
+    en: "Enabled for selection",
+    it: "Abilitato per la selezione",
+  },
+  modelTargetSave: { en: "Save local target", it: "Salva target locale" },
+  modelTargetDefault: {
+    en: "Default model target",
+    it: "Target modello predefinito",
+  },
+  modelTargetNoDefault: { en: "No default", it: "Nessun predefinito" },
+  modelTargetSaveDefault: { en: "Save default", it: "Salva predefinito" },
+  modelTargetEmpty: {
+    en: "No model target is configured.",
+    it: "Nessun target modello è configurato.",
+  },
+  modelTargetEnabled: { en: "Enabled", it: "Abilitato" },
+  modelTargetDisabled: { en: "Disabled", it: "Disabilitato" },
+  modelTargetSaved: {
+    en: "{name} was saved locally. No credential or provider was activated.",
+    it: "{name} è stato salvato localmente. Nessuna credenziale o provider è stato attivato.",
+  },
+  modelTargetDefaultSaved: {
+    en: "The local default was saved.",
+    it: "Il predefinito locale è stato salvato.",
+  },
+  homeContextOpen: { en: "Context", it: "Contesto" },
+  homeContextHeading: { en: "Conversation context", it: "Contesto" },
+  homeContextSummary: {
+    en: "Context follows this conversation and is prepared automatically immediately before each turn.",
+    it: "Il contesto segue questa conversazione e viene preparato automaticamente subito prima di ogni turno.",
+  },
+  homeContextMaterial: {
+    en: "Material currently visible in the conversation: {count} grouped entries.",
+    it: "Materiale attualmente visibile nella conversazione: {count} elementi raggruppati.",
+  },
+  homeProtectionOpen: {
+    en: "Automatic protection",
+    it: "Protezione automatica",
+  },
+  homeProtectionHeading: {
+    en: "Automatic protection",
+    it: "Protezione automatica",
+  },
+  homeProtectionSummary: {
+    en: "External turns are protected automatically before delivery with a stable map for this project or General.",
+    it: "I turni esterni vengono protetti automaticamente prima dell'invio con una mappa stabile per questo progetto o Generale.",
+  },
+  homeProtectionFake: {
+    en: "The built-in detector uses an app-managed local key. The standard server still uses a local simulated transport and makes no provider or network call. Replacements in the last message: {count}.",
+    it: "Il rilevatore integrato usa una chiave locale gestita dall'app. Il server standard usa ancora un trasporto locale simulato e non chiama provider o rete. Sostituzioni nell'ultimo messaggio: {count}.",
+  },
+  homeProtectionTermLabel: {
+    en: "Also protect this value",
+    it: "Proteggi anche questo valore",
+  },
+  homeProtectionTermKind: {
+    en: "Kind of data",
+    it: "Tipo di dato",
+  },
+  homeProtectionTermAdd: {
+    en: "Protect it",
+    it: "Proteggilo",
+  },
+  homeProtectionTermAdded: {
+    en: "From the next message, {term} leaves as {placeholder} and comes back as itself.",
+    it: "Dal prossimo messaggio, {term} esce come {placeholder} e torna con il suo nome.",
+  },
+  homeProtectionTermKnown: {
+    en: "{term} was already protected as {placeholder}.",
+    it: "{term} era già protetto come {placeholder}.",
+  },
+  homeProtectionTermInvalid: {
+    en: "Write at least two characters of the value to protect.",
+    it: "Scrivi almeno due caratteri del valore da proteggere.",
+  },
+  homeProtectionTermUnavailable: {
+    en: "Send a first message, then this conversation can protect named values.",
+    it: "Invia un primo messaggio: da quel momento questa conversazione può proteggere valori indicati da te.",
+  },
+  homeProtectionKindPERSON: { en: "Person", it: "Persona" },
+  homeProtectionKindORGANIZATION: { en: "Company", it: "Azienda" },
+  homeProtectionKindCUSTOMER: { en: "Customer", it: "Cliente" },
+  homeProtectionKindPROJECT: { en: "Project", it: "Progetto" },
+  homeProtectionKindADDRESS: { en: "Address", it: "Indirizzo" },
+  homeProtectionKindOTHER: { en: "Other value", it: "Altro valore" },
+  automaticProtectionSettingsTitle: {
+    en: "Automatic protection",
+    it: "Protezione automatica",
+  },
+  automaticProtectionSettingsBody: {
+    en: "External messages are protected with a stable project or General map before delivery. No daily passphrase or preview is required.",
+    it: "I messaggi esterni vengono protetti prima dell'invio con una mappa stabile del progetto o Generale. Non servono passphrase o anteprime quotidiane.",
+  },
+  automaticProtectionLoading: {
+    en: "Checking locally...",
+    it: "Verifica locale...",
+  },
+  automaticProtectionReady: {
+    en: "Active - app-managed local key",
+    it: "Attiva - chiave locale gestita dall'app",
+  },
+  automaticProtectionThreat: {
+    en: "Residual threat: a process that can read the complete workspace home can read both managed keys and encrypted mappings.",
+    it: "Rischio residuo: un processo che può leggere l'intera cartella del workspace può leggere sia le chiavi gestite sia le mappe cifrate.",
+  },
+  legacyMigrationTitle: {
+    en: "Import earlier privacy mappings",
+    it: "Importa mappe privacy precedenti",
+  },
+  legacyMigrationBody: {
+    en: "Import a passphrase-protected mapping once into automatic protection. Original encrypted files are preserved.",
+    it: "Importa una sola volta una mappa protetta da passphrase nella protezione automatica. I file cifrati originali vengono conservati.",
+  },
+  legacyMappingId: {
+    en: "Earlier mapping identity",
+    it: "Identità della mappa precedente",
+  },
+  legacyPassphrase: {
+    en: "Earlier mapping passphrase",
+    it: "Passphrase della mappa precedente",
+  },
+  legacyMigrate: {
+    en: "Import into automatic protection",
+    it: "Importa nella protezione automatica",
+  },
+  legacyNone: {
+    en: "No earlier passphrase-protected mappings were found. {threat}",
+    it: "Non sono state trovate mappe precedenti protette da passphrase. {threat}",
+  },
+  legacyFound: {
+    en: "{count} earlier mapping files are available for one-time import. {threat}",
+    it: "Sono disponibili {count} file di mappe precedenti per l'importazione una tantum. {threat}",
+  },
+  legacyMigrated: {
+    en: "Imported {count} entries for project {project}. The original files were preserved.",
+    it: "Importate {count} voci per il progetto {project}. I file originali sono stati conservati.",
+  },
+  homePanelClose: { en: "Close details", it: "Chiudi dettagli" },
+  homeMessageLabel: { en: "Write a message", it: "Scrivi un messaggio" },
+  homeMessagePlaceholder: {
+    en: "Write a message...",
+    it: "Scrivi un messaggio...",
+  },
+  homeSend: { en: "Send", it: "Invia" },
+  homeTurnReady: {
+    en: "Context updated. Ready to send one coordinated turn.",
+    it: "Contesto aggiornato. Pronto per un turno coordinato.",
+  },
+  homeTurnEmpty: {
+    en: "Write a message before sending.",
+    it: "Scrivi un messaggio prima di inviare.",
+  },
+  homeTurnPreparing: {
+    en: "Preparing context...",
+    it: "Preparazione del contesto...",
+  },
+  homeTurnIncoming: {
+    en: "Response incoming...",
+    it: "Risposta in arrivo...",
+  },
+  homeTurnSaved: {
+    en: "Response from {model} saved in this conversation. The standard server used the local simulation; no model was called.",
+    it: "Risposta di {model} salvata in questa conversazione. Il server standard ha usato la simulazione locale; nessun modello è stato chiamato.",
+  },
+  homeTurnDuplicate: {
+    en: "The duplicate request reused the first result; it was not exposed twice.",
+    it: "La richiesta duplicata ha riutilizzato il primo risultato; non è stata esposta due volte.",
+  },
+  homeTurnRefused: {
+    en: "Nothing was exposed. The draft is still here: reload local context or target settings and retry.",
+    it: "Niente è stato esposto. La bozza è ancora qui: ricarica il contesto locale o il target e riprova.",
+  },
+  homeTurnUnknown: {
+    en: "Exposure may have happened, but the outcome is unknown. The draft was cleared and no automatic retry will run.",
+    it: "L'esposizione potrebbe essere avvenuta, ma l'esito è ignoto. La bozza è stata rimossa e non partirà alcun nuovo tentativo automatico.",
+  },
+  homeTurnWithheld: {
+    en: "A response arrived but was withheld or could not be saved. No automatic retry will run.",
+    it: "Una risposta è arrivata ma è stata trattenuta o non è stato possibile salvarla. Non partirà alcun nuovo tentativo automatico.",
+  },
+  homeModelChanged: {
+    en: "The next message will use {model}. Context follows the conversation.",
+    it: "Il prossimo messaggio userà {model}. Il contesto segue la conversazione.",
+  },
+  homeModelLoaded: {
+    en: "{model} is selected for this conversation.",
+    it: "{model} è selezionato per questa conversazione.",
+  },
+  homeTargetRequired: {
+    en: "Configure and choose a model target in Settings before sending.",
+    it: "Configura e scegli un target modello nelle Impostazioni prima di inviare.",
+  },
+  homeTechnicalActivity: {
+    en: "Technical activity ({count})",
+    it: "Attività tecnica ({count})",
+  },
+  homeTechnicalActivityOne: {
+    en: "Technical activity (1)",
+    it: "Attività tecnica (1)",
   },
   homeAskLabel: { en: "Search your history", it: "Cerca nella tua storia" },
   homeAskHelp: {
@@ -33,8 +281,8 @@ export const HOME_TEXT = Object.freeze({
     it: "Qui non c'è ancora niente.",
   },
   homeEmptyDetail: {
-    en: "Write a question below and it is kept, or add a project to bring in the sessions you have already had.",
-    it: "Scrivi una domanda qui sotto e viene conservata, oppure aggiungi un progetto per portare dentro le sessioni che hai già fatto.",
+    en: "Start a new chat or add a project to bring in conversations you already had.",
+    it: "Avvia una nuova chat oppure aggiungi un progetto per portare dentro le conversazioni che hai già avuto.",
   },
   homeCounted: {
     en: "{shown} of {total} conversations.",

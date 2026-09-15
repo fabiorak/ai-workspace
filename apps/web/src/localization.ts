@@ -67,14 +67,14 @@ const EN = {
   settingsEyebrow: "Workspace preferences",
   settingsTitle: "Settings",
   settingsIntro:
-    "Presentation preferences stay in this browser and never leave this computer.",
+    "Presentation preferences stay in this browser. Bounded model target metadata is stored in the local workspace.",
   appearanceTitle: "Appearance",
   appearanceBody:
     "AI Workspace follows your operating-system light or dark theme and reduced-motion preference.",
   systemManaged: "System managed",
   privacyTitle: "Local preference storage",
   privacyBody:
-    "Only the language preference is stored in local browser storage. It contains no workspace content.",
+    "The language preference stays in browser storage. Model target metadata is stored separately in the local workspace; credentials are never included.",
   browserOnly: "Browser only",
   scriptsEyebrow: "Automation workspace",
   scriptsTitle: "Scripts",
@@ -726,14 +726,14 @@ const IT = {
   settingsEyebrow: "Preferenze del workspace",
   settingsTitle: "Impostazioni",
   settingsIntro:
-    "Le preferenze di presentazione restano in questo browser e non lasciano mai il computer.",
+    "Le preferenze di presentazione restano in questo browser. I metadati limitati dei target sono conservati nel workspace locale.",
   appearanceTitle: "Aspetto",
   appearanceBody:
     "AI Workspace segue il tema chiaro o scuro e la preferenza di movimento ridotto del sistema operativo.",
   systemManaged: "Gestito dal sistema",
   privacyTitle: "Memoria locale delle preferenze",
   privacyBody:
-    "Solo la preferenza della lingua viene salvata nello storage locale del browser. Non contiene dati del workspace.",
+    "La preferenza della lingua resta nello storage del browser. I metadati dei target sono conservati separatamente nel workspace locale; le credenziali non sono mai incluse.",
   browserOnly: "Solo browser",
   scriptsEyebrow: "Workspace automazioni",
   scriptsTitle: "Script",

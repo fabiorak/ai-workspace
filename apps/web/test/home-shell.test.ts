@@ -1,4 +1,3 @@
-import { CONTINUATION_CATALOGUES } from "../src/text/continuation.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -15,7 +14,6 @@ const catalogues = mergeCatalogues(
   HOME_CATALOGUES,
   PRIVACY_CATALOGUES,
   RESTART_POINT_CATALOGUES,
-  CONTINUATION_CATALOGUES,
 );
 const homeSection = (() => {
   const start = html.indexOf('<section aria-labelledby="home-heading"');
@@ -37,32 +35,42 @@ describe("the opening screen", () => {
     assert.match(html, /<h1 id="page-title" data-i18n="navHome">/u);
   });
 
-  /**
-   * Measured over what a reader actually lands on. An opened conversation is hidden
-   * until one is opened and carries its own fields — the draft of what to do next
-   * among them — so counting those here would measure a screen nobody has reached
-   * yet, and would forbid the fields that belong to it.
-   */
-  it("asks one question and needs no form filled in first", () => {
-    const landing =
-      homeSection.slice(0, homeSection.indexOf('<div id="home-conversation"')) +
-      homeSection.slice(homeSection.indexOf('<div id="home-answer">'));
-    assert.match(landing, /<input id="home-ask" name="q" required/u);
-    assert.equal((landing.match(/<input /gu) ?? []).length, 1);
-    assert.equal((landing.match(/<select /gu) ?? []).length, 0);
-    assert.equal((landing.match(/<textarea/gu) ?? []).length, 0);
+  it("lands on one conversation composer with one primary send action", () => {
+    assert.match(homeSection, /<form id="home-composer"/u);
+    assert.match(homeSection, /<textarea id="home-message"/u);
+    assert.match(homeSection, /<select id="home-conversation-model"/u);
+    assert.equal((homeSection.match(/class="send-button"/gu) ?? []).length, 1);
+    assert.doesNotMatch(homeSection, /id="home-ask"/u);
+  });
+
+  it("closes mobile navigation when a new conversation starts", () => {
     assert.match(
-      homeSection.slice(homeSection.indexOf('<div id="home-conversation"')),
-      /<div id="home-conversation" hidden>/u,
-      "an opened conversation must not be part of the landing screen",
+      APP_JS,
+      /startNewConversation[\s\S]*classList\.remove\("menu-open"\)[\s\S]*aria-expanded", "false"/u,
     );
   });
 
+  it("loads configured targets and persists a conversation choice by target ID", () => {
+    assert.doesNotMatch(homeSection, /value="model-a"|value="model-b"/u);
+    assert.match(html, /id="model-target-form"/u);
+    assert.match(APP_JS, /api\("\/api\/model-targets"\)/u);
+    assert.match(
+      APP_JS,
+      /selectConversationTarget\(openConversation, openConversationProject, targetId\)/u,
+    );
+    assert.match(APP_JS, /expectedRevision: modelTargetRevision/u);
+    assert.doesNotMatch(html, /id="continuation-configure"/u);
+  });
+
   it("names the field with a visible label bound to its control", () => {
-    assert.match(homeSection, /<label for="home-ask"/u);
+    assert.match(homeSection, /for="home-message"/u);
     assert.match(
       homeSection,
-      /aria-describedby="home-ask-help home-ask-error"/u,
+      /aria-describedby="home-composer-status home-composer-error"/u,
+    );
+    assert.match(
+      homeSection,
+      /data-i18n-placeholder="homeMessagePlaceholder"/u,
     );
   });
 
@@ -73,7 +81,10 @@ describe("the opening screen", () => {
    * immediately — and the arrival is announced rather than done quietly.
    */
   it("brings in what arrived, behind the list it already had", () => {
-    assert.match(APP_JS, /loadConversations\(\)\.then\(loadArrived\)/u);
+    assert.match(
+      APP_JS,
+      /loadModelTargets\(\)\.then\(loadConversations\)\.then\(loadArrived\)/u,
+    );
     assert.match(
       APP_JS,
       /"\/api\/transcripts\/arrived",\s*\{\s*method: "POST"/u,
@@ -111,7 +122,7 @@ describe("the opening screen", () => {
    * whoever reads where it goes.
    */
   it("makes a row open its own conversation, in place", () => {
-    assert.match(APP_JS, /showConversation\(row\)/u);
+    assert.match(APP_JS, /showConversation\(row, true\)/u);
     assert.match(APP_JS, /"\/api\/conversations\/"/u);
     assert.doesNotMatch(APP_JS, /link\.href = row\.kind/u);
     assert.match(html, /id="home-conversation-moments"/u);
@@ -151,8 +162,15 @@ describe("the opening screen", () => {
     );
     assert.match(body, /currentPage\(\) === "home"/u);
     assert.match(body, /openPage\("home", false\)/u);
-    // A second click closes what is open only from the screen that shows it.
+    // Selecting the open row again is idempotent and leaves the conversation open.
     assert.match(body, /showing && openConversation === row\.id/u);
+    assert.doesNotMatch(
+      body.slice(
+        body.indexOf("showing && openConversation"),
+        body.indexOf("if (!showing)"),
+      ),
+      /closeConversation/u,
+    );
   });
 
   /**
@@ -178,11 +196,7 @@ describe("the opening screen", () => {
    * nothing else — and the opening screen is the one place this shell promises.
    */
   it("offers a way back to the opening screen, not only ways into the others", () => {
-    const start = html.indexOf('class="primary-nav"');
-    assert.notEqual(start, -1);
-    const nav = html.slice(start, html.indexOf("</nav>", start));
-    assert.match(nav, /href="#\/home"/u);
-    assert.match(nav, /data-i18n="navHome"/u);
+    assert.match(html, /class="brand" href="#\/home"[^>]*data-route="home"/u);
   });
 
   /**
@@ -275,24 +289,169 @@ describe("the opening screen", () => {
     assert.equal(HOME_TEXT.homeStatePROPOSED.it, "da iniziare");
   });
 
-  it("promises no assistant, in either language", () => {
-    /**
-     * The prohibition is about implying that something here answers. Carrying the
-     * work onward names an assistant on purpose — it is the recipient elsewhere,
-     * not an interlocutor in this product — so those two sentences are the only
-     * place the word belongs.
-     */
-    const recipients = new Set(["homeRestartFor"]);
-    for (const [key, entry] of Object.entries(HOME_TEXT))
-      if (!recipients.has(key))
-        for (const locale of SUPPORTED_LOCALES)
-          assert.doesNotMatch(
-            entry[locale],
-            /\b(assistant|assistente|chat|model|modello|ask me|chiedimi)\b/iu,
-            `${locale}.${key}: "${entry[locale]}" must not imply something answers`,
-          );
-    assert.match(HOME_TEXT.homeAskHelp.it, /già su questo computer/u);
-    assert.match(HOME_TEXT.homeRestartFor.it, /un altro assistente/u);
+  it("labels the standard U4 transport as a local simulation in both languages", () => {
+    assert.match(HOME_TEXT.homeTurnSaved.en, /no model was called/u);
+    assert.match(HOME_TEXT.homeTurnSaved.it, /nessun modello/u);
+    assert.match(HOME_TEXT.homeProtectionFake.en, /local simulated/u);
+    assert.match(HOME_TEXT.homeProtectionFake.it, /locale simulato/u);
+  });
+
+  it("carries no legacy continuation control into the ordinary path", () => {
+    /** Settings keeps one legacy passphrase for migration, and the technical
+     * view keeps the advanced privacy forms. Neither belongs to this screen. */
+    for (const legacy of [/passphrase/iu, /names to protect/iu, /exact/iu])
+      assert.doesNotMatch(
+        homeSection,
+        legacy,
+        `${legacy} is still on the conversation screen.`,
+      );
+    for (const legacy of [
+      /id="continuation-/u,
+      /continuation-passphrase/u,
+      /continuation-names/u,
+      /continuation-protect/u,
+      /continuation-send/u,
+    ])
+      assert.doesNotMatch(html, legacy, `${legacy} is still served.`);
+    for (const legacy of [
+      /setContinuationConversation/u,
+      /continuationElement/u,
+      /continuationPath/u,
+    ])
+      assert.doesNotMatch(APP_JS, legacy, `${legacy} is still shipped.`);
+  });
+
+  /**
+   * Both panel openers looked wrong in opposite ways: protection had no border
+   * and no surface, so it did not read as a button at all, and the shared
+   * button:hover then repainted its background with the accent while its label
+   * stayed muted — 1.14:1 in the dark theme. Context, carrying no class, took
+   * the filled accent and competed with Send, the one primary action.
+   */
+  it("shows both panel openers as secondary buttons that stay readable on hover", () => {
+    assert.match(homeSection, /id="home-context-open" class="panel-button"/u);
+    assert.match(
+      homeSection,
+      /id="home-protection-open" class="panel-button"/u,
+    );
+    assert.equal((homeSection.match(/class="send-button"/gu) ?? []).length, 1);
+    assert.match(APP_CSS, /\.panel-button \{[^}]*border:/u);
+    assert.match(
+      APP_CSS,
+      /\.panel-button \{[^}]*background: var\(--surface\)/u,
+    );
+    /** Stated here, so the shared hover cannot leave a label on its own accent. */
+    const hover = APP_CSS.match(/\.panel-button:hover \{[^}]*\}/u)?.[0];
+    assert.ok(hover, "the panel buttons declare no hover of their own");
+    assert.match(hover, /background:/u);
+    assert.match(hover, /color: var\(--ink\)/u);
+    assert.match(APP_CSS, /\.panel-button\[aria-expanded="true"\]/u);
+  });
+
+  /** At 200% zoom the model selector collapsed to its arrows: min-width 0 let a
+   * flex item shrink past its own content, so the chosen model became invisible. */
+  it("keeps the model selector readable when the viewport shrinks", () => {
+    assert.match(
+      APP_CSS,
+      /\.conversation-actions select \{[^}]*min-width: 10rem/u,
+    );
+    assert.doesNotMatch(
+      APP_CSS,
+      /\.conversation-actions select \{[^}]*min-width: 0/u,
+    );
+    assert.match(
+      APP_CSS,
+      /\.conversation-actions select \{[^}]*text-overflow: ellipsis/u,
+    );
+  });
+
+  it("offers one reviewed way to protect a value the detector cannot find", () => {
+    assert.match(APP_JS, /protectionTermForm/u);
+    assert.match(APP_JS, /\/protected-terms/u);
+    assert.match(APP_JS, /home-term-value/u);
+    assert.match(APP_CSS, /\.protection-term /u);
+    for (const key of [
+      "homeProtectionTermLabel",
+      "homeProtectionTermKind",
+      "homeProtectionTermAdd",
+      "homeProtectionTermAdded",
+      "homeProtectionTermKnown",
+      "homeProtectionTermInvalid",
+      "homeProtectionTermUnavailable",
+      "homeProtectionKindPERSON",
+      "homeProtectionKindORGANIZATION",
+      "homeProtectionKindCUSTOMER",
+      "homeProtectionKindPROJECT",
+      "homeProtectionKindADDRESS",
+      "homeProtectionKindOTHER",
+    ]) {
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+  });
+
+  it("keeps history search on a dedicated sidebar destination", () => {
+    assert.match(html, /href="#\/history"[^>]*data-route="history"/u);
+    assert.match(html, /id="history-search"/u);
+    assert.match(APP_JS, /history: \["history-search"\]/u);
+  });
+
+  it("groups technical moments behind one disclosed activity", () => {
+    assert.match(APP_JS, /const technicalMoment/u);
+    assert.match(APP_JS, /renderTechnicalActivity/u);
+    assert.match(APP_JS, /homeTechnicalActivity/u);
+    assert.match(APP_CSS, /\.technical-activity summary/u);
+  });
+
+  it("submits one conversation-scoped turn and reloads retained moments", () => {
+    const start = APP_JS.indexOf('document.getElementById("home-composer")');
+    const handler = APP_JS.slice(start, APP_JS.indexOf("// The answer", start));
+    assert.match(handler, /homeTurnPreparing/u);
+    assert.match(handler, /homeTurnIncoming/u);
+    assert.match(handler, /\/turn/u);
+    assert.match(handler, /clientRequestId: crypto\.randomUUID\(\)/u);
+    assert.match(handler, /outcome\.result\.kind === "COMPLETED"/u);
+    assert.match(handler, /showConversation\([^)]*false, true\)/u);
+    assert.match(handler, /homeTurnRefused/u);
+    const refused = handler.slice(
+      handler.indexOf('outcome.result.kind === "REFUSED_BEFORE_EXPOSURE"'),
+      handler.indexOf('outcome.result.kind === "UNKNOWN_AFTER_EXPOSURE"'),
+    );
+    assert.doesNotMatch(refused, /homeMessage\.value = ""/u);
+  });
+
+  it("supports Ctrl+Enter while plain Enter remains textarea input", () => {
+    assert.match(
+      APP_JS,
+      /event\.key === "Enter" && event\.ctrlKey[\s\S]*?requestSubmit/u,
+    );
+    assert.doesNotMatch(APP_JS, /event\.key === "Enter" && !event\.shiftKey/u);
+  });
+
+  it("keeps the conversation region named while empty or populated", () => {
+    assert.match(
+      homeSection,
+      /<h2 id="home-heading" class="visually-hidden"[^>]*data-i18n="navHome"/u,
+    );
+    const empty = homeSection.slice(homeSection.indexOf('id="home-empty"'));
+    assert.doesNotMatch(empty, /id="home-heading"/u);
+  });
+
+  it("closes conversation details with Escape and restores the opener", () => {
+    assert.match(APP_JS, /event\.key === "Escape" && !homePanel\.hidden/u);
+    assert.match(APP_JS, /homePanelOpener\.focus\(\)/u);
+    assert.match(
+      APP_JS,
+      /homePanelOpener !== opener[\s\S]*?aria-expanded", "false"/u,
+    );
+  });
+
+  it("localizes the composer's placeholder", () => {
+    assert.match(APP_JS, /querySelectorAll\("\[data-i18n-placeholder\]"\)/u);
+    assert.match(
+      APP_JS,
+      /setAttribute\("placeholder", message\(element\.dataset\.i18nPlaceholder\)\)/u,
+    );
   });
 });
 
@@ -363,9 +522,13 @@ describe("shell text keys", () => {
  */
 describe("what is marked hidden", () => {
   it("is hidden however else it is styled", () => {
-    assert.match(APP_CSS, /\[hidden\] \{ display: none; \}/u);
-    const rule = APP_CSS.lastIndexOf("[hidden] { display: none; }");
-    for (const earlier of ["button {", "input, select, textarea {"])
+    assert.match(APP_CSS, /\[hidden\] \{ display: none !important; \}/u);
+    const rule = APP_CSS.lastIndexOf("[hidden] { display: none !important; }");
+    for (const earlier of [
+      "button {",
+      "input, select, textarea {",
+      ".model-target-settings form {",
+    ])
       assert.ok(
         APP_CSS.indexOf(earlier) < rule,
         `${earlier} sets display after the hidden rule, which would show hidden elements again`,

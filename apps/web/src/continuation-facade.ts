@@ -20,18 +20,7 @@ export function continuationArea(
   conversationWriter?: ModelConversationWriter,
   transport?: DeliveryTransport,
 ) {
-  const sources = {
-    sessions: conversations.sessions,
-    workItems: conversations.workItems,
-    handoffs: {
-      list: handoffs.list.bind(handoffs),
-      show: handoffs.show.bind(handoffs),
-      validateRepository: handoffs.validateRepository.bind(handoffs),
-    },
-    compose: composeHandoffProfile,
-    evidence: (work: Parameters<typeof continuationEvidence>[1]) =>
-      continuationEvidence(conversations, work),
-  };
+  const sources = continuationSources(conversations, handoffs);
   const workflow = new ContinuationWorkflow(
     sources,
     home,
@@ -48,5 +37,23 @@ export function continuationArea(
     recordResponse: workflow.recordResponse.bind(workflow),
     prepare: (query: ContinuationQuery, target: ContinuationTarget | null) =>
       prepareContinuation(sources, query, target),
+  });
+}
+
+export function continuationSources(
+  conversations: ConversationSources,
+  handoffs: Pick<Handoffs, "list" | "show" | "validateRepository">,
+) {
+  return Object.freeze({
+    sessions: conversations.sessions,
+    workItems: conversations.workItems,
+    handoffs: {
+      list: handoffs.list.bind(handoffs),
+      show: handoffs.show.bind(handoffs),
+      validateRepository: handoffs.validateRepository.bind(handoffs),
+    },
+    compose: composeHandoffProfile,
+    evidence: (work: Parameters<typeof continuationEvidence>[1]) =>
+      continuationEvidence(conversations, work),
   });
 }

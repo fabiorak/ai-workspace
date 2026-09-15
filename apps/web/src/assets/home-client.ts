@@ -44,7 +44,7 @@ export const HOME_BEHAVIOUR = `
     const link = document.createElement("button");
     link.type = "button";
     link.dataset.conversation = row.id;
-    link.addEventListener("click", () => { void showConversation(row); });
+    link.addEventListener("click", () => { void showConversation(row, true); });
     const title = document.createElement("span");
     title.className = "conversation-title";
     text(title, conversationTitle(row));
@@ -96,6 +96,9 @@ export const HOME_BEHAVIOUR = `
     // Redrawing the list builds new rows, so whichever one is open has to be marked
     // again: an import that refreshes the list must not quietly unmark it.
     markOpenRow();
+    // The newest conversation is the home screen, not a second choice after reaching
+    // it. Automatic opening never moves focus; a deliberate row click still does.
+    if (!openConversation && currentPage() === "home" && page.rows[0]) void showConversation(page.rows[0], false);
   };
   // Grouping by the reader's own calendar day, mirroring the server-side rule. It runs here
   // because "today" has to mean the day the reader is living, and only the browser knows it.
@@ -153,15 +156,22 @@ export const HOME_BEHAVIOUR = `
   const homeConversationMeta = document.getElementById("home-conversation-meta");
   const homeConversationMoments = document.getElementById("home-conversation-moments");
   const homeConversationCount = document.getElementById("home-conversation-count");
+  const homeConversationModel = document.getElementById("home-conversation-model");
+  const homeMessage = document.getElementById("home-message");
+  const homeSend = document.getElementById("home-send");
+  const homeComposerStatus = document.getElementById("home-composer-status");
+  const homeComposerError = document.getElementById("home-composer-error");
   let openConversation = null;
+  let openConversationProject = null;
+  const updateHomeSend = () => { homeSend.disabled = !homeMessage.value.trim() || !homeConversationModel.value; };
   const markOpenRow = () => {
     for (const button of conversationGroups.querySelectorAll("button[data-conversation]"))
       if (button.dataset.conversation === openConversation) button.setAttribute("aria-current", "true");
       else button.removeAttribute("aria-current");
   };
   const closeConversation = () => {
-    setContinuationConversation(null);
     openConversation = null;
+    openConversationProject = null;
     homeConversation.hidden = true;
     homeConversationMoments.replaceChildren();
     text(homeConversationStatus, "");
@@ -170,7 +180,8 @@ export const HOME_BEHAVIOUR = `
     hideRestartPoint();
     markOpenRow();
   };
-  const momentSpeaker = (type) => message(catalogs.en["homeMoment" + type] ? "homeMoment" + type : "homeMomentUNKNOWN");
+  const momentSpeaker = (moment, conversation) => moment.speaker || (moment.type === "AGENT_MESSAGE" && (conversation.model || conversation.agent) ? conversation.model || conversation.agent : message(catalogs.en["homeMoment" + moment.type] ? "homeMoment" + moment.type : "homeMomentUNKNOWN"));
+  const technicalMoment = (type) => new Set(["TOOL_CALL", "TOOL_RESULT", "COMMAND_RESULT", "FILE_CHANGE", "TEST_RESULT"]).has(type);
   const renderMoment = (moment, conversation) => {
     const item = document.createElement("li");
     // What the person wrote themselves is what a reader scrolls a long conversation to
@@ -180,7 +191,7 @@ export const HOME_BEHAVIOUR = `
     item.className = moment.type === "USER_MESSAGE" ? "moment moment-yours" : "moment";
     const who = document.createElement("p");
     who.className = "card-kicker";
-    text(who, momentSpeaker(moment.type));
+    text(who, momentSpeaker(moment, conversation));
     const body = document.createElement("p");
     body.className = "moment-text";
     // An empty text is a payload kept as a separate file. Saying so beats an empty
@@ -238,20 +249,39 @@ export const HOME_BEHAVIOUR = `
     }
     return item;
   };
-  const renderConversation = (conversation) => {
+  const renderTechnicalActivity = (moments, conversation) => {
+    const item = document.createElement("li");
+    item.className = "technical-activity";
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    say(summary, moments.length === 1 ? "homeTechnicalActivityOne" : "homeTechnicalActivity", { count: number(moments.length) });
+    const list = document.createElement("ol");
+    list.className = "technical-activity-list";
+    for (const moment of moments) list.append(renderMoment(moment, conversation));
+    details.append(summary, list); item.append(details); return item;
+  };
+  const renderConversation = (conversation, focusHeading = true) => {
     homeConversationMoments.replaceChildren();
     const opened = conversation.moments[0];
     text(homeConversationHeading, conversation.title || (opened && opened.occurredAt ? dateTime(opened.occurredAt) : message("homeUntitled")));
     const parts = [conversation.kind === "NOTES" ? message("homeKindNOTES") : conversation.projectName, conversation.model || conversation.agent];
     text(homeConversationMeta, parts.filter(Boolean).join(" · "));
-    for (const moment of conversation.moments) homeConversationMoments.append(renderMoment(moment, conversation));
-    // The moments scroll in their own box, so a conversation opened after a long one
-    // starts at its own beginning rather than wherever the previous one was left.
-    homeConversationMoments.scrollTop = 0;
+    let technical = [];
+    const flushTechnical = () => { if (technical.length > 0) homeConversationMoments.append(renderTechnicalActivity(technical, conversation)); technical = []; };
+    for (const moment of conversation.moments) {
+      if (technicalMoment(moment.type)) technical.push(moment);
+      else { flushTechnical(); homeConversationMoments.append(renderMoment(moment, conversation)); }
+    }
+    flushTechnical();
+    // Open at the latest message, matching a chat rather than a transcript inspector.
+    homeConversationMoments.scrollTop = homeConversationMoments.scrollHeight;
     if (conversation.total > conversation.moments.length) say(homeConversationCount, "homeConversationShown", { shown: number(conversation.moments.length), total: number(conversation.total) });
     else say(homeConversationCount, "homeConversationAll", { count: number(conversation.total) });
     homeConversation.hidden = false;
+    homeEmpty.hidden = true;
     text(homeConversationStatus, "");
+    homeConversationModel.value = "";
+    homeMessage.value = ""; updateHomeSend(); text(homeComposerError, ""); say(homeComposerStatus, "homeTurnReady");
     // What it would take to pick this work up again sits at the end of it, composed
     // rather than fetched, and expanded rather than behind a control (ADR-0037).
     showRestartPoint(conversation);
@@ -259,27 +289,31 @@ export const HOME_BEHAVIOUR = `
     // The focus moves because a person asked for this conversation, not on the
     // screen's own initiative, and it lands on the heading so a reader hears which
     // conversation opened before its moments.
-    homeConversationHeading.focus();
+    if (focusHeading) homeConversationHeading.focus();
   };
-  const showConversation = async (row) => {
+  const showConversation = async (row, focusHeading = true, refresh = false) => {
     // The list stays on the left of every screen, so a row can be clicked from a screen
     // this conversation does not open on. Going there is the product's job: leaving a
     // person to find the way themselves is the same defect as having no way back at all.
-    // A second click closes what is open, but only from the screen that shows it —
-    // elsewhere that click means "take me to it", and closing would answer a question
-    // nobody asked. The focus is not sent to main, because renderConversation lands it
-    // on the heading of what was asked for.
+    // Clicking the selected row is idempotent. Closing a conversation because its name
+    // was selected again made the primary navigation behave like a disclosure widget.
     const showing = currentPage() === "home";
-    if (showing && openConversation === row.id) { closeConversation(); return; }
+    if (showing && openConversation === row.id && !refresh) { if (focusHeading) homeConversationHeading.focus(); return; }
     if (!showing) openPage("home", false);
-    setContinuationConversation(row);
     openConversation = row.id;
+    openConversationProject = row.projectId;
     say(homeConversationStatus, "homeConversationOpening");
     const query = row.projectId ? "?project=" + encodeURIComponent(row.projectId) : "";
     try {
-      renderConversation(await api("/api/conversations/" + encodeURIComponent(row.id) + query));
+      const conversation = await api("/api/conversations/" + encodeURIComponent(row.id) + query);
+      renderConversation(conversation, focusHeading);
+      const selected = await loadConversationTarget(conversation);
+      updateHomeSend();
+      if (selected) say(homeComposerStatus, "homeModelLoaded", { model: selected.displayName });
+      else say(homeComposerStatus, "homeTargetRequired");
     } catch (cause) {
       openConversation = null;
+      openConversationProject = null;
       homeConversation.hidden = true;
       // Whatever was open is gone, so the point of the previous conversation is dropped
       // rather than left to be recomposed for a conversation nobody is reading.
@@ -290,6 +324,155 @@ export const HOME_BEHAVIOUR = `
     }
   };
   document.getElementById("home-conversation-close").addEventListener("click", () => closeConversation());
+  const homePanel = document.getElementById("home-conversation-panel");
+  const homePanelHeading = document.getElementById("home-panel-heading");
+  const homePanelBody = document.getElementById("home-panel-body");
+  let homePanelOpener = null;
+  const closeConversationPanel = () => {
+    homePanel.hidden = true;
+    if (homePanelOpener) { homePanelOpener.setAttribute("aria-expanded", "false"); homePanelOpener.focus(); }
+    homePanelOpener = null;
+  };
+  const panelSentence = (key, parameters = null) => { const paragraph = document.createElement("p"); say(paragraph, key, parameters); return paragraph; };
+  let lastProtectionReplacements = 0;
+  // The detector finds deterministic values only, so a name, a company or an address
+  // is protected only if the person names it here. The server resolves which map owns it.
+  const protectedTermKinds = ["PERSON", "ORGANIZATION", "CUSTOMER", "PROJECT", "ADDRESS", "OTHER"];
+  const protectionTermForm = () => {
+    const form = document.createElement("form");
+    form.className = "protection-term";
+    const label = document.createElement("label");
+    label.htmlFor = "home-term-value";
+    say(label, "homeProtectionTermLabel");
+    const input = document.createElement("input");
+    input.type = "text"; input.id = "home-term-value"; input.maxLength = 120; input.autocomplete = "off";
+    const kindLabel = document.createElement("label");
+    kindLabel.htmlFor = "home-term-kind";
+    say(kindLabel, "homeProtectionTermKind");
+    const kind = document.createElement("select");
+    kind.id = "home-term-kind";
+    for (const value of protectedTermKinds) { const option = document.createElement("option"); option.value = value; say(option, "homeProtectionKind" + value); kind.append(option); }
+    const submit = document.createElement("button");
+    submit.type = "submit"; submit.className = "protection-term-add";
+    say(submit, "homeProtectionTermAdd");
+    const status = document.createElement("p");
+    status.className = "protection-term-status"; status.setAttribute("role", "status");
+    form.append(label, input, kindLabel, kind, submit, status);
+    if (!openConversation || openConversation.startsWith("local-preview-")) {
+      input.disabled = true; kind.disabled = true; submit.disabled = true;
+      say(status, "homeProtectionTermUnavailable");
+      return form;
+    }
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const term = input.value.trim();
+      if (term.length < 2) { say(status, "homeProtectionTermInvalid"); input.focus(); return; }
+      submit.disabled = true;
+      try {
+        const added = await api("/api/conversations/" + encodeURIComponent(openConversation) + "/protected-terms", {
+          method: "POST",
+          body: JSON.stringify({ term, type: kind.value }),
+        });
+        say(status, added.added ? "homeProtectionTermAdded" : "homeProtectionTermKnown", { term, placeholder: added.pseudonym });
+        input.value = "";
+      } catch (cause) { detail(status, cause); }
+      submit.disabled = false;
+      input.focus();
+    });
+    return form;
+  };
+  const openConversationPanel = (kind, opener) => {
+    if (homePanelOpener && homePanelOpener !== opener) homePanelOpener.setAttribute("aria-expanded", "false");
+    homePanelOpener = opener; opener.setAttribute("aria-expanded", "true"); homePanelBody.replaceChildren();
+    if (kind === "context") {
+      say(homePanelHeading, "homeContextHeading");
+      homePanelBody.append(panelSentence("homeContextSummary"), panelSentence("homeContextMaterial", { count: number(homeConversationMoments.children.length) }));
+    } else {
+      say(homePanelHeading, "homeProtectionHeading");
+      homePanelBody.append(panelSentence("homeProtectionSummary"), panelSentence("homeProtectionFake", { count: number(lastProtectionReplacements) }), protectionTermForm());
+    }
+    homePanel.hidden = false; homePanelHeading.focus();
+  };
+  document.getElementById("home-context-open").addEventListener("click", (event) => openConversationPanel("context", event.currentTarget));
+  document.getElementById("home-protection-open").addEventListener("click", (event) => openConversationPanel("protection", event.currentTarget));
+  document.getElementById("home-panel-close").addEventListener("click", closeConversationPanel);
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !homePanel.hidden) closeConversationPanel(); });
+  homeConversationModel.addEventListener("change", async () => {
+    const targetId = homeConversationModel.value;
+    updateHomeSend();
+    if (!targetId) { say(homeComposerStatus, "homeTargetRequired"); homeMessage.focus(); return; }
+    try {
+      if (openConversation && !openConversation.startsWith("local-preview-")) await selectConversationTarget(openConversation, openConversationProject, targetId);
+      say(homeComposerStatus, "homeModelChanged", { model: homeConversationModel.selectedOptions[0].textContent });
+    } catch (cause) {
+      detail(homeComposerError, cause);
+      if (openConversation && !openConversation.startsWith("local-preview-")) {
+        const selected = await loadConversationTarget({ id: openConversation, projectId: openConversationProject });
+        if (!selected) homeConversationModel.value = "";
+      }
+      updateHomeSend();
+    }
+    homeMessage.focus();
+  });
+  const startNewConversation = () => {
+    if (currentPage() !== "home") openPage("home", false);
+    document.body.classList.remove("menu-open");
+    document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
+    hideRestartPoint();
+    openConversation = "local-preview-" + Date.now();
+    openConversationProject = null;
+    renderConversation({ id: openConversation, title: message("homeNewConversationTitle"), projectName: null, model: null, agent: null, kind: "NOTES", moments: [], total: 0 }, false);
+    homeConversationModel.value = modelTargetDefault.value;
+    updateHomeSend();
+    if (!homeConversationModel.value) say(homeComposerStatus, "homeTargetRequired");
+    markOpenRow(); homeMessage.focus();
+  };
+  document.getElementById("home-new-conversation").addEventListener("click", startNewConversation);
+  homeMessage.addEventListener("input", updateHomeSend);
+  homeMessage.addEventListener("keydown", (event) => { if (event.key === "Enter" && event.ctrlKey) { event.preventDefault(); document.getElementById("home-composer").requestSubmit(); } });
+  document.getElementById("home-composer").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const userText = homeMessage.value;
+    if (!userText.trim()) { say(homeComposerError, "homeTurnEmpty"); homeMessage.focus(); return; }
+    if (!homeConversationModel.value) { say(homeComposerError, "homeTargetRequired"); homeConversationModel.focus(); return; }
+    text(homeComposerError, ""); homeSend.disabled = true;
+    say(homeComposerStatus, "homeTurnPreparing");
+    const targetId = homeConversationModel.value;
+    try {
+      if (openConversation && openConversation.startsWith("local-preview-")) {
+        const title = userText.replace(/\\s+/gu, " ").trim().slice(0, 100);
+        const created = await api("/api/general/conversations", { method: "POST", body: JSON.stringify({ title }) });
+        openConversation = created.id; openConversationProject = null;
+        await selectConversationTarget(openConversation, null, targetId);
+      }
+      if (!openConversation) throw new Error(message("homeConversationFailed"));
+      say(homeComposerStatus, "homeTurnIncoming");
+      const project = openConversationProject ? "?project=" + encodeURIComponent(openConversationProject) : "";
+      const outcome = await api("/api/conversations/" + encodeURIComponent(openConversation) + "/turn" + project, {
+        method: "POST",
+        body: JSON.stringify({ targetId, userText, clientRequestId: crypto.randomUUID() }),
+      });
+      if (outcome.result.kind === "COMPLETED") {
+        lastProtectionReplacements = outcome.result.protection?.replacements || 0;
+        homeMessage.value = "";
+        await showConversation({ id: openConversation, projectId: openConversationProject }, false, true);
+        await loadConversations();
+        say(homeComposerStatus, outcome.duplicate ? "homeTurnDuplicate" : "homeTurnSaved", { model: outcome.result.effectiveModel });
+      } else if (outcome.result.kind === "REFUSED_BEFORE_EXPOSURE") {
+        say(homeComposerError, "homeTurnRefused");
+      } else if (outcome.result.kind === "UNKNOWN_AFTER_EXPOSURE") {
+        homeMessage.value = "";
+        say(homeComposerError, "homeTurnUnknown");
+      } else {
+        homeMessage.value = "";
+        say(homeComposerError, "homeTurnWithheld");
+      }
+    } catch (cause) {
+      detail(homeComposerError, cause);
+    } finally {
+      updateHomeSend(); homeMessage.focus();
+    }
+  });
   // The answer is the found material itself, with its provenance and the reason it came up.
   // Nothing is rewritten into prose here: what a reader sees is what is stored.
   const renderAnswer = (report) => {

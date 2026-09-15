@@ -52,10 +52,9 @@ export async function continuationEvidence(
           ? event.payload.text
           : await sources.artifact?.(event.payload.artifact.id);
       if (raw === undefined) throw new Error("UNAVAILABLE");
-      text =
-        event.source.sourceType === "MODEL_CONVERSATION"
-          ? raw
-          : readCanonicalPayload(raw).text;
+      text = event.source.sourceType.startsWith("MODEL_CONVERSATION")
+        ? raw
+        : readCanonicalPayload(raw).text;
     } catch {
       omitted.push({ eventId: event.id, reason: "UNREADABLE" });
       continue;

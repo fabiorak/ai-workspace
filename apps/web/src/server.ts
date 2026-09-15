@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { APP_CSS, APP_JS, shellHtml } from "./assets.ts";
 import { GuiApplication, GuiApplicationError } from "./application.ts";
 import { dashboardFragmentHtml } from "./dashboard-view.ts";
-import { handleConversationRoute } from "./conversation-route.ts";
+import { handlePrimaryRoute } from "./primary-route.ts";
 import { handleHandoffPreviewRoute } from "./handoff-preview-route.ts";
 import { handleProjectRoute } from "./project-route.ts";
 import { handleTranscriptRoute } from "./transcript-route.ts";
@@ -113,12 +113,8 @@ export async function startGuiServer(
       if (request.method === "GET" && url.pathname === "/app.js")
         return send(response, "text/javascript; charset=utf-8", APP_JS);
       if (
-        await handleConversationRoute(
-          request,
-          response,
-          url,
-          application,
-          (r) => validMutation(r, origin, csrfToken),
+        await handlePrimaryRoute(request, response, url, application, (r) =>
+          validMutation(r, origin, csrfToken),
         )
       )
         return;
