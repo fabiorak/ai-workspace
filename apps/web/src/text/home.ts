@@ -115,6 +115,14 @@ export const HOME_TEXT = Object.freeze({
     en: "The built-in detector uses an app-managed local key. The standard server still uses a local simulated transport and makes no provider or network call. Replacements in the last message: {count}.",
     it: "Il rilevatore integrato usa una chiave locale gestita dall'app. Il server standard usa ancora un trasporto locale simulato e non chiama provider o rete. Sostituzioni nell'ultimo messaggio: {count}.",
   },
+  appearance: { en: "Appearance", it: "Aspetto" },
+  appearanceHelp: {
+    en: "Stays in this browser, like the language. Following the system also follows it when it changes.",
+    it: "Resta in questo browser, come la lingua. Seguire il sistema significa seguirlo anche quando cambia.",
+  },
+  appearanceSystem: { en: "Follow the system", it: "Segui il sistema" },
+  appearanceLight: { en: "Light", it: "Chiaro" },
+  appearanceDark: { en: "Dark", it: "Scuro" },
   homeProtectionTermLabel: {
     en: "Also protect this value",
     it: "Proteggi anche questo valore",

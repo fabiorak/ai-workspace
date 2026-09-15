@@ -186,8 +186,20 @@ describe("the opening screen", () => {
     assert.match(APP_CSS, /\.moment-yours \{[^}]*background: var\(--yours\)/u);
     assert.match(APP_CSS, /\.moment-yours \{[^}]*border-inline-start/u);
     // Both themes declare that surface: a variable defined in one leaves the other
-    // with no background at all, which is exactly the screen nobody tests on.
-    assert.equal((APP_CSS.match(/--yours:/gu) ?? []).length, 2);
+    // with no background at all, which is exactly the screen nobody tests on. The
+    // dark values are now applied twice — by the system and by an explicit choice —
+    // from one constant, so the two blocks are compared instead of counted.
+    assert.match(APP_CSS, /:root \{[^}]*--yours: #e6edfd/u);
+    const dark = APP_CSS.match(/--canvas: #0d1422[^}]*/gu) ?? [];
+    assert.equal(dark.length, 2, "the dark values are applied twice");
+    assert.equal(
+      new Set(
+        dark.map((block) => block.replace(/color-scheme: dark;/u, "").trim()),
+      ).size,
+      1,
+      "the two dark blocks drifted apart",
+    );
+    for (const block of dark) assert.match(block, /--yours:/u);
   });
 
   /**
@@ -362,6 +374,45 @@ describe("the opening screen", () => {
     assert.match(
       APP_CSS,
       /\.conversation-actions select \{[^}]*text-overflow: ellipsis/u,
+    );
+  });
+
+  /**
+   * Settings promised the appearance beside the language and offered only the
+   * language, so the light theme could not be reached at all on a dark desktop.
+   */
+  it("lets a person choose the appearance without leaving the system behind", () => {
+    assert.match(html, /id="gui-theme"/u);
+    for (const value of ["system", "light", "dark"])
+      assert.match(html, new RegExp(`<option value="${value}"`, "u"));
+    for (const key of [
+      "appearance",
+      "appearanceHelp",
+      "appearanceSystem",
+      "appearanceLight",
+      "appearanceDark",
+    ]) {
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+    /** The choice is presentation, so it stays in this browser like the locale. */
+    assert.match(APP_JS, /const themeKey = "aiw-theme"/u);
+    assert.match(APP_JS, /localStorage\.setItem\(themeKey, theme\)/u);
+    /** "system" removes the attribute instead of freezing today's value. */
+    assert.match(
+      APP_JS,
+      /theme === "system"\s*\)?\s*delete document\.documentElement\.dataset\.theme/u,
+    );
+    assert.match(APP_CSS, /:root\[data-theme="dark"\][^}]*--canvas: #0d1422/u);
+    assert.match(APP_CSS, /:root\[data-theme="dark"\][^}]*color-scheme: dark/u);
+    assert.match(
+      APP_CSS,
+      /:root\[data-theme="light"\] \{ color-scheme: light; \}/u,
+    );
+    /** A chosen light theme must survive a dark desktop. */
+    assert.match(
+      APP_CSS,
+      /@media \(prefers-color-scheme: dark\) \{ :root:not\(\[data-theme="light"\]\)/u,
     );
   });
 

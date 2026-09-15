@@ -29,6 +29,20 @@ export const APP_JS = `
     ),
   )};
   const localeKey = "aiw-locale";
+  /**
+   * The appearance is a presentation preference, so it stays in this browser
+   * beside the language and never reaches the server or the local workspace.
+   * "system" removes the attribute rather than freezing today's system value,
+   * so the page keeps following the desktop when it changes.
+   */
+  const themeKey = "aiw-theme";
+  const themes = new Set(["system", "light", "dark"]);
+  let theme = themes.has(localStorage.getItem(themeKey)) ? localStorage.getItem(themeKey) : "system";
+  const applyTheme = () => {
+    if (theme === "system") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    document.getElementById("gui-theme").value = theme;
+  };
   const supported = new Set(Object.keys(catalogs));
   const originalText = new WeakMap();
   const browserLocale = (navigator.languages || [navigator.language || "en"]).map((value) => value.toLowerCase().split("-")[0]).find((value) => supported.has(value));
@@ -214,6 +228,7 @@ export const APP_JS = `
     openPage(page, false);
     queueMicrotask(() => document.getElementById(targetId)?.focus());
   });
+  document.getElementById("gui-theme").addEventListener("change", (event) => { theme = themes.has(event.target.value) ? event.target.value : "system"; localStorage.setItem(themeKey, theme); applyTheme(); });
   document.getElementById("gui-language").addEventListener("change", (event) => { locale = supported.has(event.target.value) ? event.target.value : "en"; localStorage.setItem(localeKey, locale); applyLocale(); renderRoute(false); });
   const api = async (path, options = {}) => {
     const response = await fetch(path, { ...options, headers: { "Content-Type": "application/json", "X-AI-Workspace-CSRF": csrf, ...(options.headers || {}) } });
@@ -490,6 +505,7 @@ export const APP_JS = `
   ${HOME_BEHAVIOUR}
   ${RESTART_POINT_BEHAVIOUR}
   applyLocale();
+  applyTheme();
   if (!location.hash.startsWith("#/")) history.replaceState(null, "", "#/home");
   renderRoute(false);
   loadGeneral();

@@ -6,6 +6,16 @@
  * sheet. Nothing here depends on a font, icon, or stylesheet fetched over a
  * network: the content security policy forbids it and the workspace is offline.
  */
+/**
+ * The dark values, named once and applied twice: when the system asks for dark
+ * and the person has not chosen otherwise, and when they chose dark themselves.
+ * Interpolating one constant keeps a single source for the colours.
+ */
+const DARK_TOKENS = `
+  --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --yours: #1d2b45; --sidebar: #0a101c; --shadow: 0 18px 45px rgba(0,0,0,.2);
+  /* The chart palette is lightened here: the light-theme hues sit too close to the dark canvas to stay legible as shapes. */
+  --cyan: #4cc9e2; --violet: #ad8bf0; --amber: #f2b552; --good: #48c98d; --danger: #f2788a;`;
+
 export const APP_CSS = `
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -259,11 +269,11 @@ footer { padding: 0 clamp(1rem, 3vw, 3rem) 2rem; color: var(--muted); font-size:
 .skip-link { position: fixed; z-index: 100; inset-block-start: .5rem; inset-inline-start: .5rem; transform: translateY(-200%); padding: .6rem; border-radius: .4rem; background: var(--surface); }
 .skip-link:focus { transform: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-@media (prefers-color-scheme: dark) {
-  :root { --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --yours: #1d2b45; --sidebar: #0a101c; --shadow: 0 18px 45px rgba(0,0,0,.2); }
-  /* The chart palette is lightened here: the light-theme hues sit too close to the dark canvas to stay legible as shapes. */
-  :root { --cyan: #4cc9e2; --violet: #ad8bf0; --amber: #f2b552; --good: #48c98d; --danger: #f2788a; }
-}
+/* The system decides unless the person chose, and their choice narrows
+   color-scheme too, so native controls follow the page instead of the desktop. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { ${DARK_TOKENS} } }
+:root[data-theme="dark"] { ${DARK_TOKENS} color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
 @media (max-width: 64rem) {
   .app-shell { grid-template-columns: 1fr; }
   .sidebar { position: fixed; z-index: 50; inset: 0 auto 0 0; inline-size: min(18rem, 86vw); transform: translateX(-105%); box-shadow: 1rem 0 3rem rgba(0,0,0,.3); transition: transform .22s ease; }
