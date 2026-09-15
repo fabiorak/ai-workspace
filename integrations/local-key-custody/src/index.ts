@@ -23,6 +23,7 @@ const MAX_ENVELOPES = 1_000;
 const MIN_PASSPHRASE_BYTES = 16;
 const MAX_PASSPHRASE_BYTES = 1_024;
 const ENVELOPE = /^custody_[a-f0-9]{64}\.json$/u;
+const MANAGED_KEY = /^key_[a-f0-9]{64}\.json$/u;
 const BASE64 =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u;
 const KDF = Object.freeze({
@@ -233,6 +234,167 @@ export class PassphraseKeyCustody {
   }
 }
 
+type ManagedKeyDocument = Readonly<{
+  schemaVersion: 1;
+  purpose: "STABLE_PRIVACY_MAP";
+  scopeId: string;
+  keyBase64: string;
+}>;
+
+/** Default single-user custody from ADR-0043. The browser never receives this key. */
+export class AppManagedKeyCustody {
+  readonly #directory: string;
+
+  public constructor(workspaceHome: string) {
+    if (!validText(workspaceHome)) throw custodyError();
+    this.#directory = join(workspaceHome, "privacy-managed-keys");
+  }
+
+  public async getOrCreate(scopeId: string): Promise<Uint8Array> {
+    validateMappingSetId(scopeId);
+    return this.#locked(async () => {
+      const names = await readdir(this.#directory);
+      this.#validateNames(names);
+      const path = join(this.#directory, managedKeyName(scopeId));
+      if (names.includes(managedKeyName(scopeId)))
+        return this.#read(path, scopeId);
+      const key = randomBytes(32);
+      try {
+        await this.#commit(path, serializeManagedKey(scopeId, key));
+        return Uint8Array.from(key);
+      } finally {
+        key.fill(0);
+      }
+    });
+  }
+
+  public async open(scopeId: string): Promise<Uint8Array> {
+    validateMappingSetId(scopeId);
+    try {
+      await privateMode(this.#directory, 0o700);
+      const names = await readdir(this.#directory);
+      this.#validateNames(names);
+      const name = managedKeyName(scopeId);
+      if (!names.includes(name)) throw custodyError();
+      return await this.#read(join(this.#directory, name), scopeId);
+    } catch (error) {
+      if (error instanceof LocalKeyCustodyError) throw error;
+      throw custodyError(error);
+    }
+  }
+
+  async #read(path: string, scopeId: string): Promise<Uint8Array> {
+    await privateMode(path, 0o600);
+    const bytes = await readFile(path);
+    if (bytes.length > MAX_ENVELOPE_BYTES) throw custodyError();
+    const content = bytes.toString("utf8");
+    const value: unknown = JSON.parse(content);
+    if (
+      !record(value) ||
+      !exactKeys(value, ["keyBase64", "purpose", "schemaVersion", "scopeId"]) ||
+      value.schemaVersion !== 1 ||
+      value.purpose !== "STABLE_PRIVACY_MAP" ||
+      value.scopeId !== scopeId ||
+      typeof value.keyBase64 !== "string"
+    )
+      throw custodyError();
+    const document: ManagedKeyDocument = Object.freeze({
+      schemaVersion: 1,
+      purpose: "STABLE_PRIVACY_MAP",
+      scopeId,
+      keyBase64: value.keyBase64,
+    });
+    if (`${JSON.stringify(document, null, 2)}\n` !== content)
+      throw custodyError();
+    return Uint8Array.from(decode(document.keyBase64, 32));
+  }
+
+  #validateNames(names: readonly string[]) {
+    if (
+      names.some((name) => name.endsWith(".tmp")) ||
+      names.some((name) => name.endsWith(".json") && !MANAGED_KEY.test(name)) ||
+      names.filter((name) => MANAGED_KEY.test(name)).length > MAX_ENVELOPES
+    )
+      throw custodyError();
+  }
+
+  async #locked<T>(operation: () => Promise<T>): Promise<T> {
+    const lockPath = join(this.#directory, ".managed-keys.lock");
+    const ownerToken = randomUUID();
+    let owns = false;
+    try {
+      await mkdir(this.#directory, { recursive: true, mode: 0o700 });
+      await chmod(this.#directory, 0o700);
+      const handle = await open(lockPath, "wx", 0o600);
+      owns = true;
+      try {
+        await handle.writeFile(
+          `${JSON.stringify({ schemaVersion: 1, ownerToken, pid: process.pid })}\n`,
+          "utf8",
+        );
+        await handle.sync();
+      } finally {
+        await handle.close();
+      }
+      return await operation();
+    } catch (error) {
+      if (isNodeError(error) && error.code === "EEXIST")
+        throw new LocalKeyCustodyError(
+          "Another process holds the app-managed key owner lock.",
+        );
+      if (error instanceof LocalKeyCustodyError) throw error;
+      throw custodyError(error);
+    } finally {
+      if (owns) await releaseOwnedLock(lockPath, ownerToken);
+    }
+  }
+
+  async #commit(path: string, content: string) {
+    const temporary = `${path}.${randomUUID()}.tmp`;
+    try {
+      const handle = await open(temporary, "wx", 0o600);
+      try {
+        await handle.writeFile(content, "utf8");
+        await handle.sync();
+      } finally {
+        await handle.close();
+      }
+      await rename(temporary, path);
+      await chmod(path, 0o600);
+      const directory = await open(this.#directory, "r");
+      try {
+        await directory.sync();
+      } finally {
+        await directory.close();
+      }
+    } finally {
+      await rm(temporary, { force: true }).catch(() => undefined);
+    }
+  }
+}
+
+/** Lists legacy envelopes by opaque filename without opening their contents. */
+export async function listLegacyCustodyEnvelopes(
+  workspaceHome: string,
+): Promise<readonly string[]> {
+  if (!validText(workspaceHome)) throw custodyError();
+  const directory = join(workspaceHome, "privacy-key-custody");
+  try {
+    await privateMode(directory, 0o700);
+    const names = await readdir(directory);
+    if (
+      names.some((name) => name.endsWith(".tmp")) ||
+      names.some((name) => name.endsWith(".json") && !ENVELOPE.test(name))
+    )
+      throw custodyError();
+    return Object.freeze(names.filter((name) => ENVELOPE.test(name)).sort());
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") return Object.freeze([]);
+    if (error instanceof LocalKeyCustodyError) throw error;
+    throw custodyError(error);
+  }
+}
+
 async function wrap(
   mappingSetId: string,
   mappingKey: Buffer,
@@ -369,6 +531,20 @@ function derive(passphrase: string, salt: Buffer): Promise<Buffer> {
 
 function envelopeName(mappingSetId: string): string {
   return `custody_${createHash("sha256").update(mappingSetId, "utf8").digest("hex")}.json`;
+}
+
+function managedKeyName(scopeId: string): string {
+  return `key_${createHash("sha256").update(scopeId, "utf8").digest("hex")}.json`;
+}
+
+function serializeManagedKey(scopeId: string, key: Buffer): string {
+  const document: ManagedKeyDocument = Object.freeze({
+    schemaVersion: 1,
+    purpose: "STABLE_PRIVACY_MAP",
+    scopeId,
+    keyBase64: key.toString("base64"),
+  });
+  return `${JSON.stringify(document, null, 2)}\n`;
 }
 
 function validateMappingSetId(value: string): void {

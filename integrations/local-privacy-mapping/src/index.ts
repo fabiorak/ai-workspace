@@ -22,6 +22,8 @@ import {
   type VersionedPseudonymMapping,
 } from "@ai-workspace/privacy-gateway";
 
+export * from "./stable.ts";
+
 const MAX_DOCUMENT_BYTES = 256 * 1024;
 const DOCUMENT = /^mapping_[a-f0-9]{64}\.json$/u;
 const BASE64 =

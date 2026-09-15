@@ -110,10 +110,10 @@ export type ScopedHistoricalSearchResult =
       conversationId: string;
       eventId: string;
       sequence: number;
-      type: "USER_MESSAGE";
+      type: GeneralEvent["type"];
       occurredAt: string;
       trust: "UNVERIFIED";
-      origin: "USER_AUTHORED";
+      origin: GeneralEvent["origin"];
       dataClass: "CONFIDENTIAL";
       exactBytes: number;
       contentSha256: string;

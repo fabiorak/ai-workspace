@@ -98,27 +98,38 @@ export class JsonGeneralConversationStore implements GeneralConversationStore {
     expectedEventCount: number,
     event: GeneralEvent,
   ): Promise<GeneralConversation> {
+    return this.appendMany(id, expectedEventCount, [event]);
+  }
+
+  public async appendMany(
+    id: string,
+    expectedEventCount: number,
+    events: readonly GeneralEvent[],
+  ): Promise<GeneralConversation> {
     const path = this.#documentPath(id);
     return this.#locked(path, async () => {
       const current = decodeDocument(await this.#readBounded(path));
       if (
         current.id !== id ||
         current.events.length !== expectedEventCount ||
-        event.conversationId !== id ||
-        event.sequence !== expectedEventCount
+        events.length < 1 ||
+        events.some(
+          (event, index) =>
+            event.conversationId !== id ||
+            event.sequence !== expectedEventCount + index,
+        )
       )
         throw new GeneralConversationConflictError();
       if (
-        current.events.some(
-          (candidate) =>
-            candidate.id === event.id ||
-            candidate.contentSha256 === event.contentSha256,
+        new Set(events.map((event) => event.id)).size !== events.length ||
+        events.some((event) =>
+          current.events.some((candidate) => candidate.id === event.id),
         )
       )
         throw new GeneralConversationConflictError();
       const updated = Object.freeze({
         ...current,
-        events: Object.freeze([...current.events, event]),
+        events: Object.freeze([...current.events, ...events]),
       });
       validateConversation(updated);
       await this.#atomicCommit(path, encodeDocument(updated));
@@ -229,7 +240,6 @@ function validateConversation(value: GeneralConversation): void {
   )
     throw storageError();
   const ids = new Set<string>();
-  const hashes = new Set<string>();
   value.events.forEach((event, sequence) => {
     if (
       !record(event) ||
@@ -253,9 +263,7 @@ function validateConversation(value: GeneralConversation): void {
       event.conversationId !== value.id ||
       event.sequence !== sequence ||
       event.scope !== "GENERAL" ||
-      event.type !== "USER_MESSAGE" ||
-      event.actor !== "LOCAL_USER" ||
-      event.origin !== "USER_AUTHORED" ||
+      !validEventKind(event) ||
       event.verification !== "UNVERIFIED" ||
       event.dataClass !== "CONFIDENTIAL" ||
       !validText(event.content, GENERAL_LIMITS.contentBytes) ||
@@ -264,17 +272,47 @@ function validateConversation(value: GeneralConversation): void {
       !DIGEST_PATTERN.test(event.contentSha256) ||
       event.contentSha256 !== sha256(event.content) ||
       !validTimestamp(event.occurredAt) ||
-      !record(event.provenance) ||
-      !exactKeys(event.provenance, ["capturedAt", "kind"]) ||
-      event.provenance.kind !== "LOCAL_GENERAL_CAPTURE" ||
-      event.provenance.capturedAt !== event.occurredAt ||
-      ids.has(event.id) ||
-      hashes.has(event.contentSha256)
+      !validProvenance(event) ||
+      ids.has(event.id)
     )
       throw storageError();
     ids.add(event.id);
-    hashes.add(event.contentSha256);
   });
+}
+
+function validEventKind(event: Record<string, unknown>): boolean {
+  return (
+    (event.type === "USER_MESSAGE" &&
+      event.actor === "LOCAL_USER" &&
+      event.origin === "USER_AUTHORED") ||
+    (event.type === "AGENT_MESSAGE" &&
+      event.actor === "MODEL" &&
+      event.origin === "MODEL_GENERATED")
+  );
+}
+
+function validProvenance(event: Record<string, unknown>): boolean {
+  if (!record(event.provenance)) return false;
+  if (event.type === "USER_MESSAGE")
+    return (
+      exactKeys(event.provenance, ["capturedAt", "kind"]) &&
+      event.provenance.kind === "LOCAL_GENERAL_CAPTURE" &&
+      event.provenance.capturedAt === event.occurredAt
+    );
+  return (
+    exactKeys(event.provenance, [
+      "attemptId",
+      "displayName",
+      "kind",
+      "model",
+      "targetId",
+    ]) &&
+    event.provenance.kind === "MODEL_CONVERSATION" &&
+    validText(event.provenance.attemptId, 256) &&
+    validText(event.provenance.displayName, 120) &&
+    validText(event.provenance.model, 256) &&
+    validText(event.provenance.targetId, 256)
+  );
 }
 
 function compareConversations(

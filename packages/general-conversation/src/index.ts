@@ -24,22 +24,43 @@ export class GeneralConversationConflictError extends GeneralConversationError {
   }
 }
 
-export type GeneralEvent = Readonly<{
+type GeneralEventBase = Readonly<{
   id: string;
   conversationId: string;
   sequence: number;
   scope: "GENERAL";
-  type: "USER_MESSAGE";
   occurredAt: string;
-  actor: "LOCAL_USER";
-  origin: "USER_AUTHORED";
   verification: "UNVERIFIED";
   dataClass: "CONFIDENTIAL";
   content: string;
   exactBytes: number;
   contentSha256: string;
-  provenance: Readonly<{ kind: "LOCAL_GENERAL_CAPTURE"; capturedAt: string }>;
 }>;
+
+export type GeneralEvent =
+  | (GeneralEventBase &
+      Readonly<{
+        type: "USER_MESSAGE";
+        actor: "LOCAL_USER";
+        origin: "USER_AUTHORED";
+        provenance: Readonly<{
+          kind: "LOCAL_GENERAL_CAPTURE";
+          capturedAt: string;
+        }>;
+      }>)
+  | (GeneralEventBase &
+      Readonly<{
+        type: "AGENT_MESSAGE";
+        actor: "MODEL";
+        origin: "MODEL_GENERATED";
+        provenance: Readonly<{
+          kind: "MODEL_CONVERSATION";
+          attemptId: string;
+          displayName: string;
+          model: string;
+          targetId: string;
+        }>;
+      }>);
 
 export type GeneralConversation = Readonly<{
   id: string;
@@ -57,6 +78,11 @@ export type GeneralConversationStore = Readonly<{
     id: string,
     expectedEventCount: number,
     event: GeneralEvent,
+  ): Promise<GeneralConversation>;
+  appendMany(
+    id: string,
+    expectedEventCount: number,
+    events: readonly GeneralEvent[],
   ): Promise<GeneralConversation>;
 }>;
 
@@ -157,6 +183,115 @@ export class GeneralConversations {
       event,
     );
   }
+
+  public async appendTurn(
+    input: Readonly<{
+      conversationId: string;
+      expectedEventCount: number;
+      userText: string;
+      assistantText: string;
+      attemptId: string;
+      displayName: string;
+      model: string;
+      targetId: string;
+    }>,
+  ): Promise<GeneralConversation> {
+    const conversationId = requiredText(
+      input.conversationId,
+      "Conversation ID",
+      256,
+    );
+    if (
+      !Number.isSafeInteger(input.expectedEventCount) ||
+      input.expectedEventCount < 0 ||
+      input.expectedEventCount + 2 > GENERAL_LIMITS.eventsPerConversation
+    )
+      throw new GeneralConversationError(
+        "Expected event count is invalid or the bounded conversation cannot hold another turn. Start a new General conversation.",
+      );
+    const userText = safeContent(input.userText, "Question");
+    const assistantText = safeContent(input.assistantText, "Model response");
+    const attemptId = requiredText(input.attemptId, "Attempt ID", 256);
+    const displayName = requiredText(input.displayName, "Display name", 120);
+    const model = requiredText(input.model, "Model", 256);
+    const targetId = requiredText(input.targetId, "Target ID", 256);
+    const occurredAt = timestamp(this.#dependencies.clock());
+    const event = (
+      sequence: number,
+      content: string,
+      details:
+        | Readonly<{
+            type: "USER_MESSAGE";
+            actor: "LOCAL_USER";
+            origin: "USER_AUTHORED";
+            provenance: Readonly<{
+              kind: "LOCAL_GENERAL_CAPTURE";
+              capturedAt: string;
+            }>;
+          }>
+        | Readonly<{
+            type: "AGENT_MESSAGE";
+            actor: "MODEL";
+            origin: "MODEL_GENERATED";
+            provenance: Readonly<{
+              kind: "MODEL_CONVERSATION";
+              attemptId: string;
+              displayName: string;
+              model: string;
+              targetId: string;
+            }>;
+          }>,
+    ): GeneralEvent =>
+      Object.freeze({
+        id: requiredText(this.#dependencies.ids(), "Event ID", 256),
+        conversationId,
+        sequence,
+        scope: "GENERAL" as const,
+        occurredAt,
+        verification: "UNVERIFIED" as const,
+        dataClass: "CONFIDENTIAL" as const,
+        content,
+        exactBytes: Buffer.byteLength(content, "utf8"),
+        contentSha256: createHash("sha256")
+          .update(content, "utf8")
+          .digest("hex"),
+        ...details,
+      });
+    return this.#dependencies.store.appendMany(
+      conversationId,
+      input.expectedEventCount,
+      Object.freeze([
+        event(input.expectedEventCount, userText, {
+          type: "USER_MESSAGE",
+          actor: "LOCAL_USER",
+          origin: "USER_AUTHORED",
+          provenance: { kind: "LOCAL_GENERAL_CAPTURE", capturedAt: occurredAt },
+        }),
+        event(input.expectedEventCount + 1, assistantText, {
+          type: "AGENT_MESSAGE",
+          actor: "MODEL",
+          origin: "MODEL_GENERATED",
+          provenance: {
+            kind: "MODEL_CONVERSATION",
+            attemptId,
+            displayName,
+            model,
+            targetId,
+          },
+        }),
+      ]),
+    );
+  }
+}
+
+function safeContent(value: string, label: string): string {
+  const content = requiredText(value, label, GENERAL_LIMITS.contentBytes);
+  const restricted = detectRestrictedData(content);
+  if (restricted !== null)
+    throw new GeneralConversationError(
+      `Restricted data category '${restricted}' detected; ${label.toLowerCase()} storage was blocked. Remove the sensitive value and retry.`,
+    );
+  return content;
 }
 
 function requiredText(

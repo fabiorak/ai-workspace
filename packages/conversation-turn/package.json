@@ -1,0 +1,20 @@
+{
+  "name": "@ai-workspace/conversation-turn",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Provider-neutral conversation-turn contract and server-side scope boundary",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

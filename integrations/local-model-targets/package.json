@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/local-model-targets",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Versioned local JSON adapter for model target configuration",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/model-targets": "0.0.0"
+  }
+}

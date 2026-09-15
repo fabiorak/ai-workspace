@@ -21,6 +21,8 @@ export {
 } from "./output-restoration.ts";
 export * from "./output-restoration-measurement.ts";
 export * from "./model-privacy-path.ts";
+export * from "./pii-detector.ts";
+export * from "./stable-pseudonymization.ts";
 
 export const MODEL_DATA_POLICY_SCHEMA_VERSION = 1;
 export const PRIVACY_PREFLIGHT_EFFECT =

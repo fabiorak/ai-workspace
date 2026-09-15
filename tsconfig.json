@@ -13,6 +13,9 @@
       "@ai-workspace/context-builder": [
         "./packages/context-builder/src/index.ts"
       ],
+      "@ai-workspace/conversation-turn": [
+        "./packages/conversation-turn/src/index.ts"
+      ],
       "@ai-workspace/git-adapter": ["./integrations/git/src/index.ts"],
       "@ai-workspace/general-conversation": [
         "./packages/general-conversation/src/index.ts"
@@ -61,8 +64,12 @@
       "@ai-workspace/model-attempts": [
         "./packages/model-attempts/src/index.ts"
       ],
+      "@ai-workspace/model-targets": ["./packages/model-targets/src/index.ts"],
       "@ai-workspace/local-model-attempts": [
         "./integrations/local-model-attempts/src/index.ts"
+      ],
+      "@ai-workspace/local-model-targets": [
+        "./integrations/local-model-targets/src/index.ts"
       ],
       "@ai-workspace/local-privacy-policy": [
         "./integrations/local-privacy-policy/src/index.ts"

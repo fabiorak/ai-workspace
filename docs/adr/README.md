@@ -66,3 +66,6 @@ Status: proposed | accepted | superseded
 - [ADR-0040: Coordinate explicit model delivery with durable attempts](0040-coordinate-explicit-model-delivery-with-durable-attempts.md)
 
 - [ADR-0041: Read current continuation evidence with explicit bounds](0041-read-current-continuation-evidence-with-explicit-bounds.md) - proposed.
+- [ADR-0042: Use conversation turns as the primary model flow](0042-use-conversation-turns-as-the-primary-model-flow.md)
+- [ADR-0043: Use app-managed keys for stable local pseudonym maps](0043-use-app-managed-keys-for-stable-local-pseudonym-maps.md)
+- [ADR-0044: Store model targets in versioned local configuration](0044-store-model-targets-in-versioned-local-configuration.md)

@@ -25,6 +25,7 @@
     "gui": "node apps/web/dist/main.js",
     "lint": "eslint .",
     "measure:entity-candidates": "node scripts/entity-candidate-measurement.ts",
+    "measure:rizzo-pii": "node scripts/rizzo-pii-evaluation.ts",
     "measure:general-links": "node scripts/general-link-scale-measurement.ts",
     "measure:output-restoration": "node scripts/output-restoration-measurement.ts",
     "measure:code-retrieval": "node scripts/code-retrieval-measurement.ts",

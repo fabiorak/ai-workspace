@@ -10,10 +10,69 @@ import {
   validatePseudonymMapping,
 } from "@ai-workspace/privacy-gateway";
 import {
+  AppManagedKeyCustody,
   inspectKeyCustodyCandidates,
+  listLegacyCustodyEnvelopes,
   LocalKeyCustodyError,
   PassphraseKeyCustody,
 } from "../src/index.ts";
+
+test("app-managed custody persists one private key per stable scope without a passphrase", async () => {
+  const home = temporary("managed");
+  try {
+    const custody = new AppManagedKeyCustody(home);
+    const first = await custody.getOrCreate("PROJECT:synthetic");
+    const reopened = await new AppManagedKeyCustody(home).open(
+      "PROJECT:synthetic",
+    );
+    assert.deepEqual(reopened, first);
+    assert.deepEqual(await custody.getOrCreate("PROJECT:synthetic"), first);
+    const directory = join(home, "privacy-managed-keys");
+    const names = await import("node:fs/promises").then(({ readdir }) =>
+      readdir(directory),
+    );
+    assert.equal(names.filter((name) => name.endsWith(".json")).length, 1);
+    assert.equal(
+      (await import("node:fs/promises").then(({ stat }) => stat(directory)))
+        .mode & 0o777,
+      0o700,
+    );
+    assert.equal(
+      (
+        await import("node:fs/promises").then(({ stat }) =>
+          stat(join(directory, names[0]!)),
+        )
+      ).mode & 0o777,
+      0o600,
+    );
+  } finally {
+    await cleanup(home);
+  }
+});
+
+test("app-managed custody fails closed and legacy discovery never reads envelope contents", async () => {
+  const home = temporary("managed-invalid");
+  try {
+    const managed = new AppManagedKeyCustody(home);
+    await managed.getOrCreate("GENERAL");
+    const directory = join(home, "privacy-managed-keys");
+    const [name] = await import("node:fs/promises").then(({ readdir }) =>
+      readdir(directory),
+    );
+    assert.ok(name);
+    await chmod(join(directory, name), 0o644);
+    await assert.rejects(() => managed.open("GENERAL"), LocalKeyCustodyError);
+
+    const legacy = new PassphraseKeyCustody(home);
+    await legacy.create("legacy-synthetic", correct);
+    const before = await onlyEnvelope(home);
+    const candidates = await listLegacyCustodyEnvelopes(home);
+    assert.equal(candidates.length, 1);
+    assert.equal(await onlyEnvelope(home), before);
+  } finally {
+    await cleanup(home);
+  }
+});
 
 const correct = "correct horse synthetic staple";
 const wrong = "wrong horse synthetic staple";

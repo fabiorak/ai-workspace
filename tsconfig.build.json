@@ -14,6 +14,9 @@
       "path": "./packages/context-builder/tsconfig.build.json"
     },
     {
+      "path": "./packages/conversation-turn/tsconfig.build.json"
+    },
+    {
       "path": "./packages/general-conversation/tsconfig.build.json"
     },
     {
@@ -39,6 +42,9 @@
     },
     {
       "path": "./packages/model-attempts/tsconfig.build.json"
+    },
+    {
+      "path": "./packages/model-targets/tsconfig.build.json"
     },
     {
       "path": "./packages/session-ingestion/tsconfig.build.json"
@@ -84,6 +90,9 @@
     },
     {
       "path": "./integrations/local-model-attempts/tsconfig.build.json"
+    },
+    {
+      "path": "./integrations/local-model-targets/tsconfig.build.json"
     },
     {
       "path": "./integrations/local-privacy-mapping/tsconfig.build.json"

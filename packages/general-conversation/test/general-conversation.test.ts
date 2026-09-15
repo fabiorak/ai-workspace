@@ -70,6 +70,39 @@ test("blocks restricted content without persisting or echoing its value", async 
   assert.equal((await service.show(conversation.id)).events.length, 0);
 });
 
+test("appends one user and model turn atomically with explicit provenance", async () => {
+  const values = new Map<string, GeneralConversation>();
+  const ids = ["conversation-turn", "event-user", "event-model"];
+  const service = new GeneralConversations({
+    store: memoryStore(values),
+    ids: () => ids.shift()!,
+    clock: () => new Date("2026-09-14T10:00:00.000Z"),
+  });
+  const conversation = await service.create("Synthetic turn");
+  const updated = await service.appendTurn({
+    conversationId: conversation.id,
+    expectedEventCount: 0,
+    userText: "A synthetic question",
+    assistantText: "A synthetic answer",
+    attemptId: "attempt-1",
+    model: "model-1",
+    displayName: "Model One",
+    targetId: "target-1",
+  });
+  assert.equal(updated.events.length, 2);
+  assert.deepEqual(
+    updated.events.map((event) => [event.sequence, event.type, event.actor]),
+    [
+      [0, "USER_MESSAGE", "LOCAL_USER"],
+      [1, "AGENT_MESSAGE", "MODEL"],
+    ],
+  );
+  const response = updated.events[1]!;
+  assert.equal(response.provenance.kind, "MODEL_CONVERSATION");
+  if (response.provenance.kind === "MODEL_CONVERSATION")
+    assert.equal(response.provenance.displayName, "Model One");
+});
+
 function memoryStore(
   values: Map<string, GeneralConversation>,
 ): GeneralConversationStore {
@@ -89,6 +122,17 @@ function memoryStore(
       const updated = Object.freeze({
         ...current,
         events: Object.freeze([...current.events, event]),
+      });
+      values.set(id, updated);
+      return updated;
+    },
+    appendMany: async (id, expected, events) => {
+      const current = values.get(id);
+      if (!current || current.events.length !== expected)
+        throw new GeneralConversationConflictError();
+      const updated = Object.freeze({
+        ...current,
+        events: Object.freeze([...current.events, ...events]),
       });
       values.set(id, updated);
       return updated;
