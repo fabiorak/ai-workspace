@@ -416,6 +416,50 @@ describe("the opening screen", () => {
     );
   });
 
+  /**
+   * The sidebar was dark in both themes, and its hovers, rules and raised
+   * surfaces were hardcoded white — legible only over a dark panel. Choosing the
+   * light theme left the left column dark, and simply lightening it would have
+   * painted white on white. Every one of those states is now a variable.
+   */
+  it("gives the sidebar a surface and states that follow the chosen theme", () => {
+    const sidebarStates = [
+      "--sidebar",
+      "--sidebar-ink",
+      "--sidebar-muted",
+      "--sidebar-label",
+      "--sidebar-hover",
+      "--sidebar-active",
+      "--sidebar-line",
+      "--sidebar-raised",
+      "--sidebar-glow",
+      "--sidebar-current-ink",
+      "--sidebar-current-back",
+      "--sidebar-current-rule",
+    ];
+    // Declared for the light theme and for both dark blocks: a state defined in
+    // one theme only is the state that disappears in the other.
+    for (const name of sidebarStates)
+      assert.equal(
+        APP_CSS.split(`${name}:`).length - 1,
+        3,
+        `${name} is not declared in every theme`,
+      );
+    // The rules inside the sidebar read those variables instead of naming white.
+    const sidebarRules = APP_CSS.split("\n").filter((rule) =>
+      /^\.(sidebar|primary-nav|conversation-nav|nav-label|nav-badge|new-conversation|locality-card)/u.test(
+        rule,
+      ),
+    );
+    assert.ok(sidebarRules.length > 5);
+    for (const rule of sidebarRules)
+      assert.doesNotMatch(
+        rule,
+        /rgba\(255,\s*255,\s*255/u,
+        `a sidebar rule still hardcodes white: ${rule.slice(0, 60)}`,
+      );
+  });
+
   it("offers one reviewed way to protect a value the detector cannot find", () => {
     assert.match(APP_JS, /protectionTermForm/u);
     assert.match(APP_JS, /\/protected-terms/u);

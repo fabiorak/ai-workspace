@@ -12,7 +12,11 @@
  * Interpolating one constant keeps a single source for the colours.
  */
 const DARK_TOKENS = `
-  --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --yours: #1d2b45; --sidebar: #0a101c; --shadow: 0 18px 45px rgba(0,0,0,.2);
+  --canvas: #0d1422; --surface: #151f30; --surface-soft: #192538; --ink: #edf2fa; --muted: #9dacc1; --border: #2b3a50; --accent: #7095ff; --accent-strong: #9ab4ff; --yours: #1d2b45; --shadow: 0 18px 45px rgba(0,0,0,.2);
+  --sidebar: #0a101c; --sidebar-ink: #f3f6fb; --sidebar-muted: #98a8c0; --sidebar-label: #71829c;
+  --sidebar-hover: rgba(255,255,255,.07); --sidebar-active: rgba(255,255,255,.1); --sidebar-line: rgba(255,255,255,.16);
+  --sidebar-raised: rgba(255,255,255,.05); --sidebar-glow: #20365e; --sidebar-current-ink: #fff;
+  --sidebar-current-back: rgba(82,125,250,.28); --sidebar-current-rule: #6f96ff;
   /* The chart palette is lightened here: the light-theme hues sit too close to the dark canvas to stay legible as shapes. */
   --cyan: #4cc9e2; --violet: #ad8bf0; --amber: #f2b552; --good: #48c98d; --danger: #f2788a;`;
 
@@ -35,9 +39,18 @@ export const APP_CSS = `
   --good: #23a36d;
   --danger: #ca4459;
   --yours: #e6edfd;
-  --sidebar: #101a2d;
-  --sidebar-ink: #f3f6fb;
-  --sidebar-muted: #98a8c0;
+  --sidebar: #e9eef6;
+  --sidebar-ink: #132238;
+  --sidebar-muted: #4d5b73;
+  --sidebar-label: #56657e;
+  --sidebar-hover: rgba(19, 34, 56, .07);
+  --sidebar-active: rgba(19, 34, 56, .12);
+  --sidebar-line: rgba(19, 34, 56, .14);
+  --sidebar-raised: rgba(255, 255, 255, .72);
+  --sidebar-glow: transparent;
+  --sidebar-current-ink: #1b3f9e;
+  --sidebar-current-back: rgba(52, 104, 245, .14);
+  --sidebar-current-rule: #3468f5;
   --shadow: 0 18px 45px rgba(33, 48, 76, .08);
 }
 * { box-sizing: border-box; }
@@ -46,7 +59,7 @@ body { margin: 0; min-width: 20rem; background: var(--canvas); color: var(--ink)
 button, input, select, textarea { font: inherit; }
 a { color: var(--accent-strong); }
 .app-shell { min-height: 100vh; display: grid; grid-template-columns: 17.5rem minmax(0, 1fr); }
-.sidebar { position: sticky; inset-block-start: 0; height: 100vh; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.35rem 1rem; overflow-y: auto; color: var(--sidebar-ink); background: radial-gradient(circle at 10% 0%, #20365e 0, transparent 30%), var(--sidebar); }
+.sidebar { position: sticky; inset-block-start: 0; height: 100vh; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.35rem 1rem; overflow-y: auto; color: var(--sidebar-ink); background: radial-gradient(circle at 10% 0%, var(--sidebar-glow) 0, transparent 30%), var(--sidebar); border-inline-end: 1px solid var(--sidebar-line); }
 .brand { display: flex; align-items: center; gap: .75rem; padding: .3rem .5rem; color: inherit; text-decoration: none; }
 .brand-mark { display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border: 1px solid rgba(255,255,255,.22); border-radius: .8rem; background: linear-gradient(135deg, #608cff, #7554e8); box-shadow: 0 9px 24px rgba(52,104,245,.3); font-size: .78rem; font-weight: 900; letter-spacing: .04em; }
 .brand strong, .brand small { display: block; }
@@ -54,10 +67,10 @@ a { color: var(--accent-strong); }
 .brand small { color: var(--sidebar-muted); font-size: .72rem; }
 .primary-nav { display: grid; gap: .24rem; }
 .primary-nav a { min-height: 2.75rem; display: grid; grid-template-columns: 1.35rem 1fr auto; align-items: center; gap: .65rem; padding: .62rem .72rem; border-radius: .72rem; color: var(--sidebar-muted); text-decoration: none; font-size: .9rem; font-weight: 650; transition: color .18s ease, background .18s ease, transform .18s ease; }
-.primary-nav a:hover { color: var(--sidebar-ink); background: rgba(255,255,255,.07); transform: translateX(.12rem); }
-.primary-nav a[aria-current="page"] { color: #fff; background: linear-gradient(100deg, rgba(82,125,250,.28), rgba(82,125,250,.08)); box-shadow: inset 3px 0 #6f96ff; }
+.primary-nav a:hover { color: var(--sidebar-ink); background: var(--sidebar-hover); transform: translateX(.12rem); }
+.primary-nav a[aria-current="page"] { color: var(--sidebar-current-ink); background: var(--sidebar-current-back); box-shadow: inset 3px 0 var(--sidebar-current-rule); }
 .primary-nav a > span:first-child { font-size: 1.05rem; text-align: center; }
-.nav-label { margin: 1rem .72rem .25rem; color: #71829c; font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.nav-label { margin: 1rem .72rem .25rem; color: var(--sidebar-label); font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
 /**
  * The conversation list. It scrolls on its own and keeps the two entries that are
  * not work — projects and settings — reachable at the bottom without scrolling
@@ -67,9 +80,9 @@ a { color: var(--accent-strong); }
 .conversation-nav ul { margin: 0 0 .5rem; padding: 0; list-style: none; display: grid; gap: .1rem; }
 /** A row is a button, because opening a conversation changes this page instead of leaving it. */
 .conversation-nav a, .conversation-nav button { min-height: 2.75rem; display: grid; gap: .1rem; padding: .5rem .72rem; border-radius: .72rem; color: var(--sidebar-muted); text-decoration: none; width: 100%; text-align: start; background: none; border: 0; font: inherit; cursor: pointer; }
-.conversation-nav a:hover, .conversation-nav button:hover { color: var(--sidebar-ink); background: rgba(255,255,255,.07); }
+.conversation-nav a:hover, .conversation-nav button:hover { color: var(--sidebar-ink); background: var(--sidebar-hover); }
 /** The open row is marked by more than colour, so the mark survives on a screen that shows none. */
-.conversation-nav button[aria-current] { color: var(--sidebar-ink); background: rgba(255,255,255,.1); box-shadow: inset .18rem 0 0 currentColor; }
+.conversation-nav button[aria-current] { color: var(--sidebar-ink); background: var(--sidebar-active); box-shadow: inset .18rem 0 0 currentColor; }
 .moments { margin: 0; padding: 0 0 0 1.2rem; display: grid; gap: .9rem; }
 /**
  * A conversation can hold hundreds of moments, and whatever follows it would then be
@@ -98,13 +111,13 @@ a { color: var(--accent-strong); }
 .conversation-signal { color: var(--sidebar-ink); border-inline-start: .18rem solid #f0a500; padding-inline-start: .45rem; font-size: .7rem; line-height: 1.35; }
 .conversation-nav .help { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .68rem; }
 .conversation-nav .inline-status { margin: .2rem .72rem; color: var(--sidebar-muted); font-size: .72rem; }
-.new-conversation, .conversation-search-link { min-height: 2.65rem; width: 100%; display: flex; align-items: center; gap: .55rem; padding: .58rem .72rem; border: 1px solid rgba(255,255,255,.18); border-radius: .72rem; color: var(--sidebar-ink); background: rgba(255,255,255,.06); text-decoration: none; font-weight: 720; }
-.new-conversation:hover, .conversation-search-link:hover { background: rgba(255,255,255,.12); }
+.new-conversation, .conversation-search-link { min-height: 2.65rem; width: 100%; display: flex; align-items: center; gap: .55rem; padding: .58rem .72rem; border: 1px solid var(--sidebar-line); border-radius: .72rem; color: var(--sidebar-ink); background: var(--sidebar-raised); text-decoration: none; font-weight: 720; }
+.new-conversation:hover, .conversation-search-link:hover { background: var(--sidebar-active); }
 .conversation-search-link { border-color: transparent; color: var(--sidebar-muted); background: transparent; }
 .technical-nav { display: grid; gap: .3rem; max-width: 32rem; }
 .nav-label:first-child { margin-block-start: 0; }
-.nav-badge { padding: .12rem .4rem; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; font-size: .62rem; font-weight: 800; text-transform: uppercase; }
-.locality-card { margin-block-start: auto; display: flex; align-items: center; gap: .7rem; padding: .85rem; border: 1px solid rgba(255,255,255,.09); border-radius: .8rem; background: rgba(255,255,255,.04); }
+.nav-badge { padding: .12rem .4rem; border: 1px solid var(--sidebar-line); border-radius: 999px; font-size: .62rem; font-weight: 800; text-transform: uppercase; }
+.locality-card { margin-block-start: auto; display: flex; align-items: center; gap: .7rem; padding: .85rem; border: 1px solid var(--sidebar-line); border-radius: .8rem; background: var(--sidebar-raised); }
 .locality-card strong, .locality-card small { display: block; }
 .locality-card strong { font-size: .8rem; }
 .locality-card small { color: var(--sidebar-muted); font-size: .68rem; }
