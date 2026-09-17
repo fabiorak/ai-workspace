@@ -40,6 +40,22 @@ describe("reviewed protected terms", () => {
     assert.equal(added.added, true);
     assert.equal(added.terms, 1);
 
+    const preview = await area.previewProtection({
+      conversationId: "general-conversation",
+      text: `Che cosa è successo con ${COMPANY}?`,
+    });
+    assert.equal(preview.text, "Che cosa è successo con [[AZIENDA_1]]?");
+    assert.equal(preview.replacements, 1);
+    assert.equal(
+      preview.effect,
+      "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT",
+    );
+    assert.equal(
+      sent.length,
+      0,
+      "A local preview must not reach the transport.",
+    );
+
     const outcome = await area.run(request("first-turn"));
     assert.equal(outcome.result.kind, "COMPLETED");
     assert.equal(sent.length, 1);

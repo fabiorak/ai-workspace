@@ -46,7 +46,7 @@ type Score = Readonly<{
   recallPercent: number;
 }>;
 
-type DetectorMeasurement = Readonly<{
+export type DetectorMeasurement = Readonly<{
   status: "MEASURED";
   detector: "BUILT_IN" | "RIZZO" | "RIZZO_PLUS_BUILT_IN";
   score: Score;
@@ -139,9 +139,11 @@ export class RizzoPiiSpikeError extends Error {
 
 export function spansFromRizzoSegments(
   segmentsValue: unknown,
+  expectedText?: string,
 ): readonly PiiSpan[] {
   if (!Array.isArray(segmentsValue)) throw new RizzoPiiSpikeError();
   const spans: PiiSpan[] = [];
+  const reconstructed: string[] = [];
   let cursor = 0;
   for (const value of segmentsValue) {
     if (
@@ -150,6 +152,7 @@ export function spansFromRizzoSegments(
       !value.t.isWellFormed()
     )
       throw new RizzoPiiSpikeError();
+    reconstructed.push(value.t);
     const startUtf8 = cursor;
     cursor += Buffer.byteLength(value.t, "utf8");
     if (value.label === undefined) continue;
@@ -169,6 +172,8 @@ export function spansFromRizzoSegments(
       }),
     );
   }
+  if (expectedText !== undefined && reconstructed.join("") !== expectedText)
+    throw new RizzoPiiSpikeError();
   return Object.freeze(spans);
 }
 
@@ -193,7 +198,7 @@ export function createRizzoPiiSpikeDetector(
       });
       const payload = await boundedJson(response);
       if (!response.ok || !record(payload)) throw new RizzoPiiSpikeError();
-      return spansFromRizzoSegments(payload.segments);
+      return spansFromRizzoSegments(payload.segments, text);
     },
   });
 }
@@ -244,7 +249,7 @@ export async function evaluateRizzoPii(
       hybrid = unavailable;
     }
   }
-  const decision = decide(builtIn, rizzo, hybrid);
+  const decision = decideRizzoPii(builtIn, rizzo, hybrid);
   return Object.freeze({
     schemaVersion: 1 as const,
     generatedAt: (options.now ?? new Date()).toISOString(),
@@ -376,7 +381,7 @@ function measure(
   });
 }
 
-function decide(
+export function decideRizzoPii(
   builtIn: DetectorMeasurement,
   rizzo: DetectorMeasurement | RizzoUnavailable,
   hybrid: DetectorMeasurement | RizzoUnavailable,

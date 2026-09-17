@@ -115,6 +115,30 @@ export const HOME_TEXT = Object.freeze({
     en: "The built-in detector uses an app-managed local key. The standard server still uses a local simulated transport and makes no provider or network call. Replacements in the last message: {count}.",
     it: "Il rilevatore integrato usa una chiave locale gestita dall'app. Il server standard usa ancora un trasporto locale simulato e non chiama provider o rete. Sostituzioni nell'ultimo messaggio: {count}.",
   },
+  homeProtectionPreviewIntro: {
+    en: "Check the current draft before sending. Highlighted placeholders are the values that would leave this computer. This local preview is optional and sends nothing.",
+    it: "Controlla la bozza corrente prima dell'invio. I segnaposto evidenziati sono i valori che uscirebbero da questo computer. L'anteprima locale è facoltativa e non invia nulla.",
+  },
+  homeProtectionPreviewAction: {
+    en: "Preview this draft",
+    it: "Controlla questa bozza",
+  },
+  homeProtectionPreviewEmpty: {
+    en: "Write a message first, then preview its protection here.",
+    it: "Prima scrivi un messaggio, poi controlla qui la sua protezione.",
+  },
+  homeProtectionPreviewUnavailable: {
+    en: "Send the first message to create this conversation; protection can be previewed before later messages.",
+    it: "Invia il primo messaggio per creare questa conversazione; dai messaggi successivi potrai controllare prima la protezione.",
+  },
+  homeProtectionPreviewReady: {
+    en: "Protected preview ready. Replacements: {count}. Unchanged text was not recognized automatically.",
+    it: "Anteprima protetta pronta. Sostituzioni: {count}. Il testo rimasto invariato non è stato riconosciuto automaticamente.",
+  },
+  homeProtectionPreviewFailed: {
+    en: "The protected preview is unavailable. Nothing was sent and the draft is still here.",
+    it: "L'anteprima protetta non è disponibile. Nulla è stato inviato e la bozza è ancora qui.",
+  },
   appearance: { en: "Appearance", it: "Aspetto" },
   appearanceHelp: {
     en: "Stays in this browser, like the language. Following the system also follows it when it changes.",

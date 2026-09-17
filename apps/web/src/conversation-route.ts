@@ -18,6 +18,7 @@ import {
 import { handleWorkFromConversationRoute } from "./work-from-conversation-route.ts";
 import { handleConversationTurnRoute } from "./conversation-turn-route.ts";
 import { handleProtectedTermRoute } from "./protected-term-route.ts";
+import { handleProtectionPreviewRoute } from "./protection-preview-route.ts";
 
 /** Same shape as the other list bounds in this interface, so one rule covers them all. */
 function limitOf(value: string | null): number | undefined {
@@ -80,6 +81,16 @@ export async function handleConversationRoute(
     return true;
   if (
     await handleProtectedTermRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )
+  )
+    return true;
+  if (
+    await handleProtectionPreviewRoute(
       request,
       response,
       url,

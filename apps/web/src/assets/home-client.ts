@@ -347,6 +347,59 @@ export const HOME_BEHAVIOUR = `
   // The detector finds deterministic values only, so a name, a company or an address
   // is protected only if the person names it here. The server resolves which map owns it.
   const protectedTermKinds = ["PERSON", "ORGANIZATION", "CUSTOMER", "PROJECT", "ADDRESS", "OTHER"];
+  const renderProtectionPreview = (output, value) => {
+    output.replaceChildren();
+    const expression = /\\[\\[[A-Z_]+_\\d+\\]\\]/gu;
+    let from = 0;
+    for (const match of value.matchAll(expression)) {
+      output.append(document.createTextNode(value.slice(from, match.index)));
+      const highlighted = document.createElement("mark");
+      text(highlighted, match[0]);
+      output.append(highlighted);
+      from = match.index + match[0].length;
+    }
+    output.append(document.createTextNode(value.slice(from)));
+  };
+  const protectionPreview = () => {
+    const section = document.createElement("div");
+    section.className = "protection-preview";
+    const intro = panelSentence("homeProtectionPreviewIntro");
+    const action = document.createElement("button");
+    action.type = "button";
+    say(action, "homeProtectionPreviewAction");
+    const status = document.createElement("p");
+    status.setAttribute("role", "status");
+    const output = document.createElement("p");
+    output.className = "protection-preview-output";
+    section.append(intro, action, status, output);
+    if (!openConversation || openConversation.startsWith("local-preview-")) {
+      action.disabled = true;
+      say(status, "homeProtectionPreviewUnavailable");
+      return section;
+    }
+    action.addEventListener("click", async () => {
+      const draft = homeMessage.value;
+      if (!draft.trim()) {
+        say(status, "homeProtectionPreviewEmpty");
+        homeMessage.focus();
+        return;
+      }
+      action.disabled = true;
+      output.replaceChildren();
+      try {
+        const preview = await api("/api/conversations/" + encodeURIComponent(openConversation) + "/protection-preview", {
+          method: "POST",
+          body: JSON.stringify({ text: draft }),
+        });
+        renderProtectionPreview(output, preview.text);
+        say(status, "homeProtectionPreviewReady", { count: number(preview.replacements) });
+      } catch {
+        say(status, "homeProtectionPreviewFailed");
+      }
+      action.disabled = false;
+    });
+    return section;
+  };
   const protectionTermForm = () => {
     const form = document.createElement("form");
     form.className = "protection-term";
@@ -406,7 +459,7 @@ export const HOME_BEHAVIOUR = `
       homePanelBody.append(panelSentence("homeContextSummary"), panelSentence("homeContextMaterial", { count: number(homeConversationMoments.children.length) }));
     } else {
       say(homePanelHeading, "homeProtectionHeading");
-      homePanelBody.append(panelSentence("homeProtectionSummary"), panelSentence("homeProtectionFake", { count: number(lastProtectionReplacements) }), protectionTermForm());
+      homePanelBody.append(panelSentence("homeProtectionSummary"), panelSentence("homeProtectionFake", { count: number(lastProtectionReplacements) }), protectionPreview(), protectionTermForm());
     }
     homePanel.hidden = false; homePanelHeading.focus();
   };

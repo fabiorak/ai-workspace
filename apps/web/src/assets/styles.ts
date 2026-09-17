@@ -182,6 +182,12 @@ section > h2 { margin-block-start: 0; font-size: clamp(1.45rem, 3vw, 2rem); lett
 .protection-term .protection-term-add { width: auto; justify-self: start; margin-block-start: .35rem; }
 .protection-term-status:empty { display: none; }
 .protection-term-status { margin: 0; font-size: .82rem; color: var(--muted); }
+.protection-preview { display: grid; gap: .55rem; margin-block: 1rem; padding: .8rem; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface-soft); }
+.protection-preview p { margin: 0; font-size: .82rem; }
+.protection-preview button { width: auto; justify-self: start; margin: 0; }
+.protection-preview-output { white-space: pre-wrap; overflow-wrap: anywhere; }
+.protection-preview-output:empty { display: none; }
+.protection-preview-output mark { padding: .08rem .22rem; border-radius: .25rem; background: color-mix(in srgb, var(--amber) 30%, var(--surface)); color: var(--ink); font-weight: 760; }
 .legacy-continuation[hidden] { display: none; }
 .dashboard-hero { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block-end: 1.25rem; }
 .dashboard-hero h2 { margin: 0; font-size: clamp(2rem, 5vw, 3.35rem); line-height: 1.05; letter-spacing: -.06em; }

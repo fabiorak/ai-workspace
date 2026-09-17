@@ -16,22 +16,34 @@ apply; see the migration window below for what remains behind the HTTP API.
    messages are shown without scrolling the page.
 3. Check the header: the conversation title, its project, and the model selector
    for the next message. Changing the model must not change the conversation.
-4. Open **Automatic protection** beside the composer. Write `Synthetic Customer`
+4. Open **Automatic protection** beside the composer. With an email or telephone
+   in the draft, select **Preview this draft**. Check that the outgoing form is
+   shown locally with highlighted placeholders and that nothing has been sent.
+5. Write `Synthetic Customer`
    in **Also protect this value**, choose **Customer**, and select **Protect it**.
    The panel reports the placeholder that value now has.
-5. Close the panel and write `Ask Synthetic Customer which failure to inspect
+6. Close the panel and write `Ask Synthetic Customer which failure to inspect
 next.` in the composer. Send it with the button or with `Ctrl+Enter`.
-6. Check that the answer appears below your message without scrolling, that it
+7. Check that the answer appears below your message without scrolling, that it
    begins `SIMULATED RESPONSE`, that it says no model was called, and that
    `Synthetic Customer` is restored in the visible text.
-7. Reopen **Automatic protection** and check the number of replacements in the
+8. Reopen **Automatic protection** and check the number of replacements in the
    last message.
-8. Write a second message and check that the previous answer is part of the
-   conversation. Reopen the conversation and check that both moments are kept.
-9. Repeat the labels and navigation check after switching language in Settings.
-   Use Tab, Enter and Escape to check that the composer, the model selector and
-   the panel remain reachable and that Escape returns focus.
-10. Stop the server with Ctrl+C. The temporary home is deliberately retained for
+9. Switch from **Demo A** to **Demo B**, write and send a second message, and
+   check that the previous answer remains in the same conversation and that the
+   new answer is attributed to Demo B.
+10. Select **Demo esito incerto** and send an invented message. Check that the
+    interface says the outcome is unknown, clears the draft and starts no retry.
+    Return to Demo A or Demo B before continuing.
+11. Write another message and check that the previous answer is part of the
+    conversation. Reopen the conversation and check that both moments are kept.
+12. Repeat the labels and navigation check after switching language in Settings.
+    Use Tab, Enter and Escape to check that the composer, the model selector and
+    the panel remain reachable and that Escape returns focus.
+13. At 200% zoom the desktop sidebar intentionally becomes the mobile menu.
+    Check that the menu button opens **Your conversations**, rather than expecting
+    the sidebar to remain fixed beside the conversation.
+14. Stop the server with Ctrl+C. The temporary home is deliberately retained for
     investigation; rerunning the demo creates another isolated home.
 
 Report the step number and what differed from the expected result. No real

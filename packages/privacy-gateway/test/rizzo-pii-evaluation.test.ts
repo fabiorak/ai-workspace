@@ -5,9 +5,11 @@ import { BuiltInPiiDetector } from "../src/index.ts";
 import { buildRizzoPiiEvaluationCorpus } from "../../../scripts/rizzo-pii-evaluation-corpus.ts";
 import {
   createRizzoPiiSpikeDetector,
+  decideRizzoPii,
   evaluateRizzoPii,
   RizzoPiiSpikeError,
   spansFromRizzoSegments,
+  type DetectorMeasurement,
 } from "../../../scripts/rizzo-pii-evaluation.ts";
 
 test("builds a bounded entirely synthetic bilingual corpus with exact UTF-8 truth", () => {
@@ -81,6 +83,14 @@ test("fails closed on unknown labels, missing source text and non-loopback endpo
     () => spansFromRizzoSegments([{ label: "FULLNAME", validated: false }]),
     RizzoPiiSpikeError,
   );
+  assert.throws(
+    () =>
+      spansFromRizzoSegments(
+        [{ t: "Alma Virelli", label: "FULLNAME", validated: false }],
+        "Bruno Castelli",
+      ),
+    RizzoPiiSpikeError,
+  );
   for (const endpoint of [
     "https://127.0.0.1:5005",
     "http://localhost:5005",
@@ -91,6 +101,51 @@ test("fails closed on unknown labels, missing source text and non-loopback endpo
       () => createRizzoPiiSpikeDetector(endpoint),
       RizzoPiiSpikeError,
     );
+});
+
+test("keeps the measured adoption decision behind the frozen gates", async () => {
+  const baseline = (await evaluateRizzoPii()).builtIn;
+  const passingScore = Object.freeze({
+    groundTruth: 10,
+    proposed: 10,
+    truePositive: 10,
+    falsePositive: 0,
+    falseNegative: 0,
+    precisionPercent: 100,
+    recallPercent: 100,
+  });
+  const perType = Object.freeze(
+    Object.fromEntries(
+      Object.keys(baseline.perType).map((type) => [type, passingScore]),
+    ),
+  ) as DetectorMeasurement["perType"];
+  const measured = Object.freeze({
+    ...baseline,
+    detector: "RIZZO" as const,
+    score: passingScore,
+    perType,
+    falsePositivesByNegativeKind: Object.freeze({
+      HASH_NEGATIVE: 0,
+      CODE_NEGATIVE: 0,
+      LOG_NEGATIVE: 0,
+    }),
+    latencyMilliseconds: Object.freeze({ p50: 10, p95: 20, samples: 140 }),
+  }) satisfies DetectorMeasurement;
+  const hybrid = Object.freeze({
+    ...measured,
+    detector: "RIZZO_PLUS_BUILT_IN" as const,
+  }) satisfies DetectorMeasurement;
+  assert.equal(
+    decideRizzoPii(baseline, measured, hybrid).decision,
+    "ADR_0045_REVIEW_JUSTIFIED_DEFAULT_UNCHANGED",
+  );
+  assert.equal(
+    decideRizzoPii(baseline, measured, {
+      ...hybrid,
+      score: { ...passingScore, precisionPercent: 64.02 },
+    }).decision,
+    "DO_NOT_ADOPT_RIZZO_DEFAULT_UNCHANGED",
+  );
 });
 
 test("records a built-in baseline while leaving Rizzo and the production default unchanged", async () => {

@@ -95,3 +95,12 @@ remains `BuiltInPiiDetector`. A future reconsideration needs a revised frozen
 corpus that separates code/log policy, an upstream confidence contract or an
 explicit port revision, and evidence that organization/address precision and
 recall improve without weakening deterministic coverage.
+
+## Post-review hardening
+
+The 17 September review did not rerun Rizzo and did not change the measured
+decision. It tightened the development bridge so the ordered response segments
+must reconstruct the byte-identical request before any offsets are accepted,
+and added regression coverage for both possible measured gate decisions. These
+checks close runner-integrity gaps; they do not add a runtime dependency or
+change the production detector.

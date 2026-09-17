@@ -436,7 +436,36 @@ export function conversationTurnArea(dependencies: Dependencies) {
       input.type,
     );
 
-  return Object.freeze({ run: service.run.bind(service), addProtectedTerm });
+  /** Produces the exact protected form of the current draft without composing
+   * context, recording an audit event or reaching the delivery boundary. The
+   * stable map is intentionally reused and extended, so the later turn keeps
+   * the placeholders the person reviewed here. */
+  const previewProtection = async (
+    input: Readonly<{ conversationId: string; text: string }>,
+  ) => {
+    if (
+      typeof input.text !== "string" ||
+      !input.text.isWellFormed() ||
+      !input.text.trim() ||
+      Buffer.byteLength(input.text, "utf8") > 64 * 1024
+    )
+      throw new Error("PROTECTION_PREVIEW_INVALID");
+    const protectedValue = await automaticPrivacy.protect(
+      stableScopeId(await resolveScope(input.conversationId)),
+      input.text,
+    );
+    return Object.freeze({
+      text: protectedValue.text,
+      replacements: protectedValue.replacements,
+      effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT" as const,
+    });
+  };
+
+  return Object.freeze({
+    run: service.run.bind(service),
+    addProtectedTerm,
+    previewProtection,
+  });
 }
 
 async function reducedContext(

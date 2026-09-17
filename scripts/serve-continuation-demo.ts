@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { continuationFixture } from "../apps/web/test/continuation-fixture.ts";
@@ -8,6 +8,7 @@ import { startGuiServer } from "../apps/web/src/server.ts";
 // placeholders it received and the app restores them before the answer is shown.
 const fixture = await continuationFixture({
   send: async ({ text, model }) => {
+    if (model === "model-unknown") return { kind: "UNKNOWN" };
     const placeholders = [
       ...new Set(text.match(/\[\[[A-Z_]+_\d+\]\]/gu) ?? []),
     ];
@@ -26,7 +27,28 @@ const fixture = await continuationFixture({
 const targets = [
   { targetId: "demo-a", displayName: "Demo A", modelId: "model-balanced" },
   { targetId: "demo-b", displayName: "Demo B", modelId: "model-small" },
+  {
+    targetId: "demo-unknown",
+    displayName: "Demo esito incerto",
+    modelId: "model-unknown",
+  },
 ];
+/** The shared synthetic profile deliberately allows two ordinary fixture models.
+ * This acceptance-only third model makes the post-exposure UNKNOWN state visible
+ * without a provider, timeout or network fault. */
+const profile = JSON.parse(
+  await readFile(fixture.target.profile.path, "utf8"),
+) as Readonly<{ agent: Readonly<{ allowedModels: readonly string[] }> }>;
+await writeFile(
+  fixture.target.profile.path,
+  JSON.stringify({
+    ...profile,
+    agent: {
+      ...profile.agent,
+      allowedModels: [...profile.agent.allowedModels, "model-unknown"],
+    },
+  }),
+);
 /** A privacy policy names the model it was written for, so a second model needs
  * a policy of its own: reusing the first one refuses the turn before exposure. */
 const policyFor = async (modelId: string) => {

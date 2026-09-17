@@ -16,6 +16,20 @@ screening and model policy checks remain separate boundaries.
 It does not recognize a person name, a company name or an address. Those are
 protected only once you name the value yourself, as described below.
 
+## Preview the current draft
+
+For an existing conversation, write the message and open **Automatic
+protection** before sending. Select **Preview this draft** to see the local
+protected form. Placeholders such as `[[EMAIL_1]]` are highlighted, the number
+of replacements is stated, and unchanged text remains visible so you can decide
+whether to add a term the detector missed.
+
+The preview is optional. It sends nothing, composes no conversation context and
+records no delivery audit event. It uses and may extend the same encrypted
+stable map as the later turn, so the placeholders shown in the preview are
+reused when the message is sent. A brand-new chat has no durable conversation
+scope until its first message; preview is available before subsequent messages.
+
 ## Protect a value the detector does not find
 
 Open **Automatic protection** beside the composer, write the value in
@@ -35,11 +49,11 @@ local path. A value shorter than two characters, longer than 256 bytes, shaped
 like a placeholder or containing control characters is refused, and nothing is
 written.
 
-Routine messages require no passphrase, manual name list, exact protected-text
-preview, or separate confirmation. Open **Automatic protection** beside the
-composer to see a short explanation and the number of replacements in the last
-completed message. Open **Settings** to inspect whether protection is active and
-to read its residual threat.
+Routine messages require no passphrase, manual name list, mandatory preview, or
+separate confirmation. Open **Automatic protection** beside the composer to
+preview the current draft, add a reviewed term, see a short explanation and read
+the number of replacements in the last completed message. Open **Settings** to
+inspect whether protection is active and to read its residual threat.
 
 The application stores the random mapping key and encrypted map in separate local
 files with restrictive permissions. This prevents accidental plaintext exposure

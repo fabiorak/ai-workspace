@@ -25,6 +25,49 @@ afterEach(async () => {
 });
 
 describe("protected term route", () => {
+  it("previews automatic replacements locally without reaching the transport", async () => {
+    let sends = 0;
+    const fixture = await startFixture({
+      send: async () => {
+        sends += 1;
+        throw new Error("A preview must not send.");
+      },
+    });
+    try {
+      const general =
+        await fixture.application.createGeneralConversation("Anteprima locale");
+      const path = `/api/conversations/${encodeURIComponent(general.id)}/protection-preview`;
+      const preview = await fixture.post(path, {
+        text: "Scrivi a prova@example.invalid prima di inviare.",
+      });
+      assert.equal(preview.status, 200);
+      assert.deepEqual(await preview.json(), {
+        text: "Scrivi a [[EMAIL_1]] prima di inviare.",
+        replacements: 1,
+        effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT",
+      });
+      assert.equal(sends, 0);
+      assert.equal((await fixture.get(path)).status, 404);
+      assert.equal((await fixture.post(path, { text: "" })).status, 400);
+      assert.equal(
+        (await fixture.post(path, { text: "bozza", scopeId: "GENERAL" }))
+          .status,
+        400,
+      );
+      const unguarded = await fetch(`${fixture.server.origin}${path}`, {
+        method: "POST",
+        headers: {
+          cookie: fixture.cookie,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ text: "prova@example.invalid" }),
+      });
+      assert.equal(unguarded.status, 403);
+    } finally {
+      await fixture.server.close();
+    }
+  });
+
   it("protects the named value in the next message and restores the answer", async () => {
     const sent: string[] = [];
     const fixture = await startFixture({

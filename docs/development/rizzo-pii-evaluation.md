@@ -62,8 +62,10 @@ Rizzo labels are mapped as follows:
 
 Unknown upstream labels fail closed. The Rizzo 2.0 `/analyze` response exposes
 ordered original segments when mapping is enabled, so the spike reconstructs
-exact UTF-8 offsets locally. It does not expose the neural score. Validated
-regex/checksum segments therefore use confidence `1`; neural segments use `0`
+exact UTF-8 offsets locally. The concatenated segment text must be byte-identical
+to the request; altered, missing or reordered content fails closed. It does not
+expose the neural score. Validated regex/checksum segments therefore use
+confidence `1`; neural segments use `0`
 as an explicit "unavailable" sentinel. This is not a calibrated confidence and
 is recorded as an adoption gap.
 
@@ -107,3 +109,6 @@ An ADR-0045 review is justified only when all of these hold for the hybrid:
 Even if all numeric gates pass, the missing neural confidence remains an ADR
 and adapter-contract issue. If Rizzo is unavailable, the only valid decision is
 `RIZZO_NOT_RUN_DEFAULT_UNCHANGED`; absence is not a negative quality result.
+The gate decision has a direct regression test for both the ADR-review and
+do-not-adopt branches; changing a threshold or branch cannot silently reclassify
+the frozen measurements.

@@ -532,6 +532,25 @@ describe("the opening screen", () => {
     }
   });
 
+  it("offers an optional highlighted protection preview before sending", () => {
+    assert.match(APP_JS, /\/protection-preview/u);
+    assert.match(APP_JS, /createElement\("mark"\)/u);
+    assert.match(APP_JS, /homeProtectionPreviewReady/u);
+    assert.match(APP_JS, /homeProtectionPreviewUnavailable/u);
+    assert.match(APP_CSS, /\.protection-preview-output mark/u);
+    for (const key of [
+      "homeProtectionPreviewIntro",
+      "homeProtectionPreviewAction",
+      "homeProtectionPreviewEmpty",
+      "homeProtectionPreviewUnavailable",
+      "homeProtectionPreviewReady",
+      "homeProtectionPreviewFailed",
+    ]) {
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+  });
+
   it("keeps history search on a dedicated sidebar destination", () => {
     assert.match(html, /href="#\/history"[^>]*data-route="history"/u);
     assert.match(html, /id="history-search"/u);
