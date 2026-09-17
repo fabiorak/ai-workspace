@@ -13,16 +13,17 @@ export const MODEL_TARGET_BEHAVIOUR = `
       const state = await api("/api/privacy-protection");
       say(privacyProtectionStatus, "automaticProtectionReady");
       legacyMigrationForm.hidden = state.legacyMappings === 0;
-      say(legacyMigrationSummary, state.legacyMappings === 0 ? "legacyNone" : "legacyFound", { count: number(state.legacyMappings), threat: message("automaticProtectionThreat") });
+      say(legacyMigrationSummary, state.legacyMappings === 0 ? "legacyNone" : "legacyFound", { count: number(state.legacyMappings), threat: { key: "automaticProtectionThreat" } });
       text(legacyMigrationError, "");
     } catch (cause) { detail(legacyMigrationError, cause); }
   };
   const modelTargetOption = (value, label) => { const option = document.createElement("option"); option.value = value; text(option, label); return option; };
+  const modelTargetMessageOption = (value, key) => { const option = document.createElement("option"); option.value = value; say(option, key); return option; };
   const renderModelTargetChoices = (view) => {
     modelTargetRevision = view.revision;
     const current = modelTargetSelect.value;
-    modelTargetSelect.replaceChildren(modelTargetOption("", message("modelTargetChoose")));
-    modelTargetDefault.replaceChildren(modelTargetOption("", message("modelTargetNoDefault")));
+    modelTargetSelect.replaceChildren(modelTargetMessageOption("", "modelTargetChoose"));
+    modelTargetDefault.replaceChildren(modelTargetMessageOption("", "modelTargetNoDefault"));
     for (const target of view.targets) {
       if (!target.enabled) continue;
       modelTargetSelect.append(modelTargetOption(target.targetId, target.displayName));

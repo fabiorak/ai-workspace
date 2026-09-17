@@ -50,6 +50,17 @@ describe("the opening screen", () => {
     );
   });
 
+  it("closes mobile navigation with Escape and returns focus to its toggle", () => {
+    assert.match(
+      APP_JS,
+      /event\.key === "Escape"[\s\S]*classList\.contains\("menu-open"\)[\s\S]*closeMobileMenu\(true\)/u,
+    );
+    assert.match(
+      APP_JS,
+      /const closeMobileMenu[\s\S]*classList\.remove\("menu-open"\)[\s\S]*aria-expanded", "false"[\s\S]*restoreFocus && wasOpen[\s\S]*toggle\.focus\(\)/u,
+    );
+  });
+
   it("loads configured targets and persists a conversation choice by target ID", () => {
     assert.doesNotMatch(homeSection, /value="model-a"|value="model-b"/u);
     assert.match(html, /id="model-target-form"/u);
@@ -60,6 +71,18 @@ describe("the opening screen", () => {
     );
     assert.match(APP_JS, /expectedRevision: modelTargetRevision/u);
     assert.doesNotMatch(html, /id="continuation-configure"/u);
+  });
+
+  it("keeps dynamic Settings choices and privacy guidance localized after a language change", () => {
+    assert.match(
+      APP_JS,
+      /modelTargetMessageOption\("", "modelTargetChoose"\)/u,
+    );
+    assert.match(
+      APP_JS,
+      /modelTargetMessageOption\("", "modelTargetNoDefault"\)/u,
+    );
+    assert.match(APP_JS, /threat: \{ key: "automaticProtectionThreat" \}/u);
   });
 
   it("names the field with a visible label bound to its control", () => {

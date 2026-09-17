@@ -186,10 +186,16 @@ export const APP_JS = `
     clear.addEventListener("click", () => { location.hash = "#/" + page; });
     chip.append(description, clear);
   };
+  const closeMobileMenu = (restoreFocus = false) => {
+    const toggle = document.getElementById("menu-toggle");
+    const wasOpen = document.body.classList.contains("menu-open");
+    document.body.classList.remove("menu-open");
+    toggle.setAttribute("aria-expanded", "false");
+    if (restoreFocus && wasOpen) toggle.focus();
+  };
   const renderRoute = (focusMain = false) => {
     const page = currentPage();
-    document.body.classList.remove("menu-open");
-    document.getElementById("menu-toggle").setAttribute("aria-expanded", "false");
+    closeMobileMenu();
     for (const section of document.querySelectorAll("main > section")) section.classList.toggle("route-hidden", !pageSections[page].includes(section.id));
     for (const link of document.querySelectorAll("[data-route]")) {
       if (link.dataset.route === page) link.setAttribute("aria-current", "page");
@@ -216,6 +222,10 @@ export const APP_JS = `
   document.getElementById("menu-toggle").addEventListener("click", (event) => {
     const open = document.body.classList.toggle("menu-open");
     event.currentTarget.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && document.body.classList.contains("menu-open"))
+      closeMobileMenu(true);
   });
   addEventListener("hashchange", () => renderRoute(false));
   document.addEventListener("click", (event) => {
