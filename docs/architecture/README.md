@@ -288,6 +288,14 @@ bare API authentication separate from managed login. Bare is
 `SEPARATE_AGENT_BOUNDARY`. No harness is exported and no application, network,
 credential, subprocess, routing, fallback, or GUI graph changes.
 
+ADR-0045 now proposes the missing follow-up without collapsing these boundaries.
+Subscription-backed Codex and Claude Code targets belong to a separate
+`AGENT_EXECUTION` path; direct provider APIs remain `MODEL_DELIVERY`, and local
+inference remains `LOCAL_MODEL`. Its first increment adds a dormant Codex
+subprocess runner and qualifies it only with a synthetic executable. There is
+still no application wiring, managed-login use, external execution or GUI
+target.
+
 Sprint 36 also changes no production graph. A test-owned OpenAI attempt store,
 fake create adapter, and canonical snapshot harness measure the ADR-0027
 application-level at-most-once state machine. The local exposure claim precedes

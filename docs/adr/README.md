@@ -69,3 +69,4 @@ Status: proposed | accepted | superseded
 - [ADR-0042: Use conversation turns as the primary model flow](0042-use-conversation-turns-as-the-primary-model-flow.md)
 - [ADR-0043: Use app-managed keys for stable local pseudonym maps](0043-use-app-managed-keys-for-stable-local-pseudonym-maps.md)
 - [ADR-0044: Store model targets in versioned local configuration](0044-store-model-targets-in-versioned-local-configuration.md)
+- [ADR-0045: Run subscription-backed agents behind a separate execution boundary](0045-run-subscription-backed-agents-behind-a-separate-boundary.md)

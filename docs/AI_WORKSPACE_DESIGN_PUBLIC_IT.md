@@ -285,6 +285,14 @@ l'autenticazione API bare (`API_EQUIVALENT_NOT_FALLBACK`) dal login gestito
 adapter di produzione, chiamate modello, risposte, routing, fallback, delivery
 o esecuzione.
 
+ADR-0045 propone ora il seguito senza confondere i confini. Codex e Claude Code
+autenticati tramite abbonamento appartengono a un percorso separato
+`AGENT_EXECUTION`; le API provider restano `MODEL_DELIVERY` e l'inferenza locale
+resta `LOCAL_MODEL`. Il primo incremento qualifica offline un solo adattatore
+Codex prima di abilitare login gestiti, processi reali o target GUI. Il
+successivo target Claude Code usa esplicitamente l'alias ispezionabile `sonnet`
+come valore predefinito.
+
 Sprint 36 accetta ADR-0027 dopo che un corpus OpenAI offline congelato di 28
 casi passa con zero errori, al massimo una create applicativa per
 autorizzazione, `UNKNOWN_AFTER_EXPOSURE` esplicito attraverso crash/riavvio e

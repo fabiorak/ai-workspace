@@ -214,6 +214,11 @@ documents the explicit process-only activation prepared in P3. It does not
 authorize a request: model, account, current pricing, exact synthetic text and
 the two-request cost bound remain a separate P4 review.
 
+When API access is unavailable, the
+[subscription-backed agent boundary](subscription-agent-boundary.md) keeps
+Codex CLI and Claude Code managed login separate from model delivery. It defines
+the offline A7.0-A7.2 gates; no real executable, login or model is invoked.
+
 Sprint 35 applies the same boundary to the second provider family through the
 [Anthropic Messages corpus](anthropic-messages-qualification-corpus.md),
 [Claude headless corpus](claude-headless-qualification-corpus.md), and combined

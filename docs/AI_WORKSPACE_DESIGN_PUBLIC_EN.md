@@ -277,6 +277,14 @@ API authentication (`API_EQUIVALENT_NOT_FALLBACK`) from managed login
 (`SEPARATE_AGENT_BOUNDARY`). No live probe, credential, production adapter,
 model call, response, routing, fallback, delivery, or execution is added.
 
+ADR-0045 now proposes the follow-up without collapsing the boundaries.
+Subscription-authenticated Codex and Claude Code belong to a separate
+`AGENT_EXECUTION` path; provider APIs remain `MODEL_DELIVERY`, and local
+inference remains `LOCAL_MODEL`. The first increment qualifies one Codex adapter
+offline before managed login, real subprocess execution, or GUI targets are
+enabled. The later Claude Code target defaults explicitly to the inspectable
+`sonnet` alias.
+
 Sprint 36 accepts ADR-0027 after a frozen 28-case offline OpenAI attempt corpus
 passes with zero errors, at most one application-level create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE` across crash/restart, and zero
