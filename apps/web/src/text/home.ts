@@ -116,12 +116,20 @@ export const HOME_TEXT = Object.freeze({
     it: "Il rilevatore integrato usa una chiave locale gestita dall'app. Il server standard usa ancora un trasporto locale simulato e non chiama provider o rete. Sostituzioni nell'ultimo messaggio: {count}.",
   },
   homeProtectionPreviewIntro: {
-    en: "Check the current draft before sending. Highlighted placeholders are the values that would leave this computer. This local preview is optional and sends nothing.",
-    it: "Controlla la bozza corrente prima dell'invio. I segnaposto evidenziati sono i valori che uscirebbero da questo computer. L'anteprima locale è facoltativa e non invia nulla.",
+    en: "This preview stays local and sends nothing. To keep placeholders consistent when you send, new associations remain in the protected local map.",
+    it: "Questa anteprima resta locale e non invia nulla. Per mantenere gli stessi segnaposto al momento dell'invio, le nuove associazioni restano nella mappa locale protetta.",
   },
   homeProtectionPreviewAction: {
-    en: "Preview this draft",
-    it: "Controlla questa bozza",
+    en: "Show protections",
+    it: "Mostra protezioni",
+  },
+  homeProtectionPreviewHide: {
+    en: "Hide protections",
+    it: "Nascondi protezioni",
+  },
+  homeProtectionPreviewManage: {
+    en: "Manage protected terms",
+    it: "Gestisci termini protetti",
   },
   homeProtectionPreviewEmpty: {
     en: "Write a message first, then preview its protection here.",
@@ -132,8 +140,8 @@ export const HOME_TEXT = Object.freeze({
     it: "Invia il primo messaggio per creare questa conversazione; dai messaggi successivi potrai controllare prima la protezione.",
   },
   homeProtectionPreviewReady: {
-    en: "Protected preview ready. Replacements: {count}. Unchanged text was not recognized automatically.",
-    it: "Anteprima protetta pronta. Sostituzioni: {count}. Il testo rimasto invariato non è stato riconosciuto automaticamente.",
+    en: "Local preview ready. Replacements: {count}. Unchanged values were not recognized automatically; add them to protected terms if needed.",
+    it: "Anteprima locale pronta. Sostituzioni: {count}. I valori rimasti invariati non sono stati riconosciuti automaticamente; aggiungili ai termini protetti se serve.",
   },
   homeProtectionPreviewFailed: {
     en: "The protected preview is unavailable. Nothing was sent and the draft is still here.",

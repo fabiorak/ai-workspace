@@ -27,6 +27,27 @@ afterEach(async () => {
 });
 
 describe("reviewed protected terms", () => {
+  it("uses the eventual General scope when a first draft has no conversation yet", async () => {
+    const home = await temporaryHome();
+    const area = fixture(home, []);
+    const added = await area.addProtectedTerm({
+      term: COMPANY,
+      type: "ORGANIZATION",
+    });
+    assert.equal(added.pseudonym, "[[AZIENDA_1]]");
+    const preview = await area.previewProtection({
+      text: `Che cosa è successo con ${COMPANY}?`,
+    });
+    assert.equal(preview.text, "Che cosa è successo con [[AZIENDA_1]]?");
+    const repeated = await area.addProtectedTerm({
+      conversationId: "general-conversation",
+      term: COMPANY,
+      type: "ORGANIZATION",
+    });
+    assert.equal(repeated.pseudonym, "[[AZIENDA_1]]");
+    assert.equal(repeated.added, false);
+  });
+
   it("protects a reviewed term in the next turn and restores it in the answer", async () => {
     const home = await temporaryHome();
     const sent: string[] = [];

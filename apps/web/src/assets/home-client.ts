@@ -159,10 +159,21 @@ export const HOME_BEHAVIOUR = `
   const homeConversationModel = document.getElementById("home-conversation-model");
   const homeMessage = document.getElementById("home-message");
   const homeSend = document.getElementById("home-send");
+  const homeProtectionPreviewToggle = document.getElementById("home-protection-preview-toggle");
+  const homeProtectionPreviewBox = document.getElementById("home-protection-preview");
+  const homeProtectionPreviewStatus = document.getElementById("home-protection-preview-status");
+  const homeProtectionPreviewOutput = document.getElementById("home-protection-preview-output");
   const homeComposerStatus = document.getElementById("home-composer-status");
   const homeComposerError = document.getElementById("home-composer-error");
   let openConversation = null;
   let openConversationProject = null;
+  const clearProtectionPreview = () => {
+    homeProtectionPreviewBox.hidden = true;
+    homeProtectionPreviewOutput.replaceChildren();
+    text(homeProtectionPreviewStatus, "");
+    homeProtectionPreviewToggle.setAttribute("aria-expanded", "false");
+    say(homeProtectionPreviewToggle, "homeProtectionPreviewAction");
+  };
   const updateHomeSend = () => { homeSend.disabled = !homeMessage.value.trim() || !homeConversationModel.value; };
   const markOpenRow = () => {
     for (const button of conversationGroups.querySelectorAll("button[data-conversation]"))
@@ -290,7 +301,7 @@ export const HOME_BEHAVIOUR = `
     homeEmpty.hidden = true;
     text(homeConversationStatus, "");
     homeConversationModel.value = "";
-    homeMessage.value = ""; updateHomeSend(); text(homeComposerError, ""); say(homeComposerStatus, "homeTurnReady");
+    homeMessage.value = ""; clearProtectionPreview(); updateHomeSend(); text(homeComposerError, ""); say(homeComposerStatus, "homeTurnReady");
     // What it would take to pick this work up again sits at the end of it, composed
     // rather than fetched, and expanded rather than behind a control (ADR-0037).
     showRestartPoint(conversation);
@@ -360,45 +371,42 @@ export const HOME_BEHAVIOUR = `
     }
     output.append(document.createTextNode(value.slice(from)));
   };
-  const protectionPreview = () => {
-    const section = document.createElement("div");
-    section.className = "protection-preview";
-    const intro = panelSentence("homeProtectionPreviewIntro");
-    const action = document.createElement("button");
-    action.type = "button";
-    say(action, "homeProtectionPreviewAction");
-    const status = document.createElement("p");
-    status.setAttribute("role", "status");
-    const output = document.createElement("p");
-    output.className = "protection-preview-output";
-    section.append(intro, action, status, output);
-    if (!openConversation || openConversation.startsWith("local-preview-")) {
-      action.disabled = true;
-      say(status, "homeProtectionPreviewUnavailable");
-      return section;
+  const previewPath = () =>
+    openConversation && !openConversation.startsWith("local-preview-")
+      ? "/api/conversations/" + encodeURIComponent(openConversation) + "/protection-preview"
+      : "/api/protection-preview";
+  const protectedTermPath = () =>
+    openConversation && !openConversation.startsWith("local-preview-")
+      ? "/api/conversations/" + encodeURIComponent(openConversation) + "/protected-terms"
+      : "/api/protected-terms";
+  const showProtectionPreview = async () => {
+    if (!homeProtectionPreviewBox.hidden) {
+      clearProtectionPreview();
+      return;
     }
-    action.addEventListener("click", async () => {
-      const draft = homeMessage.value;
-      if (!draft.trim()) {
-        say(status, "homeProtectionPreviewEmpty");
-        homeMessage.focus();
-        return;
-      }
-      action.disabled = true;
-      output.replaceChildren();
-      try {
-        const preview = await api("/api/conversations/" + encodeURIComponent(openConversation) + "/protection-preview", {
-          method: "POST",
-          body: JSON.stringify({ text: draft }),
-        });
-        renderProtectionPreview(output, preview.text);
-        say(status, "homeProtectionPreviewReady", { count: number(preview.replacements) });
-      } catch {
-        say(status, "homeProtectionPreviewFailed");
-      }
-      action.disabled = false;
-    });
-    return section;
+    const draft = homeMessage.value;
+    homeProtectionPreviewBox.hidden = false;
+    homeProtectionPreviewOutput.replaceChildren();
+    if (!draft.trim()) {
+      say(homeProtectionPreviewStatus, "homeProtectionPreviewEmpty");
+      homeMessage.focus();
+      return;
+    }
+    homeProtectionPreviewToggle.disabled = true;
+    try {
+      const preview = await api(previewPath(), {
+        method: "POST",
+        body: JSON.stringify({ text: draft }),
+      });
+      renderProtectionPreview(homeProtectionPreviewOutput, preview.text);
+      say(homeProtectionPreviewStatus, "homeProtectionPreviewReady", { count: number(preview.replacements) });
+      homeProtectionPreviewToggle.setAttribute("aria-expanded", "true");
+      say(homeProtectionPreviewToggle, "homeProtectionPreviewHide");
+    } catch {
+      say(homeProtectionPreviewStatus, "homeProtectionPreviewFailed");
+    } finally {
+      homeProtectionPreviewToggle.disabled = false;
+    }
   };
   const protectionTermForm = () => {
     const form = document.createElement("form");
@@ -433,7 +441,7 @@ export const HOME_BEHAVIOUR = `
       try {
         // The outcome is read from the status, so the sentence a person reads is one
         // of ours in their own language instead of the server's English wording.
-        const response = await fetch("/api/conversations/" + encodeURIComponent(openConversation) + "/protected-terms", {
+        const response = await fetch(protectedTermPath(), {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-AI-Workspace-CSRF": csrf },
           body: JSON.stringify({ term, type: kind.value }),
@@ -459,12 +467,13 @@ export const HOME_BEHAVIOUR = `
       homePanelBody.append(panelSentence("homeContextSummary"), panelSentence("homeContextMaterial", { count: number(homeConversationMoments.children.length) }));
     } else {
       say(homePanelHeading, "homeProtectionHeading");
-      homePanelBody.append(panelSentence("homeProtectionSummary"), panelSentence("homeProtectionFake", { count: number(lastProtectionReplacements) }), protectionPreview(), protectionTermForm());
+      homePanelBody.append(panelSentence("homeProtectionSummary"), panelSentence("homeProtectionFake", { count: number(lastProtectionReplacements) }), protectionTermForm());
     }
     homePanel.hidden = false; homePanelHeading.focus();
   };
   document.getElementById("home-context-open").addEventListener("click", (event) => openConversationPanel("context", event.currentTarget));
-  document.getElementById("home-protection-open").addEventListener("click", (event) => openConversationPanel("protection", event.currentTarget));
+  homeProtectionPreviewToggle.addEventListener("click", () => { void showProtectionPreview(); });
+  document.getElementById("home-protection-manage").addEventListener("click", (event) => openConversationPanel("protection", event.currentTarget));
   document.getElementById("home-panel-close").addEventListener("click", closeConversationPanel);
   document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !homePanel.hidden) closeConversationPanel(); });
   homeConversationModel.addEventListener("change", async () => {
@@ -498,7 +507,7 @@ export const HOME_BEHAVIOUR = `
     markOpenRow(); homeMessage.focus();
   };
   document.getElementById("home-new-conversation").addEventListener("click", startNewConversation);
-  homeMessage.addEventListener("input", updateHomeSend);
+  homeMessage.addEventListener("input", () => { clearProtectionPreview(); updateHomeSend(); });
   homeMessage.addEventListener("keydown", (event) => { if (event.key === "Enter" && event.ctrlKey) { event.preventDefault(); document.getElementById("home-composer").requestSubmit(); } });
   document.getElementById("home-composer").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -525,6 +534,7 @@ export const HOME_BEHAVIOUR = `
       if (outcome.result.kind === "COMPLETED") {
         lastProtectionReplacements = outcome.result.protection?.replacements || 0;
         homeMessage.value = "";
+        clearProtectionPreview();
         await showConversation({ id: openConversation, projectId: openConversationProject }, false, true);
         await loadConversations();
         say(homeComposerStatus, outcome.duplicate ? "homeTurnDuplicate" : "homeTurnSaved", { model: outcome.result.effectiveModel });
@@ -532,9 +542,11 @@ export const HOME_BEHAVIOUR = `
         say(homeComposerError, "homeTurnRefused");
       } else if (outcome.result.kind === "UNKNOWN_AFTER_EXPOSURE") {
         homeMessage.value = "";
+        clearProtectionPreview();
         say(homeComposerError, "homeTurnUnknown");
       } else {
         homeMessage.value = "";
+        clearProtectionPreview();
         say(homeComposerError, "homeTurnWithheld");
       }
     } catch (cause) {

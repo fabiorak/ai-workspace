@@ -356,18 +356,12 @@ describe("the opening screen", () => {
       assert.doesNotMatch(APP_JS, legacy, `${legacy} is still shipped.`);
   });
 
-  /**
-   * Both panel openers looked wrong in opposite ways: protection had no border
-   * and no surface, so it did not read as a button at all, and the shared
-   * button:hover then repainted its background with the accent while its label
-   * stayed muted — 1.14:1 in the dark theme. Context, carrying no class, took
-   * the filled accent and competed with Send, the one primary action.
-   */
-  it("shows both panel openers as secondary buttons that stay readable on hover", () => {
+  /** The secondary actions must remain readable and not compete with Send. */
+  it("shows the context and protection actions as readable secondary buttons", () => {
     assert.match(homeSection, /id="home-context-open" class="panel-button"/u);
     assert.match(
       homeSection,
-      /id="home-protection-open" class="panel-button"/u,
+      /id="home-protection-preview-toggle" class="panel-button"/u,
     );
     assert.equal((homeSection.match(/class="send-button"/gu) ?? []).length, 1);
     assert.match(APP_CSS, /\.panel-button \{[^}]*border:/u);
@@ -558,14 +552,18 @@ describe("the opening screen", () => {
   it("offers an optional highlighted protection preview before sending", () => {
     assert.match(APP_JS, /\/protection-preview/u);
     assert.match(APP_JS, /createElement\("mark"\)/u);
+    assert.match(APP_JS, /clearProtectionPreview/u);
+    assert.match(homeSection, /id="home-protection-preview-toggle"/u);
+    assert.match(homeSection, /id="home-protection-preview"/u);
+    assert.match(homeSection, /id="home-protection-manage"/u);
     assert.match(APP_JS, /homeProtectionPreviewReady/u);
-    assert.match(APP_JS, /homeProtectionPreviewUnavailable/u);
     assert.match(APP_CSS, /\.protection-preview-output mark/u);
     for (const key of [
       "homeProtectionPreviewIntro",
       "homeProtectionPreviewAction",
+      "homeProtectionPreviewHide",
+      "homeProtectionPreviewManage",
       "homeProtectionPreviewEmpty",
-      "homeProtectionPreviewUnavailable",
       "homeProtectionPreviewReady",
       "homeProtectionPreviewFailed",
     ]) {

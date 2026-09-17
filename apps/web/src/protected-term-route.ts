@@ -7,10 +7,12 @@ import { json, readJson, record, reject } from "./http-plumbing.ts";
 
 type MutationGuard = (request: IncomingMessage) => boolean;
 const PATH = /^\/api\/conversations\/([^/]+)\/protected-terms$/u;
+const GENERAL_PATH = "/api/protected-terms";
 
 /**
- * The person names the value; the server resolves which stable map owns it. The
- * browser never receives or chooses the scope, the key, the map or a path.
+ * The person names the value; the server resolves which stable map owns it. A
+ * first General draft uses the fixed GENERAL scope, not a browser-supplied one.
+ * The browser never receives or chooses the scope, key, map or a path.
  */
 export async function handleProtectedTermRoute(
   request: IncomingMessage,
@@ -20,7 +22,8 @@ export async function handleProtectedTermRoute(
   authorizeWrite: MutationGuard,
 ): Promise<boolean> {
   const match = PATH.exec(url.pathname);
-  if (match === null || request.method !== "POST") return false;
+  const general = url.pathname === GENERAL_PATH;
+  if ((match === null && !general) || request.method !== "POST") return false;
   if (!authorizeWrite(request)) {
     reject(
       response,
@@ -50,7 +53,9 @@ export async function handleProtectedTermRoute(
       response,
       200,
       await application.conversationTurns.addProtectedTerm({
-        conversationId: decodeURIComponent(match[1]!),
+        ...(match === null
+          ? {}
+          : { conversationId: decodeURIComponent(match[1]!) }),
         term: body.term,
         type: body.type as (typeof PII_ENTITY_TYPES)[number],
       }),

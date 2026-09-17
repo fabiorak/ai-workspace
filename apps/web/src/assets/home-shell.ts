@@ -49,9 +49,15 @@ export const HOME_SECTION = `
             <label class="visually-hidden" for="home-message" data-i18n="homeMessageLabel">Write a message</label>
             <textarea id="home-message" rows="2" data-i18n-label="homeMessageLabel" data-i18n-placeholder="homeMessagePlaceholder" aria-label="Write a message" placeholder="Write a message..." aria-describedby="home-composer-status home-composer-error"></textarea>
             <div class="composer-actions">
-              <button type="button" id="home-protection-open" class="panel-button" aria-expanded="false" aria-controls="home-conversation-panel" data-i18n="homeProtectionOpen">Automatic protection</button>
+              <button type="button" id="home-protection-preview-toggle" class="panel-button" aria-expanded="false" aria-controls="home-protection-preview" data-i18n="homeProtectionPreviewAction">Show protections</button>
               <button type="submit" id="home-send" class="send-button" disabled data-i18n="homeSend">Send</button>
             </div>
+          </div>
+          <div id="home-protection-preview" class="protection-preview composer-protection-preview" hidden>
+            <p data-i18n="homeProtectionPreviewIntro">Check the current draft locally before sending. Nothing is sent.</p>
+            <p id="home-protection-preview-status" role="status" aria-live="polite"></p>
+            <p id="home-protection-preview-output" class="protection-preview-output"></p>
+            <button type="button" id="home-protection-manage" class="panel-button" aria-expanded="false" aria-controls="home-conversation-panel" data-i18n="homeProtectionPreviewManage">Manage protected terms</button>
           </div>
           <p id="home-composer-status" class="help composer-status" role="status" aria-live="polite" data-i18n="homeTurnReady">Context updated. Ready to send one coordinated turn.</p>
           <p id="home-composer-error" class="error" role="alert"></p>

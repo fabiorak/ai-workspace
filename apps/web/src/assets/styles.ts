@@ -183,6 +183,7 @@ section > h2 { margin-block-start: 0; font-size: clamp(1.45rem, 3vw, 2rem); lett
 .protection-term-status:empty { display: none; }
 .protection-term-status { margin: 0; font-size: .82rem; color: var(--muted); }
 .protection-preview { display: grid; gap: .55rem; margin-block: 1rem; padding: .8rem; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface-soft); }
+.composer-protection-preview { width: min(100%, 48rem); margin: .6rem auto 0; }
 .protection-preview p { margin: 0; font-size: .82rem; }
 .protection-preview button { width: auto; justify-self: start; margin: 0; }
 .protection-preview-output { white-space: pre-wrap; overflow-wrap: anywhere; }

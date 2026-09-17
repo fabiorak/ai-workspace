@@ -2505,3 +2505,13 @@ five-query p95 below 91 ms, and at most 2.4% pressure on any production bound
 on the development host. Decision `NO_CHANGE` adds no FTS5/index ADR or runtime
 surface. Timings are local observations; deterministic counts and gates are
 reproducible with `npm run measure:general-links`.
+
+### Local protection review before sending
+
+In the GUI composer, **Show protections** sits beside **Send**. It displays a
+separate pseudonymized projection without changing the draft, composing context,
+writing an audit event, or sending a turn. A first General draft can use that
+same projection and add protected terms before a durable conversation exists;
+the server still owns scope selection and the map. The projection may extend
+only the encrypted local map, so the placeholder remains stable when the message
+is later sent.

@@ -5,11 +5,13 @@ import { json, readJson, record, reject } from "./http-plumbing.ts";
 
 type MutationGuard = (request: IncomingMessage) => boolean;
 const PATH = /^\/api\/conversations\/([^/]+)\/protection-preview$/u;
+const GENERAL_PATH = "/api/protection-preview";
 
 /**
  * A preview may extend the local stable map, but cannot compose context, write
- * an audit event or reach a transport. Scope is resolved from the conversation
- * rather than accepted from the browser.
+ * an audit event or reach a transport. A first General draft has no conversation
+ * yet, so its dedicated route uses the same server-owned GENERAL scope that its
+ * eventual conversation will use. The browser never names a scope, key or path.
  */
 export async function handleProtectionPreviewRoute(
   request: IncomingMessage,
@@ -19,7 +21,8 @@ export async function handleProtectionPreviewRoute(
   authorizeWrite: MutationGuard,
 ): Promise<boolean> {
   const match = PATH.exec(url.pathname);
-  if (match === null || request.method !== "POST") return false;
+  const general = url.pathname === GENERAL_PATH;
+  if ((match === null && !general) || request.method !== "POST") return false;
   if (!authorizeWrite(request)) {
     reject(
       response,
@@ -42,7 +45,9 @@ export async function handleProtectionPreviewRoute(
       response,
       200,
       await application.conversationTurns.previewProtection({
-        conversationId: decodeURIComponent(match[1]!),
+        ...(match === null
+          ? {}
+          : { conversationId: decodeURIComponent(match[1]!) }),
         text: body.text,
       }),
     );

@@ -2652,3 +2652,13 @@ a 88 ms, p95 warm su cinque query inferiore a 91 ms e pressione massima del
 non aggiunge ADR FTS5/index né superfici runtime. I tempi sono osservazioni
 locali; conteggi e gate deterministici sono riproducibili con
 `npm run measure:general-links`.
+
+### Revisione locale della protezione prima dell'invio
+
+Nel composer della GUI, **Mostra protezioni** e' accanto a **Invia**. Mostra una
+proiezione pseudonimizzata separata senza modificare la bozza, comporre contesto,
+scrivere audit o inviare un turno. La prima bozza General puo' usare la stessa
+proiezione e aggiungere termini protetti prima che esista una conversazione
+durabile; lo scope e la mappa restano comunque decisi dal server. La proiezione
+puo' estendere soltanto la mappa cifrata locale, per mantenere stabile il
+segnaposto che verra' usato al successivo invio.

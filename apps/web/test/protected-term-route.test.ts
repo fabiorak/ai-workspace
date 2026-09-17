@@ -25,6 +25,48 @@ afterEach(async () => {
 });
 
 describe("protected term route", () => {
+  it("previews and names terms for a first General draft without creating or sending a conversation", async () => {
+    let sends = 0;
+    const fixture = await startFixture({
+      send: async () => {
+        sends += 1;
+        throw new Error("A first-draft preview must not send.");
+      },
+    });
+    try {
+      const added = await fixture.post("/api/protected-terms", {
+        term: COMPANY,
+        type: "ORGANIZATION",
+      });
+      assert.deepEqual(await added.json(), {
+        pseudonym: "[[AZIENDA_1]]",
+        added: true,
+        terms: 1,
+      });
+      const preview = await fixture.post("/api/protection-preview", {
+        text: `Che cosa è successo con ${COMPANY}?`,
+      });
+      assert.deepEqual(await preview.json(), {
+        text: "Che cosa è successo con [[AZIENDA_1]]?",
+        replacements: 1,
+        effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT",
+      });
+      assert.equal(sends, 0);
+      assert.equal((await fixture.get("/api/protection-preview")).status, 404);
+      assert.equal(
+        (
+          await fixture.post("/api/protection-preview", {
+            text: "bozza",
+            scopeId: "GENERAL",
+          })
+        ).status,
+        400,
+      );
+    } finally {
+      await fixture.server.close();
+    }
+  });
+
   it("previews automatic replacements locally without reaching the transport", async () => {
     let sends = 0;
     const fixture = await startFixture({

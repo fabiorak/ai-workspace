@@ -422,13 +422,15 @@ export function conversationTurnArea(dependencies: Dependencies) {
    * next message would not use. */
   const addProtectedTerm = async (
     input: Readonly<{
-      conversationId: string;
+      conversationId?: string;
       term: string;
       type: PiiEntityType;
     }>,
   ) =>
     automaticPrivacy.addTerm(
-      stableScopeId(await resolveScope(input.conversationId)),
+      input.conversationId === undefined
+        ? "GENERAL"
+        : stableScopeId(await resolveScope(input.conversationId)),
       input.term,
       input.type,
     );
@@ -438,7 +440,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
    * stable map is intentionally reused and extended, so the later turn keeps
    * the placeholders the person reviewed here. */
   const previewProtection = async (
-    input: Readonly<{ conversationId: string; text: string }>,
+    input: Readonly<{ conversationId?: string; text: string }>,
   ) => {
     if (
       typeof input.text !== "string" ||
@@ -448,7 +450,9 @@ export function conversationTurnArea(dependencies: Dependencies) {
     )
       throw new Error("PROTECTION_PREVIEW_INVALID");
     const protectedValue = await automaticPrivacy.protect(
-      stableScopeId(await resolveScope(input.conversationId)),
+      input.conversationId === undefined
+        ? "GENERAL"
+        : stableScopeId(await resolveScope(input.conversationId)),
       input.text,
     );
     return Object.freeze({
