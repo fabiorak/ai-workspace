@@ -311,11 +311,8 @@ export function conversationTurnArea(dependencies: Dependencies) {
           preflightAuditEventHash: context.auditEventHash,
           destination: "EXTERNAL",
           providerKind: "OPENAI_RESPONSES",
-          maxOutputTokens: Math.min(
-            16_384,
-            Math.max(1, Math.ceil(target.target.maxOutputBytes / 4)),
-          ),
-          timeoutMs: 120_000,
+          maxOutputTokens: 512,
+          timeoutMs: 30_000,
         });
         const delivered = await delivery.confirm(
           prepared.authorizationId,

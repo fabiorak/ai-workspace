@@ -67,6 +67,7 @@ test("Responses transport sends one bounded non-streaming request and normalizes
     model: input.model,
     input: input.text,
     max_output_tokens: 100,
+    store: false,
     stream: false,
   });
 });
@@ -115,6 +116,18 @@ test("malformed, oversized, incomplete and timed out responses never become comp
         },
         { "x-request-id": "req" },
       ),
+    ...["failed", "cancelled", "in_progress", "queued"].map(
+      (status) => async () =>
+        response(
+          200,
+          {
+            id: "resp",
+            status,
+            output: [{ content: [{ type: "output_text", text: "partial" }] }],
+          },
+          { "x-request-id": "req" },
+        ),
+    ),
     async () =>
       response(200, {
         id: "resp",
@@ -151,14 +164,74 @@ test("malformed, oversized, incomplete and timed out responses never become comp
       })) as FetchLike,
   });
   assert.deepEqual(await oversizedBody.send(input), { kind: "UNKNOWN" });
+  let cancelled = false;
+  const oversizedChunkedBody = new OpenAIResponsesTransport({
+    apiKey: "synthetic-secret",
+    fetch: (async () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array(2 * 1024 * 1024));
+            controller.enqueue(new Uint8Array([0]));
+          },
+          cancel() {
+            cancelled = true;
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+            "x-request-id": "req",
+          },
+        },
+      )) as FetchLike,
+  });
+  assert.deepEqual(await oversizedChunkedBody.send(input), { kind: "UNKNOWN" });
+  assert.equal(cancelled, true);
+  let timeoutCalls = 0;
   const timeout = new OpenAIResponsesTransport({
     apiKey: "synthetic-secret",
-    fetch: (() =>
-      new Promise<Response>((resolve) =>
-        setTimeout(() => resolve(response(200, {})), 20),
-      )) as FetchLike,
+    fetch: ((_url, init) => {
+      timeoutCalls++;
+      return new Promise<Response>((_resolve, reject) =>
+        init.signal?.addEventListener("abort", () =>
+          reject(new DOMException("aborted", "AbortError")),
+        ),
+      );
+    }) as FetchLike,
   });
   assert.deepEqual(await timeout.send({ ...input, timeoutMs: 1 }), {
     kind: "UNKNOWN",
   });
+  assert.equal(timeoutCalls, 1);
+});
+
+test("malformed usage is discarded without discarding a completed answer", async () => {
+  const transport = new OpenAIResponsesTransport({
+    apiKey: "synthetic-secret",
+    fetch: (async () =>
+      response(
+        200,
+        {
+          id: "resp",
+          status: "completed",
+          output: [{ content: [{ type: "output_text", text: "answer" }] }],
+          usage: {
+            input_tokens: -1,
+            input_tokens_details: { cached_tokens: 1.5 },
+            output_tokens: Number.MAX_SAFE_INTEGER + 1,
+          },
+        },
+        { "x-request-id": "req" },
+      )) as FetchLike,
+  });
+  const result = await transport.send(input);
+  assert.equal(result.kind, "COMPLETED");
+  if (result.kind === "COMPLETED")
+    assert.deepEqual(result.usage, {
+      inputTokens: null,
+      cachedInputTokens: null,
+      outputTokens: null,
+    });
 });

@@ -2,6 +2,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { GuiApplication } from "./application.ts";
+import { modelTransportFromEnvironment } from "./model-transport.ts";
 import { startGuiServer } from "./server.ts";
 
 const workspaceHome =
@@ -10,9 +11,14 @@ const sampleSessionPath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../../integrations/codex/test/fixtures/session.jsonl",
 );
+const continuationTransport = modelTransportFromEnvironment(process.env);
 
 const server = await startGuiServer(
-  new GuiApplication({ workspaceHome, sampleSessionPath }),
+  new GuiApplication({
+    workspaceHome,
+    sampleSessionPath,
+    ...(continuationTransport ? { continuationTransport } : {}),
+  }),
 );
 
 process.stdout.write(

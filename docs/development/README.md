@@ -209,6 +209,11 @@ reproduce the offline results. Responses closes `EVIDENCE_ONLY`; Codex closes
 `SEPARATE_AGENT_BOUNDARY`. Neither command uses credentials, network, Codex, or
 a model, and neither contract is exported from production code.
 
+The post-redesign [OpenAI Responses live probe gate](openai-live-probe.md)
+documents the explicit process-only activation prepared in P3. It does not
+authorize a request: model, account, current pricing, exact synthetic text and
+the two-request cost bound remain a separate P4 review.
+
 Sprint 35 applies the same boundary to the second provider family through the
 [Anthropic Messages corpus](anthropic-messages-qualification-corpus.md),
 [Claude headless corpus](claude-headless-qualification-corpus.md), and combined

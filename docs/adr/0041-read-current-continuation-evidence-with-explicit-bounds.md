@@ -35,9 +35,10 @@ JSON. Keep source metadata, explicit omissions, and the untrusted-evidence
 boundary visible. Reviewed substitutions apply before final serialization.
 
 Use ADR-0040's coordinator through a guarded conversation-scoped POST /send.
-Only a host-injected transport enables confirmation; the default host loads no
-credentials and enables no transport. Confirm one exact prepared request, bounded
-to 512 output tokens and a 30 second timeout. Recheck context, target and policy
+Only an explicitly selected host transport can cross the provider boundary. The
+default host loads no credentials and keeps the ordinary conversation on its
+clearly labelled local simulation. Confirm one exact prepared request, bounded to
+512 output tokens and a 30 second timeout. Recheck context, target and policy
 before exposure. Unlock the exact retained mapping before sending; the review
 passphrase is entered once and the derived key is held only in memory. Restore
 output strictly, screen restricted content, and persist a successful response in the

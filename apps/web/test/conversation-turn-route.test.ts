@@ -24,8 +24,10 @@ describe("primary conversation turn route", () => {
   it("reuses one automatic pseudonym across model changes and restart, then restores the response", async () => {
     const sent: string[] = [];
     const transport: DeliveryTransport = {
-      send: async ({ text }) => {
+      send: async ({ text, maxOutputTokens, timeoutMs }) => {
         sent.push(text);
+        assert.equal(maxOutputTokens, 512);
+        assert.equal(timeoutMs, 30_000);
         assert.equal(text.includes("anna.rossi@example.test"), false);
         assert.match(text, /\[\[EMAIL_1\]\]/u);
         return {

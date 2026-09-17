@@ -37,6 +37,10 @@ const bounded = (value: string, max: number) =>
   );
 const object = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+const tokenCount = (value: unknown): number | null =>
+  typeof value === "number" && Number.isSafeInteger(value) && value >= 0
+    ? value
+    : null;
 const readJsonBounded = async (
   response: Response,
   maxBytes: number,
@@ -98,24 +102,11 @@ const usageOf = (value: unknown): ResponsesUsage => {
   if (!object(value) || !object(value.usage))
     return { inputTokens: null, cachedInputTokens: null, outputTokens: null };
   const usage = value.usage;
-  const inputTokens =
-    typeof usage.input_tokens === "number" &&
-    Number.isInteger(usage.input_tokens)
-      ? usage.input_tokens
-      : null;
-  const outputTokens =
-    typeof usage.output_tokens === "number" &&
-    Number.isInteger(usage.output_tokens)
-      ? usage.output_tokens
-      : null;
+  const inputTokens = tokenCount(usage.input_tokens);
+  const outputTokens = tokenCount(usage.output_tokens);
   const details = usage.input_tokens_details as
     Record<string, unknown> | undefined;
-  const cachedInputTokens =
-    details &&
-    typeof details.cached_tokens === "number" &&
-    Number.isInteger(details.cached_tokens)
-      ? details.cached_tokens
-      : null;
+  const cachedInputTokens = tokenCount(details?.cached_tokens);
   return { inputTokens, cachedInputTokens, outputTokens };
 };
 
@@ -173,6 +164,7 @@ export class OpenAIResponsesTransport {
           model: input.model,
           input: input.text,
           max_output_tokens: input.maxOutputTokens,
+          store: false,
           stream: false,
         }),
         signal: controller.signal,

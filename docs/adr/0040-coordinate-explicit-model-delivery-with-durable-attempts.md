@@ -33,6 +33,9 @@ Use one bounded request, without streaming, remote tools, automatic retry,
 fallback, arbitrary endpoint or credential-forwarding redirect. OpenAI Responses
 is the first candidate under ADR-0027. The adapter uses Node's existing HTTP
 primitives, a fixed official endpoint and a process-only credential capability.
+It refuses redirects, sets `store: false`, bounds the complete response body
+before JSON parsing and accepts output only when the top-level response status is
+`completed`. Every other successful HTTP envelope remains an uncertain outcome.
 Model and limits are explicit configuration, never inferred from a model name.
 Live tests require the separate reviewed synthetic probe and cost approval.
 

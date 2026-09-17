@@ -53,6 +53,7 @@
     "@ai-workspace/model-attempts": "0.0.0",
     "@ai-workspace/local-model-attempts": "0.0.0",
     "@ai-workspace/model-targets": "0.0.0",
-    "@ai-workspace/local-model-targets": "0.0.0"
+    "@ai-workspace/local-model-targets": "0.0.0",
+    "@ai-workspace/openai-responses": "0.0.0"
   }
 }
