@@ -68,10 +68,6 @@ const EN = {
   settingsTitle: "Settings",
   settingsIntro:
     "Presentation preferences stay in this browser. Bounded model target metadata is stored in the local workspace.",
-  appearanceTitle: "Appearance",
-  appearanceBody:
-    "AI Workspace follows your operating-system light or dark theme and reduced-motion preference.",
-  systemManaged: "System managed",
   privacyTitle: "Local preference storage",
   privacyBody:
     "The language preference stays in browser storage. Model target metadata is stored separately in the local workspace; credentials are never included.",
@@ -727,10 +723,6 @@ const IT = {
   settingsTitle: "Impostazioni",
   settingsIntro:
     "Le preferenze di presentazione restano in questo browser. I metadati limitati dei target sono conservati nel workspace locale.",
-  appearanceTitle: "Aspetto",
-  appearanceBody:
-    "AI Workspace segue il tema chiaro o scuro e la preferenza di movimento ridotto del sistema operativo.",
-  systemManaged: "Gestito dal sistema",
   privacyTitle: "Memoria locale delle preferenze",
   privacyBody:
     "La preferenza della lingua resta nello storage del browser. I metadati dei target sono conservati separatamente nel workspace locale; le credenziali non sono mai incluse.",

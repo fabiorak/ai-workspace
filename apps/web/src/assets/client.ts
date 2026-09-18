@@ -193,8 +193,20 @@ export const APP_JS = `
     toggle.setAttribute("aria-expanded", "false");
     if (restoreFocus && wasOpen) toggle.focus();
   };
+  // A screen opens at its beginning: where the previous screen was scrolled to says
+  // nothing about this one, and arriving halfway down hides the heading that says
+  // where you are. Only a change of screen counts, because the same screen is
+  // redrawn by an arriving import, a filter or a language change, and any of those
+  // would otherwise yank a reader away from the line they were on.
+  let renderedPage = null;
+  const startOfScreen = (page) => {
+    if (page === renderedPage) return false;
+    renderedPage = page;
+    return true;
+  };
   const renderRoute = (focusMain = false) => {
     const page = currentPage();
+    if (startOfScreen(page)) scrollTo(0, 0);
     closeMobileMenu();
     for (const section of document.querySelectorAll("main > section")) section.classList.toggle("route-hidden", !pageSections[page].includes(section.id));
     for (const link of document.querySelectorAll("[data-route]")) {
