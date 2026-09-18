@@ -1,8 +1,8 @@
 # Subscription-backed agent boundary
 
-Status: **offline implementation gate**. The dormant Codex process runner is
-covered by synthetic executable tests. No Codex, Claude Code, local model or
-provider API invocation is authorized by this document.
+Status: **offline implementation gate**. The dormant Codex and Claude Code
+process runners are covered by synthetic executable tests. No Codex, Claude
+Code, local model or provider API invocation is authorized by this document.
 
 ## Why this path exists
 
@@ -70,6 +70,31 @@ replace it with another Claude model.
 The review must state that managed login may still load product-owned context.
 Only the supplied protected payload can be shown byte-for-byte; AI Workspace
 cannot claim it is the complete model-visible prompt.
+
+Gates, all met offline by `integrations/claude-code-agent`:
+
+- exact argv and stdin construction, without shell interpolation, and without
+  `--bare` in any branch;
+- `sonnet` by default, carried verbatim into argv and replaceable by the
+  operator;
+- the one `system`/`init` event must load no tool, MCP server, plugin, hook,
+  skill or memory; a non-empty list fails closed;
+- assistant content must be text only: a `tool_use` or any other block fails
+  closed;
+- exactly one `result`/`success`, parsed against the supplied JSON schema, so
+  prose in place of the object is a failure rather than an answer;
+- a `retry` event, a second result, an unreviewed event type, a missing result,
+  a nonzero exit, oversized or non-UTF-8 streams all fail closed;
+- timeout kills the complete process tree, and an unverified tree keeps the
+  outcome unknown;
+- environment allowlist carries `HOME` and `CLAUDE_CONFIG_DIR` for the product's
+  own managed login, and no provider key or unrelated process secret;
+- no read of the credential file, keychain or token output by AI Workspace.
+
+Still missing before any live probe, as for Codex: a separate agent attempt
+store, a confined home and workspace, verification of the installed version and
+its supported flags, and a reviewed authorization sheet. The frozen flags are
+reviewed evidence, not a compatibility promise.
 
 ## Increment A7.2 - local-model rehearsal
 

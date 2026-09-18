@@ -62,6 +62,9 @@
       "path": "./integrations/claude-code/tsconfig.build.json"
     },
     {
+      "path": "./integrations/claude-code-agent/tsconfig.build.json"
+    },
+    {
       "path": "./integrations/git/tsconfig.build.json"
     },
     {
