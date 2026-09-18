@@ -52,6 +52,9 @@ export async function startGuiServer(
     port?: number;
     bootstrapToken?: string;
     sessionToken?: string;
+    /** Seconds the browser keeps the session: the life left in the stored one
+     * (ADR-0046), so the cookie never outlives the token it carries. */
+    sessionMaxAgeSeconds?: number;
     csrfToken?: string;
   }> = {},
 ): Promise<GuiServer> {
@@ -59,6 +62,7 @@ export async function startGuiServer(
     options.bootstrapToken ?? randomBytes(32).toString("hex");
   const sessionToken = options.sessionToken ?? randomBytes(32).toString("hex");
   const csrfToken = options.csrfToken ?? randomBytes(32).toString("hex");
+  const sessionMaxAgeSeconds = options.sessionMaxAgeSeconds ?? 28800;
   let bootstrapAvailable = true;
   let authority = "";
   let origin = "";
@@ -93,7 +97,7 @@ export async function startGuiServer(
         response.statusCode = 303;
         response.setHeader(
           "Set-Cookie",
-          `${COOKIE}=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800`,
+          `${COOKIE}=${sessionToken}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${sessionMaxAgeSeconds}`,
         );
         response.setHeader("Location", "/");
         return response.end();

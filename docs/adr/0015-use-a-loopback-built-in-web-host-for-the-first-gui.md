@@ -1,6 +1,6 @@
 # ADR-0015: Use a loopback built-in web host for the first GUI
 
-**Status:** accepted
+**Status:** accepted, amended by ADR-0046
 **Date:** 2026-07-11
 
 ## Context
@@ -37,7 +37,9 @@ ephemeral port by default and print only a bootstrap URL intended for the local
 user. Do not open a browser automatically in tests.
 
 Create a cryptographically random session token and a separate CSRF token for
-each process. The one-time bootstrap path sets an opaque `HttpOnly`,
+each process. (ADR-0046 amends this for the session token only: it is stored in
+the workspace home and reused by a later process while it is valid. The CSRF
+token stays per process.) The one-time bootstrap path sets an opaque `HttpOnly`,
 `SameSite=Strict`, `Path=/` session cookie and redirects to `/`. The token is
 invalidated after successful bootstrap and must not appear in subsequent URLs,
 logs, HTML, referrers, or API responses. Because the first host is plain

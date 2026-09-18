@@ -74,6 +74,18 @@ rebinding, CSRF, framing, XSS, and data-exfiltration risks. Non-loopback access,
 remote assets, persistent daemon operation, and production packaging remain
 forbidden without a new architecture and threat review.
 
+ADR-0046 keeps that cookie value in `session/session.json` inside the workspace
+home, `0600` in a `0700` directory, for thirty days, so a restart does not spend
+a bootstrap link. Two consequences are accepted rather than mitigated. An
+adversary who can read the workspace home can act through the GUI as the user;
+the same adversary can already read the conversations and pseudonym maps stored
+beside it, so this widens what they can do rather than what they can see. And
+because cookies ignore ports, the value reaches any server answering on
+`127.0.0.1` in that browser, for thirty days instead of eight hours; `HttpOnly`
+keeps page scripts from reading it, but a local server the user visits can
+collect it. Binding the session to a fixed port or a per-start nonce is deferred
+to packaged deployment. A session is revoked by deleting that file.
+
 Localization adds no network, remote assets, translation provider, or
 server-side preference. Only a supported locale code is stored in browser-local
 state; evidence and user-authored content are never translated. Catalog

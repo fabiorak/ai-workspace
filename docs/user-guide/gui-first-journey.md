@@ -18,6 +18,14 @@ open; Ctrl+C stops the host. The link opens one session and then expires: if you
 open it twice, or in a browser that never received the session cookie, the page
 says what happened and what to do.
 
+The session survives the restart. Start the host again and the terminal prints
+the plain address instead of a link, because the browser that already has the
+session keeps it for thirty days; the link is printed, and needed, only when
+there is no living session — the terminal says which case you are in, and why.
+The session lives in `session/session.json` under `AI_WORKSPACE_HOME`: delete
+that file to end it everywhere, which is what to do on a machine you share or
+stop trusting. Stopping the host no longer ends it.
+
 Set `AI_WORKSPACE_HOME` before starting when you want an isolated state
 directory, which is the easiest way to try the product without touching state
 you already have:
