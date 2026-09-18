@@ -524,6 +524,58 @@ describe("the opening screen", () => {
     assert.doesNotMatch(form, /detail\(status, cause\)/u);
   });
 
+  /**
+   * Every refusal used to end in the same sentence, which named the outcome and
+   * not the obstacle: a stale page, a value the panel cannot take, a conversation
+   * that no longer resolves and a local write that failed all read alike. Each
+   * one now has its own sentence, because each one asks for a different move.
+   */
+  it("distinguishes why a value was not protected, one sentence per obstacle", () => {
+    for (const [reason, key] of Object.entries({
+      LOCAL_GUARD: "homeProtectionTermGuard",
+      TERM_INVALID: "homeProtectionTermValueInvalid",
+      TYPE_CONFLICT: "homeProtectionTermConflict",
+      SCOPE_UNAVAILABLE: "homeProtectionTermScope",
+      NOT_STORED: "homeProtectionTermNotStored",
+    })) {
+      assert.match(APP_JS, new RegExp(`${reason}: "${key}"`, "u"));
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+    // A local application that does not answer at all is not a refused value.
+    assert.match(APP_JS, /homeProtectionTermUnreachable/u);
+    for (const key of ["homeProtectionTermUnreachable"]) {
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+    // The code decides the sentence; the status is only the fallback.
+    assert.match(APP_JS, /Object\.hasOwn\(protectedTermRefusals, reason\)/u);
+  });
+
+  /**
+   * The sentence says the value is protected from the next message on; the
+   * placeholder in the preview is what shows it. A person who adds a term while
+   * the preview is open sees it change, instead of being asked to take it on
+   * trust and to reopen the preview by hand.
+   */
+  it("shows the added protection in the preview instead of only claiming it", () => {
+    const form = APP_JS.slice(
+      APP_JS.indexOf("const protectionTermForm"),
+      APP_JS.indexOf("const openConversationPanel"),
+    );
+    assert.match(
+      form,
+      /if \(!homeProtectionPreviewBox\.hidden\) await loadProtectionPreview\(\)/u,
+    );
+    // The refresh recomposes the draft; it never sends it and never moves focus.
+    const load = APP_JS.slice(
+      APP_JS.indexOf("const loadProtectionPreview"),
+      APP_JS.indexOf("const showProtectionPreview"),
+    );
+    assert.match(load, /previewPath\(\)/u);
+    assert.doesNotMatch(load, /focus\(\)/u);
+  });
+
   it("offers one reviewed way to protect a value the detector cannot find", () => {
     assert.match(APP_JS, /protectionTermForm/u);
     assert.match(APP_JS, /\/protected-terms/u);
@@ -547,6 +599,82 @@ describe("the opening screen", () => {
       assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
       assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
     }
+  });
+
+  /**
+   * A first draft has no conversation yet, but it already has a map: the General
+   * one the server owns and the same draft is previewed against. Disabling the
+   * field there contradicted the preview, which invites the reader to protect the
+   * values it left unchanged.
+   */
+  it("names a value on a first draft, against the General map the server owns", () => {
+    const form = APP_JS.slice(
+      APP_JS.indexOf("const protectionTermForm"),
+      APP_JS.indexOf("const openConversationPanel"),
+    );
+    assert.match(form, /if \(!openConversation\) \{/u);
+    assert.doesNotMatch(form, /local-preview-/u);
+    assert.match(APP_JS, /"\/api\/protected-terms"/u);
+  });
+
+  /**
+   * The preview used to cover the draft alone, which answered "does what I am
+   * typing contain recognised data?" and not "what is about to leave?". The
+   * composed payload also carries earlier messages and linked-project memory, so
+   * a person could not protect what they were never shown. When a conversation
+   * and a destination exist, the preview is now of the payload.
+   */
+  it("previews the composed payload, and says when it covers the draft alone", () => {
+    assert.match(APP_JS, /\/turn-preview/u);
+    assert.match(APP_JS, /const canPreviewPayload = \(\)/u);
+    assert.match(APP_JS, /if \(canPreviewPayload\(\)\) \{/u);
+    assert.match(
+      APP_JS,
+      /targetId: homeConversationModel\.value, userText: draft/u,
+    );
+    assert.match(homeSection, /id="home-protection-preview-sections"/u);
+    // Sections are closed until opened, and each heading carries what it holds.
+    assert.match(APP_JS, /createElement\("details"\)/u);
+    assert.match(APP_JS, /createElement\("summary"\)/u);
+    assert.match(APP_JS, /placeholderCount/u);
+    assert.match(APP_CSS, /\.protection-preview-section /u);
+    for (const key of [
+      "homeProtectionPayloadReady",
+      "homeProtectionPayloadPreamble",
+      "homeProtectionPayloadEnvelope",
+      "homeProtectionPayloadReadings",
+      "homeProtectionPayloadMemory",
+      "homeProtectionPayloadQuestion",
+      "homeProtectionPayloadSectionMeta",
+      "homeProtectionPayloadSectionPlaceholders",
+    ]) {
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+    // The draft-only sentence must not imply the rest of the payload was checked.
+    assert.match(
+      catalogues.en.homeProtectionPreviewReady ?? "",
+      /draft alone/u,
+    );
+    assert.match(catalogues.it.homeProtectionPreviewReady ?? "", /sola bozza/u);
+  });
+
+  /**
+   * A refused preview is a result, not a failure: "this send would be refused"
+   * is exactly what a person opened it to find out. Each obstacle keeps its own
+   * sentence, as the protected-term panel does.
+   */
+  it("says why a payload preview was refused, one sentence per obstacle", () => {
+    for (const [reason, key] of Object.entries({
+      TARGET_UNAVAILABLE: "homeProtectionPayloadBlockedTarget",
+      PRIVACY_BLOCKED: "homeProtectionPayloadBlockedPrivacy",
+      CONTEXT_UNAVAILABLE: "homeProtectionPayloadBlockedContext",
+    })) {
+      assert.match(APP_JS, new RegExp(`${reason}: "${key}"`, "u"));
+      assert.ok(catalogues.en[key]?.trim(), `${key} has no English text.`);
+      assert.ok(catalogues.it[key]?.trim(), `${key} has no Italian text.`);
+    }
+    assert.match(APP_JS, /namedMessage\(payloadBlocked, preview\.reason/u);
   });
 
   it("offers an optional highlighted protection preview before sending", () => {

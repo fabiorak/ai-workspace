@@ -140,8 +140,63 @@ export const HOME_TEXT = Object.freeze({
     it: "Invia il primo messaggio per creare questa conversazione; dai messaggi successivi potrai controllare prima la protezione.",
   },
   homeProtectionPreviewReady: {
-    en: "Local preview ready. Replacements: {count}. Unchanged values were not recognized automatically; add them to protected terms if needed.",
-    it: "Anteprima locale pronta. Sostituzioni: {count}. I valori rimasti invariati non sono stati riconosciuti automaticamente; aggiungili ai termini protetti se serve.",
+    en: "Preview of the draft alone. Replacements: {count}. Unchanged values were not recognized automatically; add them to protected terms if needed.",
+    it: "Anteprima della sola bozza. Sostituzioni: {count}. I valori rimasti invariati non sono stati riconosciuti automaticamente; aggiungili ai termini protetti se serve.",
+  },
+  /**
+   * Counted values are named rather than counted into the sentence: "1 sezioni"
+   * is wrong in Italian, and one key per grammatical number, multiplied by the
+   * three counts this sentence carries, would be eight sentences to keep in step.
+   */
+  homeProtectionPayloadReady: {
+    en: "Preview of everything that would be sent to {model}. Sections: {sections}. Bytes: {bytes}. Replacements: {count}. Open a section to read it. Unchanged values were not recognized automatically; add them to protected terms if needed.",
+    it: "Anteprima di tutto ciò che verrebbe inviato a {model}. Sezioni: {sections}. Byte: {bytes}. Sostituzioni: {count}. Apri una sezione per leggerla. I valori rimasti invariati non sono stati riconosciuti automaticamente; aggiungili ai termini protetti se serve.",
+  },
+  homeProtectionPayloadPreamble: {
+    en: "Context heading",
+    it: "Intestazione del contesto",
+  },
+  homeProtectionPayloadEnvelope: {
+    en: "Destination and scope",
+    it: "Destinazione e ambito",
+  },
+  homeProtectionPayloadReadings: {
+    en: "Earlier messages included",
+    it: "Messaggi precedenti inclusi",
+  },
+  homeProtectionPayloadMemory: {
+    en: "Memory of linked projects",
+    it: "Memoria dei progetti collegati",
+  },
+  homeProtectionPayloadQuestion: {
+    en: "Your message",
+    it: "Il tuo messaggio",
+  },
+  homeProtectionPayloadSectionMeta: {
+    en: "items: {items} · placeholders: {placeholders}",
+    it: "elementi: {items} · segnaposto: {placeholders}",
+  },
+  homeProtectionPayloadSectionPlaceholders: {
+    en: "placeholders: {placeholders}",
+    it: "segnaposto: {placeholders}",
+  },
+  /**
+   * Reached only with a model already chosen, because a draft without one never
+   * composes a payload at all: the sentence names the obstacle that is actually
+   * there — a destination this send cannot use — instead of asking for a choice
+   * the status line beside it says was already made.
+   */
+  homeProtectionPayloadBlockedTarget: {
+    en: "This model is not a destination an external send can use, so there is nothing to compose. Nothing was sent and the draft is still here.",
+    it: "Questo modello non è una destinazione utilizzabile per un invio esterno, quindi non c'è nulla da comporre. Nulla è stato inviato e la bozza è ancora qui.",
+  },
+  homeProtectionPayloadBlockedPrivacy: {
+    en: "This send would be refused: the composed context holds data your local rule does not let out. Nothing was sent and the draft is still here.",
+    it: "Questo invio verrebbe rifiutato: il contesto composto contiene dati che la tua regola locale non lascia uscire. Nulla è stato inviato e la bozza è ancora qui.",
+  },
+  homeProtectionPayloadBlockedContext: {
+    en: "The context could not be composed locally, so there is nothing to show. Nothing was sent and the draft is still here.",
+    it: "Non è stato possibile comporre il contesto in locale, quindi non c'è nulla da mostrare. Nulla è stato inviato e la bozza è ancora qui.",
   },
   homeProtectionPreviewFailed: {
     en: "The protected preview is unavailable. Nothing was sent and the draft is still here.",
@@ -149,8 +204,8 @@ export const HOME_TEXT = Object.freeze({
   },
   appearance: { en: "Appearance", it: "Aspetto" },
   appearanceHelp: {
-    en: "Stays in this browser, like the language. Following the system also follows it when it changes.",
-    it: "Resta in questo browser, come la lingua. Seguire il sistema significa seguirlo anche quando cambia.",
+    en: "Stays in this browser, like the language. Following the system also follows it when it changes; reduced motion always follows the operating system.",
+    it: "Resta in questo browser, come la lingua. Seguire il sistema significa seguirlo anche quando cambia; il movimento ridotto segue sempre il sistema operativo.",
   },
   appearanceSystem: { en: "Follow the system", it: "Segui il sistema" },
   appearanceLight: { en: "Light", it: "Chiaro" },
@@ -183,13 +238,33 @@ export const HOME_TEXT = Object.freeze({
     en: "{term} was not protected, and nothing changed. Check the value and try again.",
     it: "{term} non è stato protetto e nulla è cambiato. Controlla il valore e riprova.",
   },
+  homeProtectionTermValueInvalid: {
+    en: "{term} cannot be protected as written, and nothing changed. Use at least two characters, keep the value short, and avoid square brackets.",
+    it: "{term} non può essere protetto così com'è e nulla è cambiato. Usa almeno due caratteri, tieni il valore corto ed evita le parentesi quadre.",
+  },
+  homeProtectionTermGuard: {
+    en: "This page is no longer in step with the local application, so {term} was not protected and nothing changed. Copy your draft, reload the page, and name the value again.",
+    it: "Questa pagina non è più allineata con l'applicazione locale, quindi {term} non è stato protetto e nulla è cambiato. Copia la bozza, ricarica la pagina e indica di nuovo il valore.",
+  },
+  homeProtectionTermScope: {
+    en: "This conversation is no longer recognised locally, so {term} was not protected and nothing changed. Reopen it from the list, then name the value again.",
+    it: "Questa conversazione non è più riconosciuta in locale, quindi {term} non è stato protetto e nulla è cambiato. Riaprila dall'elenco e indica di nuovo il valore.",
+  },
+  homeProtectionTermNotStored: {
+    en: "The local protected map could not be written, so {term} was not protected and nothing changed. Your draft is still here; try again.",
+    it: "Non è stato possibile scrivere la mappa protetta locale, quindi {term} non è stato protetto e nulla è cambiato. La bozza è ancora qui: riprova.",
+  },
+  homeProtectionTermUnreachable: {
+    en: "The local application did not answer, so {term} was not protected and nothing changed. Your draft is still here; try again.",
+    it: "L'applicazione locale non ha risposto, quindi {term} non è stato protetto e nulla è cambiato. La bozza è ancora qui: riprova.",
+  },
   homeProtectionTermInvalid: {
     en: "Write at least two characters of the value to protect.",
     it: "Scrivi almeno due caratteri del valore da proteggere.",
   },
   homeProtectionTermUnavailable: {
-    en: "Send a first message, then this conversation can protect named values.",
-    it: "Invia un primo messaggio: da quel momento questa conversazione può proteggere valori indicati da te.",
+    en: "Open a conversation, or start a new one, then name the values to protect here.",
+    it: "Apri una conversazione, oppure iniziane una nuova, poi indica qui i valori da proteggere.",
   },
   homeProtectionKindPERSON: { en: "Person", it: "Persona" },
   homeProtectionKindORGANIZATION: { en: "Company", it: "Azienda" },

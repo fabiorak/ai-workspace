@@ -57,6 +57,7 @@ export const HOME_SECTION = `
             <p data-i18n="homeProtectionPreviewIntro">Check the current draft locally before sending. Nothing is sent.</p>
             <p id="home-protection-preview-status" role="status" aria-live="polite"></p>
             <p id="home-protection-preview-output" class="protection-preview-output"></p>
+            <div id="home-protection-preview-sections" class="protection-preview-sections"></div>
             <button type="button" id="home-protection-manage" class="panel-button" aria-expanded="false" aria-controls="home-conversation-panel" data-i18n="homeProtectionPreviewManage">Manage protected terms</button>
           </div>
           <p id="home-composer-status" class="help composer-status" role="status" aria-live="polite" data-i18n="homeTurnReady">Context updated. Ready to send one coordinated turn.</p>

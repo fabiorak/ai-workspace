@@ -189,6 +189,13 @@ section > h2 { margin-block-start: 0; font-size: clamp(1.45rem, 3vw, 2rem); lett
 .protection-preview-output { white-space: pre-wrap; overflow-wrap: anywhere; }
 .protection-preview-output:empty { display: none; }
 .protection-preview-output mark { padding: .08rem .22rem; border-radius: .25rem; background: color-mix(in srgb, var(--amber) 30%, var(--surface)); color: var(--ink); font-weight: 760; }
+.protection-preview-sections { display: grid; gap: .4rem; }
+.protection-preview-sections:empty { display: none; }
+.protection-preview-section { border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); }
+.protection-preview-section > summary { padding: .4rem .55rem; cursor: pointer; font-size: .82rem; font-weight: 640; }
+.protection-preview-section > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.protection-preview-section-count { color: var(--muted); font-weight: 400; }
+.protection-preview-section .protection-preview-output { max-block-size: 22rem; overflow: auto; padding: 0 .55rem .55rem; }
 .legacy-continuation[hidden] { display: none; }
 .dashboard-hero { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-block-end: 1.25rem; }
 .dashboard-hero h2 { margin: 0; font-size: clamp(2rem, 5vw, 3.35rem); line-height: 1.05; letter-spacing: -.06em; }

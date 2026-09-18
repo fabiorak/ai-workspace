@@ -216,6 +216,71 @@ describe("protected term route", () => {
     }
   });
 
+  /**
+   * "Nothing was changed" is true of every refusal, so the browser cannot tell a
+   * stale page from a wrong kind or a local write that failed. The code says which
+   * obstacle it was and nothing else: no key, map, scope or path leaves here.
+   */
+  it("names the obstacle of a refused term without naming local state", async () => {
+    const fixture = await startFixture(silentTransport());
+    try {
+      const general =
+        await fixture.application.createGeneralConversation("Motivi");
+      const path = `/api/conversations/${encodeURIComponent(general.id)}/protected-terms`;
+      const invalid = await fixture.post(path, {
+        term: "A",
+        type: "ORGANIZATION",
+      });
+      assert.equal(invalid.status, 400);
+      assert.equal(
+        ((await invalid.json()) as Readonly<{ reason: string }>).reason,
+        "TERM_INVALID",
+      );
+
+      assert.equal(
+        (await fixture.post(path, { term: COMPANY, type: "ORGANIZATION" }))
+          .status,
+        200,
+      );
+      const conflict = await fixture.post(path, {
+        term: COMPANY,
+        type: "PERSON",
+      });
+      assert.equal(conflict.status, 409);
+      assert.equal(
+        ((await conflict.json()) as Readonly<{ reason: string }>).reason,
+        "TYPE_CONFLICT",
+      );
+
+      const unknown = await fixture.post(
+        "/api/conversations/conversation-that-is-not-here/protected-terms",
+        { term: COMPANY, type: "ORGANIZATION" },
+      );
+      assert.equal(unknown.status, 409);
+      const refusal = (await unknown.json()) as Readonly<{
+        reason: string;
+        message: string;
+        recovery: string;
+      }>;
+      assert.equal(refusal.reason, "SCOPE_UNAVAILABLE");
+      for (const sentence of [refusal.message, refusal.recovery])
+        assert.doesNotMatch(sentence, /[/\\]|GENERAL|scope/iu, sentence);
+
+      const unguarded = await fetch(`${fixture.server.origin}${path}`, {
+        method: "POST",
+        headers: { cookie: fixture.cookie, "content-type": "application/json" },
+        body: JSON.stringify({ term: COMPANY, type: "ORGANIZATION" }),
+      });
+      assert.equal(unguarded.status, 403);
+      assert.equal(
+        ((await unguarded.json()) as Readonly<{ reason: string }>).reason,
+        "LOCAL_GUARD",
+      );
+    } finally {
+      await fixture.server.close();
+    }
+  });
+
   it("answers no term route to a read, and refuses a write without the local guard", async () => {
     const fixture = await startFixture(silentTransport());
     try {

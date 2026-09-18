@@ -163,6 +163,7 @@ export const HOME_BEHAVIOUR = `
   const homeProtectionPreviewBox = document.getElementById("home-protection-preview");
   const homeProtectionPreviewStatus = document.getElementById("home-protection-preview-status");
   const homeProtectionPreviewOutput = document.getElementById("home-protection-preview-output");
+  const homeProtectionPreviewSections = document.getElementById("home-protection-preview-sections");
   const homeComposerStatus = document.getElementById("home-composer-status");
   const homeComposerError = document.getElementById("home-composer-error");
   let openConversation = null;
@@ -170,6 +171,7 @@ export const HOME_BEHAVIOUR = `
   const clearProtectionPreview = () => {
     homeProtectionPreviewBox.hidden = true;
     homeProtectionPreviewOutput.replaceChildren();
+    homeProtectionPreviewSections.replaceChildren();
     text(homeProtectionPreviewStatus, "");
     homeProtectionPreviewToggle.setAttribute("aria-expanded", "false");
     say(homeProtectionPreviewToggle, "homeProtectionPreviewAction");
@@ -379,34 +381,120 @@ export const HOME_BEHAVIOUR = `
     openConversation && !openConversation.startsWith("local-preview-")
       ? "/api/conversations/" + encodeURIComponent(openConversation) + "/protected-terms"
       : "/api/protected-terms";
+  const turnPreviewPath = () =>
+    "/api/conversations/" + encodeURIComponent(openConversation) + "/turn-preview";
+  // A conversation that exists and a destination that was chosen are what it
+  // takes to compose the payload. Without them the draft is all there is to show,
+  // and the sentence says so rather than implying the rest was checked.
+  const canPreviewPayload = () =>
+    Boolean(openConversation) && !openConversation.startsWith("local-preview-") && Boolean(homeConversationModel.value);
+  const payloadSectionNames = Object.freeze({
+    PAYLOAD_PREAMBLE: "homeProtectionPayloadPreamble",
+    REDUCED_ENVELOPE: "homeProtectionPayloadEnvelope",
+    REDUCED_READINGS: "homeProtectionPayloadReadings",
+    REDUCED_MEMORY: "homeProtectionPayloadMemory",
+    REDUCED_QUESTION: "homeProtectionPayloadQuestion",
+  });
+  const payloadBlocked = Object.freeze({
+    TARGET_UNAVAILABLE: "homeProtectionPayloadBlockedTarget",
+    PRIVACY_BLOCKED: "homeProtectionPayloadBlockedPrivacy",
+    CONTEXT_UNAVAILABLE: "homeProtectionPayloadBlockedContext",
+  });
+  const namedMessage = (table, key, fallback) =>
+    typeof key === "string" && Object.hasOwn(table, key) ? table[key] : fallback;
+  const placeholderCount = (value) => value.match(/\\[\\[[A-Z_]+_\\d+\\]\\]/gu)?.length ?? 0;
+  // Sections stay closed: the point is to see where protections landed and where
+  // none did, which the count on each heading says without unrolling the payload.
+  const renderPayloadSections = (sections) => {
+    for (const section of sections) {
+      const box = document.createElement("details");
+      box.className = "protection-preview-section";
+      const heading = document.createElement("summary");
+      const name = document.createElement("span");
+      // A heading the payload carries is shown as it travels, not translated.
+      if (section.title) text(name, section.title);
+      else say(name, namedMessage(payloadSectionNames, section.key, "homeProtectionPayloadPreamble"));
+      const meta = document.createElement("span");
+      meta.className = "protection-preview-section-count";
+      const placeholders = number(placeholderCount(section.text));
+      if (section.count === null) say(meta, "homeProtectionPayloadSectionPlaceholders", { placeholders });
+      else say(meta, "homeProtectionPayloadSectionMeta", { items: number(section.count), placeholders });
+      heading.append(name, document.createTextNode(" "), meta);
+      const body = document.createElement("p");
+      body.className = "protection-preview-output";
+      renderProtectionPreview(body, section.text);
+      box.append(heading, body);
+      homeProtectionPreviewSections.append(box);
+    }
+  };
+  // Recomposes the visible preview from the current draft. A placeholder here is
+  // the only evidence that a value is protected, so an added term regenerates it
+  // rather than leaving a sentence that claims more than the screen shows.
+  const loadProtectionPreview = async () => {
+    const draft = homeMessage.value;
+    homeProtectionPreviewOutput.replaceChildren();
+    homeProtectionPreviewSections.replaceChildren();
+    if (!draft.trim()) { say(homeProtectionPreviewStatus, "homeProtectionPreviewEmpty"); return false; }
+    homeProtectionPreviewToggle.disabled = true;
+    try {
+      if (canPreviewPayload()) {
+        const preview = await api(turnPreviewPath(), {
+          method: "POST",
+          body: JSON.stringify({ targetId: homeConversationModel.value, userText: draft }),
+        });
+        if (preview.kind !== "READY") {
+          say(homeProtectionPreviewStatus, namedMessage(payloadBlocked, preview.reason, "homeProtectionPreviewFailed"));
+          return false;
+        }
+        renderPayloadSections(preview.sections);
+        say(homeProtectionPreviewStatus, "homeProtectionPayloadReady", {
+          model: preview.model,
+          sections: number(preview.sections.length),
+          bytes: number(preview.totalBytes),
+          count: number(preview.replacements),
+        });
+      } else {
+        const preview = await api(previewPath(), {
+          method: "POST",
+          body: JSON.stringify({ text: draft }),
+        });
+        renderProtectionPreview(homeProtectionPreviewOutput, preview.text);
+        say(homeProtectionPreviewStatus, "homeProtectionPreviewReady", { count: number(preview.replacements) });
+      }
+      homeProtectionPreviewToggle.setAttribute("aria-expanded", "true");
+      say(homeProtectionPreviewToggle, "homeProtectionPreviewHide");
+      return true;
+    } catch {
+      say(homeProtectionPreviewStatus, "homeProtectionPreviewFailed");
+      return false;
+    } finally {
+      homeProtectionPreviewToggle.disabled = false;
+    }
+  };
   const showProtectionPreview = async () => {
     if (!homeProtectionPreviewBox.hidden) {
       clearProtectionPreview();
       return;
     }
-    const draft = homeMessage.value;
     homeProtectionPreviewBox.hidden = false;
-    homeProtectionPreviewOutput.replaceChildren();
-    if (!draft.trim()) {
-      say(homeProtectionPreviewStatus, "homeProtectionPreviewEmpty");
-      homeMessage.focus();
-      return;
-    }
-    homeProtectionPreviewToggle.disabled = true;
-    try {
-      const preview = await api(previewPath(), {
-        method: "POST",
-        body: JSON.stringify({ text: draft }),
-      });
-      renderProtectionPreview(homeProtectionPreviewOutput, preview.text);
-      say(homeProtectionPreviewStatus, "homeProtectionPreviewReady", { count: number(preview.replacements) });
-      homeProtectionPreviewToggle.setAttribute("aria-expanded", "true");
-      say(homeProtectionPreviewToggle, "homeProtectionPreviewHide");
-    } catch {
-      say(homeProtectionPreviewStatus, "homeProtectionPreviewFailed");
-    } finally {
-      homeProtectionPreviewToggle.disabled = false;
-    }
+    // The caret goes back to the empty draft because this person just asked to
+    // see it protected. A refresh that follows an added term never moves it.
+    if (!(await loadProtectionPreview()) && !homeMessage.value.trim()) homeMessage.focus();
+  };
+  // One obstacle, one sentence, one thing to do next. "Nothing changed" is true of
+  // every refusal and tells a person nothing, so the server's code chooses the
+  // sentence and the status alone is only the fallback.
+  const protectedTermRefusals = Object.freeze({
+    LOCAL_GUARD: "homeProtectionTermGuard",
+    TERM_INVALID: "homeProtectionTermValueInvalid",
+    TYPE_CONFLICT: "homeProtectionTermConflict",
+    SCOPE_UNAVAILABLE: "homeProtectionTermScope",
+    NOT_STORED: "homeProtectionTermNotStored",
+  });
+  const protectedTermRefusal = (response, value) => {
+    const reason = value && typeof value.reason === "string" ? value.reason : "";
+    if (Object.hasOwn(protectedTermRefusals, reason)) return protectedTermRefusals[reason];
+    return response.status === 409 ? "homeProtectionTermConflict" : "homeProtectionTermRefused";
   };
   const protectionTermForm = () => {
     const form = document.createElement("form");
@@ -428,7 +516,9 @@ export const HOME_BEHAVIOUR = `
     const status = document.createElement("p");
     status.className = "protection-term-status"; status.setAttribute("role", "status");
     form.append(label, input, kindLabel, kind, submit, status);
-    if (!openConversation || openConversation.startsWith("local-preview-")) {
+    // A first draft has no conversation yet, and the server owns the General map
+    // it will become: naming a value there is the same gesture, on the same map.
+    if (!openConversation) {
       input.disabled = true; kind.disabled = true; submit.disabled = true;
       say(status, "homeProtectionTermUnavailable");
       return form;
@@ -447,13 +537,16 @@ export const HOME_BEHAVIOUR = `
           body: JSON.stringify({ term, type: kind.value }),
         });
         const value = await response.json().catch(() => null);
-        if (response.status === 409) say(status, "homeProtectionTermConflict", { term });
-        else if (!response.ok || !value) say(status, "homeProtectionTermRefused", { term });
+        if (!response.ok || !value || typeof value.pseudonym !== "string")
+          say(status, protectedTermRefusal(response, value), { term });
         else {
           say(status, value.added ? "homeProtectionTermAdded" : "homeProtectionTermKnown", { term, placeholder: value.pseudonym });
           input.value = "";
+          // The sentence above is a claim; the placeholder in the preview is the
+          // evidence, so the draft is protected again while the person is looking.
+          if (!homeProtectionPreviewBox.hidden) await loadProtectionPreview();
         }
-      } catch { say(status, "homeProtectionTermRefused", { term }); }
+      } catch { say(status, "homeProtectionTermUnreachable", { term }); }
       submit.disabled = false;
       input.focus();
     });
@@ -478,6 +571,9 @@ export const HOME_BEHAVIOUR = `
   document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !homePanel.hidden) closeConversationPanel(); });
   homeConversationModel.addEventListener("change", async () => {
     const targetId = homeConversationModel.value;
+    // The composed payload depends on the destination, so a preview of the
+    // previous one would say something true about a send that is no longer it.
+    clearProtectionPreview();
     updateHomeSend();
     if (!targetId) { say(homeComposerStatus, "homeTargetRequired"); homeMessage.focus(); return; }
     try {

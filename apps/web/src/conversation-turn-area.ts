@@ -1,6 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import {
+  CONVERSATION_TURN_EFFECT,
+  CONVERSATION_TURN_SCHEMA_VERSION,
   ConversationTurn,
   ConversationTurnConflictError,
   type ConversationTurnIdempotency,
@@ -48,6 +50,7 @@ import {
 } from "./continuation-preparation.ts";
 import type { ModelConversationWriter } from "./model-conversation.ts";
 import { AutomaticPrivacyProtection } from "./automatic-privacy.ts";
+import { projectTurnPayload } from "./turn-payload-preview.ts";
 
 type Dependencies = Readonly<{
   home: string;
@@ -462,10 +465,85 @@ export function conversationTurnArea(dependencies: Dependencies) {
     });
   };
 
+  /**
+   * The exact payload the next turn would deliver, protected and grouped for
+   * reading, without composing an audit event, a durable attempt or a delivery.
+   *
+   * It reuses the turn's own composition rather than reproducing it, so what a
+   * person reads here and what would leave are the same bytes. They are the same
+   * bytes as of now: the turn recomposes and re-verifies before claiming, and a
+   * source that changed in between refuses the send instead of exposing it.
+   */
+  const previewTurnPayload = async (
+    input: Readonly<{
+      conversationId: string;
+      targetId: string;
+      userText: string;
+    }>,
+  ) => {
+    if (
+      typeof input.userText !== "string" ||
+      !input.userText.isWellFormed() ||
+      !input.userText.trim() ||
+      Buffer.byteLength(input.userText, "utf8") > 64 * 1024 ||
+      typeof input.targetId !== "string" ||
+      !input.targetId.trim()
+    )
+      throw new Error("TURN_PREVIEW_INVALID");
+    const scope = await resolveScope(input.conversationId);
+    const target = await dependencies.targets
+      .resolve({
+        conversationId: scope.conversationId,
+        projectId: scope.projectId,
+      })
+      .catch(() => null);
+    // The same acceptance the executor applies, so a preview never shows a
+    // payload the send would refuse to compose.
+    if (
+      target === null ||
+      target.target.targetId !== input.targetId ||
+      target.target.boundary !== "EXTERNAL_SERVICE" ||
+      target.target.providerKind !== "OPENAI_RESPONSES"
+    )
+      return blockedPreview("TARGET_UNAVAILABLE");
+    const turn: ResolvedConversationTurn = Object.freeze({
+      schemaVersion: CONVERSATION_TURN_SCHEMA_VERSION,
+      request: Object.freeze({
+        conversationId: scope.conversationId,
+        projectId: scope.projectId,
+        targetId: input.targetId,
+        userText: input.userText,
+        // Never claimed and never stored: this composition reaches no attempt.
+        clientRequestId: `local-preview-${ids()}`,
+      }),
+      scope,
+      effect: CONVERSATION_TURN_EFFECT,
+    });
+    let context: Context;
+    try {
+      context = await compose(turn, target, false);
+    } catch (error) {
+      return blockedPreview(
+        error instanceof Error && error.message === "PRIVACY_BLOCKED"
+          ? "PRIVACY_BLOCKED"
+          : "CONTEXT_UNAVAILABLE",
+      );
+    }
+    return Object.freeze({
+      kind: "READY" as const,
+      model: target.target.displayName,
+      ...projectTurnPayload(context.text),
+      totalBytes: Buffer.byteLength(context.text, "utf8"),
+      replacements: context.replacements,
+      effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT" as const,
+    });
+  };
+
   return Object.freeze({
     run: service.run.bind(service),
     addProtectedTerm,
     previewProtection,
+    previewTurnPayload,
   });
 }
 
@@ -590,6 +668,18 @@ async function storeGeneralTurn(
     targetId: target.target.targetId,
   });
   return { eventId: updated.events.at(-1)!.id };
+}
+
+/** A refusal is a result of the preview, not a failure of it: knowing the send
+ * would be blocked is exactly what a person opened this to find out. */
+function blockedPreview(
+  reason: "TARGET_UNAVAILABLE" | "PRIVACY_BLOCKED" | "CONTEXT_UNAVAILABLE",
+) {
+  return Object.freeze({
+    kind: "BLOCKED" as const,
+    reason,
+    effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT" as const,
+  });
 }
 
 function stableScopeId(scope: Scope): string {
