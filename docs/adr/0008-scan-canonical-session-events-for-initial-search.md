@@ -14,7 +14,7 @@
 
 ## Context
 
-Sprint 3 must prove that imported historical evidence can be found and opened
+The historical search work must prove that imported historical evidence can be found and opened
 at its source. The current synthetic data set is small, local, and already
 stored as validated per-session documents. Query volume, corpus size, ranking,
 and operational requirements are not yet known.

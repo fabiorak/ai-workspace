@@ -14,6 +14,8 @@ export type ConversationTurnRequest = Readonly<{
   targetId: string;
   userText: string;
   clientRequestId: string;
+  /** Optional opaque server preparation. Its absence preserves the five-field protocol. */
+  reviewId?: string;
 }>;
 
 export type ConversationTurnScope = Readonly<{
@@ -48,6 +50,7 @@ export type ConversationTurnResult =
         | "TARGET_UNAVAILABLE"
         | "PRIVACY_BLOCKED"
         | "CONTEXT_UNAVAILABLE"
+        | "REVIEW_INVALID"
         | "LOCAL_EVIDENCE_UNAVAILABLE";
     }>
   | Readonly<{
@@ -73,12 +76,31 @@ export type ConversationTurnScopeResolver = Readonly<{
 }>;
 
 export type ConversationTurnExecutor = Readonly<{
-  execute(turn: ResolvedConversationTurn): Promise<ConversationTurnResult>;
+  execute(
+    turn: ResolvedConversationTurn,
+    execution: ConversationTurnExecution,
+  ): Promise<ConversationTurnResult>;
+}>;
+
+/**
+ * Executor evidence is linked durably before it can claim exposure. The class
+ * names the store that holds it; its absence means model delivery, so links
+ * written before agent execution existed keep their meaning (ADR-0049).
+ */
+export type ConversationTurnAttempt = Readonly<{
+  projectId: string;
+  authorizationId: string;
+  attemptId: string;
+  executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION";
+}>;
+export type ConversationTurnExecution = Readonly<{
+  bindAttempt(attempt: ConversationTurnAttempt): Promise<void>;
 }>;
 
 export type ConversationTurnClaim = Readonly<{
   idempotencyKey: string;
   requestDigest: string;
+  scope: ConversationTurnScope;
 }>;
 
 export type ConversationTurnIdempotency = Readonly<{
@@ -88,7 +110,9 @@ export type ConversationTurnIdempotency = Readonly<{
    */
   execute(
     claim: ConversationTurnClaim,
-    operation: () => Promise<ConversationTurnResult>,
+    operation: (
+      execution: ConversationTurnExecution,
+    ) => Promise<ConversationTurnResult>,
   ): Promise<Readonly<{ duplicate: boolean; result: ConversationTurnResult }>>;
 }>;
 
@@ -144,8 +168,8 @@ export class ConversationTurn {
       effect: CONVERSATION_TURN_EFFECT,
     });
     const outcome = await this.#dependencies.idempotency.execute(
-      conversationTurnClaim(request),
-      () => this.#dependencies.executor.execute(turn),
+      conversationTurnClaim(request, scope),
+      (execution) => this.#dependencies.executor.execute(turn, execution),
     );
     return Object.freeze({
       conversationId: scope.conversationId,
@@ -168,12 +192,16 @@ export function validateConversationTurnRequest(
       "projectId",
       "targetId",
       "userText",
+      ...(Object.hasOwn(value, "reviewId") ? ["reviewId"] : []),
     ]) ||
     !identifier(value.conversationId) ||
     !(value.projectId === null || identifier(value.projectId)) ||
     !identifier(value.targetId) ||
     !message(value.userText) ||
-    !identifier(value.clientRequestId)
+    !identifier(value.clientRequestId) ||
+    (Object.hasOwn(value, "reviewId") &&
+      (typeof value.reviewId !== "string" ||
+        !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/u.test(value.reviewId)))
   )
     throw new ConversationTurnError();
   return Object.freeze({
@@ -182,22 +210,31 @@ export function validateConversationTurnRequest(
     targetId: value.targetId,
     userText: value.userText,
     clientRequestId: value.clientRequestId,
+    ...(typeof value.reviewId === "string" ? { reviewId: value.reviewId } : {}),
   });
 }
 
 export function conversationTurnClaim(
   requestValue: unknown,
+  scopeValue: unknown,
 ): ConversationTurnClaim {
   const request = validateConversationTurnRequest(requestValue);
+  const scope = validateScope(scopeValue);
+  if (
+    scope.conversationId !== request.conversationId ||
+    scope.projectId !== request.projectId
+  )
+    throw new ConversationTurnError();
   return Object.freeze({
     idempotencyKey: sha256(
       JSON.stringify([request.conversationId, request.clientRequestId]),
     ),
     requestDigest: sha256(JSON.stringify(request)),
+    scope,
   });
 }
 
-function validateScope(value: unknown): ConversationTurnScope {
+export function validateScope(value: unknown): ConversationTurnScope {
   if (
     !record(value) ||
     !exactKeys(value, [

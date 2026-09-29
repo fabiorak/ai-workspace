@@ -1,6 +1,6 @@
 # Pseudonymized output restoration corpus and gates
 
-**Frozen before Sprint 31 harness or production implementation:** 2026-07-22  
+**Frozen before the output-restoration harness or production implementation:** 2026-07-22\
 **Scope:** model-free local measurement; all content and identities are synthetic
 
 ## Purpose
@@ -21,7 +21,7 @@ baseline and must not change.
    complete result on any unknown or malformed `[[AW...` construct.
 2. `KNOWN_ONLY_BASELINE`: restore exact known whole tokens and leave unknown or
    malformed constructs unchanged. This is comparison-only and cannot become a
-   production policy in Sprint 31.
+   production policy in the output-restoration work.
 
 ## Frozen corpus
 
@@ -90,8 +90,8 @@ Structural gates require:
 
 The known-only baseline is recorded but cannot receive
 `ADOPT_FOR_LOCAL_INSPECTION`. A positive strict result permits ADR-0025 to
-consider only a user-triggered local inspector. Negative evidence closes Sprint
-31 without production behavior.
+consider only a user-triggered local inspector. Negative evidence closes the output-restoration work
+without production behavior.
 
 ## Expected pressure, not a result
 

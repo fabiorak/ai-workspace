@@ -2,7 +2,7 @@
 
 **Frozen:** 2026-07-22, before ADR-0026 and production persistence code
 
-Sprint 32 uses only fictional identifiers and aggregate values. The corpus has
+The privacy-audit work uses only fictional identifiers and aggregate values. The corpus has
 one `REVIEWABLE_NOT_AUTHORIZED` decision and one `BLOCKED` decision. Neither
 fixture contains Context Pack content, item hashes, detected values, source or
 policy paths, complete reports, mappings, keys, passphrases, prompts,

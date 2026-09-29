@@ -1,26 +1,57 @@
 # Development Guide
 
-Measurement reports:
+Measurement reports and evaluation protocols, by topic. Each pairs a frozen
+corpus, with its decision gates, and where present the observations recorded
+against it. All inputs are synthetic.
 
+**Conversation and continuity**
+
+- [Reduced-turn configuration](reduced-turn-configuration.md)
+- [Continuation baseline measurement](continuation-measurement.md)
+- [Synthetic conversation GUI check](continuation-manual-check.md)
 - [Synthetic handoff break-even corpus](handoff-break-even-corpus.md)
-- [Synthetic Context Pack budget-pressure corpus](context-pack-budget-pressure-corpus.md)
 - [Synthetic continuity disclosure granularity corpus](continuity-disclosure-granularity-corpus.md)
+
+**Context packs and instruction selection**
+
+- [Synthetic Context Pack budget-pressure corpus](context-pack-budget-pressure-corpus.md)
 - [Synthetic Context Pack metadata-envelope corpus](context-pack-metadata-envelope-corpus.md)
 - [Context Pack schema-v2 source-table rollout](context-pack-source-table-rollout.md)
 - [Profile context selector measurement](context-selector-measurement.md)
 - [Selector continuity evidence retention](selector-continuity-evidence-retention.md)
-- [Reviewed entity candidate discovery corpus](entity-candidate-discovery-corpus.md)
-- [Reviewed entity candidate discovery observations](entity-candidate-discovery-observations.md)
-- [Rizzo PII evaluation protocol](rizzo-pii-evaluation.md)
-- [Rizzo PII evaluation observations](rizzo-pii-evaluation-observations.md)
+
+**Privacy**
+
+- [Privacy pseudonymization corpus](privacy-pseudonymization-corpus.md)
 - [Privacy mapping schema-v2 compatibility corpus](privacy-schema-v2-compatibility-corpus.md)
+- Local mapping key custody: [corpus](local-mapping-key-custody-corpus.md) and [observations](local-mapping-key-custody-observations.md)
+- Pseudonymized output restoration: [corpus](privacy-output-restoration-corpus.md) and [observations](privacy-output-restoration-observations.md)
+- Privacy decision audit: [corpus](privacy-audit-corpus.md) and [observations](privacy-audit-observations.md)
+- Entity candidate discovery: [corpus](entity-candidate-discovery-corpus.md) and [observations](entity-candidate-discovery-observations.md)
+- Rizzo PII evaluation: [protocol](rizzo-pii-evaluation.md) and [observations](rizzo-pii-evaluation-observations.md)
+
+**Search and retrieval**
+
 - [Tolerant search corpus](tolerant-search-corpus.md)
 - [Unified retrieval corpus](unified-retrieval-corpus.md)
 - [Document retrieval corpus](document-retrieval-corpus.md)
 - [Code retrieval corpus](code-retrieval-corpus.md)
+- [General link retrieval scale corpus](general-link-retrieval-scale-corpus.md)
 - [Tolerant retrieval observations](tolerant-retrieval-observations.md)
-- [Real event retrieval corpus](real-event-retrieval-corpus.md)
-- [Real event retrieval observations](real-event-retrieval-observations.md)
+- Real event retrieval: [corpus](real-event-retrieval-corpus.md) and [observations](real-event-retrieval-observations.md)
+
+**Model delivery**
+
+- Delivery authorization: [corpus](model-delivery-authorization-corpus.md) and [observations](model-delivery-authorization-observations.md)
+- OpenAI Responses: [transport corpus](openai-responses-qualification-corpus.md), [observations](openai-transport-qualification-observations.md), [attempt corpus](openai-at-most-once-attempt-corpus.md), [attempt observations](openai-at-most-once-attempt-observations.md) and the [live probe gate](openai-live-probe.md)
+- Anthropic Messages: [corpus](anthropic-messages-qualification-corpus.md) and [observations](anthropic-transport-qualification-observations.md)
+
+**Agents**
+
+- [Subscription-backed agent boundary](subscription-agent-boundary.md)
+- [Codex headless qualification corpus](codex-headless-qualification-corpus.md)
+- [Claude Code headless qualification corpus](claude-headless-qualification-corpus.md)
+- [Claude Code provider-boundary spike](claude-code-provider-spike.md)
 
 ## Prerequisites
 
@@ -84,7 +115,7 @@ The committed Codex fixture is fictional and intentionally public. Do not
 replace it or extend it with captured user transcripts, even after manual
 redaction.
 
-The Sprint 5 second-provider boundary is documented in the offline
+The second-provider work second-provider boundary is documented in the offline
 [Claude Code provider spike](claude-code-provider-spike.md). Its fixture is
 synthetic-only and does not imply production or broad provider support.
 
@@ -119,7 +150,7 @@ deployed service without documenting the decision and its boundary.
 
 ## General link scale measurement
 
-Run `npm run measure:general-links` to reproduce the development-only Sprint 25
+Run `npm run measure:general-links` to reproduce the development-only the General-link scale work
 REFERENCE evaluation. Corpus dimensions, exact queries, deterministic counts,
 invalid-state matrix, thresholds, observed results, and the `NO_CHANGE`
 decision are documented in
@@ -128,7 +159,7 @@ The harness uses temporary synthetic state only and exposes no runtime route.
 
 ## Reversible privacy transformation
 
-Sprint 26 freezes its synthetic Unicode, integrity, encryption, permission,
+The pseudonymization work freezes its synthetic Unicode, integrity, encryption, permission,
 non-echo, and round-trip cases in
 [Privacy Pseudonymization Corpus](privacy-pseudonymization-corpus.md).
 `packages/privacy-gateway` owns the pure reviewed-span transformation and
@@ -137,7 +168,7 @@ encrypted persistence. Tests must use fictional values and explicit synthetic
 32-byte keys; never add real mappings, keys, identity data, paths, or generated
 ciphertext artifacts to the repository.
 
-Sprint 27 freezes the custody scenarios and gates in
+The key-custody work freezes the custody scenarios and gates in
 [Local Mapping Key Custody Corpus](local-mapping-key-custody-corpus.md) and
 keeps deterministic results separate in
 [Local Mapping Key Custody Observations](local-mapping-key-custody-observations.md).
@@ -145,14 +176,14 @@ keeps deterministic results separate in
 envelopes. Tests use synthetic passphrases and random temporary keys; never
 probe or create real credential-store records or report host/user identity.
 
-Sprint 30 freezes exact schema-v1 bytes, deterministic schema-v2 project
+The schema-v2 compatibility work freezes exact schema-v1 bytes, deterministic schema-v2 project
 bytes, mixed read/restore, downgrade, scope, and authenticated-version gates in
 the [Privacy Mapping Schema-v2 Compatibility Corpus](privacy-schema-v2-compatibility-corpus.md).
 Run `node --test packages/privacy-gateway/test/privacy-schema-v2-compatibility.test.ts`
 after building workspace packages. Schema-v1 fixtures are permanent; never
 rewrite them to resemble v2 or substitute real customer/project data.
 
-Sprint 31 freezes arbitrary-output v1/v2 token integrity, scope, anomaly, and
+The output-restoration work freezes arbitrary-output v1/v2 token integrity, scope, anomaly, and
 all-or-nothing gates in the
 [Pseudonymized Output Restoration Corpus](privacy-output-restoration-corpus.md).
 Run `npm run measure:output-restoration` to reproduce the deterministic
@@ -162,7 +193,7 @@ harness-only.
 
 ## Automatic stable privacy maps
 
-U4 adds the `PiiDetector` port and stable-map transformation in
+The `PiiDetector` port and stable-map transformation live in
 `packages/privacy-gateway`, app-managed local key custody in
 `integrations/local-key-custody`, and encrypted revisioned map persistence in
 `integrations/local-privacy-mapping`. Tests must use only synthetic values and
@@ -172,8 +203,8 @@ modes, corruption, and additive legacy migration. Never inspect a developer's
 real workspace home or commit generated keys, mapping ciphertext, or migration
 artifacts.
 
-U5 evaluates the current built-in detector and an optional pinned Rizzo PII
-sidecar against the entirely synthetic, exact-span
+The current built-in detector and an optional pinned Rizzo PII sidecar are
+evaluated against the entirely synthetic, exact-span
 [Rizzo PII evaluation protocol](rizzo-pii-evaluation.md). Run
 `npm run measure:rizzo-pii` for the safe built-in baseline. A Rizzo run requires
 an explicitly started CPU sidecar on numeric loopback; it remains a
@@ -181,7 +212,7 @@ development-only measurement and does not change the production default.
 The measured rejection and bounded results are recorded in the
 [Rizzo PII evaluation observations](rizzo-pii-evaluation-observations.md).
 
-Sprint 32 freezes the non-content privacy-decision audit schema, synthetic
+The privacy-audit work freezes the non-content privacy-decision audit schema, synthetic
 reviewable/blocked cases, canonical bytes, chaining, fixed 1,000-event bound,
 and failure matrix in the [Privacy Decision Audit Corpus](privacy-audit-corpus.md).
 Run `npm run measure:privacy-audit` to reproduce the deterministic
@@ -190,7 +221,7 @@ explicit preflight decisions after verified append/reread; no complete report,
 content, item hash, path, detected value, secret, mapping, prompt, response, or
 restored output is retained.
 
-Sprint 33 freezes the exact authorization-intent metadata, 60-second expiry,
+The delivery-authorization work freezes the exact authorization-intent metadata, 60-second expiry,
 single-use replay rules, and before/after-exposure crash matrix in the
 [Model-delivery Authorization Corpus](model-delivery-authorization-corpus.md).
 Run `npm run measure:delivery-authorization` to reproduce the deterministic
@@ -200,7 +231,7 @@ outcome after byte exposure is unknowable without a concrete provider protocol.
 The contract and adapter remain test-only; no ADR-0027 or production surface is
 added.
 
-Sprint 34 qualifies concrete OpenAI candidates through the frozen
+The OpenAI transport work qualifies concrete OpenAI candidates through the frozen
 [Responses corpus](openai-responses-qualification-corpus.md),
 [Codex headless corpus](codex-headless-qualification-corpus.md), and combined
 [observations](openai-transport-qualification-observations.md). Run
@@ -210,16 +241,16 @@ reproduce the offline results. Responses closes `EVIDENCE_ONLY`; Codex closes
 a model, and neither contract is exported from production code.
 
 The post-redesign [OpenAI Responses live probe gate](openai-live-probe.md)
-documents the explicit process-only activation prepared in P3. It does not
+documents the explicit process-only activation. It does not
 authorize a request: model, account, current pricing, exact synthetic text and
-the two-request cost bound remain a separate P4 review.
+the two-request cost bound remain a separate live-probe review.
 
 When API access is unavailable, the
 [subscription-backed agent boundary](subscription-agent-boundary.md) keeps
 Codex CLI and Claude Code managed login separate from model delivery. It defines
-the offline A7.0-A7.2 gates; no real executable, login or model is invoked.
+the offline qualification gates; no real executable, login or model is invoked.
 
-Sprint 35 applies the same boundary to the second provider family through the
+The Anthropic transport work applies the same boundary to the second provider family through the
 [Anthropic Messages corpus](anthropic-messages-qualification-corpus.md),
 [Claude headless corpus](claude-headless-qualification-corpus.md), and combined
 [observations](anthropic-transport-qualification-observations.md). Run
@@ -229,7 +260,7 @@ reproduce the offline results. Messages closes `EVIDENCE_ONLY`; bare Claude is
 `SEPARATE_AGENT_BOUNDARY`. No credential, network, real executable, or model is
 used.
 
-Sprint 36 freezes the OpenAI application-level attempt state machine, restart,
+The OpenAI attempt-semantics work freezes the OpenAI application-level attempt state machine, restart,
 replay, concurrency, receipt, inspection, and fresh-warning gates in the
 [bounded at-most-once corpus](openai-at-most-once-attempt-corpus.md). Run
 `npm run measure:openai-at-most-once` to reproduce the deterministic
@@ -240,7 +271,7 @@ credential, network, response, production persistence, GUI, or delivery path.
 
 ## Entity candidate discovery measurement
 
-Sprint 28 freezes its synthetic English/Italian exact-span ground truth and
+The entity-candidate work freezes its synthetic English/Italian exact-span ground truth and
 decision gates in the
 [Entity Candidate Discovery Corpus](entity-candidate-discovery-corpus.md).
 Run `npm run measure:entity-candidates` to reproduce two development-only runs.
@@ -311,7 +342,7 @@ real one.
 
 ## Architecture decisions
 
-The U1 conversation-shell behavior is covered by
+The conversation-shell behavior is covered by
 `apps/web/test/home-shell.test.ts` and
 `apps/web/test/restart-point-shell.test.ts`. These tests verify the separate
 history route, idempotent conversation selection, technical-activity grouping,
@@ -319,7 +350,7 @@ keyboard submission, local fake response, and compatibility with the existing
 restart-point structure. They are source-level and HTTP-suite checks, not a
 substitute for the 1440x900 and 390x850 browser acceptance pass.
 
-U2 adds pure target-resolution tests in `packages/model-targets/test`, adapter
+Pure target-resolution tests live in `packages/model-targets/test`, adapter
 qualification in `integrations/local-model-targets/test`, and authenticated HTTP
 restart coverage in `apps/web/test/model-target-route.test.ts`. The tests use
 only synthetic metadata and temporary homes. They verify precedence, exact
@@ -327,8 +358,8 @@ configuration, expected-revision concurrency, restrictive permissions,
 corruption handling, safe conversation views, and persistence of an A-to-B
 conversation selection across a server restart. No test contacts a provider.
 
-U3 adds direct coordination tests for pre-exposure recomposition and
-post-exposure uncertainty, plus an authenticated HTTP journey covering one-call
+Direct coordination tests cover pre-exposure recomposition and
+post-exposure uncertainty, and an authenticated HTTP journey covers one-call
 duplicate suppression, General reduced context, no-handoff project context and
 retained display-name attribution. Loopback server tests require the environment
 to permit local port binding.

@@ -1,6 +1,6 @@
 # Local mapping key-custody corpus and decision gates
 
-**Frozen before Sprint 27 prototypes:** 2026-07-16  
+**Frozen before the key-custody prototypes:** 2026-07-16\
 **Scope:** development-only comparison; all values and identities are synthetic
 
 ## Purpose
@@ -8,13 +8,13 @@
 This corpus compares custody boundaries for the 32-byte key consumed by the
 schema-v1 encrypted privacy-mapping store. It does not authorize production
 rollout, network recovery, credential export, mapping migration, or changes to
-the Sprint 26 ciphertext format. Candidate observations must be recorded
+the pseudonymization work ciphertext format. Candidate observations must be recorded
 before ADR-0022 can accept a boundary.
 
 ## Candidates
 
 1. `VOLATILE_IMPORT`: import an exact 32-byte key for each operation and retain
-   it only in process memory. This is the Sprint 26 baseline.
+   it only in process memory. This is the pseudonymization baseline.
 2. `OS_CREDENTIAL_STORE`: place a randomly generated 32-byte key behind the
    current operating-system user's credential-store API and retain only an
    opaque lookup label outside that store.
@@ -35,7 +35,7 @@ Each executable candidate adapter receives only:
 - passphrases `correct horse synthetic staple` and
   `wrong horse synthetic staple`, where applicable;
 - an opaque workspace scope `workspace-synthetic-01`;
-- one valid schema-v1 mapping ciphertext produced by Sprint 26;
+- one valid schema-v1 mapping ciphertext produced by the pseudonymization work;
 - copies with a flipped envelope byte, changed authenticated scope, truncated
   payload, unsupported schema/algorithm/KDF parameters, and excessive bounds.
 
@@ -77,7 +77,7 @@ override a deterministic failure.
   passphrase, recovery material, machine/user identity, credential label, or
   local path;
 - existing encrypted mapping documents remain byte-identical, readable by the
-  Sprint 26 store with the recovered key, and use no migration;
+  the pseudonymization work store with the recovered key, and use no migration;
 - loss or corruption never deletes or overwrites mapping ciphertext or an
   existing custody envelope.
 

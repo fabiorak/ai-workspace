@@ -1,7 +1,6 @@
 # Synthetic Context Pack budget-pressure corpus
 
 **Date:** 2026-07-13  
-**Sprint item:** S13-03 and S13-04  
 **Decision method:** exact UTF-8 content bytes
 
 ## Method
@@ -110,7 +109,7 @@ preserve source identity, trust, deterministic ordering, and visible omission
 reasons and must not infer task relevance from byte size.
 
 No builder behavior, persistence format, GUI control, selection policy, or
-runtime is changed by Sprint 13. A later sprint and ADR are required before any
+runtime is changed by the Context Pack budget-pressure work. A later increment and ADR are required before any
 new representation or selection behavior is accepted.
 
 ## Limitations

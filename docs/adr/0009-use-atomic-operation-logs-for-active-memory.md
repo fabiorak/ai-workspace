@@ -5,7 +5,7 @@
 
 ## Context
 
-Sprint 4 introduces curated decisions, constraints, and failure records whose
+The active memory work introduces curated decisions, constraints, and failure records whose
 current validity can change. Unlike imported evidence, active memory is
 deliberately curated, but corrections must remain attributable and must not
 erase the previous statement, provenance, or verification history.
@@ -96,7 +96,7 @@ The allowed lifecycle is deliberately narrow:
 
 Creation and supersession inputs cannot set confidence. New items and
 replacements are always `UNASSESSED`; any future confidence change requires a
-separate attributable domain operation and is outside Sprint 4.
+separate attributable domain operation and is outside the active memory work.
 
 Project-memory listing uses bounded keyset pagination. Items are ordered by
 creation timestamp descending (newest first), then by opaque memory ID

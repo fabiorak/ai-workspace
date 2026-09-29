@@ -6,7 +6,7 @@
 ## Context
 
 ADR-0021 accepts only explicitly reviewed schema-v1 UTF-8 spans and keeps
-automatic entity discovery outside its boundary. Sprint 28 subsequently
+automatic entity discovery outside its boundary. The entity-candidate work subsequently
 measured deterministic standard syntax, exact configured aliases, and their
 union against a frozen bilingual corpus. Exact aliases passed the review-only
 gate; standard syntax and the union remain `REFINE` because telephone precision
@@ -53,8 +53,8 @@ project aliases can be confirmed.
 - standard syntax, combined candidates, project aliases, correction memory,
   dictionary persistence, model/network access, delivery, routing, permission,
   and execution remain outside the boundary;
-- the Sprint 28 harness remains development evidence; production code lives in
+- the entity-candidate harness remains development evidence; production code lives in
   `packages/privacy-gateway` and is regression-checked against the frozen
   customer-alias subset;
 - schema-v2 project support is authorized for planning only, not implementation
-  or rollout in Sprint 29.
+  or rollout in the alias-suggestion work.

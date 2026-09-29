@@ -1,6 +1,6 @@
 # Rizzo PII evaluation protocol
 
-**Frozen before U5 measurement:** 2026-09-15  
+**Frozen before measurement:** 2026-09-15\
 **Scope:** development-only spike; all evaluated text and identifiers are synthetic
 
 ## Purpose and non-goals

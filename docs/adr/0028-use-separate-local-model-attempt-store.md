@@ -7,7 +7,7 @@
 ## Context
 
 ADR-0027 requires a durable exposure claim before a future provider adapter is
-invoked. Sprint 37 proved the ordering with a dependency-free test-owned JSON
+invoked. The model-attempt store work proved the ordering with a dependency-free test-owned JSON
 candidate, but did not establish a reusable production contract.
 
 Attempt evidence has different semantics from privacy-decision audit, active

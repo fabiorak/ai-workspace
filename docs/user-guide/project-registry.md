@@ -1,7 +1,7 @@
 # Project Registry
 
 The Project Registry remembers local Git repositories and refreshes their
-current state. Sprint 1 supports non-bare repositories and linked worktrees.
+current state. The project registry work supports non-bare repositories and linked worktrees.
 It never clones, fetches, checks out, or modifies a repository.
 
 ## Prerequisites

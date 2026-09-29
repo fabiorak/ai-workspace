@@ -64,6 +64,19 @@
       "@ai-workspace/model-attempts": [
         "./packages/model-attempts/src/index.ts"
       ],
+      "@ai-workspace/codex-agent": ["./integrations/codex-agent/src/index.ts"],
+      "@ai-workspace/claude-code-agent": [
+        "./integrations/claude-code-agent/src/index.ts"
+      ],
+      "@ai-workspace/agent-process": [
+        "./integrations/agent-process/src/index.ts"
+      ],
+      "@ai-workspace/agent-execution": [
+        "./packages/agent-execution/src/index.ts"
+      ],
+      "@ai-workspace/local-agent-attempts": [
+        "./integrations/local-agent-attempts/src/index.ts"
+      ],
       "@ai-workspace/model-targets": ["./packages/model-targets/src/index.ts"],
       "@ai-workspace/local-model-attempts": [
         "./integrations/local-model-attempts/src/index.ts"
@@ -94,6 +107,9 @@
       ],
       "@ai-workspace/openai-responses": [
         "./integrations/openai-responses/src/index.ts"
+      ],
+      "@ai-workspace/local-conversation-turns": [
+        "./integrations/local-conversation-turns/src/index.ts"
       ]
     },
     "types": ["node"]

@@ -1,6 +1,6 @@
 # OpenAI bounded at-most-once attempt corpus
 
-**Frozen:** 2026-07-22, before executable Sprint 36 evidence
+**Frozen:** 2026-07-22, before the executable attempt-semantics evidence
 **Scope:** development-only, offline OpenAI Responses attempt semantics
 **Input:** synthetic pseudonymized mapping-v1/v2 requests only
 

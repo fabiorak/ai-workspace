@@ -71,3 +71,35 @@ and an agent login must never be repurposed as an API credential.
   unchanged until the separate agent coordinator is implemented and tested;
 - the offline implementation may contain a dormant subprocess runner, but adds
   no application wiring, direct credential access or live agent execution.
+
+## Amendment: routing the conversation turn by class
+
+Date: 2026-09-28. The ADR remains proposed.
+
+The conversation turn now routes each selected target to its own boundary.
+`MODEL_DELIVERY` still goes through `ModelDelivery`; `AGENT_EXECUTION` goes
+through the ADR-0049 coordinator, only when the host offers an executor for
+that kind. Composition, policy, instructions, pseudonymization, the durable
+turn identity, the reviewed-payload binding, restoration, screening and the
+canonical writer are the same for both. A local-model target, or an agent kind
+the host did not offer, is refused before exposure with the draft kept.
+
+Answers keep their class in the canonical history. General answers carry an
+optional `executionClass` and an optional `reportedModel` in their provenance;
+their absence means a model delivery stored before this change. Project answers
+from an agent use the source label `AGENT_EXECUTION:<name>` instead of
+`MODEL_CONVERSATION:<name>`, and every reader recognizes both. The requested
+model or alias is recorded as requested; nothing is deduced.
+
+For an agent target, the payload preview states that it shows exactly the input
+AI Workspace supplies and that the agent product adds instructions of its own.
+
+The standard host offers no agent. `AI_WORKSPACE_AGENT_EXECUTION` is an exact
+process-level opt-in with `AI_WORKSPACE_AGENT_RUN_ROOT`,
+`AI_WORKSPACE_AGENT_PATH` and one dedicated login directory per product
+(`AI_WORKSPACE_CODEX_LOGIN_DIR`, `AI_WORKSPACE_CLAUDE_LOGIN_DIR`). The host
+compares the installed file's digest with the reviewed list before starting
+anything; only a listed file is asked for its version, and only a matching
+version is offered. With the shipped empty lists, no agent is offered and no
+agent program is started. Synthetic executors used by tests and the offline
+demo declare themselves simulated, and the GUI labels them so.

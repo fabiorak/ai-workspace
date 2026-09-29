@@ -23,6 +23,7 @@ import {
   titleFrom,
   type ConversationTitleSource,
 } from "./conversation-list.ts";
+import { generatedSource } from "./generated-source.ts";
 
 /**
  * Bounded like every other local read. A transcript can hold thousands of
@@ -110,9 +111,7 @@ function momentOf(
     textStoredSeparately: event.payload.kind === "ARTIFACT",
     sourcePosition: event.source.position,
     contentHash: event.source.recordHash,
-    speaker: event.source.sourceType.startsWith("MODEL_CONVERSATION:")
-      ? event.source.sourceType.slice("MODEL_CONVERSATION:".length)
-      : null,
+    speaker: generatedSource(event.source.sourceType)?.speaker ?? null,
   });
 }
 

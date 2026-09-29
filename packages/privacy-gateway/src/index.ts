@@ -23,6 +23,7 @@ export * from "./output-restoration-measurement.ts";
 export * from "./model-privacy-path.ts";
 export * from "./pii-detector.ts";
 export * from "./stable-pseudonymization.ts";
+export * from "./scoped-policy.ts";
 
 export const MODEL_DATA_POLICY_SCHEMA_VERSION = 1;
 export const PRIVACY_PREFLIGHT_EFFECT =
@@ -180,15 +181,38 @@ export function detectRestrictedData(
 }
 
 export function validateModelDataPolicy(value: unknown): ModelDataPolicy {
+  if (
+    !record(value) ||
+    !exactKeys(value, POLICY_KEYS) ||
+    value.schemaVersion !== MODEL_DATA_POLICY_SCHEMA_VERSION ||
+    !text(value.projectId)
+  )
+    throw invalid();
+  const definition = validateModelDataPolicyDefinition(value);
+  return Object.freeze({
+    schemaVersion: 1,
+    id: definition.id,
+    version: definition.version,
+    projectId: value.projectId,
+    modelId: definition.modelId,
+    maximumDataClass: definition.maximumDataClass,
+    assertions: definition.assertions,
+    attribution: definition.attribution,
+    author: definition.author,
+    license: definition.license,
+  });
+}
+
+/** Common policy validation, independent of project ownership. */
+export function validateModelDataPolicyDefinition(
+  value: unknown,
+): Omit<ModelDataPolicy, "schemaVersion" | "projectId"> {
   try {
     if (
       !record(value) ||
-      !exactKeys(value, POLICY_KEYS) ||
-      value.schemaVersion !== MODEL_DATA_POLICY_SCHEMA_VERSION ||
       !text(value.id) ||
       typeof value.version !== "string" ||
       !SEMVER.test(value.version) ||
-      !text(value.projectId) ||
       !text(value.modelId) ||
       !["PUBLIC", "INTERNAL", "CONFIDENTIAL"].includes(
         String(value.maximumDataClass),
@@ -224,10 +248,8 @@ export function validateModelDataPolicy(value: unknown): ModelDataPolicy {
     )
       throw invalid();
     const policy = Object.freeze({
-      schemaVersion: 1 as const,
       id: value.id,
       version: value.version,
-      projectId: value.projectId,
       modelId: value.modelId,
       maximumDataClass: value.maximumDataClass as PolicyMaximum,
       assertions: Object.freeze(assertions),
@@ -235,7 +257,7 @@ export function validateModelDataPolicy(value: unknown): ModelDataPolicy {
       author: value.author,
       license: value.license,
     });
-    if (Buffer.byteLength(JSON.stringify(policy), "utf8") > MAX_CANONICAL_BYTES)
+    if (Buffer.byteLength(JSON.stringify(value), "utf8") > MAX_CANONICAL_BYTES)
       throw invalid();
     return policy;
   } catch (error) {
@@ -271,21 +293,12 @@ export function evaluatePrivacyPreflight(
     for (const assertion of policy.assertions)
       if (!includedIds.has(assertion.itemId)) throw invalid();
     const items = packet.included.map((item) => {
-      const contentSha256 = sha256(item.content);
       const assertion = assertions.get(item.id);
-      if (assertion !== undefined && assertion.contentSha256 !== contentSha256)
-        throw invalid();
-      const detectorCategory = detectRestrictedData(item.content);
-      const effectiveClass: DataClass =
-        detectorCategory === null
-          ? (assertion?.classification ?? "CONFIDENTIAL")
-          : "RESTRICTED";
-      const decision =
-        detectorCategory !== null
-          ? ("BLOCKED_RESTRICTED_PATTERN" as const)
-          : rank(effectiveClass) <= rank(policy.maximumDataClass)
-            ? ("ALLOWED_BY_POLICY" as const)
-            : ("BLOCKED_BY_POLICY" as const);
+      const classification = evaluatePrivacyItemClassification(
+        item.content,
+        policy.maximumDataClass,
+        assertion,
+      );
       return Object.freeze({
         itemId: item.id,
         category: item.category,
@@ -293,22 +306,7 @@ export function evaluatePrivacyPreflight(
         sourceType: item.sourceType,
         sourceId: item.sourceId,
         exactBytes: item.exactBytes,
-        contentSha256,
-        effectiveClass,
-        classificationSource:
-          detectorCategory !== null
-            ? ("RESTRICTED_DETECTOR" as const)
-            : assertion === undefined
-              ? ("DEFAULT_CONFIDENTIAL" as const)
-              : ("POLICY_ASSERTION" as const),
-        detectorCategory,
-        decision,
-        reason:
-          detectorCategory !== null
-            ? ("HIGH_CONFIDENCE_RESTRICTED_PATTERN" as const)
-            : decision === "ALLOWED_BY_POLICY"
-              ? ("EFFECTIVE_CLASS_WITHIN_POLICY_MAXIMUM" as const)
-              : ("EFFECTIVE_CLASS_EXCEEDS_POLICY_MAXIMUM" as const),
+        ...classification,
       });
     });
     const omitted = packet.omitted.map((item) =>
@@ -378,6 +376,59 @@ export function evaluatePrivacyPreflight(
     if (error instanceof PrivacyGatewayError) throw error;
     throw invalid(error);
   }
+}
+
+export function evaluatePrivacyItemClassification(
+  content: string,
+  maximumDataClass: PolicyMaximum,
+  assertion?: ModelDataPolicyAssertion,
+): Pick<
+  PrivacyItemDecision,
+  | "contentSha256"
+  | "effectiveClass"
+  | "classificationSource"
+  | "detectorCategory"
+  | "decision"
+  | "reason"
+> {
+  if (!["PUBLIC", "INTERNAL", "CONFIDENTIAL"].includes(maximumDataClass))
+    throw invalid();
+  const contentSha256 = sha256(content);
+  if (
+    assertion !== undefined &&
+    (assertion.contentSha256 !== contentSha256 ||
+      !DATA_CLASSES.includes(assertion.classification))
+  )
+    throw invalid();
+  const detectorCategory = detectRestrictedData(content);
+  const effectiveClass: DataClass =
+    detectorCategory === null
+      ? (assertion?.classification ?? "CONFIDENTIAL")
+      : "RESTRICTED";
+  const decision =
+    detectorCategory !== null
+      ? "BLOCKED_RESTRICTED_PATTERN"
+      : rank(effectiveClass) <= rank(maximumDataClass)
+        ? "ALLOWED_BY_POLICY"
+        : "BLOCKED_BY_POLICY";
+  return Object.freeze({
+    contentSha256,
+    effectiveClass,
+    classificationSource:
+      detectorCategory !== null
+        ? "RESTRICTED_DETECTOR"
+        : assertion === undefined
+          ? "DEFAULT_CONFIDENTIAL"
+          : "POLICY_ASSERTION",
+    detectorCategory,
+    decision,
+    reason:
+      detectorCategory !== null
+        ? "HIGH_CONFIDENCE_RESTRICTED_PATTERN"
+        : decision === "ALLOWED_BY_POLICY"
+          ? "EFFECTIVE_CLASS_WITHIN_POLICY_MAXIMUM"
+          : "EFFECTIVE_CLASS_EXCEEDS_POLICY_MAXIMUM",
+  });
 }
 
 function rank(value: DataClass): number {

@@ -1,14 +1,13 @@
 # Synthetic Context Pack metadata-envelope corpus
 
 **Date:** 2026-07-13  
-**Sprint item:** S15-02 and S15-03  
 **Decision method:** exact UTF-8 Context Pack content bytes
 
 ## Method
 
 The experiment reuses the unchanged compact, working, and extended handoffs,
 eight-section order, source values, and 64/4,096/100,000-byte continuity
-budgets from Sprints 13 and 14. It compares three experiment-only in-memory
+budgets from the earlier budget-pressure and disclosure-granularity corpora. It compares three experiment-only in-memory
 representations:
 
 - `EMBEDDED`: the exact eight current `JSON.stringify(section)` Context
@@ -91,14 +90,14 @@ fits the standard budget.
 ## Decision
 
 ADR-0016 accepts the source-table representation as the contract direction
-for a later rollout sprint. Its 28.60% compact and 18.64% working reductions,
+for a later rollout. Its 28.60% compact and 18.64% working reductions,
 plus one new standard-budget fit, are material on this bounded corpus. It
 retains section-local trust and every canonical source field.
 
 The full metadata table is rejected because its extra table and reference
 indirection saves less in every profile and changes no sampled fit boundary.
-`No change` remains safer than enabling either prototype during this decision
-sprint. Production therefore stays embedded until a later sprint implements
+`No change` remains safer than enabling either prototype during this decision.
+Production therefore stays embedded until a later increment implements
 versioned reader/writer compatibility and the complete accepted contracts.
 
 ## Limitations

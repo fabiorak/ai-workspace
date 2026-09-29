@@ -6,7 +6,7 @@ devono restare allineate; una modifica a una sola delle due è un difetto.
 **Nota:** gli esempi usano nomi e contenuti inventati.
 
 Questo documento fissa **come si deve sentire chi usa AI Workspace**, e serve da
-bersaglio per ogni sprint successivo che tocchi l'interfaccia. Non descrive
+bersaglio per ogni incremento successivo che tocchi l'interfaccia. Non descrive
 un'architettura e non sostituisce nessun ADR: descrive l'esperienza che
 l'architettura deve permettere.
 
@@ -220,7 +220,7 @@ ambiguità: oggi la ricerca è dichiaratamente letterale — _«non trova parafr
 errori di battitura, sinonimi o radici delle parole»_ — quindi una casella di
 ricerca al centro dello schermo è una promessa che il motore attuale non mantiene.
 Renderla tollerante è lavoro di motore, non di interfaccia, va pianificato come
-sprint proprio, ed è il punto in cui la lezione di OpenSearch conta davvero.
+incremento proprio, ed è il punto in cui la lezione di OpenSearch conta davvero.
 
 ### 5.2 «Riprendiamo da dove eravamo», anche con un altro assistente
 
@@ -493,7 +493,7 @@ Criteri osservabili, non impressioni:
 
 ## 11. Che cosa questo documento **non** decide
 
-Ognuno di questi punti richiede il proprio sprint e, dove serve, il proprio ADR:
+Ognuno di questi punti richiede il proprio incremento e, dove serve, il proprio ADR:
 
 - **il motore di ricerca tollerante** (normalizzazione, radici delle parole,
   tolleranza agli errori di battitura, ordinamento per pertinenza e recenza,

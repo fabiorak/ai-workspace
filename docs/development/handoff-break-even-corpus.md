@@ -1,7 +1,6 @@
 # Synthetic handoff break-even corpus
 
 **Date:** 2026-07-11  
-**Sprint item:** S6-01  
 **Decision method:** exact UTF-8 bytes
 
 ## Method
@@ -35,11 +34,11 @@ prove that a handoff is sufficient, faster, or cheaper for arbitrary work. The
 corpus does not model private transcripts, tool distributions, memory growth,
 or provider tokenization.
 
-The packet still repeats full source links across section metadata. S6-02 will
-attribute those bytes before S6-03 considers a normalized source table. No v2
+The packet still repeats full source links across section metadata. A byte attribution comes
+next, before a normalized source table is considered. No v2
 format or context-optimization claim is accepted by this experiment.
 
-## S6-02 byte attribution
+## Byte attribution
 
 The same fixed packet is decomposed into non-overlapping semantic categories.
 Compact JSON bytes represent section values and metadata; all source
@@ -57,10 +56,10 @@ structural wrappers. The categories sum to the exact 7,642-byte encoding.
 
 The packet contains nine source occurrences representing one unique canonical
 source. Repetition is therefore the largest measured category. This is enough
-evidence for S6-03 to compare normalized source references, but not permission
+evidence to compare normalized source references, but not permission
 to remove source fields, weaken section-level trust, or write schema v2.
 
-## S6-03 representation decision
+## Representation decision
 
 [ADR-0013](../adr/0013-normalize-handoff-provenance-with-lossless-source-references.md)
 accepts a packet-level source table with lossless section references for a
@@ -69,14 +68,15 @@ change. Normalization was selected because repeated provenance is the largest
 measured category and can be removed without removing any source field or
 section-level trust metadata.
 
-This decision does not enable v2 writes. S6-04 must first prove stable v1
+This decision does not enable v2 writes. The persisted representation must
+first prove stable v1
 backward reads, immutable v1 fixtures, lossless logical equivalence,
 deterministic encoding, source-navigation equivalence, and fail-closed bounds
 and reference validation. Existing v1 files will not be migrated in place.
 
-## S6-04 persisted representation
+## Persisted representation
 
-The S6-04 contract suite now proves those preconditions. The logical
+The contract suite now proves those preconditions. The logical
 provider-neutral `Handoff` shape remains unchanged while a separate persisted
 codec reads v1 and v2 and expands both into that shape. New local immutable
 handoffs are written as v2 with a canonical source table and sorted unique
@@ -86,9 +86,10 @@ The codec rejects unsupported versions, malformed source values, dangling or
 duplicate references, duplicate or unreferenced table entries, noncanonical
 ordering, oversized tables and references, and persisted scope mismatches.
 Rejected creation leaves no partial file. Exact before/after corpus results
-remain S6-06 work; S6-04 makes no general context or token-saving claim.
+are measured in the next section; the contract suite makes no general context
+or token-saving claim.
 
-## S6-06 before/after result
+## Before/after result
 
 The unchanged 15-sample corpus was rerun against both stable schema-v1 JSON
 and the schema-v2 persisted codec. The fixed logical handoff is identical in

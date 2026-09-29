@@ -60,13 +60,18 @@ Status: proposed | accepted | superseded
 - [ADR-0037: Compose restart summaries continuously and persist on confirmation](0037-compose-restart-summaries-continuously-and-persist-on-confirmation.md)
 - [ADR-0038: Keep restart actions conversation-scoped and explicit](0038-keep-restart-actions-conversation-scoped-and-explicit.md)
 - [ADR-0039: Start proactive restart proposals with two observable signals](0039-start-proactive-restart-proposals-with-two-observable-signals.md)
+- [ADR-0046: Keep the local GUI session across restarts](0046-keep-the-local-gui-session-across-restarts.md) - accepted.
 
 ## Proposed decisions
 
 - [ADR-0040: Coordinate explicit model delivery with durable attempts](0040-coordinate-explicit-model-delivery-with-durable-attempts.md)
 
 - [ADR-0041: Read current continuation evidence with explicit bounds](0041-read-current-continuation-evidence-with-explicit-bounds.md) - proposed.
-- [ADR-0042: Use conversation turns as the primary model flow](0042-use-conversation-turns-as-the-primary-model-flow.md)
+- [ADR-0042: Use conversation turns as the primary model flow](0042-use-conversation-turns-as-the-primary-model-flow.md) - includes the optional reviewed-payload contract.
 - [ADR-0043: Use app-managed keys for stable local pseudonym maps](0043-use-app-managed-keys-for-stable-local-pseudonym-maps.md)
 - [ADR-0044: Store model targets in versioned local configuration](0044-store-model-targets-in-versioned-local-configuration.md)
 - [ADR-0045: Run subscription-backed agents behind a separate execution boundary](0045-run-subscription-backed-agents-behind-a-separate-boundary.md)
+- [ADR-0047: Use explicit scopes for reduced conversation context](0047-use-explicit-scopes-for-reduced-conversation-context.md)
+- [ADR-0048: Keep conversation-turn identities durable across restarts](0048-keep-conversation-turn-identities-durable.md) - proposed.
+- [ADR-0049: Record agent execution attempts separately](0049-record-agent-execution-attempts-separately.md) - proposed.
+- [ADR-0050: Confine agent processes before any real run](0050-confine-agent-processes-before-any-real-run.md) - proposed.

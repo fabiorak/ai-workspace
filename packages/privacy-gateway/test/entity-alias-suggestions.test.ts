@@ -80,7 +80,7 @@ test("is deterministic across dictionary permutations and repeated occurrences",
   assert.equal(first.suggestions.length, 3);
 });
 
-test("reproduces the frozen Sprint 28 customer subset with three exact spans", () => {
+test("reproduces the frozen entity-candidate work customer subset with three exact spans", () => {
   const report = suggestCustomerAliases({
     modelId: "model-balanced",
     contextPack: packet(

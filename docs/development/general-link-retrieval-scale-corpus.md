@@ -1,7 +1,7 @@
 # General Link Retrieval Scale Corpus
 
 **Frozen before measurement implementation:** 2026-07-15  
-**Scope:** Sprint 25 development-only evidence  
+**Scope:** development-only evidence for General-link scale\
 **Canonical dependencies:** ADR-0018, ADR-0019, ADR-0020
 
 ## Purpose
@@ -115,7 +115,7 @@ new ADR before code. Any material exact lexical miss caused by paraphrase or
 vocabulary mismatch remains a separate hybrid-semantic evidence trigger under
 ADR-0018.
 
-## Observed Sprint 25 result
+## Observed result
 
 Two consecutive `REFERENCE` evaluations on the development host produced
 identical machine-independent counts:
@@ -135,7 +135,7 @@ identical machine-independent counts:
 
 Event, link, General-byte, and link-byte pressure were respectively 2.4%,
 1.2%, 0.9853%, and 0.5186% of their production bounds. All predeclared gates
-passed on both runs. The Sprint 25 decision is `NO_CHANGE`: retain canonical
+passed on both runs. The General-link scale decision is `NO_CHANGE`: retain canonical
 bounded JSON scans and create no ADR, FTS5 adapter, semantic index, runtime
 route, or GUI control. Re-run with:
 

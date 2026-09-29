@@ -6,6 +6,12 @@ import type {
 } from "@ai-workspace/session-ingestion";
 import type { SessionStore } from "@ai-workspace/session-ingestion";
 
+import {
+  generatedSource,
+  generatedSourceType,
+  type GeneratedExecutionClass,
+} from "./generated-source.ts";
+
 export type ModelConversationResponse = Readonly<{
   projectId: string;
   conversationId: string;
@@ -27,7 +33,12 @@ export type ModelConversationWriter = Readonly<{
   >;
 }>;
 export type ModelConversationTurn = ModelConversationResponse &
-  Readonly<{ userText: string; targetId: string; displayName: string }>;
+  Readonly<{
+    userText: string;
+    targetId: string;
+    displayName: string;
+    executionClass?: GeneratedExecutionClass;
+  }>;
 const digest = (value: string) =>
   createHash("sha256").update(value, "utf8").digest("hex");
 const recordHash = (response: ModelConversationResponse) =>
@@ -140,7 +151,7 @@ export function modelConversationWriter(
         throw new Error("The conversation is unavailable.");
       const previous = existing.events.find(
         (event) =>
-          event.source.sourceType.startsWith("MODEL_CONVERSATION") &&
+          generatedSource(event.source.sourceType) !== null &&
           event.source.sourceSessionId === turn.attemptId,
       );
       const turnHash = digest(
@@ -151,6 +162,9 @@ export function modelConversationWriter(
           model: turn.model,
           targetId: turn.targetId,
           displayName: turn.displayName,
+          ...(turn.executionClass === "AGENT_EXECUTION"
+            ? { executionClass: turn.executionClass }
+            : {}),
         }),
       );
       if (previous) {
@@ -194,7 +208,10 @@ export function modelConversationWriter(
         payload: Object.freeze({ kind: "INLINE_TEXT", text: turn.text }),
         source: Object.freeze({
           artifactId: artifact.id,
-          sourceType: `MODEL_CONVERSATION:${turn.displayName}`,
+          sourceType: generatedSourceType(
+            turn.executionClass ?? "MODEL_DELIVERY",
+            turn.displayName,
+          ),
           sourceSessionId: turn.attemptId,
           position: position + 1,
           recordHash: turnHash,

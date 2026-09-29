@@ -77,7 +77,10 @@ function reducedEnvelope(
     return null;
   }
   return record(value) &&
-    value.effect === "BOUNDED_REDUCED_CONVERSATION_CONTEXT"
+    value.effect === "BOUNDED_REDUCED_CONVERSATION_CONTEXT" &&
+    Array.isArray(value.readings) &&
+    Array.isArray(value.linkedProjectMemory) &&
+    typeof value.userText === "string"
     ? value
     : null;
 }
@@ -117,14 +120,16 @@ function reducedSections(
 ): readonly TurnPayloadSection[] {
   const readings = list(envelope.readings);
   const memory = list(envelope.linkedProjectMemory);
+  const metadata = Object.fromEntries(
+    Object.entries(envelope).filter(
+      ([key]) => !["readings", "linkedProjectMemory", "userText"].includes(key),
+    ),
+  );
   const sections: TurnPayloadSection[] = [
     section({
       key: "REDUCED_ENVELOPE",
       title: null,
-      text: [
-        `scope: ${line(envelope.scope)}`,
-        `target: ${line(envelope.target)}`,
-      ].join("\n"),
+      text: JSON.stringify(metadata, null, 2),
     }),
   ];
   if (readings.length > 0)
@@ -135,9 +140,7 @@ function reducedSections(
         count: readings.length,
         text: readings
           .map((reading) =>
-            record(reading)
-              ? `[${[text(reading.type), text(reading.occurredAt)].filter(Boolean).join("; ")}]\n${text(reading.text)}`
-              : line(reading),
+            record(reading) ? JSON.stringify(reading, null, 2) : line(reading),
           )
           .join("\n\n"),
       }),
@@ -150,9 +153,7 @@ function reducedSections(
         count: memory.length,
         text: memory
           .map((item) =>
-            record(item)
-              ? `[${text(item.projectId)}; ${text(item.type)}]\n${text(item.content)}`
-              : line(item),
+            record(item) ? JSON.stringify(item, null, 2) : line(item),
           )
           .join("\n\n"),
       }),

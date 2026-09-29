@@ -11,7 +11,7 @@ only for unchanged transformed Context Pack items using recorded item hashes
 and byte positions. Arbitrary output can repeat, reorder, omit, invent, or
 alter placeholders and therefore cannot use that positional contract safely.
 
-Sprint 31 froze a bilingual synthetic corpus before implementation. Across 13
+The output-restoration work froze a bilingual synthetic corpus before implementation. Across 13
 cases and stable case/mapping-entry permutations, strict whole-token validation
 produced three exact restores, nine complete integrity blocks, one no-token result, zero
 incorrect restores, and zero partial blocked outputs. A known-only baseline

@@ -1,14 +1,23 @@
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
+
+import {
+  agentEnvironment,
+  createConfinedWorkspace,
+  locateExecutable,
+} from "@ai-workspace/agent-process";
 
 import {
   CodexAgentAdapter,
   buildCodexAgentInvocation,
   createCodexAgentProcessRunner,
   type CodexAgentObservation,
+  parseCodexVersion,
+  qualifyCodexExecutable,
+  QUALIFIED_CODEX_EXECUTABLES,
 } from "../src/index.ts";
 
 const input = {
@@ -29,6 +38,8 @@ const observation = (
   processTreeTerminated: false,
   outputLimitExceeded: false,
   streamEncodingInvalid: false,
+  lingeringProcesses: false,
+  workspaceWritten: false,
   ...override,
 });
 
@@ -102,6 +113,42 @@ describe("subscription-backed Codex agent adapter", () => {
       );
   });
 
+  it("reads only the exact version line and ships no reviewed release", async () => {
+    assert.equal(parseCodexVersion("codex-cli 0.63.0\n"), "0.63.0");
+    for (const value of [
+      "0.63.0",
+      "codex-cli 0.63",
+      "codex-cli 0.63.0\nextra",
+      " codex-cli 0.63.0",
+    ])
+      assert.equal(parseCodexVersion(value), null, value);
+    assert.deepEqual(QUALIFIED_CODEX_EXECUTABLES, []);
+    assert.deepEqual(
+      await qualifyCodexExecutable(
+        [dirname(process.execPath)],
+        "codex-cli 0.63.0\n",
+      ),
+      {
+        kind: "NOT_QUALIFIED",
+        reason: "NOT_FOUND",
+      },
+    );
+  });
+
+  it("voids an answer when a descendant lingered or the workspace was written", async () => {
+    for (const override of [
+      { lingeringProcesses: true },
+      { workspaceWritten: true },
+    ])
+      assert.deepEqual(
+        await new CodexAgentAdapter(async () => observation(override)).execute(
+          input,
+        ),
+        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        JSON.stringify(override),
+      );
+  });
+
   it("requires verified process-tree termination on timeout", async () => {
     assert.deepEqual(
       await new CodexAgentAdapter(async () =>
@@ -130,21 +177,15 @@ process.stdout.write(JSON.stringify({type:"item.completed",item:{type:"agent_mes
 process.stdout.write(JSON.stringify({type:"turn.completed"}) + "\\n");
 `);
     try {
-      const runner = createCodexAgentProcessRunner({
-        environment: {
-          PATH: fixture.directory,
-          HOME: fixture.directory,
-          OPENAI_API_KEY: "must-not-cross",
-          PRIVATE_CANARY: "must-not-cross",
-        },
-      });
+      process.env.OPENAI_API_KEY = "must-not-cross";
+      process.env.PRIVATE_CANARY = "must-not-cross";
+      const runner = createCodexAgentProcessRunner(await confined(fixture));
       const request = {
         ...input,
-        isolatedWorkspace: fixture.directory,
+        isolatedWorkspace: fixture.work,
       };
       const observed = await runner({
         ...buildCodexAgentInvocation(request),
-        executable: fixture.executable as "codex",
       });
       assert.equal(observed.exitCode, 0);
       assert.equal(observed.outputLimitExceeded, false);
@@ -161,7 +202,7 @@ process.stdout.write(JSON.stringify({type:"turn.completed"}) + "\\n");
       if (result.kind === "COMPLETED")
         assert.equal(result.text, `false:false:${input.text.length}`);
     } finally {
-      await rm(fixture.directory, { recursive: true });
+      await release(fixture);
     }
   });
 
@@ -169,21 +210,20 @@ process.stdout.write(JSON.stringify({type:"turn.completed"}) + "\\n");
     const fixture = await fixtureCodex("setInterval(() => {}, 1000);\n");
     try {
       const runner = createCodexAgentProcessRunner({
-        environment: { PATH: fixture.directory, HOME: fixture.directory },
+        ...(await confined(fixture)),
         terminationGraceMs: 10,
       });
       const value = await runner({
         ...buildCodexAgentInvocation({
           ...input,
-          isolatedWorkspace: fixture.directory,
+          isolatedWorkspace: fixture.work,
           timeoutMs: 20,
         }),
-        executable: fixture.executable as "codex",
       });
       assert.equal(value.timedOut, true);
       assert.equal(value.processTreeTerminated, true);
     } finally {
-      await rm(fixture.directory, { recursive: true });
+      await release(fixture);
     }
   });
 
@@ -194,32 +234,58 @@ setInterval(() => {}, 1000);
 `);
     try {
       const runner = createCodexAgentProcessRunner({
-        environment: { PATH: fixture.directory, HOME: fixture.directory },
+        ...(await confined(fixture)),
         terminationGraceMs: 10,
       });
       const value = await runner({
         ...buildCodexAgentInvocation({
           ...input,
-          isolatedWorkspace: fixture.directory,
+          isolatedWorkspace: fixture.work,
           timeoutMs: 1_000,
         }),
-        executable: fixture.executable as "codex",
       });
       assert.equal(value.outputLimitExceeded, true);
       assert.equal(value.processTreeTerminated, true);
       assert.ok(Buffer.byteLength(value.stdout, "utf8") <= 2 * 1024 * 1024);
     } finally {
-      await rm(fixture.directory, { recursive: true });
+      await release(fixture);
     }
   });
 });
 
-async function fixtureCodex(
-  body: string,
-): Promise<{ directory: string; executable: string }> {
+/**
+ * A synthetic executable and a confined run under one mkdtemp root. Only that
+ * root, created by this call, is ever removed.
+ */
+async function fixtureCodex(body: string) {
   const directory = await mkdtemp(join(tmpdir(), "ai-workspace-codex-runner-"));
-  const executable = join(directory, "codex");
+  const bin = join(directory, "bin");
+  const login = join(directory, "login");
+  const runs = join(directory, "runs");
+  for (const path of [bin, login, runs]) await mkdir(path, { mode: 0o700 });
+  const executable = join(bin, "codex");
   await writeFile(executable, `#!${process.execPath}\n${body}`, "utf8");
   await chmod(executable, 0o700);
-  return { directory, executable };
+  const workspace = await createConfinedWorkspace(runs);
+  return { directory, bin, login, workspace, work: workspace.work };
+}
+
+async function confined(fixture: Awaited<ReturnType<typeof fixtureCodex>>) {
+  const located = await locateExecutable("codex", [fixture.bin]);
+  if (typeof located === "string") throw new Error(located);
+  return {
+    executable: located,
+    environment: await agentEnvironment({
+      workspace: fixture.workspace,
+      configVariable: "CODEX_HOME",
+      configDirectory: fixture.login,
+      searchPath: [fixture.bin, dirname(process.execPath)],
+    }),
+  };
+}
+
+async function release(fixture: Awaited<ReturnType<typeof fixtureCodex>>) {
+  delete process.env.OPENAI_API_KEY;
+  delete process.env.PRIVATE_CANARY;
+  await rm(fixture.directory, { recursive: true });
 }

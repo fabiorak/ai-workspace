@@ -2,7 +2,7 @@
 
 **Frozen:** 2026-07-22, before ADR-0027 or authorization implementation
 
-Sprint 33 uses only fictional identifiers and request text. The corpus measures
+The delivery-authorization work uses only fictional identifiers and request text. The corpus measures
 whether an authorization mechanism can constrain a future delivery operation;
 it does not contact a provider, resolve an endpoint, use credentials, invoke a
 model, or capture a response.

@@ -1,7 +1,7 @@
 # OpenAI Responses live probe gate
 
-Status: **P3 offline preparation**. No live request is authorized by this
-document. P4 remains `NOT_RUN` until a separate review fixes the model, account,
+Status: **offline preparation**. No live request is authorized by this
+document. The live probe remains `NOT_RUN` until a separate review fixes the model, account,
 current price, exact synthetic text, maximum cost and at most two requests.
 
 The standard GUI start remains local. With no transport mode it reads no API key
@@ -16,7 +16,7 @@ npm run gui
 ```
 
 Do not run that command merely to test whether a credential or account works.
-The P4 review must happen first. Never put the key in Settings, a target, a file,
+The live-probe review must happen first. Never put the key in Settings, a target, a file,
 shell history, logs or a committed environment file.
 
 The host accepts no other transport spelling. The adapter uses only the fixed
@@ -33,7 +33,7 @@ and 30 seconds. The selected target still supplies its reviewed model, profile,
 policy and instruction references; enabling the process transport does not create
 or select a target and does not prove account access.
 
-Before P4, prepare a review sheet containing:
+Before the live probe, prepare a review sheet containing:
 
 - exact model and account/project;
 - current official input, cached-input and output prices with observation date;

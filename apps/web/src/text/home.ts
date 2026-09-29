@@ -1,7 +1,7 @@
 /**
  * Every sentence the opening screen says, in both languages.
  *
- * U3 coordinates one server-side turn through a simulated local transport by
+ * One server-side turn is coordinated through a simulated local transport by
  * default. No text may imply real provider access or credential storage.
  */
 import { catalogues } from "./catalog.ts";
@@ -33,12 +33,42 @@ export const HOME_TEXT = Object.freeze({
   },
   modelTargetHeading: { en: "Model targets", it: "Target dei modelli" },
   modelTargetIntro: {
-    en: "Named target metadata is stored locally. Credentials and provider access are not stored or enabled here.",
-    it: "I metadati dei target sono conservati localmente. Credenziali e accesso ai provider non vengono conservati né abilitati qui.",
+    en: "Named target metadata is stored locally. Credentials and provider access are not stored or enabled here. Without the explicit transport opt-in, answers are simulated; agents and local models are not connected yet.",
+    it: "I metadati dei target sono conservati localmente. Credenziali e accesso ai provider non vengono conservati né abilitati qui. Senza l'attivazione esplicita del trasporto le risposte sono simulate; agenti e modelli locali non sono ancora collegati.",
   },
   modelTargetId: { en: "Target ID", it: "ID target" },
   modelTargetName: { en: "Display name", it: "Nome visualizzato" },
-  modelTargetProvider: { en: "Provider kind", it: "Tipo di provider" },
+  modelTargetKind: { en: "Target kind", it: "Tipo di target" },
+  modelTargetKindResponses: {
+    en: "OpenAI Responses - direct model delivery (API)",
+    it: "OpenAI Responses - consegna diretta al modello (API)",
+  },
+  modelTargetKindCodex: {
+    en: "Codex CLI - subscription agent",
+    it: "Codex CLI - agente in abbonamento",
+  },
+  modelTargetKindClaude: {
+    en: "Claude Code - subscription agent",
+    it: "Claude Code - agente in abbonamento",
+  },
+  modelTargetKindLocal: {
+    en: "llama-server on loopback - local model",
+    it: "llama-server su loopback - modello locale",
+  },
+  modelTargetClassDelivery: {
+    en: "Direct model delivery",
+    it: "Consegna diretta al modello",
+  },
+  modelTargetClassAgent: {
+    en: "Subscription agent",
+    it: "Agente in abbonamento",
+  },
+  modelTargetClassLocal: { en: "Local model", it: "Modello locale" },
+  modelTargetClassNone: { en: "No kind", it: "Senza tipo" },
+  modelTargetDetail: {
+    en: "{class} · {kind} · {model} · {boundary}",
+    it: "{class} · {kind} · {model} · {boundary}",
+  },
   modelTargetModel: { en: "Model identifier", it: "Identificativo modello" },
   modelTargetBoundary: {
     en: "Execution boundary",
@@ -79,8 +109,32 @@ export const HOME_TEXT = Object.freeze({
     en: "No model target is configured.",
     it: "Nessun target modello è configurato.",
   },
-  modelTargetEnabled: { en: "Enabled", it: "Abilitato" },
+  modelTargetEnabled: { en: "Available", it: "Disponibile" },
   modelTargetDisabled: { en: "Disabled", it: "Disabilitato" },
+  modelTargetSimulated: {
+    en: "Available, simulated answers",
+    it: "Disponibile, risposte simulate",
+  },
+  modelTargetUnclassified: {
+    en: "No kind: save it again choosing a kind",
+    it: "Senza tipo: salvalo di nuovo scegliendo un tipo",
+  },
+  modelTargetNotQualified: {
+    en: "Adapter not qualified yet",
+    it: "Adattatore non ancora qualificato",
+  },
+  modelTargetNotConnected: {
+    en: "Qualified offline, not connected yet",
+    it: "Qualificato offline, non ancora collegato",
+  },
+  modelTargetOptionSimulated: {
+    en: "{name} - simulated",
+    it: "{name} - simulato",
+  },
+  modelTargetOptionUnavailable: {
+    en: "{name} - unavailable",
+    it: "{name} - non disponibile",
+  },
   modelTargetSaved: {
     en: "{name} was saved locally. No credential or provider was activated.",
     it: "{name} è stato salvato localmente. Nessuna credenziale o provider è stato attivato.",
@@ -123,6 +177,30 @@ export const HOME_TEXT = Object.freeze({
     en: "Show protections",
     it: "Mostra protezioni",
   },
+  homeReviewRequired: {
+    en: "Send only the content shown here",
+    it: "Invia solo il contenuto mostrato qui",
+  },
+  homeReviewReady: {
+    en: "Send will use exactly this content for {model}, until {expires}. A change to sources or settings will stop it. Nothing has been sent.",
+    it: "Invia userà esattamente questo contenuto per {model}, fino alle {expires}. Se fonti o impostazioni cambiano, l'invio si fermerà. Non è stato inviato nulla.",
+  },
+  homeReviewInvalid: {
+    en: "The review is no longer valid. Keep the draft and reopen Show protections to review it again. Nothing was sent.",
+    it: "La revisione non è più valida. Conserva la bozza e riapri Mostra protezioni per rivederla. Non è stato inviato nulla.",
+  },
+  homeReviewRefresh: {
+    en: "Open Show protections to review this draft before sending, or turn off sending only the reviewed content.",
+    it: "Apri Mostra protezioni per rivedere questa bozza prima dell'invio, oppure disattiva l'invio del solo contenuto revisionato.",
+  },
+  homeReviewUnavailable: {
+    en: "A reviewed send cannot be prepared right now. Keep the draft and try the preview again in a few minutes.",
+    it: "Non è possibile preparare ora un invio revisionato. Conserva la bozza e riprova l'anteprima fra pochi minuti.",
+  },
+  homeReviewExactText: {
+    en: "Exact text prepared for sending",
+    it: "Testo esatto preparato per l'invio",
+  },
   homeProtectionPreviewHide: {
     en: "Hide protections",
     it: "Nascondi protezioni",
@@ -157,8 +235,8 @@ export const HOME_TEXT = Object.freeze({
     it: "Intestazione del contesto",
   },
   homeProtectionPayloadEnvelope: {
-    en: "Destination and scope",
-    it: "Destinazione e ambito",
+    en: "Scope, instructions, sources and omissions",
+    it: "Ambito, istruzioni, fonti e omissioni",
   },
   homeProtectionPayloadReadings: {
     en: "Earlier messages included",
@@ -351,6 +429,18 @@ export const HOME_TEXT = Object.freeze({
     en: "Response from {model} saved in this conversation. The standard server used the local simulation; no model was called.",
     it: "Risposta di {model} salvata in questa conversazione. Il server standard ha usato la simulazione locale; nessun modello è stato chiamato.",
   },
+  homeTurnSavedLive: {
+    en: "Response from {model} saved in this conversation.",
+    it: "Risposta di {model} salvata in questa conversazione.",
+  },
+  homeTurnSavedAgent: {
+    en: "Answer from the agent {model} saved in this conversation. It ran without tools in a separate, empty workspace.",
+    it: "Risposta dell'agente {model} salvata in questa conversazione. È stato eseguito senza strumenti in uno spazio di lavoro separato e vuoto.",
+  },
+  homeProtectionAgentNote: {
+    en: "This target is an agent. What you see is exactly the input AI Workspace supplies; the agent product adds its own instructions, which are not shown here.",
+    it: "Questo target è un agente. Qui vedi esattamente l'input che AI Workspace fornisce; il prodotto agente aggiunge istruzioni proprie, che qui non compaiono.",
+  },
   homeTurnDuplicate: {
     en: "The duplicate request reused the first result; it was not exposed twice.",
     it: "La richiesta duplicata ha riutilizzato il primo risultato; non è stata esposta due volte.",
@@ -358,6 +448,10 @@ export const HOME_TEXT = Object.freeze({
   homeTurnRefused: {
     en: "Nothing was exposed. The draft is still here: reload local context or target settings and retry.",
     it: "Niente è stato esposto. La bozza è ancora qui: ricarica il contesto locale o il target e riprova.",
+  },
+  homeTurnTargetUnavailable: {
+    en: "The chosen target cannot answer in this version, so nothing was sent and the draft is still here. Settings shows what each target is missing; choose an available one to send.",
+    it: "Il target scelto non può rispondere in questa versione, quindi nulla è stato inviato e la bozza è ancora qui. Le Impostazioni mostrano che cosa manca a ciascun target; scegline uno disponibile per inviare.",
   },
   homeTurnUnknown: {
     en: "Exposure may have happened, but the outcome is unknown. The draft was cleared and no automatic retry will run.",

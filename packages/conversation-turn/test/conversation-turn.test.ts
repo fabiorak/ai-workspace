@@ -5,7 +5,10 @@ import {
   ConversationTurn,
   ConversationTurnConflictError,
   ConversationTurnError,
+  conversationTurnClaim,
+  validateConversationTurnRequest,
   type ConversationTurnClaim,
+  type ConversationTurnExecution,
   type ConversationTurnIdempotency,
   type ConversationTurnRequest,
   type ConversationTurnResult,
@@ -28,6 +31,41 @@ const completed: ConversationTurnResult = Object.freeze({
   effectiveModel: "synthetic-model",
   text: "Synthetic answer.",
   occurredAt: "2026-09-14T10:00:00.000Z",
+});
+
+test("accepts only an opaque optional review ID and binds it into the durable request digest", () => {
+  const original = request();
+  assert.deepEqual(validateConversationTurnRequest(original), original);
+  const scope = {
+    conversationId: original.conversationId,
+    projectId: original.projectId,
+    workItemId: null,
+    handoffId: null,
+  };
+  const reviewId = "00000000-0000-4000-8000-000000000001";
+  const reviewed = { ...original, reviewId };
+  assert.equal(validateConversationTurnRequest(reviewed).reviewId, reviewId);
+  assert.equal(
+    conversationTurnClaim(original, scope).idempotencyKey,
+    conversationTurnClaim(reviewed, scope).idempotencyKey,
+  );
+  assert.notEqual(
+    conversationTurnClaim(original, scope).requestDigest,
+    conversationTurnClaim(reviewed, scope).requestDigest,
+  );
+  for (const invalid of ["", "relative/path", null, undefined, 42, {}])
+    assert.throws(
+      () => validateConversationTurnRequest({ ...original, reviewId: invalid }),
+      ConversationTurnError,
+    );
+  assert.throws(
+    () =>
+      validateConversationTurnRequest({
+        ...reviewed,
+        attemptId: "chosen-by-browser",
+      }),
+    ConversationTurnError,
+  );
 });
 
 test("uses authoritative server scope and rejects a claimed project mismatch", async () => {
@@ -167,7 +205,9 @@ function memoryIdempotency(): ConversationTurnIdempotency {
   return {
     execute: async (
       claim: ConversationTurnClaim,
-      operation: () => Promise<ConversationTurnResult>,
+      operation: (
+        execution: ConversationTurnExecution,
+      ) => Promise<ConversationTurnResult>,
     ) => {
       const existing = values.get(claim.idempotencyKey);
       if (existing) {
@@ -178,7 +218,7 @@ function memoryIdempotency(): ConversationTurnIdempotency {
           result: await existing.result,
         });
       }
-      const pending = operation();
+      const pending = operation({ bindAttempt: async () => {} });
       values.set(
         claim.idempotencyKey,
         Object.freeze({ digest: claim.requestDigest, result: pending }),

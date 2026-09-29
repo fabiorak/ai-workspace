@@ -299,14 +299,24 @@ function validProvenance(event: Record<string, unknown>): boolean {
       event.provenance.kind === "LOCAL_GENERAL_CAPTURE" &&
       event.provenance.capturedAt === event.occurredAt
     );
+  const provenance = event.provenance;
+  const optional = ["executionClass", "reportedModel"].filter((key) =>
+    Object.hasOwn(provenance, key),
+  );
   return (
-    exactKeys(event.provenance, [
+    exactKeys(provenance, [
       "attemptId",
       "displayName",
       "kind",
       "model",
       "targetId",
+      ...optional,
     ]) &&
+    (!Object.hasOwn(provenance, "executionClass") ||
+      provenance.executionClass === "MODEL_DELIVERY" ||
+      provenance.executionClass === "AGENT_EXECUTION") &&
+    (!Object.hasOwn(provenance, "reportedModel") ||
+      validText(provenance.reportedModel, 256)) &&
     event.provenance.kind === "MODEL_CONVERSATION" &&
     validText(event.provenance.attemptId, 256) &&
     validText(event.provenance.displayName, 120) &&

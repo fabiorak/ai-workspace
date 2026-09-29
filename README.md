@@ -16,9 +16,11 @@ compromised. External tooling is limited to development: TypeScript, ESLint, and
 Prettier.
 
 > [!IMPORTANT]
-> AI Workspace is in an early design and scaffolding phase. There is no
-> supported release yet. The repository contains a local pre-release GUI and
-> development slices intended for synthetic evaluation.
+> AI Workspace is an early local alpha, not a supported release. The repository
+> contains an implemented local GUI, persistence, search, memory, conversation
+> preview, and privacy slices. External model and agent paths remain opt-in,
+> dormant, or synthetic-only as described below; successful local checks do not
+> establish live provider quality.
 
 ## Why AI Workspace?
 
@@ -156,8 +158,10 @@ browser automatically, and serves no remote assets. Local state defaults to
 AI_WORKSPACE_HOME=/tmp/ai-workspace-demo npm run gui
 ```
 
-You can import your own local agent transcripts. They are read on this machine
-only, and nothing is transmitted. They are stored unencrypted under
+You can import your own local agent transcripts. Import itself never transmits:
+the transcript is read and stored on this machine. A later, explicitly
+authorized turn may transmit its protected context if you enable an external
+model transport. Imported content is stored unencrypted under
 `AI_WORKSPACE_HOME`, so treat that directory as sensitive and never copy it into
 a repository, an issue, or a fixture. Do not import credentials, customer or
 third-party confidential material, mapping material, or recovery secrets: the
@@ -210,6 +214,8 @@ cover:
 - [effective instructions](docs/user-guide/effective-instructions.md),
   [agent and skill profiles](docs/user-guide/agent-skill-profiles.md), and
   [profile-governed context](docs/user-guide/profile-governed-context.md);
+- [reduced-turn configuration](docs/development/reduced-turn-configuration.md)
+  for General and project conversations without a handoff;
 - [privacy preflight](docs/user-guide/privacy-preflight.md),
   [automatic privacy protection](docs/user-guide/automatic-privacy-protection.md),
   [reversible privacy transformation](docs/user-guide/reversible-privacy-transformation.md),
@@ -218,8 +224,9 @@ cover:
 
 ## Current boundaries
 
-All current user surfaces are local and inspectable. The pre-release alpha does
-not provide:
+All current user surfaces are local and inspectable. The pre-release alpha
+provides a local conversation preview and persistent local session state, but it
+does not provide:
 
 - remote access or remote asset loading;
 - unattended, recursive, or default-location transcript discovery: only a
@@ -228,16 +235,68 @@ not provide:
 - transcript formats other than the documented Codex subset and local Claude
   Code JSONL;
 - encryption at rest for imported evidence;
-- agent, model, instruction, or tool execution;
-- model delivery, routing, or fallback;
+- unattended agent or tool execution, or GUI routing to an agent;
+- provider delivery by default, automatic routing, or fallback;
+- a live-provider quality or cost guarantee;
 - complete secret or personally identifiable information detection;
 - automatic candidate selection or implicit authorization;
 - cloud synchronization, sharing, escrow, or recovery.
 
-Privacy transformations use reviewed exact spans and encrypted local mappings.
-Restoration requires canonical, mapping-owned whole tokens and blocks the entire
-output on anomalies. Privacy audit records are separate, project-scoped, and
-non-content. These safeguards do not authorize external model access.
+The standard host uses a simulated transport. An OpenAI Responses adapter is
+available only through an explicit process opt-in and has not been live-probed.
+Dormant Codex and Claude Code adapters/runners are qualified with synthetic
+executables but are not wired into the GUI or ordinary conversation path.
+
+Conversation sends keep a permanent local identity across process restarts.
+Recovery checks the saved attempt and conversation result without resending an
+uncertain request. This guarantee depends on keeping the local conversation-turn
+registry; removing it or restoring an older copy removes the guarantee for
+affected sends. Existing turns from before durable identities cannot be
+recovered through this registry.
+
+An optional reviewed send is available inside **Show protections**. A
+five-minute, single-use server preparation binds the exact protected payload to
+its sources, settings, target and scope. Confirmation revalidates them before
+exposure; changes refuse the send and preserve the draft. Ordinary sending still
+needs one button and no preview. See the
+[reviewed-payload contract](docs/adr/0042-use-conversation-turns-as-the-primary-model-flow.md)
+and the [GUI guide](docs/user-guide/gui-first-journey.md).
+
+Every model target has an explicit execution class and kind: direct model
+delivery, subscription agent or local model. Settings separates enabled,
+qualified offline and available for launch, and names simulated answers. Local
+model targets can be configured but are not connected, and a send to them is
+refused rather than rerouted. Earlier target settings migrate on the first
+change, and the original file is kept. See the
+[target schema](docs/adr/0044-store-model-targets-in-versioned-local-configuration.md).
+
+Agent runs are recorded in a separate store of attempts. A coordinator claims a
+run durably before any process can start, keeps every later failure unknown and
+never reruns it. Turns link to it across restarts. See
+[ADR-0049](docs/adr/0049-record-agent-execution-attempts-separately.md).
+
+Agent processes are confined before any real run: a new private workspace, an
+environment built from nothing, a login folder dedicated to AI Workspace that it
+never reads, and only a reviewed executable identified by version and file
+digest. No release is reviewed yet, so no agent can run. See
+[ADR-0050](docs/adr/0050-confine-agent-processes-before-any-real-run.md).
+
+A conversation can answer from Codex or Claude Code through the same turn, with
+the same protection, review, durable identity and recovery. The answer keeps its
+agent class in the history. The standard start offers no agent, and real agents
+need an explicit opt-in plus a reviewed installation, which does not exist yet;
+the offline demo uses synthetic agents marked simulated.
+
+Privacy transformations use app-managed stable maps per project or General
+scope, with optional reviewed manual protected terms. A passphrase is not part
+of daily use; legacy passphrase-wrapped custody remains for migration and
+technical recovery workflows. Restoration requires canonical, mapping-owned
+whole tokens and blocks the entire output on anomalies. Privacy audit records
+are separate and non-content: legacy handoff audits are project-scoped;
+reduced-turn audits explicitly distinguish General from project scope. Automatic detection is
+incomplete, especially for person, organization, address, date, path, and URL
+values on first occurrence. These safeguards do not authorize external model
+access.
 
 Developer and automation interfaces exist for testing and integration, but
 user-facing capabilities are considered complete only when available through

@@ -19,8 +19,8 @@ classification, digest, or successful scan.
 ## Decision
 
 Every future model delivery must consume an explicit, inspectable privacy
-decision over the exact content and selected model before transmission. Sprint
-22 implements only a read-only preflight and introduces no delivery consumer.
+decision over the exact content and selected model before transmission. The current
+implementation is only a read-only preflight and introduces no delivery consumer.
 
 Classification uses the order `PUBLIC < INTERNAL < CONFIDENTIAL < RESTRICTED`
 and most-restrictive-wins whenever evidence conflicts. An item without an exact

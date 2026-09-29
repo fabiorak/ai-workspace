@@ -150,6 +150,13 @@ export class ModelDelivery {
       handoffId: string;
     }>,
     revalidate: () => Promise<string>,
+    bindAttempt?: (
+      reference: Readonly<{
+        projectId: string;
+        authorizationId: string;
+        attemptId: string;
+      }>,
+    ) => Promise<void>,
   ): Promise<DeliveryOutcome> {
     const entry = this.#pending.get(authorizationId);
     // Scope is checked before consumption so a different conversation cannot use it.
@@ -170,7 +177,15 @@ export class ModelDelivery {
         entry.expiresAt <= this.#clock()
       )
         return { kind: "REFUSED_BEFORE_EXPOSURE", reason: "BINDING_CHANGED" };
-      await this.initialize(input.projectId);
+      // A durable turn recovers only its own identity. Sweeping the project here
+      // could mark another process's in-flight delivery unknown.
+      if (bindAttempt)
+        await bindAttempt({
+          projectId: input.projectId,
+          authorizationId,
+          attemptId,
+        });
+      else await this.initialize(input.projectId);
       const requestDigest = digest(
         JSON.stringify({
           model: input.model,
@@ -196,6 +211,14 @@ export class ModelDelivery {
         ),
         preflightAuditEventHash: input.preflightAuditEventHash,
       });
+      // Durable binding/preparation perform I/O too. Recheck after those writes,
+      // immediately before consuming the executor's exposure claim.
+      if (
+        bindAttempt &&
+        ((await revalidate()) !== input.bindingDigest ||
+          entry.expiresAt <= this.#clock())
+      )
+        return { kind: "REFUSED_BEFORE_EXPOSURE", reason: "BINDING_CHANGED" };
       const claim = await this.#attempts.claimExposure(
         input.projectId,
         attemptId,

@@ -2,7 +2,7 @@
 
 **Frozen:** 2026-07-22, against local Claude Code `2.1.215`
 
-Sprint 35 measures two non-interactive Claude Code profiles separately. Normal
+The Anthropic transport work measures two non-interactive Claude Code profiles separately. Normal
 reproduction uses only a deterministic fake executable port. It does not
 launch Claude, inspect login or settings, access a keychain, contact Anthropic,
 read a real repository, invoke a model, or capture a real response.

@@ -12,11 +12,11 @@ measured requests. No provider, credential, real transcript or real workspace
 home was used. The generated aggregate report is local and ignored at
 `.ai-workspace/measurements/rizzo-pii-evaluation.json`.
 
-| Detector                                    | Precision | Recall |   CPU p50 |   CPU p95 |
-| ------------------------------------------- | --------: | -----: | --------: | --------: |
-| Built-in after U5 telephone-span correction |    71.43% | 35.71% |  0.004 ms |  0.014 ms |
-| Rizzo 2.0.0 / model 1.5.0                   |    64.02% | 75.00% | 37.793 ms | 54.033 ms |
-| Rizzo plus built-in fallback                |    64.02% | 75.00% | 37.797 ms | 54.091 ms |
+| Detector                                 | Precision | Recall |   CPU p50 |   CPU p95 |
+| ---------------------------------------- | --------: | -----: | --------: | --------: |
+| Built-in after telephone-span correction |    71.43% | 35.71% |  0.004 ms |  0.014 ms |
+| Rizzo 2.0.0 / model 1.5.0                |    64.02% | 75.00% | 37.793 ms | 54.033 ms |
+| Rizzo plus built-in fallback             |    64.02% | 75.00% | 37.797 ms | 54.091 ms |
 
 Rizzo found all ten exact person spans and raised overall recall substantially.
 It also preserved 100% exact recall and precision for synthetic checksum-valid
@@ -65,11 +65,11 @@ selection must not precede it.
 
 The frozen exact-span corpus exposed that the built-in telephone expression
 matched `333 ...` inside `+39 333 ...`, leaving the country prefix outside the
-protected span. U5 replaces the leading ASCII word boundary with a Unicode
+protected span. The correction replaces the leading ASCII word boundary with a Unicode
 identifier boundary so the exact span includes `+39`. Telephone recall on the
 ten positive fixtures changed from 0% to 100%. Code-shaped telephone and email
 literals remain false positives; suppressing quoted content without syntax and
-provenance would risk leaving real PII unprotected, so U5 records that limitation
+provenance would risk leaving real PII unprotected, so this evaluation records that limitation
 instead of adding a broad contextual exception.
 
 ## Reproducibility note
@@ -89,12 +89,15 @@ after the final run.
 
 ## Consequence
 
-ADR-0045 is not created because the predeclared quality gates do not justify a
-production runtime, service or distribution dependency. The production default
-remains `BuiltInPiiDetector`. A future reconsideration needs a revised frozen
-corpus that separates code/log policy, an upstream confidence contract or an
-explicit port revision, and evidence that organization/address precision and
-recall improve without weakening deterministic coverage.
+At the time of this evaluation, ADR-0045 had not been created because the
+predeclared quality gates did not justify a production runtime, service or
+distribution dependency for Rizzo. ADR-0045 now covers the separate
+agent-execution boundary; it does not adopt Rizzo or change this evaluation's
+decision. The production default remains `BuiltInPiiDetector`. A future
+reconsideration needs a revised frozen corpus that separates code/log policy,
+an upstream confidence contract or an explicit port revision, and evidence that
+organization/address precision and recall improve without weakening
+deterministic coverage.
 
 ## Post-review hardening
 

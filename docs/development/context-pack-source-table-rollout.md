@@ -1,6 +1,5 @@
 # Context Pack schema-v2 source-table rollout
 
-**Sprint:** 17  
 **Decision:** ADR-0016  
 **Effect:** read-only, in memory, not persisted, delivered, or executed
 
@@ -18,7 +17,7 @@ Table entries and section references are sorted by ID. Expansion restores the
 logical schema-v1 section content, including complete navigation identity.
 
 Schema v1 remains available through the explicit compatibility writer and the
-version-dispatched expansion boundary. The Sprint 13–15 measurement corpus
+version-dispatched expansion boundary. The Context Pack measurement corpus
 continues to use v1 so its historical baseline remains byte-for-byte
 reproducible.
 
@@ -46,7 +45,7 @@ before.
 
 ## Reproduced synthetic result
 
-The production v2 implementation reproduces the accepted Sprint 15 source
+The production v2 implementation reproduces the accepted metadata-envelope source
 table projection:
 
 | Profile  | v1 bytes | v2 bytes | Reduction | Table entries | Table bytes |

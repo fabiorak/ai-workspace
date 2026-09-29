@@ -3,19 +3,19 @@
 **Status:** accepted  
 **Date:** 2026-07-13
 
-**Implemented:** Sprint 17, 2026-07-13. Context Pack schema v2 satisfies the
+**Implemented:** the Context Pack schema-v2 work, 2026-07-13. Context Pack schema v2 satisfies the
 rollout gates with explicit v1 compatibility, deterministic marginal
 shared-byte accounting, lossless facade expansion, and bilingual GUI coverage.
 Persistence, delivery, and execution remain absent.
 
 ## Context
 
-Sprint 14 measured a 3,816-byte metadata-only floor across the eight current
+The continuity-disclosure work measured a 3,816-byte metadata-only floor across the eight current
 continuity sections. Removing or outlining values could not fit any complete
 representation into the 4,096-byte standard budget. That result left metadata
 representation duplication as an explicit unknown.
 
-Sprint 15 reused the unchanged compact, working, and extended handoffs and
+The metadata-envelope work reused the unchanged compact, working, and extended handoffs and
 budgets. It compared exact Context Pack content bytes for four decisions:
 
 1. keep complete metadata embedded in every section;
@@ -55,10 +55,10 @@ implicit multiplicity signal.
 
 This acceptance does not enable the representation. The current schema-v1
 Context Pack preview, builder selection, whole-item budgets, omission order,
-HTTP facade, and bilingual GUI remain unchanged. The Sprint 15 encoder and
+HTTP facade, and bilingual GUI remain unchanged. The metadata-envelope encoder and
 decoder are experiment-only and in memory.
 
-A later rollout sprint must introduce an explicit new Context Pack schema
+A later rollout must introduce an explicit new Context Pack schema
 version and pass these gates before changing the default writer or any reader:
 
 - retain schema-v1 read compatibility and prove current embedded candidates
@@ -95,4 +95,4 @@ change` for current production behavior until the later gates pass.
 - the decision adds no runtime, framework, database, service, dependency,
   persistence, network access, retrieval, disclosure, or execution path;
 - the evidence remains synthetic and does not claim relevance, task success,
-  provider token savings, or M4 completion.
+  provider token savings, or completion of context optimization.

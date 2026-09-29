@@ -41,7 +41,7 @@ sidebar, most recent first; the newest one opens automatically without moving
 keyboard focus. Select an already open row again and it stays open.
 
 **1. Write.** Type in the composer at the bottom of the conversation. Enter adds
-a new line and Ctrl+Enter sends. U4 submits one conversation-scoped request to
+a new line and Ctrl+Enter sends. Sending submits one conversation-scoped request to
 the authenticated loopback server. The standard server uses a clearly labeled
 local simulated transport: no model, credential, external API, or network is
 used. A completed user/assistant pair is retained atomically in the same
@@ -49,6 +49,19 @@ conversation and the answer is brought into view. Before the transport sees the
 message, the built-in detector replaces supported personal-data patterns with
 stable readable placeholders. The returned text is restored locally before it
 is saved.
+
+Each submitted gesture has a durable local identity tied to its exact text and
+conversation scope. If the host stops while a send is unresolved, reopening the
+conversation does not send it again. The application checks the recorded model
+attempt and saved conversation result: an uncertain exposure remains unresolved,
+and a completed attempt without a saved answer is withheld as unavailable.
+This behavior is verified for controlled process termination and restart; it
+does not qualify every power-loss timing or filesystem and hardware failure mode.
+Start a new message only when you intend a new send; it cannot
+recover an earlier missing answer. This guarantee depends on keeping the local
+conversation-turn registry intact. Deleting or restoring an older copy of that
+registry removes the guarantee for affected gestures. Gestures made before this
+durable identity was introduced cannot be recovered through it.
 
 **2. Choose what the next message would use.** Configure named model targets in
 **Settings**, then choose one in the conversation header. The default and the
@@ -59,6 +72,46 @@ explains the privacy boundary and the replacement count for the last message.
 Routine turns require no privacy preview, manual name entry, or passphrase. None
 of these controls stores provider credentials or enables a real provider or
 external network in the standard host.
+
+Each target has a **kind** that fixes its class: OpenAI Responses is direct
+model delivery, Codex CLI and Claude Code are subscription agents, and
+llama-server on loopback is a local model. Settings shows a state for each
+target. **Available, simulated answers** means the standard host answers locally
+without calling a model, whatever the target is called; the conversation
+selector adds **simulated** next to the name. Agents show **Qualified offline, not
+connected yet** and local models **Adapter not qualified yet**: you can configure
+them, but they cannot answer and a send is refused with the draft kept. Nothing
+falls back to another target. Choosing Claude Code proposes the `sonnet` alias
+when the model field is empty.
+
+When the host offers an agent, a Codex or Claude Code target answers from the
+same conversation: choose it, write and send. The answer is saved with the
+agent's name and class, and the next message, with any target, sees it as
+context. **Show protections** on an agent target adds a note: it shows exactly
+what AI Workspace supplies, while the agent product adds instructions of its own.
+The standard start offers no agent; the offline demo offers synthetic agents
+marked **simulated**. An uncertain agent outcome is never rerun.
+
+Targets saved by an earlier version keep working. The first time you change
+target settings, the earlier file is kept unchanged next to the new one as
+`configuration.v1-<digest>.json`. An earlier target whose kind cannot be
+recognised shows **No kind: save it again choosing a kind**; it stays listed
+but cannot be chosen until you save it again with a kind.
+
+**Show protections** normally shows the payload available now; a later send
+recomposes it. To require the exact reviewed text, select **Send only the content
+shown here** inside that panel. Read the sections and **Exact text prepared for
+sending**, then use the same **Send** button within five minutes. If the sources,
+settings, selected model, protection map or conversation relationships change,
+the server stops the send and keeps the draft. Reopen **Show protections** to
+prepare a new review. A server restart also invalidates unused reviews.
+
+Editing the draft or changing the model clears the review and disables reviewed
+sending until you review again. You can uncheck the option to return to ordinary
+sending. Preparing a review makes no model request or execution attempt; for a
+new chat it creates an empty local conversation first. It may add local protection
+associations, as an ordinary preview does. Protection still has the detector's
+documented coverage limits; inspect unchanged values and add protected terms.
 
 If Settings reports an earlier passphrase-protected mapping, its dedicated
 one-time import form can add those reviewed values to the new stable project map.
@@ -77,8 +130,9 @@ still prepare a summary for another assistant from that dedicated search view.
 
 ### Bringing in history you already have
 
-The list starts empty until there is something stored. In U3, **New chat** is
-created as a durable General conversation on its first completed turn. To bring
+The list starts empty until there is something stored. **New chat** creates a
+durable General conversation when sending starts, or when you explicitly prepare
+its first reviewed send. An unfinished review can leave an empty conversation. To bring
 in existing work,
 open **Projects**, register the directory of a local Git repository, then choose
 **Import the safe sample session** for the bundled fictional fixture, or

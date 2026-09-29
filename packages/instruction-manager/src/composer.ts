@@ -60,7 +60,7 @@ const RANK: Readonly<Record<InstructionScope, number>> = {
 };
 
 type Candidate = Readonly<{
-  source: InstructionSource;
+  source: Omit<InstructionSource, "projectId">;
   rule: InstructionRule;
   included: boolean;
   excludedReason: "TARGET_NOT_SELECTED" | "TARGET_MISMATCH" | null;
@@ -72,7 +72,25 @@ export function composeInstructions(
 ): EffectiveInstructions {
   const bundle = validateInstructionBundle(bundleValue);
   const target = validateTarget(targetValue, bundle);
-  const candidates = orderedCandidates(bundle, target);
+  return Object.freeze({
+    schemaVersion: 1,
+    projectId: bundle.projectId,
+    target: Object.freeze({
+      model: target.model ?? null,
+      agent: target.agent ?? null,
+      task: target.task ?? null,
+    }),
+    enforcement: "DESCRIPTIVE_INSTRUCTIONS_NOT_RUNTIME_POLICY",
+    rules: composeInstructionRules(bundle.sources, target),
+  });
+}
+
+/** Precedence kernel. Callers must first validate source ownership and rules. */
+export function composeInstructionRules(
+  sources: readonly Omit<InstructionSource, "projectId">[],
+  target: Omit<CompositionTarget, "projectId">,
+): readonly EffectiveInstructionRule[] {
+  const candidates = orderedCandidates(sources, target);
   const included = candidates.filter((candidate) => candidate.included);
   const kinds = new Map<string, InstructionRule["kind"]>();
   for (const candidate of included) {
@@ -92,19 +110,9 @@ export function composeInstructions(
       );
   decideConstraints(included, decisions);
   decidePreferences(included, decisions);
-  return Object.freeze({
-    schemaVersion: 1,
-    projectId: bundle.projectId,
-    target: Object.freeze({
-      model: target.model ?? null,
-      agent: target.agent ?? null,
-      task: target.task ?? null,
-    }),
-    enforcement: "DESCRIPTIVE_INSTRUCTIONS_NOT_RUNTIME_POLICY",
-    rules: Object.freeze(
-      candidates.map((candidate) => decisions.get(candidate)!),
-    ),
-  });
+  return Object.freeze(
+    candidates.map((candidate) => decisions.get(candidate)!),
+  );
 }
 
 export function encodeEffectiveInstructions(value: EffectiveInstructions) {
@@ -177,10 +185,10 @@ function decidePreferences(
 }
 
 function orderedCandidates(
-  bundle: InstructionBundle,
-  target: CompositionTarget,
+  sourceValues: readonly Omit<InstructionSource, "projectId">[],
+  target: Omit<CompositionTarget, "projectId">,
 ): readonly Candidate[] {
-  const sources = [...bundle.sources].sort(
+  const sources = [...sourceValues].sort(
     (a, b) =>
       RANK[a.scope] - RANK[b.scope] ||
       (a.target ?? "").localeCompare(b.target ?? "") ||
@@ -201,8 +209,8 @@ function orderedCandidates(
 }
 
 function targetReason(
-  source: InstructionSource,
-  target: CompositionTarget,
+  source: Omit<InstructionSource, "projectId">,
+  target: Omit<CompositionTarget, "projectId">,
 ): Candidate["excludedReason"] {
   const selected =
     source.scope === "MODEL"

@@ -1,6 +1,6 @@
 # Privacy pseudonymization corpus and gates
 
-This corpus was frozen before Sprint 26 implementation. All values are
+This corpus was frozen before the pseudonymization implementation. All values are
 fictional and synthetic.
 
 ## Cases

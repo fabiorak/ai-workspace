@@ -2,8 +2,8 @@
 
 **Frozen:** 2026-07-22, before ADR-0027 or any production Anthropic adapter
 
-Sprint 35 qualifies documented Anthropic Messages semantics against the
-single-use authorization boundary from Sprint 33. The executable corpus is
+The Anthropic transport work qualifies documented Anthropic Messages semantics against the
+single-use authorization boundary from the delivery-authorization work. The executable corpus is
 offline, test-only, and synthetic. It opens no socket, reads no credential,
 invokes no model, and captures no provider response.
 

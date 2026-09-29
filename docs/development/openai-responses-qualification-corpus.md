@@ -2,8 +2,8 @@
 
 **Frozen:** 2026-07-22, before ADR-0027 or any production OpenAI adapter
 
-Sprint 34 qualifies documented OpenAI Responses API semantics against the
-single-use authorization boundary from Sprint 33. The executable corpus is
+The OpenAI transport work qualifies documented OpenAI Responses API semantics against the
+single-use authorization boundary from the delivery-authorization work. The executable corpus is
 offline, test-only, and synthetic. It opens no socket, loads no credential,
 invokes no model, and captures no provider response.
 
@@ -66,6 +66,6 @@ exactly-once delivery.
 Decision: `EVIDENCE_ONLY`.
 
 Responses API remains the primary OpenAI transport candidate, but the current
-documented protocol does not close Sprint 33's after-exposure ambiguity. No
+documented protocol does not close the delivery-authorization after-exposure ambiguity. No
 ADR-0027, production HTTP adapter, credential flow, endpoint, model call,
 response capture, retry, routing, delivery, or GUI action is added.

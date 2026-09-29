@@ -6,7 +6,10 @@ import {
   encodeAgentProfileBundle,
   type AgentProfileBundle,
   validateAgentProfileBundle,
+  validateScopedAgentProfileBundle,
+  type ConfigurationScope,
 } from "@ai-workspace/instruction-manager";
+import { readScopedConfiguration } from "./scoped-read.ts";
 
 const MAX_PROFILE_BYTES = 256 * 1_024;
 const DIGEST = /^[a-f0-9]{64}$/u;
@@ -26,6 +29,23 @@ export type LocalAgentProfileInspection = Readonly<{
 }>;
 
 export class LocalAgentProfileReader {
+  public async readScoped(
+    scope: ConfigurationScope,
+    input: LocalAgentProfileInput,
+  ) {
+    const { value, ...source } = await readScopedConfiguration(input);
+    const bundle = validateScopedAgentProfileBundle(value, scope);
+    const canonicalEncoding = `${JSON.stringify(bundle, null, 2)}\n`;
+    return Object.freeze({
+      bundle,
+      ...source,
+      canonicalEncoding,
+      canonicalBytes: Buffer.byteLength(canonicalEncoding, "utf8"),
+      effect:
+        "DESCRIPTIVE_NOT_INSTALLED_SELECTED_ENFORCED_OR_EXECUTED" as const,
+    });
+  }
+
   public async read(
     projectId: string,
     input: LocalAgentProfileInput,

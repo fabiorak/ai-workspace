@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 export { createClaudeCodeAgentProcessRunner } from "./process-runner.ts";
 export type { ClaudeCodeAgentProcessRunnerOptions } from "./process-runner.ts";
+export * from "./compatibility.ts";
 
 const MAX_INPUT_BYTES = 256 * 1024;
 const MAX_STREAM_BYTES = 2 * 1024 * 1024;
@@ -58,6 +59,10 @@ export type ClaudeCodeAgentObservation = Readonly<{
   processTreeTerminated: boolean;
   outputLimitExceeded: boolean;
   streamEncodingInvalid: boolean;
+  /** A descendant outlived the leader or held its streams (ADR-0050). */
+  lingeringProcesses: boolean;
+  /** An answer-only run left files in its workspace (ADR-0050). */
+  workspaceWritten: boolean;
 }>;
 
 export type ClaudeCodeAgentRunner = (
@@ -124,6 +129,8 @@ export class ClaudeCodeAgentAdapter {
       !boundedStream(observation.stderr) ||
       observation.outputLimitExceeded ||
       observation.streamEncodingInvalid ||
+      observation.lingeringProcesses ||
+      observation.workspaceWritten ||
       (observation.timedOut && !observation.processTreeTerminated)
     )
       return { kind: "UNKNOWN_AFTER_EXECUTION" };
@@ -293,6 +300,8 @@ function validObservation(value: unknown): value is ClaudeCodeAgentObservation {
     typeof value.timedOut === "boolean" &&
     typeof value.processTreeTerminated === "boolean" &&
     typeof value.outputLimitExceeded === "boolean" &&
-    typeof value.streamEncodingInvalid === "boolean"
+    typeof value.streamEncodingInvalid === "boolean" &&
+    typeof value.lingeringProcesses === "boolean" &&
+    typeof value.workspaceWritten === "boolean"
   );
 }

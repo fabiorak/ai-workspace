@@ -5,7 +5,7 @@
 
 ## Context
 
-The fixed schema-v1 handoff measured by Sprint 6 is 7,642 exact UTF-8 bytes.
+The fixed schema-v1 handoff measured by the handoff measurement work is 7,642 exact UTF-8 bytes.
 Its nine source occurrences describe one unique canonical source. Repeated
 provenance accounts for 3,424 bytes, or 44.8% of the packet, while the unique
 source representation accounts for 429 bytes. Repetition is therefore a
@@ -61,7 +61,7 @@ valid v1 handoffs. Existing v1 files are never rewritten, refreshed, or
 deleted. A v2 successor may point to a v1 predecessor in the same project and
 Work Item. Unsupported versions fail closed with the existing recovery model.
 
-S6-04 must add contract fixtures and tests proving, before the first v2 write:
+Contract fixtures and tests must prove, before the first v2 write:
 
 - stable v1 backward read and byte-for-byte immutability of the v1 fixture;
 - lossless v1 logical value to v2 encode/decode equivalence;
@@ -72,8 +72,8 @@ S6-04 must add contract fixtures and tests proving, before the first v2 write:
   tables or references;
 - no partial file after rejected creation.
 
-The default writer remains v1 until those contracts pass and S6-04 explicitly
-changes it. No standalone bulk migration command is accepted.
+The default writer remains v1 until those contracts pass and it is explicitly
+changed. No standalone bulk migration command is accepted.
 
 ## Consequences
 
@@ -82,7 +82,7 @@ changes it. No standalone bulk migration command is accepted.
 - readers become multi-version and the persisted codec must be separated from
   the logical handoff model;
 - immutable v1 handoffs remain readable historical artifacts indefinitely;
-- v2 implementation and measured before/after savings remain work for S6-04
-  and S6-06, so this ADR alone makes no compactness claim;
+- v2 implementation and measured before/after savings remain separate work,
+  so this ADR alone makes no compactness claim;
 - normalization adds validation complexity, but no runtime, database, service,
   framework, network access, or external dependency.

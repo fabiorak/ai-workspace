@@ -15,7 +15,7 @@ credential label, or path entered these observations.
 | `OS_CREDENTIAL_STORE` | no single built-in Node contract | no portable recovery contract               | no                         | yes                  | `REJECT` |
 | `PASSPHRASE_WRAPPING` | yes                              | envelope plus passphrase                    | yes                        | yes                  | `PASS`   |
 
-The volatile baseline preserves Sprint 26 compatibility but cannot retire
+The volatile baseline preserves the pseudonymization work compatibility but cannot retire
 manual hexadecimal key handling: its only backup is the Restricted raw key.
 The OS candidate requires different platform APIs or a new native/runtime
 dependency, can require an interactive desktop unlock, and binds routine
@@ -32,7 +32,7 @@ incomplete writes, duplicates, and invalid bounds returned no key and left
 existing state untouched.
 
 Two consecutive isolated executions passed 8/8 declared tests each. The
-compatibility case created a normal Sprint 26 schema-v1 mapping ciphertext,
+compatibility case created a normal the pseudonymization work schema-v1 mapping ciphertext,
 unlocked its key from the moved custody envelope, read the exact mapping, and
 verified that ciphertext bytes did not change. The same executions covered
 additive rotation, multi-user directory modes, owner-lock contention, altered

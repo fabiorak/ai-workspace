@@ -16,5 +16,8 @@
   ],
   "engines": {
     "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/agent-process": "0.0.0"
   }
 }

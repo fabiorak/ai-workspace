@@ -5,7 +5,7 @@
 
 ## Context
 
-Sprint 5 requires durable objective state and additive lifecycle history before
+The second-provider work requires durable objective state and additive lifecycle history before
 handoffs can reference a Work Item. Concurrent writers must not lose state and
 corrupt, unsupported, or cross-project documents must fail closed. Work Item
 state must not become another copy of evidence, active memory, diffs, or handoff

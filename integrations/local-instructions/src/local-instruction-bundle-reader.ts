@@ -4,7 +4,11 @@ import {
   InstructionError,
   type InstructionBundle,
   validateInstructionBundle,
+  validateScopedInstructionBundle,
+  type ConfigurationScope,
+  type ScopedInstructionSource,
 } from "@ai-workspace/instruction-manager";
+import { readScopedConfiguration } from "./scoped-read.ts";
 
 const MAX_BUNDLES = 50;
 const MAX_BUNDLE_BYTES = 256 * 1_024;
@@ -19,6 +23,69 @@ export type LocalInstructionBundleInput = Readonly<{
 }>;
 
 export class LocalInstructionBundleReader {
+  public async readScoped(
+    scope: ConfigurationScope,
+    inputs: readonly LocalInstructionBundleInput[],
+  ) {
+    if (inputs.length < 1 || inputs.length > MAX_BUNDLES) throw rejected();
+    const sources: ScopedInstructionSource[] = [];
+    for (const input of inputs) {
+      const { value, sourceDigest } = await readScopedConfiguration(input);
+      if (
+        !isRecord(value) ||
+        !isRecord(value.source) ||
+        !Array.isArray(value.source.rules) ||
+        value.source.rules.some(
+          (rule) => !isRecord(rule) || !exactKeys(rule, RULE_KEYS),
+        )
+      )
+        throw rejected();
+      let bundle;
+      if (value.schemaVersion === 1) {
+        if (
+          !exactKeys(value, BUNDLE_KEYS) ||
+          !exactKeys(value.source, SOURCE_KEYS)
+        )
+          throw rejected();
+        bundle = validateScopedInstructionBundle(
+          {
+            schemaVersion: 1,
+            projectId: value.projectId,
+            sources: [{ ...value.source, sourceDigest }],
+          },
+          scope,
+        );
+      } else {
+        if (
+          value.schemaVersion !== 2 ||
+          !exactKeys(value, ["ownerScope", "schemaVersion", "source"]) ||
+          !exactKeys(value.source, [
+            "id",
+            "ownerScope",
+            "rules",
+            "scope",
+            "target",
+            "trust",
+          ])
+        )
+          throw rejected();
+        bundle = validateScopedInstructionBundle(
+          {
+            schemaVersion: 2,
+            ownerScope: value.ownerScope,
+            sources: [{ ...value.source, sourceDigest }],
+          },
+          scope,
+        );
+      }
+      sources.push(...bundle.sources);
+    }
+    return validateScopedInstructionBundle(
+      { schemaVersion: 2, ownerScope: scope, sources },
+      scope,
+    );
+  }
+
   public async read(
     projectId: string,
     inputs: readonly LocalInstructionBundleInput[],

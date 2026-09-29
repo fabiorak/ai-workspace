@@ -70,6 +70,90 @@ test("durable delivery coordinates exposure, replay and uncertainty", async (t) 
     };
   };
   await t.test(
+    "durable gesture binding is verified before preparation and exposure",
+    async () => {
+      const f = fixture();
+      const prepared = f.delivery.prepare(f.selected);
+      const failed = await f.delivery.confirm(
+        prepared.authorizationId,
+        f.selected,
+        async () => input.bindingDigest,
+        async () => {
+          throw new Error("registry write failed");
+        },
+      );
+      assert.equal(failed.kind, "REFUSED_BEFORE_EXPOSURE");
+      assert.equal(f.calls(), 0);
+      assert.equal(
+        (await f.attempts.list(f.selected.projectId)).records.length,
+        0,
+      );
+      const fresh = f.delivery.prepare(f.selected);
+      let linked = "";
+      const done = await f.delivery.confirm(
+        fresh.authorizationId,
+        f.selected,
+        async () => input.bindingDigest,
+        async (reference) => {
+          linked = reference.attemptId;
+          assert.equal(reference.authorizationId, fresh.authorizationId);
+          assert.equal(reference.projectId, f.selected.projectId);
+          assert.equal(
+            (await f.attempts.list(f.selected.projectId)).records.length,
+            0,
+          );
+        },
+      );
+      assert.equal(done.kind, "COMPLETED");
+      assert.equal(
+        (await f.attempts.inspect(f.selected.projectId, linked)).state,
+        "COMPLETED",
+      );
+    },
+  );
+  await t.test(
+    "bound turns do not recover an unrelated live exposure in the same project",
+    async () => {
+      const f = fixture();
+      let started!: () => void;
+      const running = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      let release!: () => void;
+      const suspended = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const first = new ModelDelivery({
+        attempts: f.attempts,
+        transport: {
+          send: async () => {
+            started();
+            await suspended;
+            return completed;
+          },
+        },
+      });
+      const firstPrepared = first.prepare(f.selected);
+      const firstResult = first.confirm(
+        firstPrepared.authorizationId,
+        f.selected,
+        async () => input.bindingDigest,
+        async () => {},
+      );
+      await running;
+      const second = f.delivery.prepare(f.selected);
+      const secondResult = await f.delivery.confirm(
+        second.authorizationId,
+        f.selected,
+        async () => input.bindingDigest,
+        async () => {},
+      );
+      release();
+      assert.equal((await firstResult).kind, "COMPLETED");
+      assert.equal(secondResult.kind, "COMPLETED");
+    },
+  );
+  await t.test(
     "double click consumes once and completes only after the durable claim",
     async () => {
       const f = fixture();

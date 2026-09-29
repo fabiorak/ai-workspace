@@ -1,6 +1,6 @@
 # Measure profile context selectors
 
-Sprint 20 adds a bilingual, read-only report for an experiment-only profile
+The context-selector work adds a bilingual, read-only report for an experiment-only profile
 selector vocabulary. It exposes proposed handoff-section selection, exact
 candidate bytes, provenance, hashes, budget fit, and a non-excludable safety
 floor. It does not change normal Context Pack preview.
@@ -28,10 +28,10 @@ attempts to exclude the floor, changed digests, malformed profiles, and foreign
 handoffs fail closed without exposing content or full paths.
 
 The report measures historical v1 candidate serialization for comparison with
-Sprint 13–15. It is not token accounting, schema-v2 shared-source accounting,
+the Context Pack measurements. It is not token accounting, schema-v2 shared-source accounting,
 relevance, quality, permission, retrieval, delivery, or execution evidence.
 
-Sprint 20's decision is `adapt`: the corpus created three new standard-budget
+The context-selector decision is `adapt`: the corpus created three new standard-budget
 fits and reduced repeated candidate bytes by 49.89%, but did not measure whether
 excluded content is necessary for a correct resume. Production selectors
 remain descriptive and Context Builder behavior is unchanged.

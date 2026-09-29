@@ -73,6 +73,15 @@
       "@ai-workspace/model-attempts": [
         "./packages/model-attempts/src/index.ts"
       ],
+      "@ai-workspace/agent-process": [
+        "./integrations/agent-process/src/index.ts"
+      ],
+      "@ai-workspace/agent-execution": [
+        "./packages/agent-execution/src/index.ts"
+      ],
+      "@ai-workspace/local-agent-attempts": [
+        "./integrations/local-agent-attempts/src/index.ts"
+      ],
       "@ai-workspace/local-model-attempts": [
         "./integrations/local-model-attempts/src/index.ts"
       ],

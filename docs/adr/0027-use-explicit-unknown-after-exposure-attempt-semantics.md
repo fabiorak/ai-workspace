@@ -6,11 +6,11 @@
 ## Context
 
 ADR-0017 requires an inspectable privacy decision before model delivery.
-Sprint 33 then proved local single-use authorization, but could not know whether
-an external provider accepted a request after possible byte exposure. Sprint 34
+The delivery-authorization work then proved local single-use authorization, but could not know whether
+an external provider accepted a request after possible byte exposure. The OpenAI transport work
 confirmed that OpenAI Responses request identifiers support correlation and
 provider investigation, not documented create idempotency or exactly-once
-acceptance. Sprint 35 found the same unresolved boundary with Anthropic.
+acceptance. The Anthropic transport work found the same unresolved boundary with Anthropic.
 
 Retrying automatically after a timeout or crash can therefore duplicate model
 processing and cost. Reporting a definite failure is also unsafe when the
@@ -18,7 +18,7 @@ provider may have accepted the request. Requiring exactly-once provider
 semantics would block progress on a guarantee the qualified protocols do not
 offer.
 
-Sprint 36 froze 28 offline synthetic cases before its test-owned implementation.
+The OpenAI attempt-semantics work froze 28 offline synthetic cases before its test-owned implementation.
 Two complete deterministic runs produced digest
 `fcb26fdf327786d4a4e381ef1c0f1c0dd197d2b7af3265808b71e31bc4aed721`,
 28 expected outcomes, zero errors, no invalid pre-exposure create, at most one
@@ -56,11 +56,11 @@ not claim network-packet uniqueness, provider exactly-once processing,
 idempotency, delivery, acceptance, completion, or response recoverability.
 
 This ADR accepts the semantic boundary and future prototype direction only.
-The Sprint 36 implementation remains test-only. It authorizes no production
+The OpenAI attempt-semantics implementation remains test-only. It authorizes no production
 store, provider adapter, credential access, network request, model invocation,
 response handling, GUI action, retry, routing, fallback, or execution. A later
-increment must separately qualify and implement those boundaries before M5 can
-be complete.
+increment must separately qualify and implement those boundaries before model
+delivery can be complete.
 
 ## Consequences
 
@@ -75,11 +75,11 @@ be complete.
   provider without storing content or bearer-equivalent material;
 - a happy-path live probe can validate transport conformance but cannot upgrade
   undocumented idempotency or crash-recovery guarantees;
-- M5 remains incomplete and no production model access exists.
+- Model delivery remains incomplete and no production model access exists.
 
 ## Subsequent evidence
 
-Sprint 37 qualified a dependency-free, dedicated, test-owned JSON persistence
+The model-attempt store work qualified a dependency-free, dedicated, test-owned JSON persistence
 candidate against 29 frozen offline cases. Atomic publication and verified
 reread make an exposure claim restart-visible before fake adapter invocation;
 post-publication interruption recovers as `UNKNOWN_AFTER_EXPOSURE`, while

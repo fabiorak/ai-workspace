@@ -14,7 +14,7 @@ reading.
 The content collected here remains a valid direction and has not been reduced:
 it is the complete document-workspace horizon. Nothing that follows is planned,
 decided, or promised. Every component named here becomes real only through an
-evidence-led ADR and a sprint that implements it.
+evidence-led ADR and a delivery that implements it.
 
 For the actual state of the product:
 

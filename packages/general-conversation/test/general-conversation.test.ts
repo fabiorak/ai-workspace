@@ -103,6 +103,61 @@ test("appends one user and model turn atomically with explicit provenance", asyn
     assert.equal(response.provenance.displayName, "Model One");
 });
 
+test("records the execution class and a reported model only when given", async () => {
+  const values = new Map<string, GeneralConversation>();
+  let count = 0;
+  const service = new GeneralConversations({
+    store: memoryStore(values),
+    ids: () => `id-${++count}`,
+    clock: () => new Date("2026-09-28T10:00:00.000Z"),
+  });
+  const conversation = await service.create("Synthetic agent turn");
+  const turn = {
+    conversationId: conversation.id,
+    userText: "A synthetic question",
+    assistantText: "A synthetic answer",
+    attemptId: "attempt-1",
+    model: "sonnet",
+    displayName: "Claude Code",
+    targetId: "claude",
+  };
+  let updated = await service.appendTurn({
+    ...turn,
+    expectedEventCount: 0,
+    executionClass: "AGENT_EXECUTION",
+    reportedModel: null,
+  });
+  assert.deepEqual(updated.events[1]!.provenance, {
+    kind: "MODEL_CONVERSATION",
+    attemptId: "attempt-1",
+    displayName: "Claude Code",
+    model: "sonnet",
+    targetId: "claude",
+    executionClass: "AGENT_EXECUTION",
+  });
+  updated = await service.appendTurn({
+    ...turn,
+    attemptId: "attempt-2",
+    expectedEventCount: 2,
+    executionClass: "AGENT_EXECUTION",
+    reportedModel: "claude-sonnet-reported",
+  });
+  assert.equal(
+    updated.events[3]!.provenance.kind === "MODEL_CONVERSATION" &&
+      updated.events[3]!.provenance.reportedModel,
+    "claude-sonnet-reported",
+  );
+  await assert.rejects(
+    service.appendTurn({
+      ...turn,
+      attemptId: "attempt-3",
+      expectedEventCount: 4,
+      executionClass: "LOCAL_MODEL" as never,
+    }),
+    GeneralConversationError,
+  );
+});
+
 function memoryStore(
   values: Map<string, GeneralConversation>,
 ): GeneralConversationStore {

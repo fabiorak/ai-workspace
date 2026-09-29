@@ -86,6 +86,7 @@ export class JsonModelAttemptStore implements ModelAttemptStore {
         previous,
         aggregate.revision + 1,
         patch,
+        aggregate.records.at(-1)!.recordHash,
       );
       return this.#append(aggregate, next);
     });
@@ -106,6 +107,7 @@ export class JsonModelAttemptStore implements ModelAttemptStore {
           previous,
           aggregate.revision + 1,
           { state: "UNKNOWN_AFTER_EXPOSURE" },
+          aggregate.records.at(-1)!.recordHash,
         );
         aggregate = appendAggregate(aggregate, next);
       }
@@ -342,7 +344,11 @@ function decode(content: string, projectId: string): Aggregate {
       ) {
         throw new ModelAttemptError();
       }
-      validateModelAttemptTransition(latest.get(entry.attemptId), entry);
+      validateModelAttemptTransition(
+        latest.get(entry.attemptId),
+        entry,
+        predecessor,
+      );
       const prior = authorizations.get(entry.authorizationId);
       if (prior !== undefined && prior !== entry.attemptId) {
         throw new ModelAttemptError();

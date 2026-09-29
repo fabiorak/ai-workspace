@@ -3,7 +3,7 @@
 Status: proposed
 Date: 2026-09-14
 
-Implementation status: U3 composes this boundary with the existing context,
+Implementation status: the turn composes this boundary with the existing context,
 privacy, `ModelDelivery`, durable attempt and conversation-writing services. The
 standard host uses a local simulated transport; no real provider is activated.
 For General conversations, this decision amends ADR-0019 with an additive
@@ -36,6 +36,53 @@ conversation scope, target configuration, context sources, optional Work Item an
 optional handoff. A claimed project that differs from the authoritative scope is
 rejected. The browser cannot select Work Item, handoff, mapping, policy,
 instruction source, artifact, or attempt identifiers.
+
+### Amendment: optional binding to a reviewed payload
+
+The five required fields remain valid unchanged. An optional sixth field,
+`reviewId`, names only an opaque server-created preparation, never a path or an
+execution attempt. Exact-key validation accepts only those five fields plus this
+UUID. The complete request, including `reviewId` when present, contributes to
+the durable request digest; an absent field keeps the previous digest encoding.
+The registry schema stays at v1 because its digest and scope envelope is unchanged.
+
+The guarded `POST /api/conversations/:id/turn-preview` accepts optional boolean
+`bindReview`. Ordinary previews remain consultative. With `bindReview: true`,
+the response also contains the exact protected text, its digest, an opaque review
+ID and expiry. Preparing a review may extend the stable local map but records no
+audit or execution attempt and performs no delivery. A new-chat UI may first
+create an empty local General conversation so the review has a canonical scope.
+
+Preparations live only in server memory for five minutes, with at most 32 pending
+payloads of 256 KiB each. Expired entries are removed on preparation; a full store
+refuses new preparations rather than evicting valid ones. Restart invalidates all
+pending reviews. Only the protected payload, request/binding digests and expiry
+are retained here; no new disk store holds prompt text or pseudonym mappings.
+
+A reviewed send consumes its review synchronously before asynchronous composition.
+It binds exact draft, conversation/project, selected target and selection origin,
+execution class, limits, policy, profile, instructions, source digests, mapping
+and authoritative work/handoff or General relationships. Confirmation rereads
+these inputs and checks expiry before the delivery exposure claim, including
+after durable attempt preparation. Selection is reread after composition as well.
+Any observed difference, missing review or unreadable input refuses exposure with
+`REVIEW_INVALID`; stable confirmation passes the retained protected bytes to the
+transport. Ordinary sends also revalidate target and scope before exposure.
+These checks do not provide a cross-store transaction or filesystem-wide lock:
+they compare bounded snapshots before claiming, not arbitrary future mutations.
+
+One review cannot authorize another gesture. ADR-0048 still owns exact duplicate replay:
+the same gesture returns its durable result even after review expiry or restart,
+without consuming a second review or sending again. A crash after review
+consumption does not restore authorization. Browser changes to draft, conversation,
+target or protected terms invalidate the local review; refusal preserves the
+draft. The UI keeps one `Send` action and an optional checkbox inside protection
+details. No daily passphrase or mandatory preview is introduced.
+
+This amendment remains proposed; offline verification does not authorize a live
+provider or promote the decision to accepted.
+
+### Coordination and composition
 
 The provider-neutral `conversation-turn` boundary validates that input, resolves
 scope before execution, and binds an idempotency claim to the conversation and
@@ -74,7 +121,7 @@ for migration but is no longer the target primary GUI.
 - missing handoffs reduce available context instead of blocking ordinary turns;
 - server-side resolution and exact request digests prevent browser-selected scope
   and identity reuse with changed content;
-- U0 introduces no route, GUI change, provider transport, credential lookup, or
+- the domain contract introduces no route, GUI change, provider transport, credential lookup, or
   external call;
 - later increments must preserve drafts on pre-exposure refusal and must never
   automatically retry after possible exposure.

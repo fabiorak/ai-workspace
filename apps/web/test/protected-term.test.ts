@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -10,6 +11,10 @@ import type {
 } from "@ai-workspace/general-conversation";
 import type { ResolvedModelTarget } from "@ai-workspace/model-targets";
 import { conversationTurnArea } from "../src/conversation-turn-area.ts";
+import {
+  reducedTurnConfigurationRefs,
+  writeReducedTurnConfiguration,
+} from "./reduced-turn-fixture.ts";
 
 /**
  * The built-in detector has no recall for names, companies or addresses, so a
@@ -187,6 +192,7 @@ describe("reviewed protected terms", () => {
 async function temporaryHome() {
   const home = await mkdtemp(join(tmpdir(), "ai-workspace-protected-term-"));
   roots.push(home);
+  await writeReducedTurnConfiguration(home);
   return home;
 }
 
@@ -208,7 +214,8 @@ function fixture(
     general: {
       show: async () => conversation(events),
       appendTurn: async (input) => {
-        events.push(event(input.userText), event(input.assistantText));
+        events.push(event(input.userText, events.length));
+        events.push(event(input.assistantText, events.length));
         return conversation(events);
       },
     },
@@ -226,7 +233,11 @@ function fixture(
     targets: {
       resolve: async () => ({
         ...target,
-        target: { ...target.target, targetId },
+        target: {
+          ...target.target,
+          targetId,
+          ...reducedTurnConfigurationRefs(home),
+        },
       }),
     },
     audit: {
@@ -266,7 +277,8 @@ const target: ResolvedModelTarget = {
   target: {
     targetId: "target-b",
     displayName: "Target B",
-    providerKind: "OPENAI_RESPONSES",
+    executionClass: "MODEL_DELIVERY",
+    kind: "OPENAI_RESPONSES",
     modelId: "model-b",
     boundary: "EXTERNAL_SERVICE",
     profileRef: "unused-profile.json",
@@ -300,11 +312,12 @@ function conversation(events: readonly GeneralEvent[]): GeneralConversation {
 
 function event(
   content = `${COMPANY} opened the synthetic case.`,
+  sequence = 0,
 ): GeneralEvent {
   return {
-    id: `event-${content.length}-${content.slice(0, 8)}`,
+    id: `event-${sequence}-${content.length}-${content.slice(0, 8)}`,
     conversationId: "general-conversation",
-    sequence: 0,
+    sequence,
     scope: "GENERAL",
     type: "USER_MESSAGE",
     occurredAt: "2026-09-15T09:00:00.000Z",
@@ -314,7 +327,7 @@ function event(
     dataClass: "CONFIDENTIAL",
     content,
     exactBytes: Buffer.byteLength(content),
-    contentSha256: "a".repeat(64),
+    contentSha256: createHash("sha256").update(content).digest("hex"),
     provenance: {
       kind: "LOCAL_GENERAL_CAPTURE",
       capturedAt: "2026-09-15T09:00:00.000Z",

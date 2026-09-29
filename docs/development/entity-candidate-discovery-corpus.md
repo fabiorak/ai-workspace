@@ -1,6 +1,6 @@
 # Reviewed entity candidate discovery corpus and gates
 
-**Frozen before Sprint 28 harness implementation:** 2026-07-16  
+**Frozen before the entity-candidate harness implementation:** 2026-07-16\
 **Scope:** development-only measurement; all values and identities are fictional
 
 ## Purpose
@@ -10,7 +10,7 @@ UTF-8 byte spans worth presenting for explicit human review. It does not
 authorize automatic selection, transformation, classification, persistence,
 GUI integration, model delivery, or claims of complete PII or secret coverage.
 
-The unchanged Sprint 26 baseline is an exact `USER_REVIEWED` span. A candidate
+The unchanged pseudonymization baseline is an exact `USER_REVIEWED` span. A candidate
 is only a suggestion and cannot become reviewed truth without a later explicit
 user action and a separately accepted production boundary.
 
@@ -25,7 +25,7 @@ user action and a separately accepted production boundary.
 
 The existing high-confidence Restricted detector remains independent. It is a
 blocking control, is not measured as pseudonymization discovery, and must not
-change during this sprint.
+change during this work.
 
 ## Frozen corpus
 
@@ -102,7 +102,7 @@ When structural gates pass:
 - `NO_CHANGE` applies when a structural gate fails or either overall metric is
   below 50%.
 
-A passing result authorizes only a recommendation for a later ADR and sprint.
+A passing result authorizes only a recommendation for a later ADR and increment.
 Production rollout must retain explicit review, expose limitations and
 recovery in the bilingual GUI, and cannot consume these results directly.
 

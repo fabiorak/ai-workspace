@@ -3,7 +3,7 @@
 ## Scope
 
 This threat model covers the local-first control plane and the initial
-cross-agent continuity workflow. It is a baseline for Sprint 0 and must evolve
+cross-agent continuity workflow. It is a baseline for the initial scaffold and must evolve
 when persistence, search, agent adapters, model routing, plugins, or remote
 access are introduced.
 
@@ -321,7 +321,7 @@ Threats:
 
 Baseline controls:
 
-- keep Sprint 28 recognizers and corpus development-only with synthetic data;
+- keep the entity-candidate recognizers and corpus development-only with synthetic data;
 - report only aggregate counts, hashes, gates, and decisions;
 - score exact item/type/UTF-8 ranges and retain adversarial false positives;
 - keep candidate suggestions distinct from `USER_REVIEWED` spans;
@@ -543,6 +543,18 @@ whole-file comparison.
   and reports drift with guidance to create a successor handoff;
 - stale state never silently refreshes or mutates an existing handoff.
 
+## Agent process confinement (ADR-0050, offline)
+
+- agent processes run in a new private run tree with a synthetic `HOME`, an
+  environment built from nothing and a login directory dedicated to AI
+  Workspace, whose contents AI Workspace never reads;
+- only a canonical executable whose version and digest are on a reviewed list
+  can start; the lists are empty until a release is reviewed;
+- process-group cancellation proves termination; lingering descendants, an
+  escaped process or files left behind turn the outcome unknown;
+- accepted residual risk: the process runs as the same account and can read
+  files outside its run tree; the product's own service connection is needed.
+
 ## Implemented E7 privacy-preflight controls
 
 - ADR-0017 requires an explicit inspectable privacy decision before any future
@@ -666,7 +678,7 @@ information. A same-user process may observe memory or replace files despite
 filesystem modes. Fixed capacity blocks new reports until explicit recovery;
 there is no automatic retention or archive.
 
-## Sprint 33 delivery-authorization evidence
+## Delivery-authorization evidence
 
 The development-only authorization corpus binds one explicit synthetic intent
 to exact audit, policy, profile, model, scope, mapping, expiry, and transformed
@@ -683,7 +695,7 @@ A future provider-specific threat model must cover idempotency, timeouts,
 acceptance receipts, cancellation, replay, and crash recovery before network
 access is authorized.
 
-## Sprint 34 OpenAI transport qualification
+## OpenAI transport qualification
 
 The offline Responses harness binds one synthetic transformed digest to fixed
 `store:false`, no-background, zero-tool request semantics and rejects altered,
@@ -704,7 +716,7 @@ Codex or a model, or returns synthetic content in receipts/errors. A future live
 probe requires separate authorization, synthetic-only input, process-scoped
 credentials, cost bounds, sanitization, and an updated threat model.
 
-## Sprint 35 Anthropic and Claude transport qualification
+## Anthropic and Claude transport qualification
 
 The offline Messages harness binds synthetic system and transformed-input
 digests to a fixed Anthropic version, reviewed model, bounded output, and zero
@@ -726,7 +738,7 @@ returns content in receipts/errors. A live probe requires separate approval,
 synthetic input, process-scoped credential injection, fixed cost, isolated
 state, non-echo sanitization, and cleanup proof.
 
-## Sprint 36 bounded OpenAI attempt semantics
+## Bounded OpenAI attempt semantics
 
 The offline test-owned harness claims the only application-level create right
 before invoking a fake OpenAI adapter. Replay, concurrency, simulated crash,
@@ -771,7 +783,7 @@ Review and update this model when:
 
 ## Known residual risks
 
-The Sprint 2 screen is intentionally narrow and can miss secrets, PII, and
+The session ingestion screen is intentionally narrow and can miss secrets, PII, and
 confidential business data. Local session and artifact storage is not
 encrypted, stale locks require careful manual recovery, and failed commits may
 leave unreferenced immutable artifacts. Active-memory documents are also not

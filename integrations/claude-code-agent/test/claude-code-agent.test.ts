@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
+
+import {
+  agentEnvironment,
+  createConfinedWorkspace,
+  locateExecutable,
+} from "@ai-workspace/agent-process";
 
 import {
   CLAUDE_CODE_ANSWER_SCHEMA,
@@ -12,6 +18,9 @@ import {
   buildClaudeCodeAgentInvocation,
   createClaudeCodeAgentProcessRunner,
   type ClaudeCodeAgentObservation,
+  parseClaudeCodeVersion,
+  qualifyClaudeCodeExecutable,
+  QUALIFIED_CLAUDE_CODE_EXECUTABLES,
 } from "../src/index.ts";
 
 /**
@@ -56,6 +65,8 @@ const observation = (
   processTreeTerminated: false,
   outputLimitExceeded: false,
   streamEncodingInvalid: false,
+  lingeringProcesses: false,
+  workspaceWritten: false,
   ...override,
 });
 
@@ -205,6 +216,41 @@ describe("subscription-backed Claude Code agent adapter", () => {
       );
   });
 
+  it("reads only the exact version line and ships no reviewed release", async () => {
+    assert.equal(parseClaudeCodeVersion("2.1.283 (Claude Code)\n"), "2.1.283");
+    for (const value of [
+      "2.1.283",
+      "Claude Code 2.1.283",
+      "2.1.283 (Claude Code) x",
+    ])
+      assert.equal(parseClaudeCodeVersion(value), null, value);
+    assert.deepEqual(QUALIFIED_CLAUDE_CODE_EXECUTABLES, []);
+    assert.deepEqual(
+      await qualifyClaudeCodeExecutable(
+        [dirname(process.execPath)],
+        "2.1.283 (Claude Code)\n",
+      ),
+      {
+        kind: "NOT_QUALIFIED",
+        reason: "NOT_FOUND",
+      },
+    );
+  });
+
+  it("voids an answer when a descendant lingered or the workspace was written", async () => {
+    for (const override of [
+      { lingeringProcesses: true },
+      { workspaceWritten: true },
+    ])
+      assert.deepEqual(
+        await new ClaudeCodeAgentAdapter(async () =>
+          observation(override),
+        ).execute(input),
+        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        JSON.stringify(override),
+      );
+  });
+
   it("requires verified process-tree termination on timeout", async () => {
     for (const value of [
       observation({
@@ -238,18 +284,14 @@ process.stdout.write(JSON.stringify({type:"system",subtype:"init",tools:[],mcp_s
 process.stdout.write(JSON.stringify({type:"result",subtype:"success",result:JSON.stringify({answer:text})}) + "\\n");
 `);
     try {
-      const runner = createClaudeCodeAgentProcessRunner({
-        environment: {
-          PATH: fixture.directory,
-          HOME: fixture.directory,
-          ANTHROPIC_API_KEY: "must-not-cross",
-          PRIVATE_CANARY: "must-not-cross",
-        },
-      });
-      const request = { ...input, isolatedWorkspace: fixture.directory };
+      process.env.ANTHROPIC_API_KEY = "must-not-cross";
+      process.env.PRIVATE_CANARY = "must-not-cross";
+      const runner = createClaudeCodeAgentProcessRunner(
+        await confined(fixture),
+      );
+      const request = { ...input, isolatedWorkspace: fixture.work };
       const observed = await runner({
         ...buildClaudeCodeAgentInvocation(request),
-        executable: fixture.executable as "claude",
       });
       assert.equal(observed.exitCode, 0);
       assert.equal(observed.outputLimitExceeded, false);
@@ -262,7 +304,7 @@ process.stdout.write(JSON.stringify({type:"result",subtype:"success",result:JSON
       if (result.kind === "COMPLETED")
         assert.equal(result.text, `false:false:${input.text.length}`);
     } finally {
-      await rm(fixture.directory, { recursive: true });
+      await release(fixture);
     }
   });
 
@@ -270,21 +312,20 @@ process.stdout.write(JSON.stringify({type:"result",subtype:"success",result:JSON
     const fixture = await fixtureClaude("setInterval(() => {}, 1000);\n");
     try {
       const runner = createClaudeCodeAgentProcessRunner({
-        environment: { PATH: fixture.directory, HOME: fixture.directory },
+        ...(await confined(fixture)),
         terminationGraceMs: 10,
       });
       const value = await runner({
         ...buildClaudeCodeAgentInvocation({
           ...input,
-          isolatedWorkspace: fixture.directory,
+          isolatedWorkspace: fixture.work,
           timeoutMs: 20,
         }),
-        executable: fixture.executable as "claude",
       });
       assert.equal(value.timedOut, true);
       assert.equal(value.processTreeTerminated, true);
     } finally {
-      await rm(fixture.directory, { recursive: true });
+      await release(fixture);
     }
   });
 
@@ -295,34 +336,60 @@ setInterval(() => {}, 1000);
 `);
     try {
       const runner = createClaudeCodeAgentProcessRunner({
-        environment: { PATH: fixture.directory, HOME: fixture.directory },
+        ...(await confined(fixture)),
         terminationGraceMs: 10,
       });
       const value = await runner({
         ...buildClaudeCodeAgentInvocation({
           ...input,
-          isolatedWorkspace: fixture.directory,
+          isolatedWorkspace: fixture.work,
           timeoutMs: 1_000,
         }),
-        executable: fixture.executable as "claude",
       });
       assert.equal(value.outputLimitExceeded, true);
       assert.equal(value.processTreeTerminated, true);
       assert.ok(Buffer.byteLength(value.stdout, "utf8") <= 2 * 1024 * 1024);
     } finally {
-      await rm(fixture.directory, { recursive: true });
+      await release(fixture);
     }
   });
 });
 
-async function fixtureClaude(
-  body: string,
-): Promise<{ directory: string; executable: string }> {
+/**
+ * A synthetic executable and a confined run under one mkdtemp root. Only that
+ * root, created by this call, is ever removed.
+ */
+async function fixtureClaude(body: string) {
   const directory = await mkdtemp(
-    join(tmpdir(), "ai-workspace-claude-code-runner-"),
+    join(tmpdir(), "ai-workspace-claude-runner-"),
   );
-  const executable = join(directory, "claude");
+  const bin = join(directory, "bin");
+  const login = join(directory, "login");
+  const runs = join(directory, "runs");
+  for (const path of [bin, login, runs]) await mkdir(path, { mode: 0o700 });
+  const executable = join(bin, "claude");
   await writeFile(executable, `#!${process.execPath}\n${body}`, "utf8");
   await chmod(executable, 0o700);
-  return { directory, executable };
+  const workspace = await createConfinedWorkspace(runs);
+  return { directory, bin, login, workspace, work: workspace.work };
+}
+
+async function confined(fixture: Awaited<ReturnType<typeof fixtureClaude>>) {
+  const located = await locateExecutable("claude", [fixture.bin]);
+  if (typeof located === "string") throw new Error(located);
+  return {
+    executable: located,
+    environment: await agentEnvironment({
+      workspace: fixture.workspace,
+      configVariable: "CLAUDE_CONFIG_DIR",
+      configDirectory: fixture.login,
+      searchPath: [fixture.bin, dirname(process.execPath)],
+    }),
+  };
+}
+
+async function release(fixture: Awaited<ReturnType<typeof fixtureClaude>>) {
+  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.PRIVATE_CANARY;
+  await rm(fixture.directory, { recursive: true });
 }

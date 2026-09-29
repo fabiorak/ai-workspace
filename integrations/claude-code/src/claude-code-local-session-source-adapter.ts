@@ -14,7 +14,7 @@ import {
  * Reads a real local Claude Code transcript.
  *
  * The narrow `claude-code` adapter accepts only the authored synthetic subset of
- * Sprint 5 and rejects everything else, which makes it unable to read an actual
+ * the second-provider work and rejects everything else, which makes it unable to read an actual
  * transcript: real files carry record types that are not conversation turns,
  * assistant reasoning blocks, records without a timestamp or a uuid, and a
  * trailing record that may still be being written. This adapter is tolerant

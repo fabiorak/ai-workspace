@@ -3,7 +3,7 @@
 **Status:** accepted  
 **Date:** 2026-07-15
 
-Amended by proposed ADR-0042: U3 retains a completed General user/model pair in
+Amended by proposed ADR-0042: the conversation turn retains a completed General user/model pair in
 one atomic append. The additive schema-v1 event union records model output as
 `AGENT_MESSAGE`, `MODEL_GENERATED`, `UNVERIFIED` evidence with attempt, target,
 model, and validated display-name provenance. Manual General capture remains a
@@ -12,7 +12,7 @@ single `USER_MESSAGE` and still performs no model call.
 ## Context
 
 ADR-0018 makes `GENERAL` a first-class conversation scope but deliberately
-does not choose persistence. Sprint 23 needs immutable user-authored questions,
+does not choose persistence. The General-conversation work needs immutable user-authored questions,
 bounded local listing and lexical search, fail-closed integrity checks, and no
 false project ownership.
 

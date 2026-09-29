@@ -10,9 +10,39 @@ adapter-based integrations. The design separates:
 - temporary, budgeted context packs.
 
 Node.js 24, strict TypeScript, ESM, and npm workspaces form the accepted control
-plane baseline. Application frameworks, UI technology, transactional storage,
-historical search, and privacy-service boundaries remain design candidates and
-will be selected when a vertical product slice requires them.
+plane baseline. This repository is beyond design-only scaffolding: the local
+alpha implements the persistence, search, active-memory, conversation, GUI,
+privacy, and preview slices described below. Some future boundaries remain
+design candidates and will be selected only when a vertical product slice
+requires them.
+
+## Current alpha boundary
+
+The standard host is local-first and uses a simulated transport. The GUI offers
+the current conversation preview and persistent local session state, while
+session imports remain historical, untrusted evidence. OpenAI Responses is
+available only through an explicit process opt-in; it has not been live-probed
+and is not the default transport. Codex and Claude Code adapters/runners are
+dormant, qualified with synthetic executables, and are not wired into ordinary
+GUI conversation flow. No claim of live provider quality, agent execution, or
+complete privacy detection follows from the offline suite. Privacy protection
+uses app-managed stable maps per project or General scope, with optional
+reviewed manual protected terms. A passphrase is not requested for daily use;
+legacy passphrase-wrapped custody remains for migration and technical recovery
+workflows. Detection is incomplete, especially for first-occurrence person,
+organization, address, date, path, and URL values.
+Scoped reduced-turn composition is implemented and qualified offline for
+General and project conversations without a handoff, including policy,
+instructions, provenance, and explicit omission accounting. Durable turn
+identity and conservative recovery are implemented by the local
+conversation-turn registry. An optional expiring review binds the protected
+payload to a later send and revalidates target and scope before exposure. The
+legacy handoff path remains distinct.
+
+The remainder of this page retains historical slice descriptions because they
+are useful architectural provenance. Read those paragraphs as the state of the
+named slice, not as a second current-state contract. Proposed ADRs and future
+work remain proposed until their own evidence and review are recorded.
 
 The first GUI vertical slice is a foreground Node built-in HTTP host in
 `apps/web`. It binds only to loopback, serves semantic HTML and local assets,
@@ -80,8 +110,9 @@ preview. The canonical Context Pack remains unchanged. A transient privacy
 projection includes the question and current linked-session readings as separate
 items. Its byte accounting includes evidence and the complete question; exact
 transport text is serialized as readable sections before confirmation.
-Existing encrypted v1/v2
-mappings and passphrase custody are reused; no new mapping schema is introduced.
+Existing encrypted v1/v2 app-managed mappings are reused; optional legacy
+passphrase custody remains for migration and technical recovery, not daily use.
+No new mapping schema is introduced.
 Proposals expire, are scoped to their conversation, and are consumed once before
 protection. Changed sources, policy or recipient configuration require a new
 proposal. The guarded conversation-scoped send route uses ADR-0040's durable coordinator
@@ -96,9 +127,9 @@ conversation, claimed project or General scope, target, exact user text, and a
 client request identity. The server resolves Work Item and optional handoff, and
 the idempotency port binds duplicate clicks to the exact request before a later
 delivery boundary can expose content. A missing handoff selects reduced context;
-it no longer blocks an ordinary turn. The U0 package defines this contract and
-ports only: no route, transport, credential, persistence adapter, or GUI behavior
-is enabled yet.
+it no longer blocks an ordinary turn. The conversation-turn package defines this contract and
+its ports; routes, transports, persistence adapters and GUI behavior are
+separate.
 
 ADR-0043 defines stable per-project and General pseudonym maps whose keys are
 managed by the local single-user application, with legacy passphrase custody kept
@@ -106,19 +137,17 @@ for additive migration and optional higher-protection workflows. ADR-0044
 separately defines bounded versioned local target configuration while keeping
 credentials process-only.
 
-The U1 web shell makes the conversation the primary GUI surface and moves
-historical search to its own route. The newest stored conversation opens on
+The historical web shell makes the conversation the primary GUI surface and
+keeps historical search on its own route. The newest stored conversation opens on
 arrival without taking focus, selecting the open row is idempotent, and
 consecutive technical moments are grouped behind a disclosure. The composer,
 per-conversation session-only model choice, context explanation, and automatic
-protection explanation are present, but submission intentionally produces only
-a clearly labeled client-local fake response. U1 adds no route, persistence,
-provider, credential lookup, or network delivery. The previous continuation
-controls remain hidden as compatibility structure for later migration; they are
-not the ordinary path.
+protection explanation are present. The previous continuation controls remain
+hidden as compatibility structure for later migration; they are not the ordinary
+path.
 
-U2 implements ADR-0044 with the provider-neutral `model-targets` package and the
-`local-model-targets` JSON adapter. The versioned bounded document keeps target
+The provider-neutral `model-targets` package and the `local-model-targets` JSON
+adapter implement ADR-0044. The versioned bounded document keeps target
 metadata, a global default, project selections, and conversation selections;
 resolution precedence is conversation, project, then default. Writes use an
 owner lock, expected revision, restrictive permissions, and atomic publication.
@@ -127,7 +156,7 @@ name, while Settings owns the technical metadata. No credential, provider
 transport, response, endpoint override, or authorization is stored. The selected
 target survives host restart.
 
-U3 composes the provider-neutral `ConversationTurn` behind a single authenticated
+A provider-neutral `ConversationTurn` sits behind a single authenticated
 conversation-scoped POST. The server resolves scope, target, optional Work Item
 and optional handoff, then composes again immediately before `ModelDelivery`
 claims exposure. General and project conversations without a handoff use a
@@ -136,10 +165,34 @@ explicitly linked projects. Exact duplicate request identities share the first
 result; changed content conflicts, source changes refuse before exposure, and an
 unknown post-exposure result is cached without automatic retry. Completed pairs
 are retained atomically with model-target attribution. The standard host injects
-only a local simulated transport and performs no provider or network request.
+only a local simulated transport and performs no provider or network request by
+default. A separate OpenAI Responses adapter and explicit process opt-in now
+exist, but no live probe has been run.
 
-U4 inserts the provider-neutral `PiiDetector` port and stable pseudonymization
-contract immediately before model delivery. The default deterministic detector
+A permanent local identity is kept for each conversation gesture, bound to the
+exact request and server-resolved scope. Its separate versioned registry links
+to the model attempt before exposure and to the canonical saved response after
+completion; it stores metadata and digests, never prompt or answer text. Recovery
+consults the attempt and conversation stores and never resends or reconstructs
+an answer. An unresolved exposure is returned as `UNKNOWN_AFTER_EXPOSURE`, and
+a completed attempt whose answer was not saved is returned as
+`RESPONSE_WITHHELD` with reason `SAVE_FAILED`. The registry has no automatic
+retention or replay TTL; deleting or rolling it back manually removes its
+deduplication guarantee. Turns created before durable identities existed are not migratable.
+ADR-0048 records the decision. Bounded volatile review preparations
+last
+five minutes and are consumed once. The optional `reviewId` joins the request
+digest without changing the digest of existing five-field requests. Exact
+duplicate replay remains owned by the registry after expiry or restart. Confirmation
+recomposes and compares sources, policy, instructions, mapping, target and scope;
+it sends the retained protected bytes only when the binding still matches.
+Selection is reread after composition and binding is checked again after durable
+attempt preparation, before the exposure claim. These are snapshot checks, not a
+transaction across every source store. ADR-0042 specifies the amended contract.
+The legacy continuation path is unchanged.
+
+The provider-neutral `PiiDetector` port and stable pseudonymization contract
+sit immediately before model delivery. The default deterministic detector
 and previously known stable values produce readable typed placeholders. One
 app-managed 32-byte key and one authenticated encrypted map are stored separately
 per authoritative project scope, with a distinct General scope; both adapters
@@ -188,7 +241,7 @@ The metadata-envelope experiment separately compares embedded metadata with a
 packet-level source table and a full metadata table over the unchanged corpus.
 It uses SHA-256 identities over complete canonical source/metadata values,
 scope-bound bounded tables, canonical unique references, and lossless
-fail-closed expansion. ADR-0016 accepts only the source table. Sprint 17 rolls
+fail-closed expansion. ADR-0016 accepts only the source table. The Context Pack schema-v2 work rolls
 that representation into production Context Pack schema v2 while retaining an
 explicit v1 writer/reader path. The builder charges canonical marginal table
 growth during deterministic whole-section selection; the facade expands v2
@@ -263,7 +316,7 @@ privacy actions remain unaudited. Read-only list/detail routes are authenticated
 and project-scoped. The store has no dependency on active memory, history,
 artifacts, mappings, custody, model, network, or delivery components.
 
-Sprint 33 adds no production architecture component. A test-only provider-neutral
+The delivery-authorization work adds no production architecture component. A test-only provider-neutral
 intent, in-memory single-use store, and synthetic adapter measure exact binding,
 expiry, replay, concurrency, and crash windows. The `EVIDENCE_ONLY` decision
 rejects an ADR and production export because external acceptance becomes
@@ -271,16 +324,17 @@ unknowable after byte exposure without a concrete provider idempotency and
 receipt protocol. Existing application, API, GUI, persistence, privacy,
 mapping, custody, restoration, and audit graphs remain unchanged.
 
-Sprint 34 also adds no production architecture component. Two test-owned
-qualification harnesses measure the documented OpenAI Responses protocol and a
-fake `codex exec` process port. Responses remains `EVIDENCE_ONLY` because
+The OpenAI transport work also adds no production architecture component. Two test-owned
+qualification harnesses measured the documented OpenAI Responses protocol and a
+fake `codex exec` process port. That qualification recorded Responses as
+`EVIDENCE_ONLY` because
 request correlation is not documented create idempotency. Codex is classified
 `SEPARATE_AGENT_BOUNDARY` because its instructions, tools, and agent context
 cannot prove exact reviewed-input isolation. Neither harness is exported;
 network, auth, subprocess, application, API, and GUI graphs remain unchanged.
 
-Sprint 35 adds a second-provider qualification without adding a production
-component. A test-owned Messages protocol harness binds exact system and user
+The Anthropic transport work adds a second-provider qualification without adding a production
+component. A test-owned Messages protocol harness bound exact system and user
 digests to fixed API version, output bound, and zero tools; missing create
 idempotency leaves its decision `EVIDENCE_ONLY`. A fake Claude Code port keeps
 bare API authentication separate from managed login. Bare is
@@ -296,7 +350,43 @@ subprocess runner and qualifies it only with a synthetic executable. There is
 still no application wiring, managed-login use, external execution or GUI
 target.
 
-Sprint 36 also changes no production graph. A test-owned OpenAI attempt store,
+ADR-0045 is the current agent-execution decision record. Its dormant Codex and
+Claude Code adapters/runners are qualification boundaries, not a claim that
+either agent is available from the GUI. The direct Responses path remains an
+optional model-delivery adapter, and the default simulated transport remains
+the ordinary local path.
+
+Target configuration schema v2 (ADR-0044 amendment) makes the class explicit:
+each target has an `executionClass` and a `kind` from a closed list, and the
+kind limits the declared boundary. `packages/model-targets` derives
+availability from capabilities declared by the host, never from stored flags
+or names; `apps/web/src/model-target-area.ts` declares Responses as simulated
+or opted in and the agent kinds as qualified offline but not connected. The
+local JSON adapter reads v1 without writing and preserves its exact bytes before
+the first v2 publication. The turn remains wired only to `MODEL_DELIVERY`.
+
+ADR-0049 adds `packages/agent-execution` and `integrations/local-agent-attempts`.
+The coordinator plans an agent invocation as digests without I/O, links the
+attempt to the durable turn identity, prepares, rechecks, claims execution and
+rereads the claim before the injected executor can start a process. The agent
+store is separate from model-delivery attempts; the turn reference names its
+class so recovery reads the right store. The web application reads the agent
+store during recovery only; no agent executor is wired.
+
+ADR-0050 adds `integrations/agent-process`, used by both agent adapters for the
+confined run tree, the explicit environment, executable qualification by
+version and digest, and the process-group runner with lingering and workspace
+checks. Its reviewed release lists are empty, so no real installation qualifies.
+
+The conversation turn routes by class (ADR-0045 amendment). Agent targets go to
+`AgentExecution` only for kinds the host offers through
+`apps/web/src/execution-host.ts`; `apps/web/src/agent-executors.ts` builds real
+executors behind an exact opt-in and a digest check. Answers keep their class:
+General provenance has optional `executionClass` and `reportedModel`, and
+project answers use `AGENT_EXECUTION:<name>` source labels, read through
+`apps/web/src/generated-source.ts`.
+
+The OpenAI attempt-semantics work also changes no production graph. A test-owned OpenAI attempt store,
 fake create adapter, and canonical snapshot harness measure the ADR-0027
 application-level at-most-once state machine. The local exposure claim precedes
 the fake adapter call; unfinished exposure/acknowledgement recovers as
@@ -349,7 +439,7 @@ General event/hash and registered target before returning results. General
 results may expose immutable link metadata or use an explicit associated-project
 filter, but retain `GENERAL` scope; project-only routes remain isolated.
 
-Sprint 25 adds no production edge. Its development-only script composes the
+The General-link scale work adds no production edge. Its development-only script composes the
 existing domain services, atomic adapters, and search use case against private
 temporary synthetic state, reports aggregate counts/bytes/timings, and deletes
 the state. Two predeclared REFERENCE runs observed identical counts, zero
@@ -357,7 +447,7 @@ known-item misses, sub-threshold timing, and less than 2.4% pressure on every
 bound. Decision `NO_CHANGE` retains canonical scans; no index ADR, package,
 facade, GUI route, background task, or semantic boundary was added.
 
-Sprint 28 likewise adds no production edge. Its development-only script owns
+The entity-candidate work likewise adds no production edge. Its development-only script owns
 bounded standard-syntax and exact-alias candidate adapters plus a fixed
 English/Italian exact UTF-8 corpus. It imports the existing Restricted detector
 only for regression equivalence, emits aggregate non-echoing measurements, and

@@ -1,6 +1,6 @@
 # Privacy decision audit observations
 
-The frozen Sprint 32 corpus is defined in
+The frozen privacy-audit corpus is defined in
 [privacy-audit-corpus.md](privacy-audit-corpus.md). Reproduce its deterministic
 measurement with:
 

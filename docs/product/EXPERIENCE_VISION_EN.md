@@ -6,7 +6,7 @@ must stay aligned; changing only one of them is a defect.
 **Note:** all examples use invented names and content.
 
 This document sets **how AI Workspace must feel to the person using it**, and
-serves as the target for every later sprint that touches the interface. It does
+serves as the target for every later increment that touches the interface. It does
 not describe an architecture and does not replace any ADR: it describes the
 experience the architecture has to allow.
 
@@ -217,7 +217,7 @@ This is the most demanding part of the vision, and the constraint must be stated
 without ambiguity: search today is literal by design — there is _"no fuzzy,
 semantic, vector, stemmed, or indexed search"_ — so a search box at the centre of
 the screen is a promise the current engine does not keep. Making it tolerant is
-engine work, not interface work, has to be planned as its own sprint, and is the
+engine work, not interface work, has to be planned as its own increment, and is the
 point where the OpenSearch lesson genuinely counts.
 
 ### 5.2 "Let's pick up where we left off", including with another assistant
@@ -486,7 +486,7 @@ Observable criteria, not impressions:
 
 ## 11. What this document does **not** decide
 
-Each of these points needs its own sprint and, where required, its own ADR:
+Each of these points needs its own increment and, where required, its own ADR:
 
 - **the tolerant search engine** (normalisation, stemming, typo tolerance, ranking
   by relevance and recency, grouping by conversation). It is the largest piece of

@@ -99,7 +99,25 @@
       "path": "../../integrations/local-model-attempts/tsconfig.build.json"
     },
     {
+      "path": "../../packages/agent-execution/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/local-agent-attempts/tsconfig.build.json"
+    },
+    {
       "path": "../../integrations/local-model-targets/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/local-conversation-turns/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/agent-process/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/codex-agent/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/claude-code-agent/tsconfig.build.json"
     }
   ]
 }

@@ -1,5 +1,4 @@
-import type { DeliveryTransport } from "@ai-workspace/model-delivery";
-import { modelTargetArea } from "./model-target-area.ts";
+import { executionHost, modelTargetArea } from "./model-target-area.ts";
 import { privacyProtectionArea } from "./privacy-protection-area.ts";
 import { conversationTurnArea } from "./conversation-turn-area.ts";
 import { readContextPreview } from "./context-preview.ts";
@@ -165,7 +164,7 @@ export class GuiApplicationError extends Error {
 }
 
 export class GuiApplication {
-  readonly #continuationTransport: DeliveryTransport | undefined;
+  readonly #execution: ReturnType<typeof executionHost>;
   #continuationArea?: ReturnType<typeof continuationArea>;
   #conversationTurnArea?: ReturnType<typeof conversationTurnArea>;
   readonly #sessionStore: JsonSessionStore;
@@ -207,12 +206,12 @@ export class GuiApplication {
     dependencies: Readonly<{
       workspaceHome: string;
       sampleSessionPath: string;
-      continuationTransport?: DeliveryTransport;
-    }>,
+    }> &
+      Parameters<typeof executionHost>[0],
   ) {
-    this.#continuationTransport = dependencies.continuationTransport;
+    this.#execution = executionHost(dependencies);
     this.#workspaceHome = dependencies.workspaceHome;
-    this.modelTargets = modelTargetArea(dependencies.workspaceHome);
+    this.modelTargets = modelTargetArea(this.#workspaceHome, this.#execution);
     this.privacyProtection = privacyProtectionArea(dependencies.workspaceHome);
     this.#sessionStore = new JsonSessionStore(dependencies.workspaceHome);
     this.#artifactStore = new FileArtifactStore(dependencies.workspaceHome);
@@ -460,9 +459,7 @@ export class GuiApplication {
         sessions: this.#sessionStore,
         artifacts: this.#artifactStore,
       }),
-      ...(this.#continuationTransport
-        ? { transport: this.#continuationTransport }
-        : {}),
+      ...this.#execution,
     }));
   }
   public async dashboard(): Promise<GuiDashboard> {
@@ -683,7 +680,7 @@ export class GuiApplication {
         sessions: this.#sessionStore,
         artifacts: this.#artifactStore,
       }),
-      this.#continuationTransport,
+      this.#execution.transport,
     ));
   }
 

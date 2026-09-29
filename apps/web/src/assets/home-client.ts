@@ -164,11 +164,23 @@ export const HOME_BEHAVIOUR = `
   const homeProtectionPreviewStatus = document.getElementById("home-protection-preview-status");
   const homeProtectionPreviewOutput = document.getElementById("home-protection-preview-output");
   const homeProtectionPreviewSections = document.getElementById("home-protection-preview-sections");
+  const homeReviewControl = document.getElementById("home-review-control");
+  const homeReviewRequired = document.getElementById("home-review-required");
+  let boundReview = null;
+  let turnSending = false;
+  let reviewTimer = null;
+  let previewSequence = 0;
   const homeComposerStatus = document.getElementById("home-composer-status");
   const homeComposerError = document.getElementById("home-composer-error");
   let openConversation = null;
   let openConversationProject = null;
-  const clearProtectionPreview = () => {
+  const invalidateReview = () => {
+    boundReview = null;
+    clearTimeout(reviewTimer);
+    previewSequence += 1;
+  };
+  const clearProtectionPreview = (invalidate = true) => {
+    if (invalidate) invalidateReview();
     homeProtectionPreviewBox.hidden = true;
     homeProtectionPreviewOutput.replaceChildren();
     homeProtectionPreviewSections.replaceChildren();
@@ -176,13 +188,16 @@ export const HOME_BEHAVIOUR = `
     homeProtectionPreviewToggle.setAttribute("aria-expanded", "false");
     say(homeProtectionPreviewToggle, "homeProtectionPreviewAction");
   };
-  const updateHomeSend = () => { homeSend.disabled = !homeMessage.value.trim() || !homeConversationModel.value; };
+  const reviewUsable = () => boundReview && boundReview.conversationId === openConversation && boundReview.targetId === homeConversationModel.value && boundReview.userText === homeMessage.value && Date.parse(boundReview.expiresAt) > Date.now();
+  const updateHomeSend = () => { homeSend.disabled = turnSending || !homeMessage.value.trim() || !homeConversationModel.value || (homeReviewRequired.checked && !reviewUsable()); };
   const markOpenRow = () => {
     for (const button of conversationGroups.querySelectorAll("button[data-conversation]"))
       if (button.dataset.conversation === openConversation) button.setAttribute("aria-current", "true");
       else button.removeAttribute("aria-current");
   };
   const closeConversation = () => {
+    homeReviewRequired.checked = false;
+    clearProtectionPreview();
     openConversation = null;
     openConversationProject = null;
     homeConversation.hidden = true;
@@ -303,7 +318,7 @@ export const HOME_BEHAVIOUR = `
     homeEmpty.hidden = true;
     text(homeConversationStatus, "");
     homeConversationModel.value = "";
-    homeMessage.value = ""; clearProtectionPreview(); updateHomeSend(); text(homeComposerError, ""); say(homeComposerStatus, "homeTurnReady");
+    homeMessage.value = ""; homeReviewRequired.checked = false; clearProtectionPreview(); updateHomeSend(); text(homeComposerError, ""); say(homeComposerStatus, "homeTurnReady");
     // What it would take to pick this work up again sits at the end of it, composed
     // rather than fetched, and expanded rather than behind a control (ADR-0037).
     showRestartPoint(conversation);
@@ -399,6 +414,11 @@ export const HOME_BEHAVIOUR = `
     TARGET_UNAVAILABLE: "homeProtectionPayloadBlockedTarget",
     PRIVACY_BLOCKED: "homeProtectionPayloadBlockedPrivacy",
     CONTEXT_UNAVAILABLE: "homeProtectionPayloadBlockedContext",
+    REVIEW_UNAVAILABLE: "homeReviewUnavailable",
+  });
+  const turnRefused = Object.freeze({
+    REVIEW_INVALID: "homeReviewInvalid",
+    TARGET_UNAVAILABLE: "homeTurnTargetUnavailable",
   });
   const namedMessage = (table, key, fallback) =>
     typeof key === "string" && Object.hasOwn(table, key) ? table[key] : fallback;
@@ -431,23 +451,61 @@ export const HOME_BEHAVIOUR = `
   // the only evidence that a value is protected, so an added term regenerates it
   // rather than leaving a sentence that claims more than the screen shows.
   const loadProtectionPreview = async () => {
+    if (turnSending) return false;
+    invalidateReview();
+    const sequence = previewSequence;
     const draft = homeMessage.value;
+    let conversationId = openConversation;
+    const targetId = homeConversationModel.value;
+    const bindReview = homeReviewRequired.checked;
+    homeReviewControl.hidden = !conversationId || !targetId;
+    updateHomeSend();
     homeProtectionPreviewOutput.replaceChildren();
     homeProtectionPreviewSections.replaceChildren();
     if (!draft.trim()) { say(homeProtectionPreviewStatus, "homeProtectionPreviewEmpty"); return false; }
     homeProtectionPreviewToggle.disabled = true;
     try {
+      // An explicitly reviewed first send needs a canonical, empty conversation.
+      // Creating it locally does not append a message, audit or attempt.
+      if (bindReview && targetId && conversationId?.startsWith("local-preview-")) {
+        const title = draft.replace(/\\s+/gu, " ").trim().slice(0, 100);
+        const created = await api("/api/general/conversations", { method: "POST", body: JSON.stringify({ title }) });
+        if (sequence !== previewSequence || conversationId !== openConversation) return false;
+        await selectConversationTarget(created.id, null, targetId);
+        if (sequence !== previewSequence || conversationId !== openConversation) return false;
+        openConversation = created.id; openConversationProject = null; conversationId = created.id;
+        void loadConversations();
+      }
       if (canPreviewPayload()) {
         const preview = await api(turnPreviewPath(), {
           method: "POST",
-          body: JSON.stringify({ targetId: homeConversationModel.value, userText: draft }),
+          body: JSON.stringify({ targetId, userText: draft, ...(bindReview ? { bindReview: true } : {}) }),
         });
+        if (sequence !== previewSequence || conversationId !== openConversation || targetId !== homeConversationModel.value || draft !== homeMessage.value) return false;
         if (preview.kind !== "READY") {
           say(homeProtectionPreviewStatus, namedMessage(payloadBlocked, preview.reason, "homeProtectionPreviewFailed"));
           return false;
         }
         renderPayloadSections(preview.sections);
-        say(homeProtectionPreviewStatus, "homeProtectionPayloadReady", {
+        const previewed = modelTargetInfo.get(targetId);
+        if (previewed && previewed.executionClass === "AGENT_EXECUTION") {
+          const note = document.createElement("p"); note.className = "help"; say(note, "homeProtectionAgentNote");
+          homeProtectionPreviewSections.prepend(note);
+        }
+        if (bindReview) {
+          if (!preview.review || typeof preview.protectedText !== "string") throw new Error("REVIEW_UNAVAILABLE");
+          boundReview = { ...preview.review, conversationId, targetId, userText: draft };
+          const exact = document.createElement("details");
+          const title = document.createElement("summary");
+          say(title, "homeReviewExactText");
+          const content = document.createElement("p");
+          content.className = "protection-preview-output";
+          renderProtectionPreview(content, preview.protectedText);
+          exact.append(title, content);
+          homeProtectionPreviewSections.append(exact);
+          say(homeProtectionPreviewStatus, "homeReviewReady", { model: preview.model, expires: dateTime(preview.review.expiresAt) });
+          reviewTimer = setTimeout(() => { invalidateReview(); updateHomeSend(); say(homeProtectionPreviewStatus, "homeReviewRefresh"); }, Math.max(0, Date.parse(preview.review.expiresAt) - Date.now()));
+        } else say(homeProtectionPreviewStatus, "homeProtectionPayloadReady", {
           model: preview.model,
           sections: number(preview.sections.length),
           bytes: number(preview.totalBytes),
@@ -458,6 +516,7 @@ export const HOME_BEHAVIOUR = `
           method: "POST",
           body: JSON.stringify({ text: draft }),
         });
+        if (sequence !== previewSequence || draft !== homeMessage.value || conversationId !== openConversation) return false;
         renderProtectionPreview(homeProtectionPreviewOutput, preview.text);
         say(homeProtectionPreviewStatus, "homeProtectionPreviewReady", { count: number(preview.replacements) });
       }
@@ -465,15 +524,18 @@ export const HOME_BEHAVIOUR = `
       say(homeProtectionPreviewToggle, "homeProtectionPreviewHide");
       return true;
     } catch {
+      if (sequence !== previewSequence) return false;
       say(homeProtectionPreviewStatus, "homeProtectionPreviewFailed");
       return false;
     } finally {
       homeProtectionPreviewToggle.disabled = false;
+      updateHomeSend();
     }
   };
+  homeReviewRequired.addEventListener("change", () => { void loadProtectionPreview(); });
   const showProtectionPreview = async () => {
     if (!homeProtectionPreviewBox.hidden) {
-      clearProtectionPreview();
+      clearProtectionPreview(false);
       return;
     }
     homeProtectionPreviewBox.hidden = false;
@@ -542,6 +604,7 @@ export const HOME_BEHAVIOUR = `
         else {
           say(status, value.added ? "homeProtectionTermAdded" : "homeProtectionTermKnown", { term, placeholder: value.pseudonym });
           input.value = "";
+          invalidateReview(); updateHomeSend();
           // The sentence above is a claim; the placeholder in the preview is the
           // evidence, so the draft is protected again while the person is looking.
           if (!homeProtectionPreviewBox.hidden) await loadProtectionPreview();
@@ -603,13 +666,18 @@ export const HOME_BEHAVIOUR = `
     markOpenRow(); homeMessage.focus();
   };
   document.getElementById("home-new-conversation").addEventListener("click", startNewConversation);
-  homeMessage.addEventListener("input", () => { clearProtectionPreview(); updateHomeSend(); });
+  homeMessage.addEventListener("input", () => { clearProtectionPreview(); updateHomeSend(); if (homeReviewRequired.checked) say(homeComposerStatus, "homeReviewRefresh"); });
   homeMessage.addEventListener("keydown", (event) => { if (event.key === "Enter" && event.ctrlKey) { event.preventDefault(); document.getElementById("home-composer").requestSubmit(); } });
   document.getElementById("home-composer").addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (turnSending) return;
     const userText = homeMessage.value;
     if (!userText.trim()) { say(homeComposerError, "homeTurnEmpty"); homeMessage.focus(); return; }
     if (!homeConversationModel.value) { say(homeComposerError, "homeTargetRequired"); homeConversationModel.focus(); return; }
+    if (homeReviewRequired.checked && !reviewUsable()) { say(homeComposerError, "homeReviewRefresh"); updateHomeSend(); return; }
+    const reviewId = homeReviewRequired.checked ? boundReview.id : null;
+    turnSending = true;
+    invalidateReview();
     text(homeComposerError, ""); homeSend.disabled = true;
     say(homeComposerStatus, "homeTurnPreparing");
     const targetId = homeConversationModel.value;
@@ -625,7 +693,7 @@ export const HOME_BEHAVIOUR = `
       const project = openConversationProject ? "?project=" + encodeURIComponent(openConversationProject) : "";
       const outcome = await api("/api/conversations/" + encodeURIComponent(openConversation) + "/turn" + project, {
         method: "POST",
-        body: JSON.stringify({ targetId, userText, clientRequestId: crypto.randomUUID() }),
+        body: JSON.stringify({ targetId, userText, clientRequestId: crypto.randomUUID(), ...(reviewId ? { reviewId } : {}) }),
       });
       if (outcome.result.kind === "COMPLETED") {
         lastProtectionReplacements = outcome.result.protection?.replacements || 0;
@@ -633,9 +701,11 @@ export const HOME_BEHAVIOUR = `
         clearProtectionPreview();
         await showConversation({ id: openConversation, projectId: openConversationProject }, false, true);
         await loadConversations();
-        say(homeComposerStatus, outcome.duplicate ? "homeTurnDuplicate" : "homeTurnSaved", { model: outcome.result.effectiveModel });
+        const answered = modelTargetInfo.get(targetId);
+        say(homeComposerStatus, outcome.duplicate ? "homeTurnDuplicate" : answered && answered.launch === "AVAILABLE" ? (answered.executionClass === "AGENT_EXECUTION" ? "homeTurnSavedAgent" : "homeTurnSavedLive") : "homeTurnSaved", { model: outcome.result.effectiveModel });
       } else if (outcome.result.kind === "REFUSED_BEFORE_EXPOSURE") {
-        say(homeComposerError, "homeTurnRefused");
+        text(homeComposerStatus, "");
+        say(homeComposerError, namedMessage(turnRefused, outcome.result.reason, "homeTurnRefused"));
       } else if (outcome.result.kind === "UNKNOWN_AFTER_EXPOSURE") {
         homeMessage.value = "";
         clearProtectionPreview();
@@ -648,6 +718,7 @@ export const HOME_BEHAVIOUR = `
     } catch (cause) {
       detail(homeComposerError, cause);
     } finally {
+      turnSending = false;
       updateHomeSend(); homeMessage.focus();
     }
   });

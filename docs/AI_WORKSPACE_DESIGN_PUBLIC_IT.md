@@ -10,7 +10,7 @@
 Questo documento descrive la direzione di lungo periodo, non lo stato corrente
 del prodotto né un impegno a implementare ogni componente citato. Le decisioni
 architetturali accettate sono negli ADR, lo stato implementato è documentato
-nell'architettura e nei piani di sprint, e la roadmap operativa corrente è in
+nei documenti di architettura, e la roadmap operativa corrente è in
 [`ROADMAP.md`](../ROADMAP.md). Tecnologie, servizi e interfacce qui nominate
 restano candidati finché un ADR evidence-led non li seleziona.
 
@@ -218,14 +218,14 @@ AES-256-GCM separati e chiavi casuali custodite in envelope protetti da
 passphrase. Evidenza e Context Pack canonici non cambiano; nessun risultato
 fornisce accesso al modello, permesso, consegna o esecuzione.
 
-Sprint 28 misura inoltre, solo in sviluppo e su un corpus sintetico bilingue,
+Il lavoro sui candidati di entità misura inoltre, solo in sviluppo e su un corpus sintetico bilingue,
 candidati deterministici per assistere una futura revisione. Gli alias esatti
 configurati superano il corpus come `ADOPT_FOR_REVIEW`; la sintassi standard e
 l'unione restano `REFINE` per un falso positivo telefonico nel codice. Nessun
 recognizer è esposto alla GUI o alla trasformazione, e non viene rivendicato un
 rilevamento PII completo.
 
-Sprint 29 espone soltanto alias `CUSTOMER` configurati esatti tramite una
+Il lavoro sui suggerimenti di alias espone soltanto alias `CUSTOMER` configurati esatti tramite una
 superficie locale di revisione transitoria. I suggerimenti contengono hash
 correnti e intervalli UTF-8, non alias o testo corrispondente, restano
 `SUGGESTED_NOT_REVIEWED` e sono deselezionati fino alla conferma individuale
@@ -233,7 +233,7 @@ nel form di revisione schema-v1 esistente. La pseudonimizzazione resta
 un'azione separata. Gli alias `PROJECT` richiedono il boundary di compatibilità
 schema v2 pianificato, con letture v1 permanenti e nessuna migrazione implicita.
 
-Sprint 30 completa quel boundary tramite ADR-0024. Gli alias configurati esatti
+Il lavoro sulla compatibilità dello schema v2 completa quel boundary tramite ADR-0024. Gli alias configurati esatti
 `CUSTOMER` e `PROJECT` restano suggerimenti di revisione transitori, non
 riecheggianti e deselezionati. La conferma di uno span progetto seleziona un
 documento di review e mapping schema v2 separato; le review solo cliente
@@ -241,7 +241,7 @@ continuano a usare schema v1. I reader versionati conservano il comportamento
 v1 permanente ed esatto, i mapping v2 autenticano schema e scope, gli envelope
 di custodia restano schema v1 e nessuno stato viene migrato o ricifrato.
 
-Sprint 31 completa tramite ADR-0025 un boundary separato per output arbitrari.
+Il lavoro sul ripristino dell'output completa tramite ADR-0025 un boundary separato per output arbitrari.
 Il corpus sintetico bilingue accetta il ripristino rigoroso di token interi dopo
 tre restore esatti, nove blocchi completi, un risultato senza token e nessun
 output errato o parzialmente ripristinato nei casi bloccati. Un inspector locale
@@ -249,7 +249,7 @@ bounded ripristina soltanto token v1/v2 posseduti dal mapping dopo la validazion
 completa; modelli, acquisizione di risposte, delivery, routing, permessi ed
 esecuzione restano esclusi.
 
-Sprint 32 completa tramite ADR-0026 l'audit evidence-first delle decisioni
+Il lavoro sull'audit della privacy completa tramite ADR-0026 l'audit evidence-first delle decisioni
 privacy. Il corpus sintetico congelato accetta provenance minima senza
 contenuto, byte canonici, chain hash, il limite fisso di 1.000 eventi per
 progetto e pubblicazione/rilettura fail-closed. Uno store locale append-only
@@ -258,7 +258,7 @@ restituzione del report e la GUI bilingue espone viste bounded di lista e
 dettaglio in sola lettura. Trasformazione, restore, modelli e delivery restano
 esclusi.
 
-Sprint 33 completa il successivo boundary evidence-first prima dell'accesso ai
+Il lavoro sull'autorizzazione alla consegna completa il successivo boundary evidence-first prima dell'accesso ai
 modelli. Un corpus congelato di 22 casi su replay, scadenza e crash rifiuta
 conferma transitoria e grant riutilizzabili. Il single-use accoppiato alla
 transazione lega provenance auditata e byte trasformati esatti e impedisce il
@@ -267,7 +267,7 @@ inconoscibile. La decisione `EVIDENCE_ONLY` non aggiunge ADR-0027, provider di
 produzione, credenziali, rete, chiamate modello, risposte, routing, delivery o
 esecuzione.
 
-Sprint 34 qualifica candidati OpenAI specifici senza contattarli. Un corpus
+Il lavoro sul trasporto OpenAI qualifica candidati OpenAI specifici senza contattarli. Un corpus
 Responses offline di 13 casi conferma serializzazione bounded e stateless, ma
 non trova garanzie documentate di idempotenza della create o exactly-once;
 l'esito resta `EVIDENCE_ONLY`. Un corpus finto `codex exec` di 10 casi valida la
@@ -276,7 +276,7 @@ istruzioni e tool dell'agente di coding non provano che solo i byte revisionati
 siano visibili al modello. Non vengono aggiunti probe live, ADR-0027,
 credenziali, chiamate modello, risposte, delivery o esecuzione.
 
-Sprint 35 applica il confine di qualifica ad Anthropic e Claude senza
+Il lavoro sul trasporto Anthropic applica il confine di qualifica ad Anthropic e Claude senza
 contattarli. Un corpus Messages di 19 casi supera i gate locali bounded ma
 resta `EVIDENCE_ONLY`, perché idempotenza della create e recupero dopo timeout
 non sono documentati. Un corpus Claude Code finto di 14 casi separa
@@ -293,14 +293,14 @@ Codex prima di abilitare login gestiti, processi reali o target GUI. Il
 successivo target Claude Code usa esplicitamente l'alias ispezionabile `sonnet`
 come valore predefinito.
 
-Sprint 36 accetta ADR-0027 dopo che un corpus OpenAI offline congelato di 28
+Il lavoro sulla semantica dei tentativi OpenAI accetta ADR-0027 dopo che un corpus OpenAI offline congelato di 28
 casi passa con zero errori, al massimo una create applicativa per
 autorizzazione, `UNKNOWN_AFTER_EXPOSURE` esplicito attraverso crash/riavvio e
 zero retry. Ogni eventuale create successiva richiede una nuova autorizzazione
 e un avviso sul rischio di duplicazione e costo. Le semantiche accettate restano
 solo test e non provano exactly-once lato provider. Non vengono aggiunti probe
 live, credenziali, store/adapter produttivi, chiamate modello, risposte, GUI,
-routing, fallback, delivery o esecuzione; M5 resta incompleto.
+routing, fallback, delivery o esecuzione; la consegna ai modelli resta incompleta.
 
 ### 3.6 Riutilizzo degli strumenti
 
@@ -2644,7 +2644,7 @@ associato esplicito senza cambiare la proprietà `GENERAL`. I link non copiano
 evidenza e non creano memoria attiva, istruzioni, permessi, consegna,
 invocazione di modelli o esecuzione.
 
-Sprint 25 ha misurato questo percorso canonico General/link con un corpus
+Il lavoro sulla scala dei link General ha misurato questo percorso canonico General/link con un corpus
 sintetico development-only predefinito. Due run con 240 eventi e 120 link hanno
 prodotto conteggi identici, zero miss esatti known-item, totali cold inferiori
 a 88 ms, p95 warm su cinque query inferiore a 91 ms e pressione massima del

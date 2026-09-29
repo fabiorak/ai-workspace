@@ -8,8 +8,8 @@
 
 This document describes the long-term direction, not current product state or
 a commitment to implement every component named here. Accepted architecture
-decisions live in ADRs, implemented behavior is recorded in architecture and
-sprint documents, and the current operational plan is [`ROADMAP.md`](../ROADMAP.md).
+decisions live in ADRs, implemented behavior is recorded in architecture
+documents, and the current operational plan is [`ROADMAP.md`](../ROADMAP.md).
 Technologies, services, and interfaces remain candidates until selected by an
 evidence-led ADR.
 
@@ -214,14 +214,14 @@ mappings, and random keys held in passphrase-protected custody envelopes.
 Canonical evidence and Context Packs remain unchanged; no result provides
 model access, permission, delivery, or execution.
 
-Sprint 28 also measures deterministic candidates for future review assistance,
+The entity-candidate work also measures deterministic candidates for future review assistance,
 development-only, against a synthetic bilingual corpus. Exact configured
 aliases pass as `ADOPT_FOR_REVIEW`; standard syntax and the union remain
 `REFINE` because of a telephone false positive in code. No recognizer is
 exposed to the GUI or transformation, and complete PII detection is not
 claimed.
 
-Sprint 29 exposes only exact configured `CUSTOMER` aliases through a transient
+The alias-suggestion work exposes only exact configured `CUSTOMER` aliases through a transient
 local review surface. Suggestions contain current hashes and UTF-8 ranges, not
 alias or matched text, remain `SUGGESTED_NOT_REVIEWED`, and are unselected until
 individual confirmation into the existing schema-v1 review form.
@@ -229,7 +229,7 @@ Pseudonymization remains a separate action. `PROJECT` aliases require the
 planned schema-v2 compatibility boundary with permanent v1 reads and no
 implicit migration.
 
-Sprint 30 completes that boundary through ADR-0024. Exact configured
+The schema-v2 compatibility work completes that boundary through ADR-0024. Exact configured
 `CUSTOMER` and `PROJECT` aliases remain transient, non-echoing, unselected
 review suggestions. Confirming any project span selects a separate schema-v2
 review and mapping; customer-only reviews continue to use schema v1. Versioned
@@ -237,14 +237,14 @@ readers preserve exact permanent v1 behavior, v2 mappings authenticate their
 schema and scope, custody envelopes remain schema v1, and no state is migrated
 or re-encrypted.
 
-Sprint 31 completes a separate arbitrary-output boundary through ADR-0025. The
+The output-restoration work completes a separate arbitrary-output boundary through ADR-0025. The
 frozen synthetic bilingual corpus accepts strict whole-token restoration after
 three exact restores, nine complete blocks, one no-token result, and no
 incorrect or partial blocked output. A bounded local inspector restores only
 mapping-owned v1/v2 tokens after complete validation; models, response capture,
 delivery, routing, permissions, and execution remain excluded.
 
-Sprint 32 completes the evidence-first privacy-decision audit through ADR-0026.
+The privacy-audit work completes the evidence-first privacy-decision audit through ADR-0026.
 The frozen synthetic corpus accepted minimum non-content provenance, canonical
 bytes, hash chaining, a fixed 1,000-event project bound, and fail-closed
 publication/reread. A separate append-only local store records valid reviewable
@@ -252,7 +252,7 @@ or blocked decisions before report return and the bilingual GUI exposes bounded
 read-only list/detail views. Transformation, restoration, models, and delivery
 remain excluded.
 
-Sprint 33 completes the next evidence-first boundary before model access. A
+The delivery-authorization work completes the next evidence-first boundary before model access. A
 frozen 22-case replay/expiry/crash corpus rejects transient confirmation and
 reusable grants. Transaction-coupled single use binds exact audited provenance
 and transformed bytes and prevents local replay, but provider outcome after
@@ -260,7 +260,7 @@ byte exposure remains unknowable. Decision `EVIDENCE_ONLY` adds no ADR-0027,
 production provider, credential, network, model call, response, routing,
 delivery, or execution surface.
 
-Sprint 34 qualifies OpenAI-specific candidates without contacting them. A
+The OpenAI transport work qualifies OpenAI-specific candidates without contacting them. A
 13-case offline Responses corpus confirms bounded stateless serialization but
 finds no documented create-idempotency or exactly-once guarantee, so the result
 remains `EVIDENCE_ONLY`. A 10-case fake `codex exec` corpus validates a bounded
@@ -269,7 +269,7 @@ instructions and tools cannot prove that only reviewed bytes are model-visible.
 No live probe, ADR-0027, credential, model call, response, delivery, or execution
 surface is added.
 
-Sprint 35 applies the qualification boundary to Anthropic and Claude without
+The Anthropic transport work applies the qualification boundary to Anthropic and Claude without
 contacting them. A 19-case Messages corpus passes local bounded protocol gates
 but remains `EVIDENCE_ONLY` because create idempotency and post-timeout
 retrieval are not documented. A 14-case fake Claude Code corpus separates bare
@@ -285,14 +285,14 @@ offline before managed login, real subprocess execution, or GUI targets are
 enabled. The later Claude Code target defaults explicitly to the inspectable
 `sonnet` alias.
 
-Sprint 36 accepts ADR-0027 after a frozen 28-case offline OpenAI attempt corpus
+The OpenAI attempt-semantics work accepts ADR-0027 after a frozen 28-case offline OpenAI attempt corpus
 passes with zero errors, at most one application-level create per
 authorization, explicit `UNKNOWN_AFTER_EXPOSURE` across crash/restart, and zero
 retry. Any deliberate later create requires fresh authorization and a
 duplicate-processing/cost warning. The accepted semantics are test-only and do
 not prove provider exactly-once behavior. No live probe, credential, production
 store/adapter, model call, response, GUI, routing, fallback, delivery, or
-execution is added; M5 remains incomplete.
+execution is added; model delivery remains incomplete.
 
 ### 3.6 Reusable automation
 
@@ -2098,7 +2098,7 @@ ADR-026 Unified Work Item for code and documents
 
 ## 31. Roadmap
 
-This is a long-term product horizon, not the operational sprint plan in
+This is a long-term product horizon, not the operational plan in
 `ROADMAP.md`. The Core MVP alpha remains software-only: Project Registry,
 controlled ingestion, bounded historical search, curated active memory, Work
 Items, and verifiable handoffs. The implemented foreground loopback GUI now
@@ -2115,18 +2115,18 @@ builder. A subsequent exact comparison expands source-table and full
 metadata-table alternatives losslessly to the same logical sections.
 ADR-0016 accepts the source table as a versioned Context Pack direction: it
 creates the only new compact standard-budget fit and is smaller than the full
-metadata table in every profile. Sprint 17 implements it as schema v2 with
+metadata table in every profile. The Context Pack schema-v2 work implements it as schema v2 with
 explicit schema-v1 compatibility, deterministic marginal shared-byte
 accounting, lossless expansion, and bilingual GUI inspection. Persistence,
 delivery, and execution remain absent.
-Sprint 18 adds the first portable agent/skill schema-v1 boundary: one explicit
+The portable-profile work adds the first portable agent/skill schema-v1 boundary: one explicit
 project-scoped JSON bundle contains one agent and exactly its enabled skills,
 validates versions, model/tool/context/confirmation relationships, and
 round-trips through canonical JSON. The bilingual GUI inspects digest-pinned
 local synthetic input as `USER_CONFIGURED` descriptive data. No registry,
 installation, availability resolution, selection, permission, delivery, or
 execution is enabled.
-Sprint 19 adds the next read-only composition boundary. The user explicitly
+The profile-governed composition work adds the next read-only composition boundary. The user explicitly
 selects one reviewed profile, its exact declared instruction-source set, one
 allowed model, and one immutable handoff. The profile supplies the AGENT target
 and continuity/instruction exact-byte budgets; the existing deterministic
@@ -2136,7 +2136,7 @@ provenance, included items, omissions, and accounting. Context include/exclude
 selectors remain descriptive and unresolved. No registry, automatic
 selection, availability lookup, persistence, permission, delivery, or
 execution is enabled.
-Sprint 20 measures, but does not activate, a one-to-one mapping from eight
+The context-selector work measures, but does not activate, a one-to-one mapping from eight
 `handoff.*` profile selectors to existing continuity sections. A
 non-excludable objective/repository/next-action/source-reference floor retains
 task identity and provenance. Across nine policy/profile cases and 27 budgets,
@@ -2145,7 +2145,7 @@ with zero floor loss. Decision `adapt` keeps projection and bilingual report
 measurement-only because no relevance/resume-quality evidence or schema-v2
 source-table accounting justifies production semantics. Arbitrary selectors,
 retrieval, permissions, and Context Builder behavior remain unchanged.
-Sprint 21 freezes six digest-pinned synthetic consumers before applying those
+The selector-continuity work freezes six digest-pinned synthetic consumers before applying those
 policies. Exact model-free evaluation retains 0/9 required answers for
 floor-only, 5/9 for focused, and 7/9 for risk-aware; all retain 6/6 expected
 first actions, but required-source coverage is respectively 0/15, 9/15, and
@@ -2498,7 +2498,7 @@ filter by an explicit associated project without changing `GENERAL` ownership.
 Links do not copy evidence or create active memory, instructions, permission,
 delivery, model invocation, or execution.
 
-Sprint 25 measured that canonical General/link path with a predeclared
+The General-link scale work measured that canonical General/link path with a predeclared
 development-only synthetic corpus. Two 240-event/120-link runs produced
 identical counts, zero exact known-item misses, cold totals below 88 ms, warm
 five-query p95 below 91 ms, and at most 2.4% pressure on any production bound

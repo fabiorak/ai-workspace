@@ -16,7 +16,7 @@ Il contenuto qui raccolto resta valido come direzione e non è stato ridotto:
 moduli architetturali aggiuntivi, ADR futuri, orizzonte di prodotto e
 l'intero blocco dei workspace documentali. Niente di ciò che segue è
 pianificato, deciso o promesso. Ogni componente citato diventa reale solo
-attraverso un ADR evidence-led e uno sprint che lo implementi.
+attraverso un ADR evidence-led e una consegna che lo implementi.
 
 Per lo stato effettivo del prodotto:
 
@@ -130,18 +130,18 @@ builder di produzione. Un confronto exact-byte successivo espande in modo
 lossless le alternative con source table e tabella completa dei metadata nelle
 stesse sezioni logiche. ADR-0016 accetta la source table come direzione per un
 Context Pack versionato: crea l'unico nuovo fit compact sul budget standard ed
-è più piccola della tabella metadata completa in ogni profilo. Sprint 17 la
+è più piccola della tabella metadata completa in ogni profilo. Il lavoro sullo schema v2 del Context Pack la
 implementa come schema v2 con compatibilità schema v1 esplicita, accounting
 marginale deterministico dei byte condivisi, espansione lossless e ispezione
 GUI bilingue. Persistenza, delivery ed esecuzione restano assenti.
-Sprint 18 aggiunge il primo boundary portabile schema v1 per agenti e skill: un
+Il lavoro sul profilo portabile aggiunge il primo boundary portabile schema v1 per agenti e skill: un
 bundle JSON project-scoped esplicito contiene un agente ed esattamente le skill
 abilitate, valida versioni e relazioni modello/tool/contesto/conferma e compie
 round trip JSON canonici. La GUI bilingue ispeziona input sintetici locali con
 digest pinning come dati descrittivi `USER_CONFIGURED`. Non vengono abilitati
 registry, installazione, risoluzione disponibilità, selezione, permessi,
 delivery o esecuzione.
-Sprint 19 aggiunge il boundary successivo di composizione in sola lettura.
+Il lavoro sulla composizione governata dal profilo aggiunge il boundary successivo di composizione in sola lettura.
 L'utente seleziona esplicitamente un profilo revisionato, l'insieme esatto
 delle sorgenti istruzioni dichiarate, un modello consentito e un handoff
 immutabile. Il profilo fornisce il target AGENT e i budget exact-byte di
@@ -151,7 +151,7 @@ provenance delle dichiarazioni e delle regole, elementi inclusi, omissioni e
 accounting. I selettori context include/exclude restano descrittivi e non
 risolti. Non vengono abilitati registry, selezione automatica, verifica di
 disponibilità, persistenza, permessi, delivery o esecuzione.
-Sprint 20 misura, senza attivare, un mapping uno-a-uno fra otto selector
+Il lavoro sul selector di contesto misura, senza attivare, un mapping uno-a-uno fra otto selector
 profilo `handoff.*` e le sezioni di continuità esistenti. Un safety floor non
 escludibile di obiettivo/repository/prossima azione/riferimenti sorgente
 conserva identità del task e provenance. Su nove casi policy/profilo e 27
@@ -160,7 +160,7 @@ budget, i fit passano da 9 a 12 e i byte candidati storici ripetuti scendono del
 report bilingue solo come misurazione perché non esistono evidenze di
 rilevanza/qualità resume né accounting source-table schema v2 che giustifichino
 semantica di produzione. Selector arbitrari, retrieval, permessi e comportamento
-Context Builder restano invariati. Sprint 21 congela sei consumer sintetici
+Context Builder restano invariati. Il lavoro sull'evidenza di continuità congela sei consumer sintetici
 digest-pinned prima di applicare tali policy. La valutazione exact e model-free
 conserva 0/9 risposte richieste per floor-only, 5/9 per focused e 7/9 per
 risk-aware; tutte conservano 6/6 prime azioni attese, mentre la copertura source

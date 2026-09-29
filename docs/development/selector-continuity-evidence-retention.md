@@ -1,7 +1,7 @@
 # Selector continuity evidence retention
 
-Sprint 21 evaluates whether the three experiment-only selector policies from
-Sprint 20 retain exact, predeclared continuity evidence. The evaluator is
+The selector-continuity work evaluates whether the three experiment-only selector policies from
+The context-selector work retain exact, predeclared continuity evidence. The evaluator is
 model-free and development-only. It measures byte availability, not answer
 correctness, comprehension, relevance ranking, task completion, or resume
 success.
@@ -77,7 +77,7 @@ manifest, selector, budget, and source permutations.
 ## Decision: no change / no change
 
 - Evidence-retention semantics: `no change`. No candidate policy is
-  corpus-preserving, so the Sprint 20 vocabulary and policies remain
+  corpus-preserving, so the context-selector work vocabulary and policies remain
   experiment-only.
 - Schema-v2 fit: `no change`. Exact accounting changes byte totals but creates
   no sampled budget fit.

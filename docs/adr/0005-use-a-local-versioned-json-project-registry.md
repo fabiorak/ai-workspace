@@ -5,7 +5,7 @@
 
 ## Context
 
-Sprint 1 must retain registered repositories across CLI processes. The data set
+The project registry work must retain registered repositories across CLI processes. The data set
 is initially small, local to one user, and accessed by one command at a time.
 Selecting PostgreSQL or another service now would add installation and schema
 operations before transactional or query requirements are known.
@@ -30,7 +30,7 @@ The store:
 - keeps canonical paths for local idempotency;
 - is accessed through a Project Registry-owned persistence port.
 
-Concurrent writer coordination is not part of Sprint 1. Commands are expected
+Concurrent writer coordination is not part of the project registry work. Commands are expected
 to complete quickly and operate as a single local user.
 
 ## Consequences

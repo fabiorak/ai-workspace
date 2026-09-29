@@ -324,12 +324,15 @@ export function transitionModelAttemptRecord(
       >
     >
   >,
+  // Project log order and this attempt's state order can differ when two
+  // attempts interleave. The store supplies the current project chain head.
+  predecessorRecordHash: string = previous.recordHash,
 ): ModelAttemptRecord {
   const candidate = {
     ...previous,
     ...patch,
     revision,
-    predecessorRecordHash: previous.recordHash,
+    predecessorRecordHash,
   };
   const withoutHash = Object.fromEntries(
     Object.entries(candidate).filter(([key]) => key !== "recordHash"),
@@ -338,13 +341,14 @@ export function transitionModelAttemptRecord(
     ...withoutHash,
     recordHash: hashModelAttemptRecord(withoutHash),
   });
-  validateModelAttemptTransition(previous, next);
+  validateModelAttemptTransition(previous, next, predecessorRecordHash);
   return next;
 }
 
 export function validateModelAttemptTransition(
   previous: ModelAttemptRecord | undefined,
   next: ModelAttemptRecord,
+  predecessorRecordHash: string | null = previous?.recordHash ?? null,
 ): void {
   if (previous === undefined) {
     if (next.state !== "PREPARED") {
@@ -354,7 +358,7 @@ export function validateModelAttemptTransition(
   }
   if (
     next.revision <= previous.revision ||
-    next.predecessorRecordHash !== previous.recordHash ||
+    next.predecessorRecordHash !== predecessorRecordHash ||
     next.projectId !== previous.projectId ||
     next.authorizationId !== previous.authorizationId ||
     next.attemptId !== previous.attemptId ||

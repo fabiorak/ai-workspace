@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
-import { access, chmod, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
+import {
+  access,
+  chmod,
+  mkdtemp,
+  rm,
+  stat,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -43,6 +51,40 @@ test("stores identical artifacts once and detects content corruption", async () 
       store.read(`artifact://sha256/${"f".repeat(64)}`),
       /was not found.*Reimport/u,
     );
+  } finally {
+    await rm(home, { recursive: true, force: true });
+  }
+});
+
+test("reads only bounded regular artifacts without following a symlink", async () => {
+  const home = await mkdtemp(join(tmpdir(), "ai-workspace-bounded-artifact-"));
+  const store = new FileArtifactStore(home);
+  const content = Buffer.from("synthetic bounded artifact", "utf8");
+
+  try {
+    const reference = await store.put(content);
+    assert.deepEqual(
+      await store.readBounded(reference.id, content.byteLength),
+      content,
+    );
+    await assert.rejects(
+      store.readBounded(reference.id, content.byteLength - 1),
+      /read bound/u,
+    );
+
+    const digest = reference.id.slice("artifact://sha256/".length);
+    const artifactPath = join(
+      home,
+      "artifacts",
+      "sha256",
+      digest.slice(0, 2),
+      digest,
+    );
+    const target = join(home, "synthetic-link-target");
+    await writeFile(target, content, { mode: 0o600 });
+    await rm(artifactPath);
+    await symlink(target, artifactPath);
+    await assert.rejects(store.readBounded(reference.id, content.byteLength));
   } finally {
     await rm(home, { recursive: true, force: true });
   }

@@ -56,3 +56,47 @@ test("fails closed on noncanonical corruption and incomplete temporary state", a
   const content = await readFile(join(directory, "orphan.tmp"), "utf8");
   assert.equal(content, "partial");
 });
+
+test("reads the optional execution class and refuses one it does not know", async () => {
+  const { mkdtemp, rm } = await import("node:fs/promises");
+  const home = await mkdtemp(join(tmpdir(), "aiw-general-class-"));
+  try {
+    let count = 0;
+    const service = new GeneralConversations({
+      store: new JsonGeneralConversationStore(home),
+      ids: () => `id-${++count}`,
+      clock: () => new Date("2026-09-28T10:00:00.000Z"),
+    });
+    const created = await service.create("Synthetic agent conversation");
+    await service.appendTurn({
+      conversationId: created.id,
+      expectedEventCount: 0,
+      userText: "A synthetic question",
+      assistantText: "A synthetic answer",
+      attemptId: "attempt-1",
+      model: "sonnet",
+      displayName: "Claude Code",
+      targetId: "claude",
+      executionClass: "AGENT_EXECUTION",
+    });
+    const reread = await new JsonGeneralConversationStore(home).list();
+    const answer = reread[0]!.events[1]!;
+    assert.equal(
+      answer.type === "AGENT_MESSAGE" && answer.provenance.executionClass,
+      "AGENT_EXECUTION",
+    );
+    const directory = join(home, "general-conversations");
+    const [name] = (await readdir(directory)).filter((entry) =>
+      entry.endsWith(".json"),
+    );
+    const path = join(directory, name!);
+    const original = await readFile(path, "utf8");
+    await writeFile(
+      path,
+      original.replace('"AGENT_EXECUTION"', '"LOCAL_MODEL"'),
+    );
+    await assert.rejects(new JsonGeneralConversationStore(home).list());
+  } finally {
+    await rm(home, { recursive: true });
+  }
+});

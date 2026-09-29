@@ -1,6 +1,6 @@
 # Model-delivery authorization observations
 
-The frozen Sprint 33 corpus and decision gates are defined in
+The frozen delivery-authorization corpus and decision gates are defined in
 [model-delivery-authorization-corpus.md](model-delivery-authorization-corpus.md).
 Reproduce the deterministic measurement with:
 
@@ -39,7 +39,7 @@ store, application facade, API route, GUI action, provider, endpoint, credential
 socket, DNS lookup, HTTP client, model invocation, response, routing, delivery,
 or execution path is added.
 
-A later transport sprint must begin with a concrete provider protocol and
+A later transport increment must begin with a concrete provider protocol and
 freeze its idempotency key, acceptance receipt, timeout, retry, cancellation,
 and crash-recovery semantics. It must not reuse this mock as proof of external
 exactly-once behavior.

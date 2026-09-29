@@ -5,7 +5,7 @@
 
 ## Context
 
-AI Workspace is GUI-first for routine onboarding and daily workflows. Sprint 8
+AI Workspace is GUI-first for routine onboarding and daily workflows. The first GUI work
 must deliver a no-manual project registration, synthetic import, search, and
 source-inspection journey. The repository has no selected GUI framework,
 desktop runtime, HTTP API, daemon, or browser security boundary.
@@ -88,7 +88,7 @@ WCAG certification.
 
 ## Consequences
 
-- Sprint 8 can deliver an operational GUI without a framework or new runtime
+- the first GUI work can deliver an operational GUI without a framework or new runtime
   dependency;
 - foreground process lifetime and explicit bootstrap reduce hidden background
   access;

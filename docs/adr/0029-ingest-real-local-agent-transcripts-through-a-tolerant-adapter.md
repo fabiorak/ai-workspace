@@ -15,7 +15,7 @@
 ## Context
 
 Session ingestion has so far accepted only authored synthetic transcripts. The
-`claude-code` adapter implements the reviewed subset of Sprint 5 and rejects
+`claude-code` adapter implements the reviewed subset of the second-provider work and rejects
 anything outside it: record types that are not conversation turns, assistant
 reasoning blocks, records without a `uuid` or a `timestamp`, content blocks it
 does not know, and a trailing record that has not been fully flushed. Every one

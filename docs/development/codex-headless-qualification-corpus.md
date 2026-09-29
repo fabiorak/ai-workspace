@@ -2,7 +2,7 @@
 
 **Frozen:** 2026-07-22, against local `codex-cli 0.144.6`
 
-Sprint 34 measures whether stable non-interactive `codex exec` can act as an E7
+The OpenAI transport work measures whether stable non-interactive `codex exec` can act as an E7
 model-delivery fallback. Normal reproduction uses only a deterministic fake
 executable port. It does not invoke Codex, inspect authentication, contact a
 service, run a model, read a real repository, or capture a real response.

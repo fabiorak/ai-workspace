@@ -39,8 +39,8 @@ decisions.
 
 ## Product consequence
 
-No live conformance probe was authorized or run. ADR-0027 remains absent and M5
-remains incomplete. Messages remains a provider candidate pending a separately
+No live conformance probe was authorized or run. ADR-0027 remains absent and model
+delivery remains incomplete. Messages remains a provider candidate pending a separately
 authorized bounded synthetic live probe and a safe external reconciliation
 design. Bare Claude Code cannot solve missing API credentials; managed-login
 Claude Code can return only through a separately planned E9 agent-execution

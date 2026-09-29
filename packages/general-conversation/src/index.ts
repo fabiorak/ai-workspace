@@ -53,14 +53,24 @@ export type GeneralEvent =
         type: "AGENT_MESSAGE";
         actor: "MODEL";
         origin: "MODEL_GENERATED";
-        provenance: Readonly<{
-          kind: "MODEL_CONVERSATION";
-          attemptId: string;
-          displayName: string;
-          model: string;
-          targetId: string;
-        }>;
+        provenance: GeneratedProvenance;
       }>);
+
+/**
+ * Where a generated answer came from. The class is absent on answers stored
+ * before agent execution existed, which were all model deliveries; the
+ * reported model is present only when the product named one (ADR-0049).
+ */
+export type GeneratedProvenance = Readonly<{
+  kind: "MODEL_CONVERSATION";
+  attemptId: string;
+  displayName: string;
+  /** The model or alias requested, never replaced with a deduced one. */
+  model: string;
+  targetId: string;
+  executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION";
+  reportedModel?: string;
+}>;
 
 export type GeneralConversation = Readonly<{
   id: string;
@@ -194,6 +204,8 @@ export class GeneralConversations {
       displayName: string;
       model: string;
       targetId: string;
+      executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION";
+      reportedModel?: string | null;
     }>,
   ): Promise<GeneralConversation> {
     const conversationId = requiredText(
@@ -215,6 +227,16 @@ export class GeneralConversations {
     const displayName = requiredText(input.displayName, "Display name", 120);
     const model = requiredText(input.model, "Model", 256);
     const targetId = requiredText(input.targetId, "Target ID", 256);
+    if (
+      input.executionClass !== undefined &&
+      input.executionClass !== "MODEL_DELIVERY" &&
+      input.executionClass !== "AGENT_EXECUTION"
+    )
+      throw new GeneralConversationError("Execution class is invalid.");
+    const reportedModel =
+      input.reportedModel === undefined || input.reportedModel === null
+        ? null
+        : requiredText(input.reportedModel, "Reported model", 256);
     const occurredAt = timestamp(this.#dependencies.clock());
     const event = (
       sequence: number,
@@ -233,13 +255,7 @@ export class GeneralConversations {
             type: "AGENT_MESSAGE";
             actor: "MODEL";
             origin: "MODEL_GENERATED";
-            provenance: Readonly<{
-              kind: "MODEL_CONVERSATION";
-              attemptId: string;
-              displayName: string;
-              model: string;
-              targetId: string;
-            }>;
+            provenance: GeneratedProvenance;
           }>,
     ): GeneralEvent =>
       Object.freeze({
@@ -277,6 +293,10 @@ export class GeneralConversations {
             displayName,
             model,
             targetId,
+            ...(input.executionClass === undefined
+              ? {}
+              : { executionClass: input.executionClass }),
+            ...(reportedModel === null ? {} : { reportedModel }),
           },
         }),
       ]),

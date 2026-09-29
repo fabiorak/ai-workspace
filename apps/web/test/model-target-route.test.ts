@@ -35,7 +35,20 @@ describe("persistent model target routes", () => {
       const safe = await fixture.get("/api/model-targets");
       assert.deepEqual(await safe.json(), {
         revision: configured.revision,
-        targets: [{ targetId: "a", displayName: "Model A", enabled: true }],
+        targets: [
+          {
+            targetId: "a",
+            displayName: "Model A",
+            enabled: true,
+            executionClass: "LOCAL_MODEL",
+            availability: {
+              enabled: true,
+              qualifiedOffline: false,
+              launch: "UNAVAILABLE",
+              reason: "NOT_QUALIFIED",
+            },
+          },
+        ],
         defaultTargetId: null,
       });
       const safeText = await (await fixture.get("/api/model-targets")).text();
@@ -47,6 +60,74 @@ describe("persistent model target routes", () => {
         await fixture.get("/api/model-targets/configuration")
       ).json()) as { targets: unknown[] };
       assert.equal(settings.targets.length, 1);
+    } finally {
+      await fixture.server.close();
+    }
+  });
+
+  it("names the class and a simulated or unconnected launch without probing anything", async () => {
+    const fixture = await startFixture();
+    try {
+      let configuration = await configure(
+        fixture,
+        {
+          ...modelTarget("api", "GPT lookalike"),
+          executionClass: "MODEL_DELIVERY",
+          kind: "OPENAI_RESPONSES",
+          boundary: "EXTERNAL_SERVICE",
+        },
+        0,
+      );
+      configuration = await configure(
+        fixture,
+        {
+          ...modelTarget("codex", "Codex"),
+          executionClass: "AGENT_EXECUTION",
+          kind: "CODEX_CLI",
+          boundary: "EXTERNAL_SERVICE",
+        },
+        configuration.revision,
+      );
+      const view = (await (await fixture.get("/api/model-targets")).json()) as {
+        targets: {
+          targetId: string;
+          executionClass: string;
+          availability: { launch: string; reason: string | null };
+        }[];
+      };
+      assert.deepEqual(
+        view.targets.map((target) => [
+          target.targetId,
+          target.executionClass,
+          target.availability.launch,
+          target.availability.reason,
+        ]),
+        [
+          ["api", "MODEL_DELIVERY", "SIMULATED", null],
+          ["codex", "AGENT_EXECUTION", "UNAVAILABLE", "NOT_CONNECTED"],
+        ],
+      );
+      for (const target of [
+        { ...modelTarget("x", "X"), executionClass: "AGENT_EXECUTION" },
+        { ...modelTarget("x", "X"), kind: "OLLAMA" },
+        {
+          ...modelTarget("x", "X"),
+          executionClass: null,
+          kind: null,
+          legacyProviderKind: "LOCAL_ADAPTER",
+        },
+      ]) {
+        const refused = await fixture.post("/api/model-targets", {
+          target,
+          expectedRevision: configuration.revision,
+        });
+        assert.equal(refused.status, 400, JSON.stringify(target));
+      }
+      const settings = (await (
+        await fixture.get("/api/model-targets/configuration")
+      ).json()) as { revision: number; targets: unknown[] };
+      assert.equal(settings.revision, configuration.revision);
+      assert.equal(settings.targets.length, 2);
     } finally {
       await fixture.server.close();
     }
@@ -122,7 +203,8 @@ function modelTarget(targetId: string, displayName: string) {
   return {
     targetId,
     displayName,
-    providerKind: "LOCAL_ADAPTER",
+    executionClass: "LOCAL_MODEL",
+    kind: "LLAMA_SERVER_LOOPBACK",
     modelId: `synthetic-${targetId}`,
     boundary: "LOCAL_ONLY",
     profileRef: `profiles/${targetId}.json`,

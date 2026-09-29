@@ -77,7 +77,7 @@ preserves active, overridden, rejected, and excluded status, reason, source
 identity, source digest, and superseding rule identity. Bounds and schema
 validation fail closed before partial output or persistence.
 
-The Sprint 7 preview is read-only. It never persists instruction state,
+The instruction preview preview is read-only. It never persists instruction state,
 executes imported content, invokes an agent/model/tool, or promotes historical
 evidence or active memory into instructions.
 

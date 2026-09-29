@@ -54,7 +54,7 @@ verification records, and observed repository state cannot be flattened into
 one trust label.
 
 This ADR does not select the serialized handoff format or local persistence
-representation. Sprint 5 must perform the controlled second-provider format
+representation. The second-provider work must perform the controlled second-provider format
 spike before accepting those decisions.
 
 ## Consequences

@@ -55,7 +55,11 @@ export async function handleTurnPreviewRoute(
   const body = await readJson(request);
   if (
     !record(body) ||
-    Object.keys(body).some((key) => !["targetId", "userText"].includes(key)) ||
+    Object.keys(body).some(
+      (key) => !["targetId", "userText", "bindReview"].includes(key),
+    ) ||
+    (Object.hasOwn(body, "bindReview") &&
+      typeof body.bindReview !== "boolean") ||
     typeof body.targetId !== "string" ||
     typeof body.userText !== "string"
   ) {
@@ -76,6 +80,9 @@ export async function handleTurnPreviewRoute(
         conversationId: decodeURIComponent(match[1]!),
         targetId: body.targetId,
         userText: body.userText,
+        ...(typeof body.bindReview === "boolean"
+          ? { bindReview: body.bindReview }
+          : {}),
       }),
     );
   } catch (error) {

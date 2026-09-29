@@ -81,36 +81,15 @@ export function validateInstructionBundle(value: unknown): InstructionBundle {
     )
       throw malformed();
     sourceIds.add(candidate.id);
-    const positions = new Set<number>();
-    const rules = candidate.rules.map((rule) => {
-      if (
-        !isRecord(rule) ||
-        !bounded(rule.id, MAX_ID) ||
-        (rule.kind !== "CONSTRAINT" && rule.kind !== "PREFERENCE") ||
-        rule.overridable !== (rule.kind === "PREFERENCE") ||
-        !bounded(rule.content, MAX_CONTENT) ||
-        !Number.isSafeInteger(rule.position) ||
-        Number(rule.position) < 0 ||
-        positions.has(Number(rule.position))
-      )
-        throw malformed();
-      positions.add(Number(rule.position));
-      return Object.freeze({
-        id: rule.id,
-        kind: rule.kind,
-        overridable: rule.overridable,
-        content: rule.content,
-        position: rule.position,
-      }) as InstructionRule;
-    });
+    const source = validateInstructionSourceDefinition(candidate);
     return Object.freeze({
-      id: candidate.id,
-      projectId: candidate.projectId,
-      scope: candidate.scope,
-      target: candidate.target,
-      trust: candidate.trust,
-      sourceDigest: candidate.sourceDigest,
-      rules: Object.freeze(rules),
+      id: source.id,
+      projectId: value.projectId,
+      scope: source.scope,
+      target: source.target,
+      trust: source.trust,
+      sourceDigest: source.sourceDigest,
+      rules: source.rules,
     }) as InstructionSource;
   });
   return Object.freeze({
@@ -118,6 +97,54 @@ export function validateInstructionBundle(value: unknown): InstructionBundle {
     projectId: value.projectId,
     sources: Object.freeze(sources),
   });
+}
+
+/** Validate source content without inventing an owning project. */
+export function validateInstructionSourceDefinition(
+  candidate: Record<string, unknown>,
+): Omit<InstructionSource, "projectId"> {
+  if (
+    !bounded(candidate.id, MAX_ID) ||
+    !SCOPES.has(candidate.scope as InstructionScope) ||
+    candidate.trust !== "USER_CONFIGURED" ||
+    typeof candidate.sourceDigest !== "string" ||
+    !DIGEST.test(candidate.sourceDigest) ||
+    !validTarget(candidate.scope, candidate.target) ||
+    !Array.isArray(candidate.rules) ||
+    candidate.rules.length < 1 ||
+    candidate.rules.length > MAX_RULES_PER_SOURCE
+  )
+    throw malformed();
+  const positions = new Set<number>();
+  const rules = candidate.rules.map((rule) => {
+    if (
+      !isRecord(rule) ||
+      !bounded(rule.id, MAX_ID) ||
+      (rule.kind !== "CONSTRAINT" && rule.kind !== "PREFERENCE") ||
+      rule.overridable !== (rule.kind === "PREFERENCE") ||
+      !bounded(rule.content, MAX_CONTENT) ||
+      !Number.isSafeInteger(rule.position) ||
+      Number(rule.position) < 0 ||
+      positions.has(Number(rule.position))
+    )
+      throw malformed();
+    positions.add(Number(rule.position));
+    return Object.freeze({
+      id: rule.id,
+      kind: rule.kind,
+      overridable: rule.overridable,
+      content: rule.content,
+      position: rule.position,
+    }) as InstructionRule;
+  });
+  return Object.freeze({
+    id: candidate.id,
+    scope: candidate.scope,
+    target: candidate.target,
+    trust: candidate.trust,
+    sourceDigest: candidate.sourceDigest,
+    rules: Object.freeze(rules),
+  }) as Omit<InstructionSource, "projectId">;
 }
 
 function validTarget(scope: unknown, target: unknown): boolean {

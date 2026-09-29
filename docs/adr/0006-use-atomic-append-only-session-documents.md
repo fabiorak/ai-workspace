@@ -5,7 +5,7 @@
 
 ## Context
 
-Sprint 2 must retain canonical session events across CLI processes, reject a
+The session ingestion work must retain canonical session events across CLI processes, reject a
 source whose previously imported prefix changed, and recover safely from an
 interrupted write. The initial data set is local and small. A database would
 add an unjustified runtime dependency, while appending directly to JSONL can

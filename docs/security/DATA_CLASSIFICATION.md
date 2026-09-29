@@ -134,14 +134,14 @@ mappings, secrets, prompts, responses, or restored output. Audit metadata and
 digests remain correlatable and are not a classification downgrade or delivery
 authority.
 
-Sprint 33 does not add a production authorization record or change data
+The delivery-authorization work does not add a production authorization record or change data
 classification. Its synthetic test-only intent contains metadata and digests
 that would be `CONFIDENTIAL` if persisted in a real workspace. Exact request
 content, item hashes, mappings, secrets, credentials, prompts, and responses
 remain forbidden from authorization metadata. Any future transport design must
 classify provider receipts and idempotency material before storage is selected.
 
-Sprint 34 adds no production transport data. Its test-only attempt metadata,
+The OpenAI transport work adds no production transport data. Its test-only attempt metadata,
 request/response ID digests, event counts, and process digests would be
 `CONFIDENTIAL` if associated with a real workspace. Provider request IDs,
 client request IDs, response IDs, Codex thread IDs, account/project identifiers,
@@ -150,7 +150,7 @@ storage. Request and response bodies, bearer credentials, Codex auth files,
 mapping plaintext, keys, and passphrases remain forbidden from qualification
 evidence.
 
-Sprint 35 adds no production Anthropic or Claude data. Its test-only attempt,
+The Anthropic transport work adds no production Anthropic or Claude data. Its test-only attempt,
 header-name, event-count, process, and identifier digests would be
 `CONFIDENTIAL` if tied to a real workspace. API keys, setup tokens, OAuth and
 keychain state, account IDs, provider request/message IDs, Claude settings,
@@ -159,7 +159,7 @@ explicit classification before runtime use. Credential values, auth exports,
 request/response bodies, mapping plaintext, keys, and passphrases remain
 forbidden from qualification evidence.
 
-Sprint 36 adds no production attempt record. Its test-only canonical state,
+The OpenAI attempt-semantics work adds no production attempt record. Its test-only canonical state,
 scope digests, provider/client identifier digests, output digest, revision, and
 exposure count would be `CONFIDENTIAL` if associated with a real workspace.
 ADR-0027 permits only an allowlisted non-content prototype direction; request

@@ -54,6 +54,12 @@
     "@ai-workspace/local-model-attempts": "0.0.0",
     "@ai-workspace/model-targets": "0.0.0",
     "@ai-workspace/local-model-targets": "0.0.0",
-    "@ai-workspace/openai-responses": "0.0.0"
+    "@ai-workspace/openai-responses": "0.0.0",
+    "@ai-workspace/local-conversation-turns": "0.0.0",
+    "@ai-workspace/agent-execution": "0.0.0",
+    "@ai-workspace/local-agent-attempts": "0.0.0",
+    "@ai-workspace/agent-process": "0.0.0",
+    "@ai-workspace/codex-agent": "0.0.0",
+    "@ai-workspace/claude-code-agent": "0.0.0"
   }
 }

@@ -132,42 +132,59 @@ export function validateAgentProfileBundle(value: unknown): AgentProfileBundle {
       value.skills.length > MAX_LIST
     )
       throw invalid();
-    const agent = validateAgent(value.agent);
-    const skills = value.skills.map(validateSkill).sort(compareId);
-    unique(skills.map((skill) => skill.id));
-    if (
-      agent.skillIds.length !== skills.length ||
-      agent.skillIds.some((id, index) => id !== skills[index]!.id)
-    )
-      throw invalid();
-    const allowedTools = new Set(agent.allowedTools);
-    const forbiddenTools = new Set(agent.forbiddenTools);
-    for (const skill of skills) {
-      if (
-        skill.requiredTools.some(
-          (tool) => !allowedTools.has(tool) || forbiddenTools.has(tool),
-        ) ||
-        skill.requiredTools.some((tool) =>
-          skill.forbiddenTools.includes(tool),
-        ) ||
-        skill.destructiveActions.some(
-          (action) => !skill.requiresConfirmation.includes(action),
-        )
-      )
-        throw invalid();
-    }
+    const { agent, skills } = validateProfileDefinition(value);
     return Object.freeze({
       schemaVersion: 1 as const,
       projectId: value.projectId,
       trust: "USER_CONFIGURED" as const,
       agent,
-      skills: Object.freeze(skills),
+      skills,
       effect: AGENT_PROFILE_EFFECT,
     });
   } catch (error) {
     if (error instanceof AgentProfileError) throw error;
     throw invalid(error);
   }
+}
+
+/** Shared profile validation independent of the owning conversation scope. */
+export function validateProfileDefinition(
+  value: Record<string, unknown>,
+): Readonly<{
+  agent: AgentProfile;
+  skills: readonly SkillProfile[];
+}> {
+  if (
+    !isRecord(value.agent) ||
+    !exactKeys(value.agent, AGENT_KEYS) ||
+    !Array.isArray(value.skills) ||
+    value.skills.length < 1 ||
+    value.skills.length > MAX_LIST
+  )
+    throw invalid();
+  const agent = validateAgent(value.agent);
+  const skills = value.skills.map(validateSkill).sort(compareId);
+  unique(skills.map((skill) => skill.id));
+  if (
+    agent.skillIds.length !== skills.length ||
+    agent.skillIds.some((id, index) => id !== skills[index]!.id)
+  )
+    throw invalid();
+  const allowedTools = new Set(agent.allowedTools);
+  const forbiddenTools = new Set(agent.forbiddenTools);
+  for (const skill of skills) {
+    if (
+      skill.requiredTools.some(
+        (tool) => !allowedTools.has(tool) || forbiddenTools.has(tool),
+      ) ||
+      skill.requiredTools.some((tool) => skill.forbiddenTools.includes(tool)) ||
+      skill.destructiveActions.some(
+        (action) => !skill.requiresConfirmation.includes(action),
+      )
+    )
+      throw invalid();
+  }
+  return Object.freeze({ agent, skills: Object.freeze(skills) });
 }
 
 export function encodeAgentProfileBundle(value: unknown): string {

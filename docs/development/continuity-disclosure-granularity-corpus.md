@@ -1,13 +1,12 @@
 # Synthetic continuity disclosure granularity corpus
 
 **Date:** 2026-07-13  
-**Sprint item:** S14-03 and S14-04  
 **Decision method:** exact UTF-8 representation bytes
 
 ## Method
 
 The experiment reuses the unchanged compact, working, and extended handoff
-profiles from Sprint 13. Each profile contains the same eight logical handoff
+profiles from the Context Pack budget-pressure work. Each profile contains the same eight logical handoff
 sections and is evaluated under the unchanged continuity budgets:
 
 | Budget      | Exact bytes |
@@ -90,7 +89,7 @@ is a measured negative result, not a candidate for enablement.
 
 ## Decision and recommendation
 
-Sprint 14 accepts `no change` for the production Context Builder:
+The continuity-disclosure work accepts `no change` for the production Context Builder:
 
 - do not enable `REFERENCE` because it regresses compact content and does not
   improve any sampled budget-fit boundary;

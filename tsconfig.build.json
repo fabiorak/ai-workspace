@@ -44,6 +44,12 @@
       "path": "./packages/model-attempts/tsconfig.build.json"
     },
     {
+      "path": "./packages/agent-execution/tsconfig.build.json"
+    },
+    {
+      "path": "./integrations/local-agent-attempts/tsconfig.build.json"
+    },
+    {
       "path": "./packages/model-targets/tsconfig.build.json"
     },
     {
@@ -54,6 +60,9 @@
     },
     {
       "path": "./integrations/codex/tsconfig.build.json"
+    },
+    {
+      "path": "./integrations/agent-process/tsconfig.build.json"
     },
     {
       "path": "./integrations/codex-agent/tsconfig.build.json"
@@ -117,6 +126,9 @@
     },
     {
       "path": "./integrations/openai-responses/tsconfig.build.json"
+    },
+    {
+      "path": "./integrations/local-conversation-turns/tsconfig.build.json"
     }
   ]
 }

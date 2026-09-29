@@ -5,7 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildSyntheticAgentProfile } from "../../../packages/instruction-manager/test/synthetic-agent-profile.ts";
 import { GuiApplication } from "../src/application.ts";
-export async function continuationFixture(transport?: DeliveryTransport) {
+import type { HostedAgentExecutor } from "../src/execution-host.ts";
+export async function continuationFixture(
+  transport?: DeliveryTransport,
+  agentExecutors?: readonly HostedAgentExecutor[],
+) {
   const root = await mkdtemp(join(tmpdir(), "aiw-continuation-flow-"));
   const home = join(root, "home"),
     repository = join(root, "repository");
@@ -27,6 +31,7 @@ export async function continuationFixture(transport?: DeliveryTransport) {
   const app = new GuiApplication({
     workspaceHome: home,
     ...(transport ? { continuationTransport: transport } : {}),
+    ...(agentExecutors ? { agentExecutors } : {}),
     sampleSessionPath: new URL(
       "../../../integrations/codex/test/fixtures/session.jsonl",
       import.meta.url,

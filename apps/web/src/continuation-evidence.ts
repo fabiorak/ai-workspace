@@ -1,6 +1,7 @@
 import { readCanonicalPayload } from "@ai-workspace/historical-search";
 import type { WorkItem } from "@ai-workspace/core";
 import type { ConversationSources } from "./conversations.ts";
+import { generatedSource } from "./generated-source.ts";
 
 /** Current source readings, not amendments to the user's kept photograph. */
 export async function continuationEvidence(
@@ -52,7 +53,7 @@ export async function continuationEvidence(
           ? event.payload.text
           : await sources.artifact?.(event.payload.artifact.id);
       if (raw === undefined) throw new Error("UNAVAILABLE");
-      text = event.source.sourceType.startsWith("MODEL_CONVERSATION")
+      text = generatedSource(event.source.sourceType)
         ? raw
         : readCanonicalPayload(raw).text;
     } catch {

@@ -6,15 +6,89 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, it } from "node:test";
 
 import type { DeliveryTransport } from "@ai-workspace/model-delivery";
+import type { ClassifiedModelTarget } from "@ai-workspace/model-targets";
 import { GuiApplication, startGuiServer } from "../src/index.ts";
 import { continuationFixture } from "./continuation-fixture.ts";
+import { writeReducedTurnConfiguration } from "./reduced-turn-fixture.ts";
 
 const sampleSessionPath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../../../integrations/codex/test/fixtures/session.jsonl",
 );
 const roots: string[] = [];
+const servers = new Set<Awaited<ReturnType<typeof startGuiServer>>>();
+
+it("deduplicates the same completed or unknown gesture after server recreation", async () => {
+  for (const unknown of [false, true]) {
+    let exposures = 0;
+    const transport: DeliveryTransport = {
+      send: async () => {
+        exposures += 1;
+        return unknown
+          ? { kind: "UNKNOWN" }
+          : {
+              kind: "COMPLETED",
+              text: "Durable synthetic answer",
+              requestId: "r",
+              responseId: "s",
+              usage: {
+                inputTokens: null,
+                cachedInputTokens: null,
+                outputTokens: null,
+              },
+            };
+      },
+    };
+    const first = await startFixture(transport);
+    const general =
+      await first.application.createGeneralConversation("Recovery");
+    await configure(first.application, first.root);
+    const path = `/api/conversations/${encodeURIComponent(general.id)}/turn`;
+    const body = {
+      targetId: "synthetic-a",
+      userText: "A synthetic recovery question",
+      clientRequestId: "durable-gesture",
+    };
+    const original = (await (
+      await first.post(path, body)
+    ).json()) as TurnOutcome;
+    assert.equal(
+      original.result.kind,
+      unknown ? "UNKNOWN_AFTER_EXPOSURE" : "COMPLETED",
+    );
+    await first.server.close();
+    const second = await startFixture(transport, first.root);
+    const duplicate = (await (
+      await second.post(path, body)
+    ).json()) as TurnOutcome;
+    assert.equal(exposures, 1);
+    assert.equal(duplicate.duplicate, true);
+    assert.deepEqual(duplicate.result, original.result);
+    const changed = await second.post(path, {
+      ...body,
+      userText: `${body.userText} `,
+    });
+    assert.equal(changed.status, 409);
+    assert.equal(exposures, 1);
+    await second.server.close();
+  }
+});
 afterEach(async () => {
+  await Promise.all(
+    [...servers].map(async (server) => {
+      try {
+        await server.close();
+      } catch (error) {
+        if (!(
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ERR_SERVER_NOT_RUNNING"
+        ))
+          throw error;
+      }
+    }),
+  );
+  servers.clear();
   await Promise.all(
     roots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
   );
@@ -48,7 +122,7 @@ describe("primary conversation turn route", () => {
     const general = await first.application.createGeneralConversation(
       "Protezione automatica sintetica",
     );
-    const configuration = await configure(first.application);
+    const configuration = await configure(first.application, first.root);
     await first.application.modelTargets.selectConversation(
       general.id,
       null,
@@ -118,7 +192,7 @@ describe("primary conversation turn route", () => {
       const general = await fixture.application.createGeneralConversation(
         "Placeholder sconosciuto",
       );
-      const configured = await configure(fixture.application);
+      const configured = await configure(fixture.application, fixture.root);
       await fixture.application.modelTargets.selectConversation(
         general.id,
         null,
@@ -169,7 +243,11 @@ describe("primary conversation turn route", () => {
         rows: { id: string; projectId: string }[];
       };
       const conversation = page.rows[0]!;
-      const configured = await configure(fixture.application);
+      const configured = await configure(
+        fixture.application,
+        fixture.root,
+        project.id,
+      );
       await fixture.application.modelTargets.selectConversation(
         conversation.id,
         project.id,
@@ -230,11 +308,87 @@ describe("primary conversation turn route", () => {
     }
   });
 
+  it("refuses agent and local-model selections without falling back to Responses", async () => {
+    const sent: string[] = [];
+    const fixture = await startFixture(completedTransport(sent));
+    try {
+      let configured = await configure(fixture.application, fixture.root);
+      for (const [targetId, executionClass, kind, boundary] of [
+        ["synthetic-codex", "AGENT_EXECUTION", "CODEX_CLI", "EXTERNAL_SERVICE"],
+        [
+          "synthetic-claude",
+          "AGENT_EXECUTION",
+          "CLAUDE_CODE",
+          "EXTERNAL_SERVICE",
+        ],
+        [
+          "synthetic-local",
+          "LOCAL_MODEL",
+          "LLAMA_SERVER_LOOPBACK",
+          "LOCAL_ONLY",
+        ],
+      ] as const)
+        configured = await fixture.application.modelTargets.configure(
+          {
+            ...modelTarget(targetId, targetId),
+            ...(await writeReducedTurnConfiguration(
+              join(fixture.root, `configuration-${targetId}`),
+              `${targetId}-model`,
+              null,
+            )),
+            executionClass,
+            kind,
+            boundary,
+          } as ClassifiedModelTarget,
+          configured.revision,
+        );
+      for (const targetId of [
+        "synthetic-codex",
+        "synthetic-claude",
+        "synthetic-local",
+      ]) {
+        const general = await fixture.application.createGeneralConversation(
+          `Synthetic ${targetId} turn`,
+        );
+        configured = await fixture.application.modelTargets.selectConversation(
+          general.id,
+          null,
+          targetId,
+          configured.revision,
+        );
+        const path = `/api/conversations/${encodeURIComponent(general.id)}`;
+        const preview = (await (
+          await fixture.post(`${path}/turn-preview`, {
+            targetId,
+            userText: "Continua con il contesto sintetico",
+          })
+        ).json()) as { kind: string; reason?: string };
+        assert.deepEqual(
+          [preview.kind, preview.reason],
+          ["BLOCKED", "TARGET_UNAVAILABLE"],
+          targetId,
+        );
+        const outcome = (await (
+          await fixture.post(`${path}/turn`, {
+            targetId,
+            userText: "Continua con il contesto sintetico",
+            clientRequestId: `no-fallback-${targetId}`,
+          })
+        ).json()) as TurnOutcome;
+        assert.equal(outcome.result.kind, "REFUSED_BEFORE_EXPOSURE", targetId);
+        assert.equal(outcome.result.reason, "TARGET_UNAVAILABLE", targetId);
+      }
+      assert.deepEqual(sent, []);
+    } finally {
+      await fixture.server.close();
+    }
+  });
+
   it("uses reduced context for General and for a project conversation without a handoff", async () => {
     const sent: string[] = [];
     const fixture = await startFixture(completedTransport(sent));
     try {
-      let configured = await configure(fixture.application);
+      let configured = await configure(fixture.application, fixture.root);
       const general = await fixture.application.createGeneralConversation(
         "Synthetic General turn",
       );
@@ -266,6 +420,11 @@ describe("primary conversation turn route", () => {
         rows: { id: string; projectId: string | null; kind: string }[];
       };
       const session = page.rows.find((row) => row.kind === "WORK_SESSION")!;
+      configured = await configure(
+        fixture.application,
+        fixture.root,
+        project.id,
+      );
       await fixture.application.modelTargets.selectConversation(
         session.id,
         project.id,
@@ -302,7 +461,8 @@ describe("primary conversation turn route", () => {
       {
         targetId: "handoff-target",
         displayName: "Handoff target",
-        providerKind: "OPENAI_RESPONSES",
+        executionClass: "MODEL_DELIVERY",
+        kind: "OPENAI_RESPONSES",
         modelId: fixture.target.model,
         boundary: "EXTERNAL_SERVICE",
         profileRef: fixture.target.profile.path,
@@ -319,17 +479,43 @@ describe("primary conversation turn route", () => {
       configuration.revision,
     );
     assert.equal(configuration.defaultTargetId, "handoff-target");
+    const preview = await fixture.app.conversationTurns.previewTurnPayload({
+      conversationId: fixture.query.conversationId,
+      targetId: "handoff-target",
+      userText: "Continue from the reviewed handoff",
+      bindReview: true,
+    });
+    assert.equal(preview.kind, "READY");
+    if (preview.kind !== "READY" || !preview.review)
+      throw new Error("Review unavailable");
     const outcome = await fixture.app.conversationTurns.run({
       ...fixture.query,
       targetId: "handoff-target",
       userText: "Continue from the reviewed handoff",
       clientRequestId: "handoff-request",
+      reviewId: preview.review.id,
     });
     assert.equal(outcome.result.kind, "COMPLETED");
     assert.equal(sent.length, 1);
+    assert.equal(sent[0], preview.protectedText);
     assert.match(sent[0]!, /Continuation context/u);
     assert.match(sent[0]!, /Inspect the rare failure before retrying/u);
     assert.match(sent[0]!, /Continue from the reviewed handoff/u);
+    const restarted = new GuiApplication({
+      workspaceHome: fixture.home,
+      sampleSessionPath,
+      continuationTransport: completedTransport(sent),
+    });
+    const replay = await restarted.conversationTurns.run({
+      ...fixture.query,
+      targetId: "handoff-target",
+      userText: "Continue from the reviewed handoff",
+      clientRequestId: "handoff-request",
+      reviewId: preview.review.id,
+    });
+    assert.equal(replay.duplicate, true);
+    assert.deepEqual(replay.result, outcome.result);
+    assert.equal(sent.length, 1);
   });
 });
 
@@ -362,13 +548,32 @@ function completedTransport(sent: string[]): DeliveryTransport {
   };
 }
 
-async function configure(application: GuiApplication) {
+async function configure(
+  application: GuiApplication,
+  root: string,
+  projectId: string | null = null,
+) {
+  const current = await application.modelTargets.inspect();
   let configured = await application.modelTargets.configure(
-    modelTarget("synthetic-a", "Synthetic A"),
-    0,
+    {
+      ...modelTarget("synthetic-a", "Synthetic A"),
+      ...(await writeReducedTurnConfiguration(
+        join(root, "configuration-a"),
+        "synthetic-a-model",
+        projectId,
+      )),
+    },
+    current.revision,
   );
   configured = await application.modelTargets.configure(
-    modelTarget("synthetic-b", "Synthetic B"),
+    {
+      ...modelTarget("synthetic-b", "Synthetic B"),
+      ...(await writeReducedTurnConfiguration(
+        join(root, "configuration-b"),
+        "synthetic-b-model",
+        projectId,
+      )),
+    },
     configured.revision,
   );
   return application.modelTargets.selectDefault(
@@ -381,7 +586,8 @@ function modelTarget(targetId: string, displayName: string) {
   return {
     targetId,
     displayName,
-    providerKind: "OPENAI_RESPONSES",
+    executionClass: "MODEL_DELIVERY" as const,
+    kind: "OPENAI_RESPONSES" as const,
     modelId: `${targetId}-model`,
     boundary: "EXTERNAL_SERVICE" as const,
     profileRef: "synthetic-profile.json",
@@ -410,12 +616,19 @@ async function startFixture(
     sessionToken: "s".repeat(64),
     csrfToken: "c".repeat(64),
   });
+  servers.add(server);
   const bootstrap = await fetch(server.bootstrapUrl, { redirect: "manual" });
   const cookie = bootstrap.headers.get("set-cookie")!.split(";", 1)[0]!;
   return {
     root,
     application,
-    server,
+    server: {
+      ...server,
+      close: async () => {
+        servers.delete(server);
+        await server.close();
+      },
+    },
     get: (path: string) =>
       fetch(`${server.origin}${path}`, { headers: { cookie } }),
     post: (path: string, body: unknown) =>

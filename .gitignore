@@ -29,9 +29,9 @@ __pycache__/
 # Internal planning material, kept local and out of the public repository
 docs/planning/
 
-# Local runtime data and uncommitted session handoff
-.ai-workspace/HANDOFF.md
+# Local runtime data and personal working notes
 .ai-workspace/
+ripresa.txt
 data/
 artifacts/
 logs/
@@ -76,6 +76,3 @@ tmp/
 temp/
 *.tmp
 *.bak
-
-
-ripresa.txt

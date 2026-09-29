@@ -324,7 +324,7 @@ describe("the opening screen", () => {
     assert.equal(HOME_TEXT.homeStatePROPOSED.it, "da iniziare");
   });
 
-  it("labels the standard U4 transport as a local simulation in both languages", () => {
+  it("labels the standard transport as a local simulation in both languages", () => {
     assert.match(HOME_TEXT.homeTurnSaved.en, /no model was called/u);
     assert.match(HOME_TEXT.homeTurnSaved.it, /nessun modello/u);
     assert.match(HOME_TEXT.homeProtectionFake.en, /local simulated/u);
@@ -628,10 +628,7 @@ describe("the opening screen", () => {
     assert.match(APP_JS, /\/turn-preview/u);
     assert.match(APP_JS, /const canPreviewPayload = \(\)/u);
     assert.match(APP_JS, /if \(canPreviewPayload\(\)\) \{/u);
-    assert.match(
-      APP_JS,
-      /targetId: homeConversationModel\.value, userText: draft/u,
-    );
+    assert.match(APP_JS, /targetId, userText: draft/u);
     assert.match(homeSection, /id="home-protection-preview-sections"/u);
     // Sections are closed until opened, and each heading carries what it holds.
     assert.match(APP_JS, /createElement\("details"\)/u);
@@ -728,6 +725,12 @@ describe("the opening screen", () => {
       handler.indexOf('outcome.result.kind === "UNKNOWN_AFTER_EXPOSURE"'),
     );
     assert.doesNotMatch(refused, /homeMessage\.value = ""/u);
+    assert.match(
+      refused,
+      /namedMessage\(turnRefused, outcome\.result\.reason/u,
+    );
+    assert.match(refused, /text\(homeComposerStatus, ""\)/u);
+    assert.match(APP_JS, /TARGET_UNAVAILABLE: "homeTurnTargetUnavailable"/u);
   });
 
   it("supports Ctrl+Enter while plain Enter remains textarea input", () => {

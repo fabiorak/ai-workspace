@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -14,6 +15,7 @@ import type { ResolvedModelTarget } from "@ai-workspace/model-targets";
 import { conversationTurnArea } from "../src/conversation-turn-area.ts";
 import { GuiApplication, startGuiServer } from "../src/index.ts";
 import { projectTurnPayload } from "../src/turn-payload-preview.ts";
+import { writeReducedTurnConfiguration } from "./reduced-turn-fixture.ts";
 
 const sampleSessionPath = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -173,6 +175,107 @@ describe("payload grouping", () => {
  * what it must never answer with is one sentence for every different obstacle.
  */
 describe("payload preview route", () => {
+  it("binds the reviewed HTTP payload to the later send and rejects browser-selected authorities", async () => {
+    const sent: string[] = [];
+    const served = await startServed(async ({ text }) => {
+      sent.push(text);
+      return {
+        kind: "COMPLETED",
+        text: "Synthetic reviewed HTTP answer",
+        requestId: "http-request",
+        responseId: "http-response",
+        usage: {
+          inputTokens: null,
+          cachedInputTokens: null,
+          outputTokens: null,
+        },
+      };
+    });
+    try {
+      const general = await served.application.createGeneralConversation(
+        "Synthetic reviewed send",
+      );
+      const configuration = await served.application.modelTargets.configure(
+        {
+          ...target.target,
+          ...(await writeReducedTurnConfiguration(served.home)),
+        },
+        0,
+      );
+      await served.application.modelTargets.selectDefault(
+        target.target.targetId,
+        configuration.revision,
+      );
+      const path = `/api/conversations/${encodeURIComponent(general.id)}`;
+      const input = {
+        targetId: target.target.targetId,
+        userText: "Synthetic HTTP message",
+        bindReview: true,
+      };
+      assert.equal(
+        (
+          await served.post(`${path}/turn-preview`, {
+            ...input,
+            bindReview: "true",
+          })
+        ).status,
+        400,
+      );
+      assert.equal(
+        (
+          await served.post(`${path}/turn-preview`, {
+            ...input,
+            attemptId: "browser-selected",
+          })
+        ).status,
+        400,
+      );
+      const response = await served.post(`${path}/turn-preview`, input);
+      assert.equal(response.status, 200);
+      const preview = (await response.json()) as {
+        kind: string;
+        protectedText: string;
+        review: { id: string };
+      };
+      assert.equal(preview.kind, "READY");
+      assert.equal(sent.length, 0);
+      const request = {
+        targetId: input.targetId,
+        userText: input.userText,
+        reviewId: preview.review.id,
+        clientRequestId: "reviewed-http",
+      };
+      assert.equal(
+        (await served.post(`${path}/turn`, { ...request, reviewId: "invalid" }))
+          .status,
+        400,
+      );
+      assert.equal(
+        (
+          await served.post(`${path}/turn`, {
+            ...request,
+            policyRef: "browser-path",
+          })
+        ).status,
+        400,
+      );
+      const result = await served.post(`${path}/turn`, request);
+      assert.equal(result.status, 200);
+      assert.equal(
+        ((await result.json()) as { result: { kind: string } }).result.kind,
+        "COMPLETED",
+      );
+      assert.deepEqual(sent, [preview.protectedText]);
+      const replay = await served.post(`${path}/turn`, request);
+      assert.equal(
+        ((await replay.json()) as { duplicate: boolean }).duplicate,
+        true,
+      );
+      assert.equal(sent.length, 1);
+    } finally {
+      await served.server.close();
+    }
+  });
   it("previews over HTTP without reaching the transport", async () => {
     let sends = 0;
     const served = await startServed(async () => {
@@ -186,12 +289,14 @@ describe("payload preview route", () => {
         {
           targetId: "synthetic-a",
           displayName: "Synthetic A",
-          providerKind: "OPENAI_RESPONSES",
+          executionClass: "MODEL_DELIVERY",
+          kind: "OPENAI_RESPONSES",
           modelId: "synthetic-a-model",
           boundary: "EXTERNAL_SERVICE",
-          profileRef: "synthetic-profile.json",
-          policyRef: "synthetic-policy.json",
-          instructionRefs: ["synthetic-instructions.json"],
+          ...(await writeReducedTurnConfiguration(
+            served.home,
+            "synthetic-a-model",
+          )),
           maxInputBytes: 65_536,
           maxOutputBytes: 16_384,
           enabled: true,
@@ -281,8 +386,9 @@ describe("payload preview route", () => {
 async function startServed(send: DeliveryTransport["send"]) {
   const root = await mkdtemp(join(tmpdir(), "ai-workspace-turn-preview-http-"));
   roots.push(root);
+  const home = join(root, "home");
   const application = new GuiApplication({
-    workspaceHome: join(root, "home"),
+    workspaceHome: home,
     sampleSessionPath,
     continuationTransport: { send },
   });
@@ -294,6 +400,7 @@ async function startServed(send: DeliveryTransport["send"]) {
   const bootstrap = await fetch(server.bootstrapUrl, { redirect: "manual" });
   const cookie = bootstrap.headers.get("set-cookie")!.split(";", 1)[0]!;
   return {
+    home,
     application,
     server,
     cookie,
@@ -316,6 +423,7 @@ async function startServed(send: DeliveryTransport["send"]) {
 async function fixture() {
   const home = await mkdtemp(join(tmpdir(), "ai-workspace-turn-preview-"));
   roots.push(home);
+  const refs = await writeReducedTurnConfiguration(home);
   let id = 0;
   return conversationTurnArea({
     home,
@@ -342,7 +450,12 @@ async function fixture() {
         throw new Error("No repository is available in General.");
       },
     },
-    targets: { resolve: async () => target },
+    targets: {
+      resolve: async () => ({
+        ...target,
+        target: { ...target.target, ...refs },
+      }),
+    },
     audit: {
       record: async () => {
         throw new Error("A preview must not record a privacy audit event.");
@@ -368,7 +481,8 @@ const target: ResolvedModelTarget = {
   target: {
     targetId: "target-b",
     displayName: "Target B",
-    providerKind: "OPENAI_RESPONSES",
+    executionClass: "MODEL_DELIVERY",
+    kind: "OPENAI_RESPONSES",
     modelId: "model-b",
     boundary: "EXTERNAL_SERVICE",
     profileRef: "unused-profile.json",
@@ -404,7 +518,7 @@ function event(content: string): GeneralEvent {
     dataClass: "CONFIDENTIAL",
     content,
     exactBytes: Buffer.byteLength(content),
-    contentSha256: "a".repeat(64),
+    contentSha256: createHash("sha256").update(content).digest("hex"),
     provenance: {
       kind: "LOCAL_GENERAL_CAPTURE",
       capturedAt: "2026-09-18T09:00:00.000Z",

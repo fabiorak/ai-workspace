@@ -30,7 +30,7 @@ port. The adapter:
 - translates process failures into domain-facing inspection errors;
 - removes user information from HTTP(S) remote URLs before returning data.
 
-Sprint 1 supports non-bare repositories and linked worktrees. Bare repositories
+The project registry work supports non-bare repositories and linked worktrees. Bare repositories
 remain unsupported until a use case defines their required semantics.
 
 ## Consequences

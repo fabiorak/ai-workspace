@@ -39,7 +39,7 @@ Rules:
 Initial domain vocabulary includes Workspace, Repository, Work Item, Session,
 Event, Artifact, Memory Item, Decision, Handoff, Context Pack, Agent, Skill,
 Tool, and Source Reference. Only Work Item identity and lifecycle are encoded
-in Sprint 0; other models are introduced with their owning epic.
+in the initial scaffold; other models are introduced with their owning epic.
 
 ## Consequences
 

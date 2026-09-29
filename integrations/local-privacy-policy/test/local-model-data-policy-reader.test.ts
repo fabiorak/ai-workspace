@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, open, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -17,6 +17,59 @@ const fixture = (projectId: string) => ({
   attribution: "USER_CONFIGURED",
   author: "AI Workspace contributors",
   license: "Apache-2.0",
+});
+
+test("scoped policy reads General explicitly and bounds sparse files before parsing", async () => {
+  const root = await mkdtemp(join(tmpdir(), "ai-workspace-scoped-policy-"));
+  try {
+    const path = join(root, "policy.json");
+    const {
+      projectId: _projectId,
+      schemaVersion: _version,
+      ...base
+    } = fixture("actual-project");
+    void _projectId;
+    void _version;
+    const scope = { kind: "GENERAL" } as const;
+    const source = JSON.stringify({ ...base, schemaVersion: 2, scope });
+    await writeFile(path, source);
+    const reader = new LocalModelDataPolicyReader();
+    const result = await reader.readScoped(scope, { path });
+    assert.deepEqual(result.policy.scope, scope);
+    assert.equal(
+      result.sourceDigest,
+      createHash("sha256").update(source).digest("hex"),
+    );
+    await assert.rejects(
+      reader.readScoped(scope, { path, expectedDigest: "0".repeat(64) }),
+    );
+    await assert.rejects(
+      reader.readScoped({ kind: "PROJECT", projectId: "other" }, { path }),
+    );
+    await writeFile(path, JSON.stringify(fixture("actual-project")));
+    await assert.rejects(reader.readScoped(scope, { path }));
+    assert.deepEqual(
+      (
+        await reader.readScoped(
+          { kind: "PROJECT", projectId: "actual-project" },
+          { path },
+        )
+      ).policy.scope,
+      { kind: "PROJECT", projectId: "actual-project" },
+    );
+    const handle = await open(path, "w");
+    try {
+      await handle.truncate(128 * 1024 * 1024);
+    } finally {
+      await handle.close();
+    }
+    await assert.rejects(reader.readScoped(scope, { path }));
+    await assert.rejects(reader.readScoped(scope, { path: root }));
+    await writeFile(path, Buffer.from([0xff]));
+    await assert.rejects(reader.readScoped(scope, { path }));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("reads a bounded digest-pinned same-project policy and returns only a safe basename", async () => {

@@ -7,6 +7,7 @@ import { afterEach, describe, it } from "node:test";
 
 import type { DeliveryTransport } from "@ai-workspace/model-delivery";
 import { GuiApplication, startGuiServer } from "../src/index.ts";
+import { writeReducedTurnConfiguration } from "./reduced-turn-fixture.ts";
 
 /**
  * The browser names a value and nothing else. Scope, key, map and paths stay on
@@ -131,7 +132,7 @@ describe("protected term route", () => {
     try {
       const general =
         await fixture.application.createGeneralConversation("Termine rivisto");
-      const configured = await configure(fixture.application);
+      const configured = await configure(fixture.application, fixture.root);
       await fixture.application.modelTargets.selectConversation(
         general.id,
         null,
@@ -311,17 +312,16 @@ function silentTransport(): DeliveryTransport {
   };
 }
 
-async function configure(application: GuiApplication) {
+async function configure(application: GuiApplication, root: string) {
   const configured = await application.modelTargets.configure(
     {
       targetId: "synthetic-a",
       displayName: "Synthetic A",
-      providerKind: "OPENAI_RESPONSES",
+      executionClass: "MODEL_DELIVERY",
+      kind: "OPENAI_RESPONSES",
       modelId: "synthetic-a-model",
       boundary: "EXTERNAL_SERVICE",
-      profileRef: "synthetic-profile.json",
-      policyRef: "synthetic-policy.json",
-      instructionRefs: ["synthetic-instructions.json"],
+      ...(await writeReducedTurnConfiguration(root, "synthetic-a-model")),
       maxInputBytes: 65_536,
       maxOutputBytes: 16_384,
       enabled: true,
@@ -351,6 +351,7 @@ async function startFixture(transport: DeliveryTransport) {
   const cookie = bootstrap.headers.get("set-cookie")!.split(";", 1)[0]!;
   return {
     application,
+    root,
     server,
     cookie,
     get: (path: string) =>

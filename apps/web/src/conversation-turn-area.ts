@@ -4,8 +4,7 @@ import {
   CONVERSATION_TURN_EFFECT,
   CONVERSATION_TURN_SCHEMA_VERSION,
   ConversationTurn,
-  ConversationTurnConflictError,
-  type ConversationTurnIdempotency,
+  type ConversationTurnExecution,
   type ConversationTurnResult,
   type ResolvedConversationTurn,
 } from "@ai-workspace/conversation-turn";
@@ -13,8 +12,14 @@ import type { ActiveMemory } from "@ai-workspace/active-memory";
 import type { GeneralConversations } from "@ai-workspace/general-conversation";
 import type { GeneralProjectLinks } from "@ai-workspace/general-project-link";
 import type { Handoffs } from "@ai-workspace/handoff";
-import { readCanonicalPayload } from "@ai-workspace/historical-search";
+import {
+  AgentAttempts,
+  AgentExecution,
+  type AgentExecutor,
+} from "@ai-workspace/agent-execution";
+import { JsonAgentAttemptStore } from "@ai-workspace/local-agent-attempts";
 import { JsonModelAttemptStore } from "@ai-workspace/local-model-attempts";
+import { JsonConversationTurnRegistry } from "@ai-workspace/local-conversation-turns";
 import { LocalModelDataPolicyReader } from "@ai-workspace/local-privacy-policy";
 import {
   ModelDelivery,
@@ -51,6 +56,9 @@ import {
 import type { ModelConversationWriter } from "./model-conversation.ts";
 import { AutomaticPrivacyProtection } from "./automatic-privacy.ts";
 import { projectTurnPayload } from "./turn-payload-preview.ts";
+import { composeReducedTurnContext } from "./reduced-turn-context.ts";
+import { conversationTurnRecovery } from "./conversation-turn-recovery.ts";
+import { TurnReviews } from "./turn-review.ts";
 
 type Dependencies = Readonly<{
   home: string;
@@ -63,6 +71,8 @@ type Dependencies = Readonly<{
   audit: Pick<PrivacyDecisionAudit, "record">;
   writer: Pick<ModelConversationWriter, "storeTurn">;
   transport?: DeliveryTransport;
+  /** Injected agent executors; absent kinds stay unavailable (ADR-0049/0050). */
+  agentExecutors?: readonly AgentExecutor[];
   ids?: () => string;
   clock?: () => Date;
   piiDetector?: PiiDetector;
@@ -73,22 +83,42 @@ type Context = Readonly<{
   text: string;
   bindingDigest: string;
   privacyDigest: string;
-  auditEventHash: string;
+  auditEventHash: string | null;
   mapping: StablePseudonymMap;
   replacements: number;
 }>;
+/** An agent answer may take longer than a model delivery; still bounded. */
+const AGENT_TIMEOUT_MS = 60_000;
 const sha256 = (value: string) =>
   createHash("sha256").update(value, "utf8").digest("hex");
 
 export function conversationTurnArea(dependencies: Dependencies) {
   const ids = dependencies.ids ?? randomUUID;
   const clock = dependencies.clock ?? (() => new Date());
+  const reviews = new TurnReviews(() => clock().getTime());
+  const attempts = new ModelAttempts(
+    new JsonModelAttemptStore(dependencies.home),
+  );
   const delivery = new ModelDelivery({
-    attempts: new ModelAttempts(new JsonModelAttemptStore(dependencies.home)),
+    attempts,
     transport: dependencies.transport ?? simulatedConversationTransport(ids),
     ids,
   });
-  const idempotency = memoryIdempotency();
+  const agentAttempts = new AgentAttempts(
+    new JsonAgentAttemptStore(dependencies.home),
+  );
+  const agentExecutors = dependencies.agentExecutors ?? [];
+  const agents = new AgentExecution({
+    attempts: agentAttempts,
+    executors: agentExecutors,
+    ids,
+    clock: () => clock().getTime(),
+  });
+  const agentKinds = new Set(agentExecutors.map((executor) => executor.kind));
+  const idempotency = new JsonConversationTurnRegistry(
+    dependencies.home,
+    conversationTurnRecovery(dependencies, attempts, agentAttempts),
+  );
   const continuation = continuationSources(
     dependencies.conversations,
     dependencies.handoffs,
@@ -146,6 +176,61 @@ export function conversationTurnArea(dependencies: Dependencies) {
     });
   };
 
+  const readSelection = async (conversationId: string) => {
+    const scope = await resolveScope(conversationId);
+    const resolved = await dependencies.targets.resolve({
+      conversationId,
+      projectId: scope.projectId,
+    });
+    // Each class goes only to its own boundary. An agent kind without an
+    // injected executor, or a local model, is refused here, never delivered
+    // through Responses in its place.
+    const deliverable =
+      resolved?.target.executionClass === "MODEL_DELIVERY" &&
+      resolved.target.kind === "OPENAI_RESPONSES";
+    const executable =
+      resolved?.target.executionClass === "AGENT_EXECUTION" &&
+      agentKinds.has(resolved.target.kind);
+    if (
+      !resolved ||
+      !resolved.target.enabled ||
+      resolved.target.boundary !== "EXTERNAL_SERVICE" ||
+      !(deliverable || executable)
+    )
+      throw new Error("TARGET_UNAVAILABLE");
+    // Do not retain mutable configuration supplied by an adapter.
+    const target = structuredClone(resolved);
+    const relationships =
+      scope.projectId === null
+        ? (await dependencies.generalLinks.list())
+            .filter((link) => link.generalConversationId === conversationId)
+            .map((link) => JSON.stringify(link))
+            .sort()
+        : (
+            await dependencies.conversations.workItems.list(scope.projectId)
+          ).filter((work) => work.id === scope.workItemId);
+    return {
+      scope,
+      target,
+      digest: digestCanonical({
+        scope,
+        target,
+        relationships,
+        executionClass: target.target.executionClass,
+        maxOutputTokens: 512,
+        timeoutMs: 30_000,
+      }),
+    };
+  };
+  const boundDigest = (
+    selection: Awaited<ReturnType<typeof readSelection>>,
+    context: Context,
+  ) =>
+    digestCanonical({
+      selection: selection.digest,
+      context: context.bindingDigest,
+    });
+
   const compose = async (
     turn: ResolvedConversationTurn,
     target: ResolvedModelTarget,
@@ -202,7 +287,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
               preflightReportDigest: digestCanonical(preflight),
             })
           ).eventHash
-        : privacyDigest;
+        : null;
       const protectedContext = await automaticPrivacy.protect(
         stableScopeId(turn.scope),
         serializeContinuation(packet.included),
@@ -229,72 +314,89 @@ export function conversationTurnArea(dependencies: Dependencies) {
       )
     )
       throw new Error("CONTEXT_UNAVAILABLE");
-    const originalText = await reducedContext(dependencies, turn, target);
-    if (detectRestrictedData(originalText) !== null)
-      throw new Error("PRIVACY_BLOCKED");
-    const protectedContext = await automaticPrivacy.protect(
-      stableScopeId(turn.scope),
-      originalText,
+    return composeReducedTurnContext(
+      {
+        ...dependencies,
+        activeMemory: dependencies.memory,
+        ...(dependencies.conversations.boundedArtifact === undefined
+          ? {}
+          : { boundedArtifact: dependencies.conversations.boundedArtifact }),
+      },
+      turn,
+      target,
+      automaticPrivacy,
+      recordAudit,
     );
-    const text = protectedContext.text;
-    const privacyDigest = digestCanonical({
-      mode: "LOCAL_RESTRICTED_DATA_SCREEN",
-      result: "ALLOWED",
-      textDigest: textDigest(text),
-    });
-    return Object.freeze({
-      text,
-      bindingDigest: digestCanonical({
-        scope: turn.scope,
-        privacyDigest,
-        mappingDigest: protectedContext.mappingDigest,
-        text: textDigest(text),
-      }),
-      privacyDigest,
-      auditEventHash: privacyDigest,
-      mapping: protectedContext.mapping,
-      replacements: protectedContext.replacements,
-    });
   };
 
   const executor = {
     execute: async (
       turn: ResolvedConversationTurn,
+      execution: ConversationTurnExecution,
     ): Promise<ConversationTurnResult> => {
-      let target: ResolvedModelTarget | null;
+      let reviewed: ReturnType<TurnReviews["consume"]> | undefined;
+      if (turn.request.reviewId !== undefined) {
+        try {
+          reviewed = reviews.consume(turn.request.reviewId, turn.request);
+        } catch {
+          return { kind: "REFUSED_BEFORE_EXPOSURE", reason: "REVIEW_INVALID" };
+        }
+      }
+      let selection: Awaited<ReturnType<typeof readSelection>>;
       try {
-        target = await dependencies.targets.resolve({
-          conversationId: turn.scope.conversationId,
-          projectId: turn.scope.projectId,
-        });
+        selection = await readSelection(turn.scope.conversationId);
+        if (
+          selection.target.target.targetId !== turn.request.targetId ||
+          digestCanonical(selection.scope) !== digestCanonical(turn.scope)
+        )
+          throw new Error("TARGET_UNAVAILABLE");
       } catch {
         return {
           kind: "REFUSED_BEFORE_EXPOSURE",
-          reason: "TARGET_UNAVAILABLE",
+          reason: reviewed ? "REVIEW_INVALID" : "TARGET_UNAVAILABLE",
         };
       }
-      if (
-        target === null ||
-        target.target.targetId !== turn.request.targetId ||
-        target.target.boundary !== "EXTERNAL_SERVICE" ||
-        target.target.providerKind !== "OPENAI_RESPONSES"
-      )
-        return {
-          kind: "REFUSED_BEFORE_EXPOSURE",
-          reason: "TARGET_UNAVAILABLE",
-        };
+      const target = selection.target;
       let context: Context;
       try {
         context = await compose(turn, target, true);
       } catch (error) {
         return {
           kind: "REFUSED_BEFORE_EXPOSURE",
-          reason:
-            error instanceof Error && error.message === "PRIVACY_BLOCKED"
+          reason: reviewed
+            ? "REVIEW_INVALID"
+            : error instanceof Error && error.message === "PRIVACY_BLOCKED"
               ? "PRIVACY_BLOCKED"
               : "CONTEXT_UNAVAILABLE",
         };
       }
+      const bindingDigest = boundDigest(selection, context);
+      if (
+        reviewed &&
+        (reviewed.expiresAt <= clock().getTime() ||
+          reviewed.bindingDigest !== bindingDigest ||
+          reviewed.text !== context.text)
+      )
+        return { kind: "REFUSED_BEFORE_EXPOSURE", reason: "REVIEW_INVALID" };
+      const revalidate = async () => {
+        if (reviewed && reviewed.expiresAt <= clock().getTime())
+          return "REVIEW_INVALID";
+        const current = await readSelection(turn.scope.conversationId);
+        if (current.digest !== selection.digest) return "SELECTION_CHANGED";
+        const fresh = await compose(
+          { ...turn, scope: current.scope },
+          current.target,
+          false,
+        );
+        // The reads/composition above can await while selection or links change.
+        const after = await readSelection(turn.scope.conversationId);
+        if (
+          after.digest !== current.digest ||
+          (reviewed && reviewed.expiresAt <= clock().getTime())
+        )
+          return "SELECTION_CHANGED";
+        return boundDigest(current, fresh);
+      };
       const projectId =
         turn.scope.projectId ?? `general-${sha256(turn.scope.conversationId)}`;
       const workItemId =
@@ -303,59 +405,89 @@ export function conversationTurnArea(dependencies: Dependencies) {
       const handoffId =
         turn.scope.handoffId ?? `context-${sha256(JSON.stringify(turn.scope))}`;
       try {
-        await delivery.initialize(projectId);
-        const prepared = delivery.prepare({
-          projectId,
-          workItemId,
-          handoffId,
-          model: target.target.modelId,
-          text: context.text,
-          bindingDigest: context.bindingDigest,
-          preflightAuditEventHash: context.auditEventHash,
-          destination: "EXTERNAL",
-          providerKind: "OPENAI_RESPONSES",
-          maxOutputTokens: 512,
-          timeoutMs: 30_000,
+        if (context.auditEventHash === null)
+          throw new Error("CONTEXT_UNAVAILABLE");
+        const text = reviewed?.text ?? context.text;
+        const refused = (reason: string): ConversationTurnResult => ({
+          kind: "REFUSED_BEFORE_EXPOSURE",
+          reason: reviewed
+            ? "REVIEW_INVALID"
+            : reason === "LOCAL_EVIDENCE_UNAVAILABLE"
+              ? "LOCAL_EVIDENCE_UNAVAILABLE"
+              : "CONTEXT_UNAVAILABLE",
         });
-        const delivered = await delivery.confirm(
-          prepared.authorizationId,
-          { projectId, workItemId, handoffId },
-          async () => (await compose(turn, target!, false)).bindingDigest,
-        );
-        if (delivered.kind === "REFUSED_BEFORE_EXPOSURE")
-          return {
-            kind: "REFUSED_BEFORE_EXPOSURE",
-            reason:
-              delivered.reason === "LOCAL_EVIDENCE_UNAVAILABLE"
-                ? "LOCAL_EVIDENCE_UNAVAILABLE"
-                : "CONTEXT_UNAVAILABLE",
-          };
-        if (delivered.kind === "UNKNOWN_AFTER_EXPOSURE")
-          return {
-            kind: "UNKNOWN_AFTER_EXPOSURE",
-            attemptId: delivered.attemptId,
-          };
-        if (delivered.kind === "TERMINAL_REJECTED")
-          return {
-            kind: "RESPONSE_WITHHELD",
-            attemptId: delivered.attemptId,
-            reason: "CONTENT_BLOCKED",
-          };
-        if (delivered.kind !== "COMPLETED")
-          return {
-            kind: "UNKNOWN_AFTER_EXPOSURE",
-            attemptId: delivered.attemptId,
-          };
+        let generated: Readonly<{
+          attemptId: string;
+          text: string;
+          reportedModel: string | null;
+        }>;
+        if (target.target.executionClass === "AGENT_EXECUTION") {
+          const prepared = agents.prepare({
+            scopeId: projectId,
+            targetId: target.target.targetId,
+            kind: target.target.kind,
+            model: target.target.modelId,
+            text,
+            bindingDigest,
+            preflightAuditEventHash: context.auditEventHash,
+            timeoutMs: AGENT_TIMEOUT_MS,
+          });
+          const ran = await agents.confirm(
+            prepared.authorizationId,
+            projectId,
+            revalidate,
+            execution.bindAttempt,
+          );
+          if (ran.kind === "REFUSED_BEFORE_EXECUTION")
+            return refused(ran.reason);
+          if (ran.kind === "UNKNOWN_AFTER_EXECUTION")
+            return { kind: "UNKNOWN_AFTER_EXPOSURE", attemptId: ran.attemptId };
+          generated = ran;
+        } else {
+          const prepared = delivery.prepare({
+            projectId,
+            workItemId,
+            handoffId,
+            model: target.target.modelId,
+            text,
+            bindingDigest,
+            preflightAuditEventHash: context.auditEventHash,
+            destination: "EXTERNAL",
+            providerKind: "OPENAI_RESPONSES",
+            maxOutputTokens: 512,
+            timeoutMs: 30_000,
+          });
+          const delivered = await delivery.confirm(
+            prepared.authorizationId,
+            { projectId, workItemId, handoffId },
+            revalidate,
+            execution.bindAttempt,
+          );
+          if (delivered.kind === "REFUSED_BEFORE_EXPOSURE")
+            return refused(delivered.reason);
+          if (delivered.kind === "TERMINAL_REJECTED")
+            return {
+              kind: "RESPONSE_WITHHELD",
+              attemptId: delivered.attemptId,
+              reason: "CONTENT_BLOCKED",
+            };
+          if (delivered.kind !== "COMPLETED")
+            return {
+              kind: "UNKNOWN_AFTER_EXPOSURE",
+              attemptId: delivered.attemptId,
+            };
+          generated = { ...delivered, reportedModel: null };
+        }
         let restoredText: string;
         try {
           restoredText = automaticPrivacy.restore(
             context.mapping,
-            delivered.text,
+            generated.text,
           );
         } catch {
           return {
             kind: "RESPONSE_WITHHELD",
-            attemptId: delivered.attemptId,
+            attemptId: generated.attemptId,
             reason: "RESTORATION_FAILED",
           };
         }
@@ -366,25 +498,27 @@ export function conversationTurnArea(dependencies: Dependencies) {
         )
           return {
             kind: "RESPONSE_WITHHELD",
-            attemptId: delivered.attemptId,
+            attemptId: generated.attemptId,
             reason: "CONTENT_BLOCKED",
           };
         const occurredAt = clock().toISOString();
-        let stored: Readonly<{ eventId: string }>;
+        let stored: Readonly<{ eventId: string; occurredAt?: string }>;
         try {
           stored =
             turn.scope.projectId === null
               ? await storeGeneralTurn(dependencies, turn, target, {
-                  attemptId: delivered.attemptId,
+                  attemptId: generated.attemptId,
                   text: restoredText,
+                  reportedModel: generated.reportedModel,
                 })
               : await dependencies.writer.storeTurn({
                   projectId: turn.scope.projectId,
                   conversationId: turn.scope.conversationId,
-                  attemptId: delivered.attemptId,
+                  attemptId: generated.attemptId,
                   model: target.target.modelId,
                   targetId: target.target.targetId,
                   displayName: target.target.displayName,
+                  executionClass: generatedClass(target),
                   userText: turn.request.userText,
                   text: restoredText,
                   occurredAt,
@@ -392,7 +526,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
         } catch {
           return {
             kind: "RESPONSE_WITHHELD",
-            attemptId: delivered.attemptId,
+            attemptId: generated.attemptId,
             reason: "SAVE_FAILED",
           };
         }
@@ -401,7 +535,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
           assistantMessageId: stored.eventId,
           effectiveModel: target.target.displayName,
           text: restoredText,
-          occurredAt,
+          occurredAt: stored.occurredAt ?? occurredAt,
           protection: Object.freeze({
             automatic: true,
             replacements: context.replacements,
@@ -471,17 +605,20 @@ export function conversationTurnArea(dependencies: Dependencies) {
    *
    * It reuses the turn's own composition rather than reproducing it, so what a
    * person reads here and what would leave are the same bytes. They are the same
-   * bytes as of now: the turn recomposes and re-verifies before claiming, and a
-   * source that changed in between refuses the send instead of exposing it.
+   * bytes as of now. Optional bindReview adds a short-lived, monouse preparation;
+   * only that mode links this preview to the later send. Ordinary sends recompose.
    */
   const previewTurnPayload = async (
     input: Readonly<{
       conversationId: string;
       targetId: string;
       userText: string;
+      bindReview?: boolean;
     }>,
   ) => {
     if (
+      (input.bindReview !== undefined &&
+        typeof input.bindReview !== "boolean") ||
       typeof input.userText !== "string" ||
       !input.userText.isWellFormed() ||
       !input.userText.trim() ||
@@ -490,21 +627,19 @@ export function conversationTurnArea(dependencies: Dependencies) {
       !input.targetId.trim()
     )
       throw new Error("TURN_PREVIEW_INVALID");
-    const scope = await resolveScope(input.conversationId);
-    const target = await dependencies.targets
-      .resolve({
-        conversationId: scope.conversationId,
-        projectId: scope.projectId,
-      })
-      .catch(() => null);
-    // The same acceptance the executor applies, so a preview never shows a
-    // payload the send would refuse to compose.
-    if (
-      target === null ||
-      target.target.targetId !== input.targetId ||
-      target.target.boundary !== "EXTERNAL_SERVICE" ||
-      target.target.providerKind !== "OPENAI_RESPONSES"
-    )
+    let selection: Awaited<ReturnType<typeof readSelection>>;
+    try {
+      selection = await readSelection(input.conversationId);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "CONVERSATION_SCOPE_UNAVAILABLE_OR_AMBIGUOUS"
+      )
+        throw error;
+      return blockedPreview("TARGET_UNAVAILABLE");
+    }
+    const { scope, target } = selection;
+    if (target.target.targetId !== input.targetId)
       return blockedPreview("TARGET_UNAVAILABLE");
     const turn: ResolvedConversationTurn = Object.freeze({
       schemaVersion: CONVERSATION_TURN_SCHEMA_VERSION,
@@ -529,12 +664,30 @@ export function conversationTurnArea(dependencies: Dependencies) {
           : "CONTEXT_UNAVAILABLE",
       );
     }
+    let review: ReturnType<TurnReviews["prepare"]> | undefined;
+    if (input.bindReview) {
+      try {
+        if (
+          (await readSelection(input.conversationId)).digest !==
+          selection.digest
+        )
+          return blockedPreview("CONTEXT_UNAVAILABLE");
+        review = reviews.prepare(
+          turn.request,
+          boundDigest(selection, context),
+          context.text,
+        );
+      } catch {
+        return blockedPreview("REVIEW_UNAVAILABLE");
+      }
+    }
     return Object.freeze({
       kind: "READY" as const,
       model: target.target.displayName,
       ...projectTurnPayload(context.text),
       totalBytes: Buffer.byteLength(context.text, "utf8"),
       replacements: context.replacements,
+      ...(review ? { review, protectedText: context.text } : {}),
       effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT" as const,
     });
   };
@@ -547,112 +700,15 @@ export function conversationTurnArea(dependencies: Dependencies) {
   });
 }
 
-async function reducedContext(
-  dependencies: Dependencies,
-  turn: ResolvedConversationTurn,
-  target: ResolvedModelTarget,
-): Promise<string> {
-  const readings: Readonly<{
-    type: string;
-    text: string;
-    occurredAt: string | null;
-  }>[] = [];
-  if (turn.scope.projectId === null) {
-    const conversation = await dependencies.general.show(
-      turn.scope.conversationId,
-    );
-    for (const event of conversation.events.slice(-128))
-      readings.push({
-        type: event.type,
-        text: event.content,
-        occurredAt: event.occurredAt,
-      });
-  } else {
-    const session = (
-      await dependencies.conversations.sessions.list(turn.scope.projectId)
-    ).find((candidate) => candidate.id === turn.scope.conversationId);
-    if (!session) throw new Error("CONTEXT_UNAVAILABLE");
-    for (const event of session.events.slice(-128)) {
-      try {
-        const raw =
-          event.payload.kind === "INLINE_TEXT"
-            ? event.payload.text
-            : await dependencies.conversations.artifact?.(
-                event.payload.artifact.id,
-              );
-        if (raw === undefined) continue;
-        readings.push({
-          type: event.type,
-          text: event.source.sourceType.startsWith("MODEL_CONVERSATION")
-            ? raw
-            : readCanonicalPayload(raw).text,
-          occurredAt: event.occurredAt,
-        });
-      } catch {
-        /* A bounded reduced context omits an unreadable event instead of inventing it. */
-      }
-    }
-  }
-  const linkedProjects =
-    turn.scope.projectId === null
-      ? [
-          ...new Set(
-            (await dependencies.generalLinks.list())
-              .filter(
-                (link) =>
-                  link.generalConversationId === turn.scope.conversationId,
-              )
-              .map((link) => link.targetProjectId),
-          ),
-        ].sort()
-      : [turn.scope.projectId];
-  const memory = (
-    await Promise.all(
-      linkedProjects.map((projectId) =>
-        dependencies.memory
-          .list({ projectId, validity: "ACTIVE", limit: 20 })
-          .then((page) =>
-            page.items.map((item) => ({
-              projectId,
-              type: item.type,
-              content: item.content,
-            })),
-          )
-          .catch(() => []),
-      ),
-    )
-  ).flat();
-  const envelope = {
-    schemaVersion: 1,
-    effect: "BOUNDED_REDUCED_CONVERSATION_CONTEXT",
-    scope: turn.scope,
-    target: {
-      targetId: target.target.targetId,
-      modelId: target.target.modelId,
-    },
-    readings,
-    linkedProjectMemory: memory,
-    userText: turn.request.userText,
-  };
-  while (
-    Buffer.byteLength(JSON.stringify(envelope), "utf8") >
-    target.target.maxInputBytes
-  ) {
-    if (envelope.readings.length > 0) envelope.readings.shift();
-    else if (envelope.linkedProjectMemory.length > 0)
-      envelope.linkedProjectMemory.pop();
-    else throw new Error("CONTEXT_UNAVAILABLE");
-  }
-  const text = JSON.stringify(envelope);
-  boundedContext(text, target.target.maxInputBytes);
-  return text;
-}
-
 async function storeGeneralTurn(
   dependencies: Dependencies,
   turn: ResolvedConversationTurn,
   target: ResolvedModelTarget,
-  delivered: Readonly<{ attemptId: string; text: string }>,
+  delivered: Readonly<{
+    attemptId: string;
+    text: string;
+    reportedModel: string | null;
+  }>,
 ) {
   const conversation = await dependencies.general.show(
     turn.scope.conversationId,
@@ -666,14 +722,30 @@ async function storeGeneralTurn(
     displayName: target.target.displayName,
     model: target.target.modelId,
     targetId: target.target.targetId,
+    executionClass: generatedClass(target),
+    reportedModel: delivered.reportedModel,
   });
-  return { eventId: updated.events.at(-1)!.id };
+  return {
+    eventId: updated.events.at(-1)!.id,
+    occurredAt: updated.events.at(-1)!.occurredAt,
+  };
+}
+
+/** The turn admits only these two classes; see `readSelection`. */
+function generatedClass(target: ResolvedModelTarget) {
+  return target.target.executionClass === "AGENT_EXECUTION"
+    ? ("AGENT_EXECUTION" as const)
+    : ("MODEL_DELIVERY" as const);
 }
 
 /** A refusal is a result of the preview, not a failure of it: knowing the send
  * would be blocked is exactly what a person opened this to find out. */
 function blockedPreview(
-  reason: "TARGET_UNAVAILABLE" | "PRIVACY_BLOCKED" | "CONTEXT_UNAVAILABLE",
+  reason:
+    | "TARGET_UNAVAILABLE"
+    | "PRIVACY_BLOCKED"
+    | "CONTEXT_UNAVAILABLE"
+    | "REVIEW_UNAVAILABLE",
 ) {
   return Object.freeze({
     kind: "BLOCKED" as const,
@@ -704,29 +776,5 @@ function simulatedConversationTransport(ids: () => string): DeliveryTransport {
       responseId: `simulated-response-${ids()}`,
       usage: { inputTokens: null, cachedInputTokens: null, outputTokens: null },
     }),
-  };
-}
-
-function memoryIdempotency(): ConversationTurnIdempotency {
-  const claims = new Map<
-    string,
-    Readonly<{ digest: string; result: Promise<ConversationTurnResult> }>
-  >();
-  return {
-    execute: async (claim, operation) => {
-      const existing = claims.get(claim.idempotencyKey);
-      if (existing) {
-        if (existing.digest !== claim.requestDigest)
-          throw new ConversationTurnConflictError();
-        return { duplicate: true, result: await existing.result };
-      }
-      if (claims.size >= 10_000) throw new Error("TURN_IDEMPOTENCY_CAPACITY");
-      const result = operation();
-      claims.set(claim.idempotencyKey, {
-        digest: claim.requestDigest,
-        result,
-      });
-      return { duplicate: false, result: await result };
-    },
   };
 }

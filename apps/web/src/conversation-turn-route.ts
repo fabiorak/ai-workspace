@@ -34,7 +34,10 @@ export async function handleConversationTurnRoute(
     if (
       !record(body) ||
       Object.keys(body).some(
-        (key) => !["clientRequestId", "targetId", "userText"].includes(key),
+        (key) =>
+          !["clientRequestId", "targetId", "userText", "reviewId"].includes(
+            key,
+          ),
       ) ||
       typeof body.clientRequestId !== "string" ||
       typeof body.targetId !== "string" ||
@@ -52,6 +55,7 @@ export async function handleConversationTurnRoute(
         targetId: body.targetId,
         userText: body.userText,
         clientRequestId: body.clientRequestId,
+        ...(Object.hasOwn(body, "reviewId") ? { reviewId: body.reviewId } : {}),
       }),
     );
   } catch (error) {

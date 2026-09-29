@@ -2,8 +2,9 @@
 
 ## Project status
 
-AI Workspace is in its design and scaffolding phase. Prefer small changes that
-keep architectural options open and align with the public design documents.
+AI Workspace is an implemented local alpha, not a supported release. Prefer
+small changes that preserve its local-first boundaries and align with public
+design documents. Offline adapter qualification is not live-provider acceptance.
 
 ## Working agreements
 
@@ -12,7 +13,7 @@ keep architectural options open and align with the public design documents.
   Architecture Decision Record (ADR).
 - Keep active memory separate from historical search and artifact storage.
 - Treat provenance, privacy, and least-privilege access as core requirements.
-- Add tests with implementation changes once executable code exists.
+- Add tests with implementation changes.
 - Update user-facing documentation when behavior or setup changes.
 - Never commit credentials, anonymization maps, private transcripts, local
   indexes, or generated artifacts.

@@ -6,7 +6,7 @@
 ## Context
 
 ADR-0021 deliberately requires callers to import an exact volatile 32-byte
-key. Sprint 27 froze and exercised a cross-platform custody corpus before any
+key. The key-custody work froze and exercised a cross-platform custody corpus before any
 production integration. Volatile import preserves portability but exposes
 Restricted hexadecimal key material and makes its manual transport the only
 recovery path. Operating-system credential stores lack one built-in Node

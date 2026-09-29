@@ -1,7 +1,6 @@
 # Claude Code provider-boundary spike
 
 **Date:** 2026-07-10  
-**Sprint item:** S5-02  
 **Decision:** `adapt`  
 **Scope:** offline format reasoning over an authored-from-scratch synthetic
 fixture; not production or broad Claude Code support
@@ -21,7 +20,7 @@ model, account, network service, or Claude Code installation was invoked.
 
 This is deliberately a sampled pre-release boundary, not a claim that the
 sample represents every Claude Code transcript version. The fixture shape may
-be revised before S5-06 if independently reviewable public format evidence
+be revised before the adapter is implemented if independently reviewable public format evidence
 contradicts it.
 
 ## Observed synthetic subset
@@ -56,8 +55,8 @@ is a candidate `startedAt`, while each record retains its own `occurredAt`.
 
 One provider record can therefore yield more than one semantic event. The
 current `SourceEvent.position` contract requires consecutive positions and
-uses that position for raw-record hashing and incremental-prefix checks. S5-06
-must choose and test a deterministic expansion rule before implementation,
+uses that position for raw-record hashing and incremental-prefix checks. The adapter
+implementation must choose and test a deterministic expansion rule before implementation,
 for example ordered event positions plus an adapter-owned sub-position in the
 payload. It must not discard the original physical line: every expanded event
 must retain the exact line bytes as `rawRecord`, so source hashes still point
@@ -71,7 +70,7 @@ this spike.
 
 ## Fail-closed boundary
 
-The S5-06 adapter should accept only the reviewed structural subset. It must
+The adapter should accept only the reviewed structural subset. It must
 reject the whole read, without including record content in its error, when it
 encounters any of the following:
 
@@ -100,7 +99,7 @@ integrity remain owned by the existing session-ingestion boundary.
 ## Decision
 
 `adapt`: retain the canonical `SessionEvent`, `SessionSource`, and trust model
-unchanged. A narrow Claude Code adapter may be implemented in S5-06 after its
+unchanged. A narrow Claude Code adapter may be implemented once its
 accepted subset and deterministic multi-block expansion rule are covered by
 tests. Provider fields remain inside the adapter or untrusted payload and must
 not enter Work Item or handoff contracts.
@@ -110,11 +109,11 @@ the controlled Codex schema and need structural adaptation. `defer` was
 rejected because the synthetic subset contains enough stable information to
 represent the predeclared first action without widening the canonical model.
 
-This decision gates, but does not itself accept, handoff serialization. Sprint
-5 remains `planned`; no production adapter, CLI source option, live-provider
+This decision gates, but does not itself accept, handoff serialization. No
+production adapter, CLI source option, live-provider
 support, or public handoff format is delivered by this spike.
 
-## S5-06 implementation checklist
+## Adapter implementation checklist
 
 - freeze the accepted fixture schema in adapter tests and add distinct tests
   for malformed, unsupported, restricted, truncated, and changed-prefix input;
@@ -127,7 +126,7 @@ support, or public handoff format is delivered by this spike.
 
 ## Accepted deterministic expansion rule
 
-S5-06 assigns canonical positions by scanning physical LF-delimited records in
+The adapter assigns canonical positions by scanning physical LF-delimited records in
 file order and then supported content blocks in array order. Positions remain
 contiguous across the expanded event stream. Every event expanded from one
 record retains that record's exact UTF-8 bytes (excluding the LF delimiter),

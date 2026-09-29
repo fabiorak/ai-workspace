@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 
+export * from "./turn-audit.ts";
+
 export const PRIVACY_AUDIT_SCHEMA_VERSION = 1 as const;
 export const PRIVACY_AUDIT_EVENT_LIMIT = 1_000;
 export const PRIVACY_AUDIT_PAGE_LIMIT = 100;

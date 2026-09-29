@@ -336,7 +336,7 @@ ${PRIVACY_SECTION}
         <form id="model-target-form">
           <label for="model-target-id" data-i18n="modelTargetId">Target ID</label><input id="model-target-id" required maxlength="128">
           <label for="model-target-name" data-i18n="modelTargetName">Display name</label><input id="model-target-name" required maxlength="120">
-          <label for="model-target-provider" data-i18n="modelTargetProvider">Provider kind</label><input id="model-target-provider" required maxlength="64" value="OPENAI_RESPONSES">
+          <label for="model-target-kind" data-i18n="modelTargetKind">Target kind</label><select id="model-target-kind"><option value="OPENAI_RESPONSES" data-i18n="modelTargetKindResponses">OpenAI Responses - direct model delivery (API)</option><option value="CODEX_CLI" data-i18n="modelTargetKindCodex">Codex CLI - subscription agent</option><option value="CLAUDE_CODE" data-i18n="modelTargetKindClaude">Claude Code - subscription agent</option><option value="LLAMA_SERVER_LOOPBACK" data-i18n="modelTargetKindLocal">llama-server on loopback - local model</option></select>
           <label for="model-target-model" data-i18n="modelTargetModel">Model identifier</label><input id="model-target-model" required maxlength="256">
           <label for="model-target-boundary" data-i18n="modelTargetBoundary">Execution boundary</label><select id="model-target-boundary"><option value="EXTERNAL_SERVICE">EXTERNAL_SERVICE</option><option value="LOCAL_ONLY">LOCAL_ONLY</option><option value="UNCLASSIFIED">UNCLASSIFIED</option></select>
           <label for="model-target-profile" data-i18n="modelTargetProfile">Reviewed profile reference</label><input id="model-target-profile" required maxlength="2048">

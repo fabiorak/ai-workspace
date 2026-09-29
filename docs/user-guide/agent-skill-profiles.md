@@ -1,6 +1,6 @@
 # Inspect portable agent and skill profiles
 
-Sprint 18 adds a read-only inspection boundary for one explicit local JSON
+The portable-profile work adds a read-only inspection boundary for one explicit local JSON
 bundle. The bundle describes one versioned agent and exactly the skill profiles
 it enables. It is `USER_CONFIGURED` descriptive data: preview does not install,
 select, activate, enforce, deliver to, or execute an agent, model, skill, tool,

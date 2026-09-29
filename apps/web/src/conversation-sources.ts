@@ -8,7 +8,18 @@
 import type { ArtifactReader } from "./moment-text.ts";
 import type { ConversationSources } from "./conversations.ts";
 
-import { LocalSessionReader } from "@ai-workspace/local-session-ingestion";
+import {
+  FileArtifactStore,
+  LocalSessionReader,
+} from "@ai-workspace/local-session-ingestion";
+
+export type BoundedArtifactReader = (
+  artifactId: string,
+  maxBytes: number,
+) => Promise<string>;
+
+export type LocalConversationSources = ConversationSources &
+  Readonly<{ boundedArtifact: BoundedArtifactReader }>;
 
 type LocalConversationSourceDependencies = Readonly<{
   workspaceHome: string;
@@ -23,9 +34,14 @@ type LocalConversationSourceDependencies = Readonly<{
 
 export function localConversationSources(
   dependencies: LocalConversationSourceDependencies,
-): ConversationSources {
+): LocalConversationSources {
+  const artifacts = new FileArtifactStore(dependencies.workspaceHome);
   return Object.freeze({
     artifact: dependencies.artifact,
+    boundedArtifact: async (artifactId, maxBytes) =>
+      new TextDecoder("utf-8", { fatal: true }).decode(
+        await artifacts.readBounded(artifactId, maxBytes),
+      ),
     projects: async () =>
       (await dependencies.projects.load()).map((project) =>
         Object.freeze({ id: project.id, name: project.name }),

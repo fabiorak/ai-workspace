@@ -11,8 +11,10 @@ past more accurately than the present.
 
 ## What works today
 
-This is a pre-release alpha. Everything below runs locally, reads and writes
-only local files, and makes no network request.
+This is a pre-release local alpha. The default path reads and writes only local
+files and makes no network request. An OpenAI Responses path exists behind an
+explicit process opt-in; it is optional, has not been live-probed, and is not
+part of the default guarantees below.
 
 **Projects and evidence.** Register a local Git repository, inspect its Git
 metadata, and import agent sessions: the bundled fictional sample, or one of
@@ -41,15 +43,24 @@ installed, resolved, delivered, or executed.
 
 **Conversation continuation.** Current linked-session evidence now accompanies
 the kept photograph, with explicit read limits and omissions. Six synthetic
-evidence checks pass. A guarded confirmation, strict output restoration, response
-persistence and second preparation are exercised through HTTP with an injected
-fake transport. The default host still enables no provider; live quality and
-cost remain unmeasured.
+evidence checks pass. The GUI provides the current conversation preview and
+persistent local session state. A guarded confirmation, strict output
+restoration, response persistence, and second preparation are exercised through
+HTTP with the standard simulated transport. OpenAI Responses is an explicit
+opt-in only; dormant Codex and Claude Code adapters/runners are qualified with
+synthetic executables but are not wired into the ordinary GUI path. Live quality
+and cost remain unmeasured.
 
 **Privacy.** Preview per-model data policy decisions, review and apply
-reversible pseudonymization over exact user-reviewed spans with encrypted local
-mappings and passphrase-wrapped custody, restore pseudonymized output strictly
-and all-or-nothing, and read a separate non-content decision audit.
+reversible pseudonymization over exact user-reviewed spans with app-managed
+stable maps per project or General scope, optional reviewed manual protected
+terms, and strict all-or-nothing restoration. A passphrase is not part of daily
+use; legacy passphrase-wrapped custody remains for migration and technical
+recovery workflows. A separate non-content decision audit is available.
+Automatic detection is incomplete: deterministic categories are covered, while
+first-occurrence person, organization, address, date, path, and URL values are
+not a promise of protection. Imported evidence also remains unencrypted at
+rest under the local state directory.
 
 **Interface.** A loopback GUI in English and Italian is the primary path, with a
 graphical dashboard derived on demand from the authoritative stores. A CLI
@@ -58,21 +69,37 @@ no remote asset, and renders charts as inline SVG from tested pure functions.
 
 ## What comes next
 
-**Make the whole path feel like one product.** The capabilities above are
-complete but still ask the reader to know where each one lives. The next
-increment reduces steps, technical vocabulary, and confirmations rather than
-adding surfaces, so that opening a project, finding what was decided, and
-carrying it to another assistant is one continuous path.
+**Next delivery boundaries.** The GUI redesign and local journey are implemented.
+Reduced-context turns have scoped profile, instruction, policy, provenance, and
+explicit omission composition, qualified offline for General and project
+conversations without a handoff. Durable turn identity and conservative recovery
+live in the local conversation-turn registry. An optional expiring review binds
+the protected payload to the later send, with target and scope revalidation
+before exposure. Model targets carry an explicit execution class and a derived
+availability state; local-model targets are configurable but not connected.
+Agent attempts are recorded in a separate store with an execution coordinator,
+and agent processes are confined by a private run tree, an explicit environment,
+a dedicated login directory, executables qualified by version and digest, and
+process-group cancellation with after-the-fact checks. No release is reviewed.
+Agent targets are routed through the conversation turn and keep their class in
+the history; they are qualified offline with synthetic agents, and real agents
+stay behind an opt-in with empty reviewed lists.
+
+The next real product boundary is wiring a chosen agent execution path with
+durable attempts and confinement evidence; no agent is available from the
+ordinary GUI path yet. After it, a local model behind its own adapter.
 
 **General-purpose repositories.** Registration is still expressed in terms of a
 Git repository. Document repositories are designed in the long-term vision and
 are not in the delivery horizon yet; until they are, no screen may assume a
 project contains code.
 
-**Model delivery.** M5 remains incomplete. The at-most-once exposure semantics,
+**Model delivery.** This boundary remains incomplete. The at-most-once exposure semantics,
 the durable attempt evidence, and the provider-neutral attempt store exist as
-offline-qualified contracts; no credential is consumed, no provider is called,
-and a live probe requires separate explicit approval.
+offline-qualified contracts. The default transport is simulated; the optional
+OpenAI Responses adapter is process-opt-in, and no live probe has been run.
+Credential use, provider quality, and external execution therefore remain
+separate authorization and evidence gates.
 
 **Later boundaries.** Optional dense recall behind the lexical path; a tool
 registry with sandboxed execution; multi-agent orchestration with provider
@@ -119,7 +146,7 @@ Each of these is recorded with the evidence it was accepted on.
   application-level at-most-once exposure per authorization,
   `UNKNOWN_AFTER_EXPOSURE` when the provider outcome is not observable, and zero
   automatic retries. Provider-side exactly-once processing is not claimed and is
-  not a prerequisite for M5.
+  not a prerequisite for model delivery.
 - **Attempt persistence boundary.**
   [ADR-0028](docs/adr/0028-use-separate-local-model-attempt-store.md): a
   separate provider-neutral local attempt store, not an extension of session or

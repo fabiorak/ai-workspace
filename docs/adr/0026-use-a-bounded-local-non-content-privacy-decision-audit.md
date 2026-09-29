@@ -12,7 +12,7 @@ not be copied into an ordinary log. Transformation and restoration already
 commit separate encrypted state and cannot safely share this increment without
 cross-store consistency and retention decisions.
 
-Sprint 32 froze two synthetic decision cases, schema and failure gates before
+The privacy-audit work froze two synthetic decision cases, schema and failure gates before
 production code. The measurement reproduced 1,657 canonical bytes, both
 decisions, a valid two-event predecessor chain, stable key-order-independent
 encoding, zero forbidden event fields, and the fixed 1,000-event bound.

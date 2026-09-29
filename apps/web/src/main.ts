@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { GuiApplication } from "./application.ts";
 import { LocalSessionStore } from "./local-session-store.ts";
+import { agentExecutorsFromEnvironment } from "./agent-executors.ts";
 import { modelTransportFromEnvironment } from "./model-transport.ts";
 import { startGuiServer } from "./server.ts";
 
@@ -13,6 +14,14 @@ const sampleSessionPath = join(
   "../../../integrations/codex/test/fixtures/session.jsonl",
 );
 const continuationTransport = modelTransportFromEnvironment(process.env);
+// Without the exact opt-in this reads and locates nothing (ADR-0050).
+const agents = await agentExecutorsFromEnvironment(process.env);
+for (const entry of agents.report)
+  process.stdout.write(
+    entry.outcome === "OFFERED"
+      ? `Agent execution offered: ${entry.kind}.\n`
+      : `Agent execution not offered: ${entry.kind} (${entry.reason}).\n`,
+  );
 
 /**
  * The session outlives the process (ADR-0046), so a restart usually needs no
@@ -27,6 +36,7 @@ const server = await startGuiServer(
     workspaceHome,
     sampleSessionPath,
     ...(continuationTransport ? { continuationTransport } : {}),
+    agentExecutors: agents.executors,
   }),
   { sessionToken: session.token, sessionMaxAgeSeconds: session.maxAgeSeconds },
 );

@@ -11,7 +11,7 @@ rejected `PROJECT`: schema v1 cannot represent that meaning, extending its enum
 would alter the accepted contract, and conversion to `OTHER` would discard the
 user's review.
 
-Sprint 30 froze and executed a synthetic compatibility corpus before this
+The schema-v2 compatibility work froze and executed a synthetic compatibility corpus before this
 decision. The corpus preserves exact current v1 review, mapping, transformed,
 and restored bytes; produces deterministic explicit v2 `PROJECT` bytes; reads
 and restores independent v1 and v2 mapping sets together; and rejects

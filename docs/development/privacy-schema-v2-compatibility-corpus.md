@@ -1,6 +1,6 @@
 # Privacy mapping schema-v2 compatibility corpus
 
-This frozen, synthetic corpus is the pre-ADR evidence gate for Sprint 30. It
+This frozen, synthetic corpus is the pre-ADR evidence gate for the schema-v2 compatibility work. It
 does not authorize production schema-v2 behavior. The executable contract is
 `packages/privacy-gateway/test/privacy-schema-v2-compatibility.test.ts`.
 

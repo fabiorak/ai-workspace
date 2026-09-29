@@ -1,6 +1,6 @@
 # Compose profile-governed instructions and context
 
-Sprint 19 connects the portable profile inspection boundary to the existing
+The profile-governed composition work connects the portable profile inspection boundary to the existing
 effective-instruction composer and Context Builder in one read-only preview.
 It does not install or select an agent for execution, resolve model or tool
 availability, persist a Context Pack, deliver data, or execute anything.
@@ -54,6 +54,6 @@ profile filename/digest and logical preview values, never the full selected
 paths, and is not persisted or delivered to a model.
 
 Use the separate [context selector measurement](context-selector-measurement.md)
-to inspect an experiment-only mapping to handoff sections. Sprint 20's `adapt`
+to inspect an experiment-only mapping to handoff sections. The context-selector `adapt`
 decision leaves this production profile-governed preview unchanged: selectors
 remain descriptive here.

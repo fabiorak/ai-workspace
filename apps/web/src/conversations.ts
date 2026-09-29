@@ -58,6 +58,11 @@ export type ConversationSources = Readonly<{
    * so a caller without one still gets every inlined line.
    */
   artifact?: ArtifactReader;
+  /**
+   * Reads at most the requested bytes from an artifact before decoding it.
+   * Reduced-turn composition requires this capability for artifact evidence.
+   */
+  boundedArtifact?: (artifactId: string, maxBytes: number) => Promise<string>;
 }>;
 
 export type ConversationPage = Readonly<{

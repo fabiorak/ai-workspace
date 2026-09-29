@@ -34,7 +34,7 @@ Official references observed on 2026-09-17:
 Changing the selected target never changes its class silently. The answer must
 record target, model when reported, execution class and attempt identity.
 
-## Increment A7.0 - offline Codex adapter qualification
+## Offline Codex adapter qualification
 
 Build one production-owned subprocess adapter behind an injectable process port,
 but test it only with a deterministic fake executable. The intended real command
@@ -55,7 +55,7 @@ Gates:
 - no read of `~/.codex/auth.json`, token output or auth discovery;
 - separate durable attempt evidence and zero automatic retry after exposure.
 
-## Increment A7.1 - offline Claude Code qualification
+## Offline Claude Code qualification
 
 Apply the same port and evidence contract to managed-login `claude -p`. Do not
 use `--bare`, because it disables the subscription login. Use an isolated empty
@@ -91,12 +91,19 @@ Gates, all met offline by `integrations/claude-code-agent`:
   own managed login, and no provider key or unrelated process secret;
 - no read of the credential file, keychain or token output by AI Workspace.
 
-Still missing before any live probe, as for Codex: a separate agent attempt
-store, a confined home and workspace, verification of the installed version and
-its supported flags, and a reviewed authorization sheet. The frozen flags are
-reviewed evidence, not a compatibility promise.
+Still missing before any live probe, as for Codex: a reviewed installed
+release with its supported flags, a dedicated login directory and a reviewed
+authorization sheet. The frozen flags are reviewed evidence, not a
+compatibility promise.
 
-## Increment A7.2 - local-model rehearsal
+## Agent attempts and coordinator
+
+ADR-0049 adds the separate agent attempt store and the coordinator that claims
+execution durably before a process can start and keeps every later failure
+unknown, with no rerun. Turns link to agent attempts through the durable turn
+registry. Both adapters are exercised behind a synthetic runner.
+
+## Local-model rehearsal
 
 Qualify the existing `qwen3.6-35b` loopback server through a separate
 `LOCAL_MODEL` adapter. Do not add endpoint overrides to the OpenAI adapter.
@@ -113,3 +120,44 @@ credential files or run a task merely to discover whether an account works.
 The first probe is answer-only in a temporary directory. A later repository
 action requires a disposable worktree, explicit filesystem scope, reviewed tool
 permissions, a predicted action and independent diff/test verification.
+
+## Confinement and compatibility
+
+ADR-0050 moves both runners onto `integrations/agent-process`: a new private
+run tree per invocation, an environment built from nothing, a dedicated login
+directory checked by metadata only, a canonical executable fixed by digest and
+reviewed version, and process-group cancellation with after-the-fact checks for
+lingering descendants and files left behind. The ADR holds the capability
+table separating what is enforced before the run, what is checked after it and
+what is not controlled. The reviewed release lists are empty, so no real
+installation is available yet.
+
+Before a live review of either product, on the installed release and without
+running a task:
+
+1. read its version once, with explicit authorization, through the confined
+   runner;
+2. confirm every frozen flag in its own `--help` and current documentation,
+   including `--safe-mode`, `--setting-sources` and `--strict-mcp-config` for
+   Claude Code and the read-only sandbox and ignore flags for Codex;
+3. add the version and file digest to the adapter's reviewed list;
+4. sign in once inside the dedicated login directory, outside AI Workspace.
+
+## The agent journey
+
+The conversation turn routes agent targets to the ADR-0049 coordinator when the
+host offers the kind (ADR-0045 amendment). The real host factory is an exact
+opt-in:
+
+| Variable                        | Meaning                                             |
+| ------------------------------- | --------------------------------------------------- |
+| `AI_WORKSPACE_AGENT_EXECUTION`  | `CODEX_CLI`, `CLAUDE_CODE` or both, comma-separated |
+| `AI_WORKSPACE_AGENT_RUN_ROOT`   | Private directory for the per-run trees             |
+| `AI_WORKSPACE_AGENT_PATH`       | Absolute directories for the program and runtime    |
+| `AI_WORKSPACE_CODEX_LOGIN_DIR`  | Dedicated Codex login directory                     |
+| `AI_WORKSPACE_CLAUDE_LOGIN_DIR` | Dedicated Claude Code login directory               |
+
+The digest check happens before anything starts, so with the empty reviewed
+lists nothing is ever run. The startup output names each requested kind as
+offered or not offered, with the reason. Setting these variables is not an
+authorization for a live run.

@@ -1,7 +1,7 @@
 # Session Ingestion
 
 Session Ingestion imports historical evidence from an explicitly selected
-session source and links it to an existing Project Registry record. Sprint 2
+session source and links it to an existing Project Registry record. The session ingestion work
 supports one controlled Codex JSONL schema through the CLI.
 
 > [!WARNING]

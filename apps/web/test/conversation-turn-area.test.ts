@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -10,6 +11,7 @@ import type {
 } from "@ai-workspace/general-conversation";
 import type { ResolvedModelTarget } from "@ai-workspace/model-targets";
 import { conversationTurnArea } from "../src/conversation-turn-area.ts";
+import { writeReducedTurnConfiguration } from "./reduced-turn-fixture.ts";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -67,6 +69,7 @@ async function fixture(
 ) {
   const home = await mkdtemp(join(tmpdir(), "ai-workspace-turn-area-"));
   roots.push(home);
+  const refs = await writeReducedTurnConfiguration(home);
   let id = 0;
   return conversationTurnArea({
     home,
@@ -95,7 +98,12 @@ async function fixture(
         throw new Error("No repository is available in General.");
       },
     },
-    targets: { resolve: async () => target },
+    targets: {
+      resolve: async () => ({
+        ...target,
+        target: { ...target.target, ...refs },
+      }),
+    },
     audit: {
       record: async () => {
         throw new Error("Reduced context has no project privacy audit.");
@@ -117,7 +125,8 @@ const target: ResolvedModelTarget = {
   target: {
     targetId: "target-b",
     displayName: "Target B",
-    providerKind: "OPENAI_RESPONSES",
+    executionClass: "MODEL_DELIVERY",
+    kind: "OPENAI_RESPONSES",
     modelId: "model-b",
     boundary: "EXTERNAL_SERVICE",
     profileRef: "unused-profile.json",
@@ -163,7 +172,7 @@ function event(content: string): GeneralEvent {
     dataClass: "CONFIDENTIAL",
     content,
     exactBytes: Buffer.byteLength(content),
-    contentSha256: "a".repeat(64),
+    contentSha256: createHash("sha256").update(content).digest("hex"),
     provenance: {
       kind: "LOCAL_GENERAL_CAPTURE",
       capturedAt: "2026-09-14T09:00:00.000Z",

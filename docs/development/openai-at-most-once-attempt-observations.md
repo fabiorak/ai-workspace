@@ -42,6 +42,6 @@ production OpenAI adapter or claim provider exactly-once behavior. A future
 prototype must make the single exposure claim restart-visible before invoking
 the provider and must preserve uncertain outcomes without retry.
 
-M5 remains incomplete. No live probe was run or authorized, and no credential,
+Model delivery remains incomplete. No live probe was run or authorized, and no credential,
 network, provider adapter, response handling, GUI action, routing, fallback,
 delivery, or execution surface was added.

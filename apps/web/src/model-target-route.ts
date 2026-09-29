@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import {
   ModelTargetError,
-  type ModelTarget,
+  type ClassifiedModelTarget,
 } from "@ai-workspace/model-targets";
 
 import type { GuiApplication } from "./application.ts";
@@ -140,7 +140,7 @@ export async function handleModelTargetRoute(
         return true;
       }
       const updated = await application.modelTargets.configure(
-        body.target as unknown as ModelTarget,
+        body.target as unknown as ClassifiedModelTarget,
         Number(body.expectedRevision),
       );
       json(response, 200, updated);

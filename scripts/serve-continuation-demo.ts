@@ -2,26 +2,35 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { continuationFixture } from "../apps/web/test/continuation-fixture.ts";
+import { syntheticAgents } from "../apps/web/test/synthetic-agents.ts";
 import { startGuiServer } from "../apps/web/src/server.ts";
 // A fresh synthetic home on every run; no credential reader or network transport.
 // The simulated transport only ever sees protected text, so it answers with the
 // placeholders it received and the app restores them before the answer is shown.
-const fixture = await continuationFixture({
-  send: async ({ text, model }) => {
-    if (model === "model-unknown") return { kind: "UNKNOWN" };
-    const placeholders = [
-      ...new Set(text.match(/\[\[[A-Z_]+_\d+\]\]/gu) ?? []),
-    ];
-    const subject = placeholders.join(", ") || "the synthetic case";
-    return {
-      kind: "COMPLETED",
-      text: `SIMULATED RESPONSE (${model}): Inspect the recorded failure for ${subject}. No model was called.`,
-      requestId: "synthetic-request",
-      responseId: "synthetic-response",
-      usage: { inputTokens: null, cachedInputTokens: null, outputTokens: null },
-    };
+const fixture = await continuationFixture(
+  {
+    send: async ({ text, model }) => {
+      if (model === "model-unknown") return { kind: "UNKNOWN" };
+      const placeholders = [
+        ...new Set(text.match(/\[\[[A-Z_]+_\d+\]\]/gu) ?? []),
+      ];
+      const subject = placeholders.join(", ") || "the synthetic case";
+      return {
+        kind: "COMPLETED",
+        text: `SIMULATED RESPONSE (${model}): Inspect the recorded failure for ${subject}. No model was called.`,
+        requestId: "synthetic-request",
+        responseId: "synthetic-response",
+        usage: {
+          inputTokens: null,
+          cachedInputTokens: null,
+          outputTokens: null,
+        },
+      };
+    },
+    // Synthetic agents: the real adapters parse a made-up process observation.
   },
-});
+  syntheticAgents({ stdin: [], models: [], mode: "ANSWER" }),
+);
 /** Two targets, because changing model is a step the acceptance has to exercise:
  * with one configured target the only other entry is the empty placeholder. */
 const targets = [
@@ -32,7 +41,21 @@ const targets = [
     displayName: "Demo esito incerto",
     modelId: "model-unknown",
   },
-];
+  {
+    targetId: "demo-codex",
+    displayName: "Demo Codex",
+    modelId: "synthetic-codex-model",
+    executionClass: "AGENT_EXECUTION",
+    kind: "CODEX_CLI",
+  },
+  {
+    targetId: "demo-claude",
+    displayName: "Demo Claude Code",
+    modelId: "sonnet",
+    executionClass: "AGENT_EXECUTION",
+    kind: "CLAUDE_CODE",
+  },
+] as const;
 /** The shared synthetic profile deliberately allows two ordinary fixture models.
  * This acceptance-only third model makes the post-exposure UNKNOWN state visible
  * without a provider, timeout or network fault. */
@@ -45,7 +68,12 @@ await writeFile(
     ...profile,
     agent: {
       ...profile.agent,
-      allowedModels: [...profile.agent.allowedModels, "model-unknown"],
+      allowedModels: [
+        ...profile.agent.allowedModels,
+        "model-unknown",
+        "synthetic-codex-model",
+        "sonnet",
+      ],
     },
   }),
 );
@@ -71,16 +99,21 @@ const policyFor = async (modelId: string) => {
   return path;
 };
 let configuration = { revision: 0 };
-for (const { targetId, displayName, modelId } of targets)
+for (const target of targets)
   configuration = await fixture.app.modelTargets.configure(
     {
-      targetId,
-      displayName,
-      providerKind: "OPENAI_RESPONSES",
-      modelId,
+      targetId: target.targetId,
+      displayName: target.displayName,
+      ...("kind" in target
+        ? { executionClass: target.executionClass, kind: target.kind }
+        : {
+            executionClass: "MODEL_DELIVERY" as const,
+            kind: "OPENAI_RESPONSES" as const,
+          }),
+      modelId: target.modelId,
       boundary: "EXTERNAL_SERVICE",
       profileRef: fixture.target.profile.path,
-      policyRef: await policyFor(modelId),
+      policyRef: await policyFor(target.modelId),
       instructionRefs: fixture.target.bundles.map((bundle) => bundle.path),
       maxInputBytes: 256 * 1024,
       maxOutputBytes: 16_384,

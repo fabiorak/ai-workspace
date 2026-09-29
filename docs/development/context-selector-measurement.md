@@ -1,6 +1,6 @@
 # Profile context selector measurement
 
-Sprint 20 measures an experiment-only interpretation of profile `include` and
+The context-selector work measures an experiment-only interpretation of profile `include` and
 `exclude` declarations over the eight existing handoff continuity sections.
 It does not change the profile schema, Context Builder, Context Pack schema,
 selection order, persistence, delivery, or execution.
@@ -38,7 +38,7 @@ Each case uses constrained (64), standard (4,096), and generous (100,000)
 continuity budgets: 9 cases and 27 observations.
 
 Exact bytes use the historical Context Builder v1 candidate serialization
-retained by Sprint 13–15. Every projected candidate is byte- and
+retained by the Context Pack measurements. Every projected candidate is byte- and
 SHA-256-identical to that baseline. These are serialized candidate-content
 bytes, not provider tokens, Context Pack v2 shared-table accounting, relevance,
 completeness, task quality, or production-policy claims.
@@ -81,7 +81,7 @@ descriptive in normal profile-governed Context Pack preview. A future increment
 should first measure continuity/task-quality or answerability, then revisit
 vocabulary versioning, compatibility, floor evidence, and v2 accounting.
 
-Sprint 21 completed that bounded follow-up with six predeclared digest-pinned
+The selector-continuity work completed that bounded follow-up with six predeclared digest-pinned
 synthetic consumers. No candidate policy preserves all exact answers and
 required sources, and exact schema-v2 accounting creates no new fit. The
 separate evidence and fit decisions are both `no change`; see the

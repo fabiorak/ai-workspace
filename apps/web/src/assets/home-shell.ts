@@ -55,6 +55,7 @@ export const HOME_SECTION = `
           </div>
           <div id="home-protection-preview" class="protection-preview composer-protection-preview" hidden>
             <p data-i18n="homeProtectionPreviewIntro">Check the current draft locally before sending. Nothing is sent.</p>
+            <label id="home-review-control" hidden><input id="home-review-required" type="checkbox"> <span data-i18n="homeReviewRequired">Send only the content shown here</span></label>
             <p id="home-protection-preview-status" role="status" aria-live="polite"></p>
             <p id="home-protection-preview-output" class="protection-preview-output"></p>
             <div id="home-protection-preview-sections" class="protection-preview-sections"></div>

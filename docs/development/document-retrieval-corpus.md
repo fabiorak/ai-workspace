@@ -33,9 +33,8 @@ It authorizes no engine, package, index, GUI surface, or embedding model.
 The committed documentation of this repository, read from disk at run time rather
 than copied into a fixture: `docs/`, plus `README.md`, `ROADMAP.md`,
 `AGENTS.md`, `CONTRIBUTING.md`, and `SECURITY.md`. Excluded: `.ai-workspace`,
-`node_modules`, `.git`, and `docs/planning`. The local handoff file and the
-internal planning material are both Git-ignored and must never be read into a
-measured corpus.
+`node_modules`, `.git`, and `docs/planning`. Local-only files are Git-ignored and must never be read into a measured
+corpus.
 
 "Committed" is asserted rather than trusted: the owning test compares the
 collected corpus against the Git index in both directions, so a file the harness
@@ -77,17 +76,16 @@ exists because a reader cannot otherwise tell a corrected defect from a rewritte
 inconvenient result.
 
 The exclusion list above named only `.ai-workspace`, `node_modules`, and `.git`,
-so the harness read `docs/planning` — internal process material that is
-Git-ignored. It was present on the machine that ran the measurement and absent
+so the harness read `docs/planning` — local material that is Git-ignored. It was present on the machine that ran the measurement and absent
 from every clone, so the same harness reported 141 documents and 1,761 sections
 locally against 102 and 953 in continuous integration, and five ground-truth
-entries pointed at sprint files nobody else had. That is not a corpus: it is one
+entries pointed at files nobody else had. That is not a corpus: it is one
 machine.
 
 Three of those five entries were surplus — `it-mapping-key`,
 `it-import-transcripts`, and `en-restoration-typo` each kept their other expected
 documents — and were simply dropped, which is why the pair count falls from 30
-pairs to 29. The remaining two named a sprint file as their **only** expected
+pairs to 29. The remaining two named such a file as their **only** expected
 document and could not be repointed, because no committed document answers them:
 the seven occurrences of "credential" in the public corpus are all statements
 that no credential is used. The question was answerable only from material that
@@ -108,7 +106,7 @@ Two consequences are worth naming rather than leaving to be discovered:
 
 - English lexical recall reads 100% before and after, but for different reasons,
   and the identical number hides the defect rather than showing it. The first run
-  resolved `en-credentials` because it was reading the sprint file; every clone
+  resolved `en-credentials` because it was reading the local file; every clone
   scored it 87.5%, because there the expected document simply did not exist. The
   replacement is answerable from a committed document, so the two now agree.
 - `it-model-delivery` is unresolved by lexical retrieval, exactly as
