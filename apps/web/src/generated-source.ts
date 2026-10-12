@@ -1,12 +1,13 @@
 /**
  * The source label of an answer stored in a project conversation. Model
- * deliveries keep the label they always had; agent answers are labelled by
- * their class (ADR-0049), so the class survives in the canonical history.
+ * deliveries keep the label they always had; agent and local-model answers are labelled by
+ * their class (ADR-0049, ADR-0051), so the class survives in the canonical history.
  * `MODEL_CONVERSATION` without a name is the earlier continuation label.
  */
 const PREFIXES = Object.freeze({
   MODEL_DELIVERY: "MODEL_CONVERSATION:",
   AGENT_EXECUTION: "AGENT_EXECUTION:",
+  LOCAL_MODEL: "LOCAL_MODEL:",
 } as const);
 
 export type GeneratedExecutionClass = keyof typeof PREFIXES;

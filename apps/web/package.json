@@ -60,6 +60,9 @@
     "@ai-workspace/local-agent-attempts": "0.0.0",
     "@ai-workspace/agent-process": "0.0.0",
     "@ai-workspace/codex-agent": "0.0.0",
-    "@ai-workspace/claude-code-agent": "0.0.0"
+    "@ai-workspace/claude-code-agent": "0.0.0",
+    "@ai-workspace/local-model-execution": "0.0.0",
+    "@ai-workspace/llama-server-loopback": "0.0.0",
+    "@ai-workspace/local-model-run-attempts": "0.0.0"
   }
 }

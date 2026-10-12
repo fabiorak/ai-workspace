@@ -118,6 +118,15 @@
     },
     {
       "path": "../../integrations/claude-code-agent/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/local-model-execution/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/llama-server-loopback/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/local-model-run-attempts/tsconfig.build.json"
     }
   ]
 }

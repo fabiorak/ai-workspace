@@ -75,3 +75,4 @@ Status: proposed | accepted | superseded
 - [ADR-0048: Keep conversation-turn identities durable across restarts](0048-keep-conversation-turn-identities-durable.md) - proposed.
 - [ADR-0049: Record agent execution attempts separately](0049-record-agent-execution-attempts-separately.md) - proposed.
 - [ADR-0050: Confine agent processes before any real run](0050-confine-agent-processes-before-any-real-run.md) - proposed.
+- [ADR-0051: Confine the local model behind a loopback boundary](0051-confine-the-local-model-behind-a-loopback-boundary.md) - proposed.

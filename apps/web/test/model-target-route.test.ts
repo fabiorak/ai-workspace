@@ -41,11 +41,12 @@ describe("persistent model target routes", () => {
             displayName: "Model A",
             enabled: true,
             executionClass: "LOCAL_MODEL",
+            // Qualified offline, but the process received no loopback address.
             availability: {
               enabled: true,
-              qualifiedOffline: false,
+              qualifiedOffline: true,
               launch: "UNAVAILABLE",
-              reason: "NOT_QUALIFIED",
+              reason: "NOT_CONNECTED",
             },
           },
         ],

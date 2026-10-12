@@ -91,7 +91,7 @@ export type ConversationTurnAttempt = Readonly<{
   projectId: string;
   authorizationId: string;
   attemptId: string;
-  executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION";
+  executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION" | "LOCAL_MODEL";
 }>;
 export type ConversationTurnExecution = Readonly<{
   bindAttempt(attempt: ConversationTurnAttempt): Promise<void>;

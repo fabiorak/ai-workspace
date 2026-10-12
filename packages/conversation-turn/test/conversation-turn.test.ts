@@ -7,6 +7,7 @@ import {
   ConversationTurnError,
   conversationTurnClaim,
   validateConversationTurnRequest,
+  type ConversationTurnAttempt,
   type ConversationTurnClaim,
   type ConversationTurnExecution,
   type ConversationTurnIdempotency,
@@ -228,3 +229,28 @@ function memoryIdempotency(): ConversationTurnIdempotency {
     },
   };
 }
+
+test("the attempt reference admits every execution class, additively", async () => {
+  const bound: ConversationTurnAttempt[] = [];
+  const execution: ConversationTurnExecution = {
+    bindAttempt: async (attempt) => {
+      bound.push(attempt);
+    },
+  };
+  const base = {
+    projectId: "project-synthetic",
+    authorizationId: "authorization-synthetic",
+    attemptId: "attempt-synthetic",
+  };
+  await execution.bindAttempt(base);
+  for (const executionClass of [
+    "MODEL_DELIVERY",
+    "AGENT_EXECUTION",
+    "LOCAL_MODEL",
+  ] as const)
+    await execution.bindAttempt({ ...base, executionClass });
+  assert.deepEqual(
+    bound.map((attempt) => attempt.executionClass),
+    [undefined, "MODEL_DELIVERY", "AGENT_EXECUTION", "LOCAL_MODEL"],
+  );
+});

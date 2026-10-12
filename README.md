@@ -235,7 +235,7 @@ does not provide:
 - transcript formats other than the documented Codex subset and local Claude
   Code JSONL;
 - encryption at rest for imported evidence;
-- unattended agent or tool execution, or GUI routing to an agent;
+- unattended agent or tool execution;
 - provider delivery by default, automatic routing, or fallback;
 - a live-provider quality or cost guarantee;
 - complete secret or personally identifiable information detection;
@@ -244,8 +244,9 @@ does not provide:
 
 The standard host uses a simulated transport. An OpenAI Responses adapter is
 available only through an explicit process opt-in and has not been live-probed.
-Dormant Codex and Claude Code adapters/runners are qualified with synthetic
-executables but are not wired into the GUI or ordinary conversation path.
+Codex and Claude Code adapters are qualified with synthetic executables and
+reach the conversation only through an explicit opt-in. A local model is offered
+only when you name its address at start.
 
 Conversation sends keep a permanent local identity across process restarts.
 Recovery checks the saved attempt and conversation result without resending an
@@ -264,9 +265,8 @@ and the [GUI guide](docs/user-guide/gui-first-journey.md).
 
 Every model target has an explicit execution class and kind: direct model
 delivery, subscription agent or local model. Settings separates enabled,
-qualified offline and available for launch, and names simulated answers. Local
-model targets can be configured but are not connected, and a send to them is
-refused rather than rerouted. Earlier target settings migrate on the first
+qualified offline and available for launch, and names simulated answers. A
+target that is not offered refuses a send rather than rerouting it. Earlier target settings migrate on the first
 change, and the original file is kept. See the
 [target schema](docs/adr/0044-store-model-targets-in-versioned-local-configuration.md).
 
@@ -286,6 +286,34 @@ the same protection, review, durable identity and recovery. The answer keeps its
 agent class in the history. The standard start offers no agent, and real agents
 need an explicit opt-in plus a reviewed installation, which does not exist yet;
 the offline demo uses synthetic agents marked simulated.
+
+Agents are offered through `AI_WORKSPACE_AGENT_EXECUTION`, which names
+`CODEX_CLI`, `CLAUDE_CODE` or both, with the run, program and login directories
+described in the
+[agent boundary](docs/development/subscription-agent-boundary.md). A local model
+is offered through `AI_WORKSPACE_LOCAL_MODEL_ENDPOINT`, which must be
+`http://127.0.0.1:<port>` or `http://[::1]:<port>`:
+
+```bash
+AI_WORKSPACE_LOCAL_MODEL_ENDPOINT=http://127.0.0.1:8080 npm run gui
+```
+
+Any other value stops the start with a message.
+
+A conversation can also answer from a local model: a `llama-server` that you
+start yourself, reached by one non-streaming call on a loopback address. AI
+Workspace does not start or stop that server and does not know its model file.
+The target must declare the `LOCAL_ONLY` boundary, and that declaration is
+yours: the numeric-address check is a minimum, not proof that the listening
+process is the one you believe it is. For this class alone the text is not
+pseudonymized, so the model receives the original text; the data policy and the
+block on reserved material still apply, and the reviewed send is not available.
+Attempts are recorded in their own hash-chained store as digests, an uncertain
+outcome is never rerun, and the answer keeps its class in the history. The path
+is qualified offline against a synthetic server, and no real model has been
+run. See
+[ADR-0051](docs/adr/0051-confine-the-local-model-behind-a-loopback-boundary.md)
+and the [local model boundary](docs/development/local-model-boundary.md).
 
 Privacy transformations use app-managed stable maps per project or General
 scope, with optional reviewed manual protected terms. A passphrase is not part

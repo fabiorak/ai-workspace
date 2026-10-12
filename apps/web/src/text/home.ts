@@ -437,6 +437,18 @@ export const HOME_TEXT = Object.freeze({
     en: "Answer from the agent {model} saved in this conversation. It ran without tools in a separate, empty workspace.",
     it: "Risposta dell'agente {model} salvata in questa conversazione. È stato eseguito senza strumenti in uno spazio di lavoro separato e vuoto.",
   },
+  homeTurnSavedLocal: {
+    en: "Answer from the local model {model} saved in this conversation. It was sent to the loopback address given when AI Workspace started.",
+    it: "Risposta del modello locale {model} salvata in questa conversazione. È stata chiesta all'indirizzo di loopback indicato all'avvio di AI Workspace.",
+  },
+  homeProtectionLocalNote: {
+    en: "This target is a local model declared local-only, so it receives the original text with no replacements. The data policy and the block on restricted material still apply. That the address is really this computer is your declaration.",
+    it: "Questo target è un modello locale dichiarato solo locale, quindi riceve il testo originale senza sostituzioni. La policy dei dati e il blocco del materiale riservato restano attivi. Che l'indirizzo sia davvero questo computer è una tua dichiarazione.",
+  },
+  homeReviewLocal: {
+    en: "A local model receives the original text, so there is no protected text to review. Untick the review to send.",
+    it: "Un modello locale riceve il testo originale, quindi non c'è un testo protetto da revisionare. Togli la spunta della revisione per inviare.",
+  },
   homeProtectionAgentNote: {
     en: "This target is an agent. What you see is exactly the input AI Workspace supplies; the agent product adds its own instructions, which are not shown here.",
     it: "Questo target è un agente. Qui vedi esattamente l'input che AI Workspace fornisce; il prodotto agente aggiunge istruzioni proprie, che qui non compaiono.",

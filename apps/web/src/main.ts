@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { GuiApplication } from "./application.ts";
 import { LocalSessionStore } from "./local-session-store.ts";
 import { agentExecutorsFromEnvironment } from "./agent-executors.ts";
+import { localModelExecutorFromEnvironment } from "./local-model-executor.ts";
 import { modelTransportFromEnvironment } from "./model-transport.ts";
 import { startGuiServer } from "./server.ts";
 
@@ -22,6 +23,12 @@ for (const entry of agents.report)
       ? `Agent execution offered: ${entry.kind}.\n`
       : `Agent execution not offered: ${entry.kind} (${entry.reason}).\n`,
   );
+// Without the variable nothing is offered or contacted (ADR-0051).
+const localModel = localModelExecutorFromEnvironment(process.env);
+if (localModel)
+  process.stdout.write(
+    `Local model offered at ${localModel.origin}. AI Workspace does not start or stop that server.\n`,
+  );
 
 /**
  * The session outlives the process (ADR-0046), so a restart usually needs no
@@ -37,6 +44,7 @@ const server = await startGuiServer(
     sampleSessionPath,
     ...(continuationTransport ? { continuationTransport } : {}),
     agentExecutors: agents.executors,
+    ...(localModel ? { localModelExecutor: localModel.executor } : {}),
   }),
   { sessionToken: session.token, sessionMaxAgeSeconds: session.maxAgeSeconds },
 );

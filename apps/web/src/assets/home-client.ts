@@ -482,14 +482,16 @@ export const HOME_BEHAVIOUR = `
           body: JSON.stringify({ targetId, userText: draft, ...(bindReview ? { bindReview: true } : {}) }),
         });
         if (sequence !== previewSequence || conversationId !== openConversation || targetId !== homeConversationModel.value || draft !== homeMessage.value) return false;
+        const previewed = modelTargetInfo.get(targetId);
         if (preview.kind !== "READY") {
-          say(homeProtectionPreviewStatus, namedMessage(payloadBlocked, preview.reason, "homeProtectionPreviewFailed"));
+          const local = preview.reason === "REVIEW_UNAVAILABLE" && previewed && previewed.executionClass === "LOCAL_MODEL";
+          say(homeProtectionPreviewStatus, local ? "homeReviewLocal" : namedMessage(payloadBlocked, preview.reason, "homeProtectionPreviewFailed"));
           return false;
         }
         renderPayloadSections(preview.sections);
-        const previewed = modelTargetInfo.get(targetId);
-        if (previewed && previewed.executionClass === "AGENT_EXECUTION") {
-          const note = document.createElement("p"); note.className = "help"; say(note, "homeProtectionAgentNote");
+        const noteKey = preview.protection === "PSEUDONYMIZATION_SKIPPED_LOCAL_MODEL_LOCAL_ONLY" ? "homeProtectionLocalNote" : previewed && previewed.executionClass === "AGENT_EXECUTION" ? "homeProtectionAgentNote" : null;
+        if (noteKey) {
+          const note = document.createElement("p"); note.className = "help"; say(note, noteKey);
           homeProtectionPreviewSections.prepend(note);
         }
         if (bindReview) {
@@ -702,7 +704,7 @@ export const HOME_BEHAVIOUR = `
         await showConversation({ id: openConversation, projectId: openConversationProject }, false, true);
         await loadConversations();
         const answered = modelTargetInfo.get(targetId);
-        say(homeComposerStatus, outcome.duplicate ? "homeTurnDuplicate" : answered && answered.launch === "AVAILABLE" ? (answered.executionClass === "AGENT_EXECUTION" ? "homeTurnSavedAgent" : "homeTurnSavedLive") : "homeTurnSaved", { model: outcome.result.effectiveModel });
+        say(homeComposerStatus, outcome.duplicate ? "homeTurnDuplicate" : answered && answered.launch === "AVAILABLE" ? (answered.executionClass === "AGENT_EXECUTION" ? "homeTurnSavedAgent" : answered.executionClass === "LOCAL_MODEL" ? "homeTurnSavedLocal" : "homeTurnSavedLive") : "homeTurnSaved", { model: outcome.result.effectiveModel });
       } else if (outcome.result.kind === "REFUSED_BEFORE_EXPOSURE") {
         text(homeComposerStatus, "");
         say(homeComposerError, namedMessage(turnRefused, outcome.result.reason, "homeTurnRefused"));

@@ -27,7 +27,7 @@ export async function composeReducedTurnContext(
     Readonly<{ home: string; ids?: () => string; clock?: () => Date }>,
   turn: ResolvedConversationTurn,
   target: ResolvedModelTarget,
-  protection: AutomaticPrivacyProtection,
+  protection: Pick<AutomaticPrivacyProtection, "protect">,
   recordAudit: boolean,
 ) {
   const scope =

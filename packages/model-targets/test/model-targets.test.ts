@@ -423,6 +423,42 @@ describe("model target availability", () => {
     );
   });
 
+  it("never launches an unclassified local model, even when qualified and declared", () => {
+    const declared: ModelTargetCapabilities = {
+      qualifiedOffline: ["LLAMA_SERVER_LOOPBACK"],
+      launch: { LLAMA_SERVER_LOOPBACK: "AVAILABLE" },
+    };
+    assert.deepEqual(
+      modelTargetAvailability(
+        // Stored configuration can hold this combination; the type forbids it.
+        { ...target("local", "Local"), boundary: "UNCLASSIFIED" } as never,
+        declared,
+      ),
+      {
+        enabled: true,
+        qualifiedOffline: true,
+        launch: "UNAVAILABLE",
+        reason: "UNCLASSIFIED",
+      },
+    );
+    assert.deepEqual(
+      modelTargetAvailability(target("local", "Local"), declared),
+      {
+        enabled: true,
+        qualifiedOffline: true,
+        launch: "AVAILABLE",
+        reason: null,
+      },
+    );
+    assert.equal(
+      modelTargetAvailability(target("local", "Local"), {
+        qualifiedOffline: ["LLAMA_SERVER_LOOPBACK"],
+        launch: { LLAMA_SERVER_LOOPBACK: "SIMULATED" },
+      }).launch,
+      "SIMULATED",
+    );
+  });
+
   it("lets an unavailable agent be selected without turning it into an API fallback", async () => {
     const targets = new ModelTargets(memoryStore(), capabilities);
     let configuration = await targets.configure(delivery("api"), 0);

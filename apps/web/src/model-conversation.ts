@@ -162,7 +162,8 @@ export function modelConversationWriter(
           model: turn.model,
           targetId: turn.targetId,
           displayName: turn.displayName,
-          ...(turn.executionClass === "AGENT_EXECUTION"
+          ...(turn.executionClass === "AGENT_EXECUTION" ||
+          turn.executionClass === "LOCAL_MODEL"
             ? { executionClass: turn.executionClass }
             : {}),
         }),

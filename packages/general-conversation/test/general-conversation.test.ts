@@ -152,7 +152,7 @@ test("records the execution class and a reported model only when given", async (
       ...turn,
       attemptId: "attempt-3",
       expectedEventCount: 4,
-      executionClass: "LOCAL_MODEL" as never,
+      executionClass: "LOCAL_MODEL_X" as never,
     }),
     GeneralConversationError,
   );
@@ -194,3 +194,53 @@ function memoryStore(
     },
   };
 }
+
+test("records LOCAL_MODEL additively and keeps older values meaning what they meant", async () => {
+  const values = new Map<string, GeneralConversation>();
+  let count = 0;
+  const service = new GeneralConversations({
+    store: memoryStore(values),
+    ids: () => `id-${++count}`,
+    clock: () => new Date("2026-09-28T10:00:00.000Z"),
+  });
+  const conversation = await service.create("Synthetic local turn");
+  const turn = {
+    conversationId: conversation.id,
+    userText: "A synthetic question",
+    assistantText: "A synthetic answer",
+    attemptId: "attempt-1",
+    model: "local-model",
+    displayName: "Local model",
+    targetId: "local",
+  };
+  let updated = await service.appendTurn({
+    ...turn,
+    expectedEventCount: 0,
+    executionClass: "LOCAL_MODEL",
+  });
+  assert.deepEqual(updated.events[1]!.provenance, {
+    kind: "MODEL_CONVERSATION",
+    attemptId: "attempt-1",
+    displayName: "Local model",
+    model: "local-model",
+    targetId: "local",
+    executionClass: "LOCAL_MODEL",
+  });
+  updated = await service.appendTurn({
+    ...turn,
+    attemptId: "attempt-2",
+    expectedEventCount: 2,
+  });
+  assert.equal("executionClass" in updated.events[3]!.provenance, false);
+  updated = await service.appendTurn({
+    ...turn,
+    attemptId: "attempt-3",
+    expectedEventCount: 4,
+    executionClass: "MODEL_DELIVERY",
+  });
+  assert.equal(
+    updated.events[5]!.provenance.kind === "MODEL_CONVERSATION" &&
+      updated.events[5]!.provenance.executionClass,
+    "MODEL_DELIVERY",
+  );
+});

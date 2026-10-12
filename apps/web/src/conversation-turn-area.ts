@@ -18,6 +18,13 @@ import {
   type AgentExecutor,
 } from "@ai-workspace/agent-execution";
 import { JsonAgentAttemptStore } from "@ai-workspace/local-agent-attempts";
+import {
+  LOCAL_MODEL_PROTECTION,
+  LocalModelAttempts,
+  LocalModelExecution,
+  type LocalModelExecutor,
+} from "@ai-workspace/local-model-execution";
+import { JsonLocalModelAttemptStore } from "@ai-workspace/local-model-run-attempts";
 import { JsonModelAttemptStore } from "@ai-workspace/local-model-attempts";
 import { JsonConversationTurnRegistry } from "@ai-workspace/local-conversation-turns";
 import { LocalModelDataPolicyReader } from "@ai-workspace/local-privacy-policy";
@@ -35,7 +42,9 @@ import {
   type PiiEntityType,
   type StablePseudonymMap,
   detectRestrictedData,
+  emptyStablePseudonymMap,
   evaluatePrivacyPreflight,
+  planModelPrivacyPath,
 } from "@ai-workspace/privacy-gateway";
 import {
   digestCanonical,
@@ -73,6 +82,8 @@ type Dependencies = Readonly<{
   transport?: DeliveryTransport;
   /** Injected agent executors; absent kinds stay unavailable (ADR-0049/0050). */
   agentExecutors?: readonly AgentExecutor[];
+  /** Injected only when the process received a loopback address (ADR-0051). */
+  localModelExecutor?: LocalModelExecutor;
   ids?: () => string;
   clock?: () => Date;
   piiDetector?: PiiDetector;
@@ -115,9 +126,27 @@ export function conversationTurnArea(dependencies: Dependencies) {
     clock: () => clock().getTime(),
   });
   const agentKinds = new Set(agentExecutors.map((executor) => executor.kind));
+  // The store is always readable, so recovery works after a start without the
+  // local model; execution exists only with an injected executor.
+  const localModelAttempts = new LocalModelAttempts(
+    new JsonLocalModelAttemptStore(dependencies.home),
+  );
+  const localModel = dependencies.localModelExecutor
+    ? new LocalModelExecution({
+        attempts: localModelAttempts,
+        executor: dependencies.localModelExecutor,
+        ids,
+        clock: () => clock().getTime(),
+      })
+    : null;
   const idempotency = new JsonConversationTurnRegistry(
     dependencies.home,
-    conversationTurnRecovery(dependencies, attempts, agentAttempts),
+    conversationTurnRecovery(
+      dependencies,
+      attempts,
+      agentAttempts,
+      localModelAttempts,
+    ),
   );
   const continuation = continuationSources(
     dependencies.conversations,
@@ -183,19 +212,26 @@ export function conversationTurnArea(dependencies: Dependencies) {
       projectId: scope.projectId,
     });
     // Each class goes only to its own boundary. An agent kind without an
-    // injected executor, or a local model, is refused here, never delivered
-    // through Responses in its place.
+    // injected executor, or a local model without one or without a declared
+    // LOCAL_ONLY boundary, is refused here, never delivered elsewhere instead.
+    const external = resolved?.target.boundary === "EXTERNAL_SERVICE";
     const deliverable =
+      external &&
       resolved?.target.executionClass === "MODEL_DELIVERY" &&
       resolved.target.kind === "OPENAI_RESPONSES";
     const executable =
+      external &&
       resolved?.target.executionClass === "AGENT_EXECUTION" &&
       agentKinds.has(resolved.target.kind);
+    const local =
+      localModel !== null &&
+      resolved?.target.executionClass === "LOCAL_MODEL" &&
+      resolved.target.kind === "LLAMA_SERVER_LOOPBACK" &&
+      resolved.target.boundary === "LOCAL_ONLY";
     if (
       !resolved ||
       !resolved.target.enabled ||
-      resolved.target.boundary !== "EXTERNAL_SERVICE" ||
-      !(deliverable || executable)
+      !(deliverable || executable || local)
     )
       throw new Error("TARGET_UNAVAILABLE");
     // Do not retain mutable configuration supplied by an adapter.
@@ -236,6 +272,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
     target: ResolvedModelTarget,
     recordAudit: boolean,
   ): Promise<Context> => {
+    const protection = protectionFor(target, automaticPrivacy);
     const configured: ContinuationTarget = {
       destinationId: target.target.targetId,
       model: target.target.modelId,
@@ -288,7 +325,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
             })
           ).eventHash
         : null;
-      const protectedContext = await automaticPrivacy.protect(
+      const protectedContext = await protection.protect(
         stableScopeId(turn.scope),
         serializeContinuation(packet.included),
       );
@@ -324,7 +361,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
       },
       turn,
       target,
-      automaticPrivacy,
+      protection,
       recordAudit,
     );
   };
@@ -443,6 +480,35 @@ export function conversationTurnArea(dependencies: Dependencies) {
           if (ran.kind === "UNKNOWN_AFTER_EXECUTION")
             return { kind: "UNKNOWN_AFTER_EXPOSURE", attemptId: ran.attemptId };
           generated = ran;
+        } else if (target.target.executionClass === "LOCAL_MODEL") {
+          if (localModel === null || target.target.boundary !== "LOCAL_ONLY")
+            return refused("CONTEXT_UNAVAILABLE");
+          let prepared: ReturnType<LocalModelExecution["prepare"]>;
+          try {
+            prepared = localModel.prepare({
+              scopeId: projectId,
+              targetId: target.target.targetId,
+              model: target.target.modelId,
+              text,
+              boundary: "LOCAL_ONLY",
+              bindingDigest,
+              preflightAuditEventHash: context.auditEventHash,
+            });
+          } catch {
+            // A request over the fixed limits is refused, never truncated.
+            return refused("CONTEXT_UNAVAILABLE");
+          }
+          const ran = await localModel.confirm(
+            prepared.authorizationId,
+            projectId,
+            revalidate,
+            execution.bindAttempt,
+          );
+          if (ran.kind === "REFUSED_BEFORE_EXECUTION")
+            return refused(ran.reason);
+          if (ran.kind === "UNKNOWN_AFTER_EXECUTION")
+            return { kind: "UNKNOWN_AFTER_EXPOSURE", attemptId: ran.attemptId };
+          generated = ran;
         } else {
           const prepared = delivery.prepare({
             projectId,
@@ -478,12 +544,14 @@ export function conversationTurnArea(dependencies: Dependencies) {
             };
           generated = { ...delivered, reportedModel: null };
         }
+        const exempt = localOnly(target);
         let restoredText: string;
         try {
-          restoredText = automaticPrivacy.restore(
-            context.mapping,
-            generated.text,
-          );
+          // Nothing was replaced on the way in, so nothing is restored: a
+          // local answer that merely looks like a placeholder stays as written.
+          restoredText = exempt
+            ? generated.text
+            : automaticPrivacy.restore(context.mapping, generated.text);
         } catch {
           return {
             kind: "RESPONSE_WITHHELD",
@@ -536,10 +604,15 @@ export function conversationTurnArea(dependencies: Dependencies) {
           effectiveModel: target.target.displayName,
           text: restoredText,
           occurredAt: stored.occurredAt ?? occurredAt,
-          protection: Object.freeze({
-            automatic: true,
-            replacements: context.replacements,
-          }),
+          // A local answer carries no automatic protection to report.
+          ...(exempt
+            ? {}
+            : {
+                protection: Object.freeze({
+                  automatic: true as const,
+                  replacements: context.replacements,
+                }),
+              }),
         };
       } catch {
         return {
@@ -664,8 +737,11 @@ export function conversationTurnArea(dependencies: Dependencies) {
           : "CONTEXT_UNAVAILABLE",
       );
     }
+    const exempt = localOnly(target);
     let review: ReturnType<TurnReviews["prepare"]> | undefined;
     if (input.bindReview) {
+      // Reviews hold protected payloads only; a local payload is the original.
+      if (exempt) return blockedPreview("REVIEW_UNAVAILABLE");
       try {
         if (
           (await readSelection(input.conversationId)).digest !==
@@ -687,6 +763,7 @@ export function conversationTurnArea(dependencies: Dependencies) {
       ...projectTurnPayload(context.text),
       totalBytes: Buffer.byteLength(context.text, "utf8"),
       replacements: context.replacements,
+      ...(exempt ? { protection: LOCAL_MODEL_PROTECTION } : {}),
       ...(review ? { review, protectedText: context.text } : {}),
       effect: "LOCAL_PREVIEW_NOT_AUDITED_AUTHORIZED_OR_SENT" as const,
     });
@@ -731,11 +808,46 @@ async function storeGeneralTurn(
   };
 }
 
-/** The turn admits only these two classes; see `readSelection`. */
+/** The class written into provenance; see `readSelection` for what runs. */
 function generatedClass(target: ResolvedModelTarget) {
-  return target.target.executionClass === "AGENT_EXECUTION"
-    ? ("AGENT_EXECUTION" as const)
+  return target.target.executionClass === "AGENT_EXECUTION" ||
+    target.target.executionClass === "LOCAL_MODEL"
+    ? target.target.executionClass
     : ("MODEL_DELIVERY" as const);
+}
+
+/**
+ * ADR-0051. True only for a local model whose target declares LOCAL_ONLY. The
+ * decision is the privacy gateway's, never a name, an address or a UI choice.
+ */
+function localOnly(target: ResolvedModelTarget): boolean {
+  return (
+    target.target.executionClass === "LOCAL_MODEL" &&
+    planModelPrivacyPath(target.target.boundary).pseudonymization ===
+      "NOT_REQUIRED"
+  );
+}
+
+/**
+ * Pseudonymization is skipped only where `localOnly` holds. The policy
+ * preflight and the restricted-data block run either way, and every other
+ * class is protected again from the original text on each composition, so a
+ * later switch of target never reuses this unprotected form.
+ */
+function protectionFor(
+  target: ResolvedModelTarget,
+  automaticPrivacy: AutomaticPrivacyProtection,
+): Pick<AutomaticPrivacyProtection, "protect"> {
+  if (!localOnly(target)) return automaticPrivacy;
+  return {
+    protect: async (scopeId: string, text: string) =>
+      Object.freeze({
+        text,
+        mapping: emptyStablePseudonymMap(scopeId),
+        mappingDigest: sha256(LOCAL_MODEL_PROTECTION),
+        replacements: 0,
+      }),
+  };
 }
 
 /** A refusal is a result of the preview, not a failure of it: knowing the send

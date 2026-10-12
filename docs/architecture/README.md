@@ -23,8 +23,9 @@ the current conversation preview and persistent local session state, while
 session imports remain historical, untrusted evidence. OpenAI Responses is
 available only through an explicit process opt-in; it has not been live-probed
 and is not the default transport. Codex and Claude Code adapters/runners are
-dormant, qualified with synthetic executables, and are not wired into ordinary
-GUI conversation flow. No claim of live provider quality, agent execution, or
+qualified with synthetic executables and reach the conversation only through an
+explicit opt-in. A local model is offered only when a loopback address is named
+at start, and is qualified against a synthetic server. No claim of live provider quality, agent execution, or
 complete privacy detection follows from the offline suite. Privacy protection
 uses app-managed stable maps per project or General scope, with optional
 reviewed manual protected terms. A passphrase is not requested for daily use;
@@ -361,17 +362,18 @@ each target has an `executionClass` and a `kind` from a closed list, and the
 kind limits the declared boundary. `packages/model-targets` derives
 availability from capabilities declared by the host, never from stored flags
 or names; `apps/web/src/model-target-area.ts` declares Responses as simulated
-or opted in and the agent kinds as qualified offline but not connected. The
-local JSON adapter reads v1 without writing and preserves its exact bytes before
-the first v2 publication. The turn remains wired only to `MODEL_DELIVERY`.
+or opted in, and the agent kinds and the local model as qualified offline,
+launchable only when the host offers an executor for them. A target whose
+boundary is `UNCLASSIFIED` is never available. The local JSON adapter reads v1
+without writing and preserves its exact bytes before the first v2 publication.
 
 ADR-0049 adds `packages/agent-execution` and `integrations/local-agent-attempts`.
 The coordinator plans an agent invocation as digests without I/O, links the
 attempt to the durable turn identity, prepares, rechecks, claims execution and
 rereads the claim before the injected executor can start a process. The agent
 store is separate from model-delivery attempts; the turn reference names its
-class so recovery reads the right store. The web application reads the agent
-store during recovery only; no agent executor is wired.
+class so recovery reads the right store, even after a start that offers no
+agent.
 
 ADR-0050 adds `integrations/agent-process`, used by both agent adapters for the
 confined run tree, the explicit environment, executable qualification by
@@ -385,6 +387,22 @@ executors behind an exact opt-in and a digest check. Answers keep their class:
 General provenance has optional `executionClass` and `reportedModel`, and
 project answers use `AGENT_EXECUTION:<name>` source labels, read through
 `apps/web/src/generated-source.ts`.
+
+ADR-0051 adds the local model as a third boundary, beside model delivery and
+agents, with three modules. `packages/local-model-execution` owns the port, the
+fixed limits, the outcomes, the coordinator and the attempt contract.
+`integrations/llama-server-loopback` speaks only HTTP: one non-streaming
+`POST /v1/chat/completions` to a numeric `127.0.0.1` or `::1` address with an
+explicit port, with no proxy, redirect or fallback.
+`integrations/local-model-run-attempts` is the separate append-only,
+hash-chained attempt store, which holds digests only. The target is offered only
+when `AI_WORKSPACE_LOCAL_MODEL_ENDPOINT` is set at start and must declare the
+`LOCAL_ONLY` boundary, which is the user's declaration. Only for this class and
+boundary is pseudonymization skipped; the data policy and the block on reserved
+material stay active, and the exemption is written into the attempt. The turn
+reference carries class `LOCAL_MODEL`, and recovery reads only the local store.
+`ModelDelivery` and the API attempt store are not generalized. See the
+[local model boundary](../development/local-model-boundary.md).
 
 The OpenAI attempt-semantics work also changes no production graph. A test-owned OpenAI attempt store,
 fake create adapter, and canonical snapshot harness measure the ADR-0027

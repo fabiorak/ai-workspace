@@ -68,7 +68,7 @@ export type GeneratedProvenance = Readonly<{
   /** The model or alias requested, never replaced with a deduced one. */
   model: string;
   targetId: string;
-  executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION";
+  executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION" | "LOCAL_MODEL";
   reportedModel?: string;
 }>;
 
@@ -204,7 +204,7 @@ export class GeneralConversations {
       displayName: string;
       model: string;
       targetId: string;
-      executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION";
+      executionClass?: "MODEL_DELIVERY" | "AGENT_EXECUTION" | "LOCAL_MODEL";
       reportedModel?: string | null;
     }>,
   ): Promise<GeneralConversation> {
@@ -230,7 +230,8 @@ export class GeneralConversations {
     if (
       input.executionClass !== undefined &&
       input.executionClass !== "MODEL_DELIVERY" &&
-      input.executionClass !== "AGENT_EXECUTION"
+      input.executionClass !== "AGENT_EXECUTION" &&
+      input.executionClass !== "LOCAL_MODEL"
     )
       throw new GeneralConversationError("Execution class is invalid.");
     const reportedModel =

@@ -103,12 +103,11 @@ execution durably before a process can start and keeps every later failure
 unknown, with no rerun. Turns link to agent attempts through the durable turn
 registry. Both adapters are exercised behind a synthetic runner.
 
-## Local-model rehearsal
+## Local model
 
-Qualify the existing `qwen3.6-35b` loopback server through a separate
-`LOCAL_MODEL` adapter. Do not add endpoint overrides to the OpenAI adapter.
-Verify process ownership, loopback binding, response and reasoning limits,
-cancellation and absence of fallback before exposing it in the target selector.
+The local model is a separate `LOCAL_MODEL` boundary with its own adapter and
+attempt store; the OpenAI adapter has no endpoint override. See
+[Local model boundary](local-model-boundary.md) and ADR-0051.
 
 ## Live gates
 

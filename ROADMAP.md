@@ -76,7 +76,8 @@ conversations without a handoff. Durable turn identity and conservative recovery
 live in the local conversation-turn registry. An optional expiring review binds
 the protected payload to the later send, with target and scope revalidation
 before exposure. Model targets carry an explicit execution class and a derived
-availability state; local-model targets are configurable but not connected.
+availability state; a local-model target is offered only when you name a
+loopback address at start.
 Agent attempts are recorded in a separate store with an execution coordinator,
 and agent processes are confined by a private run tree, an explicit environment,
 a dedicated login directory, executables qualified by version and digest, and
@@ -85,9 +86,14 @@ Agent targets are routed through the conversation turn and keep their class in
 the history; they are qualified offline with synthetic agents, and real agents
 stay behind an opt-in with empty reviewed lists.
 
-The next real product boundary is wiring a chosen agent execution path with
-durable attempts and confinement evidence; no agent is available from the
-ordinary GUI path yet. After it, a local model behind its own adapter.
+A local model answers through its own adapter and its own attempt record. It is
+wired into the conversation turn and qualified offline against a synthetic
+server on loopback; no real model has been run, and a real run needs a written
+sheet and explicit approval.
+
+The next real product boundary is the first reviewed live probe of an agent or
+of the local model, each behind its own sheet. Until one is reviewed, no real
+agent is available and the local model answers only when you offer it.
 
 **General-purpose repositories.** Registration is still expressed in terms of a
 Git repository. Document repositories are designed in the long-term vision and

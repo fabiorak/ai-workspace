@@ -9,7 +9,8 @@ export { executionHost } from "./execution-host.ts";
  * The host, not the configuration, says what can run. Responses is simulated
  * unless the process received the explicit transport opt-in. An agent kind is
  * launchable only when an executor for it was injected, and says whether that
- * executor is synthetic; no local-model adapter is qualified yet.
+ * executor is synthetic. The local model is offered only when the process
+ * received its loopback address at start (ADR-0051).
  */
 export function modelTargetArea(workspaceHome: string, host: ExecutionHost) {
   const agents = Object.fromEntries(
@@ -19,10 +20,18 @@ export function modelTargetArea(workspaceHome: string, host: ExecutionHost) {
     ]),
   );
   return new ModelTargets(new JsonModelTargetStore(workspaceHome), {
-    qualifiedOffline: ["OPENAI_RESPONSES", "CODEX_CLI", "CLAUDE_CODE"],
+    qualifiedOffline: [
+      "OPENAI_RESPONSES",
+      "CODEX_CLI",
+      "CLAUDE_CODE",
+      "LLAMA_SERVER_LOOPBACK",
+    ],
     launch: {
       OPENAI_RESPONSES: host.transport ? "AVAILABLE" : "SIMULATED",
       ...agents,
+      ...(host.localModelExecutor
+        ? { LLAMA_SERVER_LOOPBACK: host.localModelExecutor.launch }
+        : {}),
     },
   });
 }

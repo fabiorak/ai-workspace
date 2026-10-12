@@ -43,6 +43,9 @@ Implemented packages:
   contracts;
 - `model-attempts/` owns the provider-neutral bounded model attempt state
   machine and its persistence ports;
+- `local-model-execution/` owns the local-model port, its fixed limits and
+  outcomes, the coordinator that claims a call durably before it starts, and the
+  attempt contract;
 - `context-builder/` owns deterministic budgeted Context Pack composition and
   its schema-versioned canonical representation;
 - `tolerant-retrieval/` owns the in-memory tolerant lexical index of ADR-0031

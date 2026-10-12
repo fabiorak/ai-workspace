@@ -93,7 +93,8 @@ export function attempt(value: unknown): ConversationTurnAttempt {
     ) ||
     (classed &&
       value.executionClass !== "MODEL_DELIVERY" &&
-      value.executionClass !== "AGENT_EXECUTION")
+      value.executionClass !== "AGENT_EXECUTION" &&
+      value.executionClass !== "LOCAL_MODEL")
   )
     throw unavailable();
   return value as ConversationTurnAttempt;

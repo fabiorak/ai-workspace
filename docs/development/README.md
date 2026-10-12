@@ -49,6 +49,7 @@ against it. All inputs are synthetic.
 **Agents**
 
 - [Subscription-backed agent boundary](subscription-agent-boundary.md)
+- [Local model boundary](local-model-boundary.md)
 - [Codex headless qualification corpus](codex-headless-qualification-corpus.md)
 - [Claude Code headless qualification corpus](claude-headless-qualification-corpus.md)
 - [Claude Code provider-boundary spike](claude-code-provider-spike.md)

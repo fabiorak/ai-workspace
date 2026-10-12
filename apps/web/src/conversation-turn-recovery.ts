@@ -4,6 +4,7 @@ import type {
   ConversationTurnScope,
 } from "@ai-workspace/conversation-turn";
 import type { AgentAttempts } from "@ai-workspace/agent-execution";
+import type { LocalModelAttempts } from "@ai-workspace/local-model-execution";
 import type { ConversationTurnAttempt } from "@ai-workspace/conversation-turn";
 import type { GeneralConversations } from "@ai-workspace/general-conversation";
 import type { ModelAttempts } from "@ai-workspace/model-attempts";
@@ -25,17 +26,27 @@ type Evidence = Readonly<{
 }>;
 
 /**
- * The reference names its store (ADR-0049). An agent reference is never read
- * from the model-delivery store, and without an agent store it stays unknown.
+ * The reference names its store (ADR-0049, ADR-0051). An agent or local model
+ * reference is never read from the model-delivery store, and without its own
+ * store it stays unknown.
  */
 async function evidenceFor(
   reference: ConversationTurnAttempt,
   attempts: Pick<ModelAttempts, "inspect">,
   agentAttempts: Pick<AgentAttempts, "inspect"> | undefined,
+  localModelAttempts: Pick<LocalModelAttempts, "inspect"> | undefined,
 ): Promise<Evidence> {
-  if (reference.executionClass === "AGENT_EXECUTION") {
-    if (agentAttempts === undefined) throw new Error("NO_AGENT_ATTEMPTS");
-    const record = await agentAttempts.inspect(
+  if (
+    reference.executionClass === "AGENT_EXECUTION" ||
+    reference.executionClass === "LOCAL_MODEL"
+  ) {
+    // Both records share the five states of ADR-0049 and differ only in store.
+    const store =
+      reference.executionClass === "AGENT_EXECUTION"
+        ? agentAttempts
+        : localModelAttempts;
+    if (store === undefined) throw new Error("NO_ATTEMPT_STORE");
+    const record = await store.inspect(
       reference.projectId,
       reference.attemptId,
     );
@@ -72,6 +83,7 @@ export function conversationTurnRecovery(
   sources: Sources,
   attempts: Pick<ModelAttempts, "inspect">,
   agentAttempts?: Pick<AgentAttempts, "inspect">,
+  localModelAttempts?: Pick<LocalModelAttempts, "inspect">,
 ): TurnRecovery {
   return async (claim, reference, receipt) => {
     if (reference === null)
@@ -95,7 +107,12 @@ export function conversationTurnRecovery(
         claim.scope.projectId ??
         `general-${digest(claim.scope.conversationId)}`;
       if (reference.projectId !== expectedProject) return unknown;
-      const evidence = await evidenceFor(reference, attempts, agentAttempts);
+      const evidence = await evidenceFor(
+        reference,
+        attempts,
+        agentAttempts,
+        localModelAttempts,
+      );
       if (evidence.authorizationId !== reference.authorizationId)
         return unknown;
       if (receipt?.kind === "REFUSED_BEFORE_EXPOSURE") return receipt;

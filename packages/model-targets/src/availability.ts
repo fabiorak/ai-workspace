@@ -46,7 +46,9 @@ export function modelTargetAvailability(
       launch: "UNAVAILABLE" as const,
       reason,
     });
-  if (target.kind === null) return unavailable("UNCLASSIFIED");
+  // A declared boundary is part of the class: an unclassified one never runs.
+  if (target.kind === null || target.boundary === "UNCLASSIFIED")
+    return unavailable("UNCLASSIFIED");
   if (!target.enabled) return unavailable("DISABLED");
   if (!qualifiedOffline) return unavailable("NOT_QUALIFIED");
   const launch = capabilities.launch[target.kind];

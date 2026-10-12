@@ -78,10 +78,12 @@ model delivery, Codex CLI and Claude Code are subscription agents, and
 llama-server on loopback is a local model. Settings shows a state for each
 target. **Available, simulated answers** means the standard host answers locally
 without calling a model, whatever the target is called; the conversation
-selector adds **simulated** next to the name. Agents show **Qualified offline, not
-connected yet** and local models **Adapter not qualified yet**: you can configure
-them, but they cannot answer and a send is refused with the draft kept. Nothing
-falls back to another target. Choosing Claude Code proposes the `sonnet` alias
+selector adds **simulated** next to the name. Agents and the local model show
+**Qualified offline, not connected yet** until the host offers them: you can
+configure them, but they cannot answer and a send is refused with the draft
+kept. A local model target that is offered shows **Available**; one that does not
+declare the `LOCAL_ONLY` boundary shows **Unclassified** and cannot answer.
+Nothing falls back to another target. Choosing Claude Code proposes the `sonnet` alias
 when the model field is empty.
 
 When the host offers an agent, a Codex or Claude Code target answers from the
@@ -91,6 +93,20 @@ context. **Show protections** on an agent target adds a note: it shows exactly
 what AI Workspace supplies, while the agent product adds instructions of its own.
 The standard start offers no agent; the offline demo offers synthetic agents
 marked **simulated**. An uncertain agent outcome is never rerun.
+
+The local model is offered only when the host starts with
+`AI_WORKSPACE_LOCAL_MODEL_ENDPOINT` set to `http://127.0.0.1:<port>` or
+`http://[::1]:<port>`; the terminal then prints where it is offered. You start
+the `llama-server` yourself: AI Workspace does not start or stop it. Choose the
+local target, write and send; the answer is saved with the class **local model**
+and an uncertain outcome is never rerun. A local target must declare the
+`LOCAL_ONLY` boundary, and that is your statement: AI Workspace checks only that
+the address is numeric loopback, not which program listens there. For this
+target the text is not pseudonymized, so the model receives your original text.
+The data policy and the block on reserved material still apply. **Show
+protections** says so, and **Send only the content shown here** is not available
+because there is no protected text to review. An answer that was cut off or is
+empty counts as uncertain: send again if you want a new attempt.
 
 Targets saved by an earlier version keep working. The first time you change
 target settings, the earlier file is kept unchanged next to the new one as

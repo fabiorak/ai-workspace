@@ -18,11 +18,16 @@ Implemented adapters:
 - `local-handoffs/` reads immutable schema-v1 handoffs, writes normalized
   schema-v2 handoffs as scoped JSON files, and records immutable deterministic
   evaluations with exclusive writes;
+- `llama-server-loopback/` makes the one non-streaming
+  `POST /v1/chat/completions` call to a numeric loopback address the user
+  names, with no proxy, redirect or fallback, and speaks only HTTP;
 - `local-instructions/` reads only explicitly selected structured synthetic
   bundles, derives SHA-256 provenance from exact bytes, and performs no
   discovery, persistence, or execution;
 - `local-project-registry/` persists the Project Registry in a local,
   schema-versioned JSON file;
+- `local-model-run-attempts/` persists local-model attempts as a separate
+  append-only, hash-chained file store of digests only;
 - `local-privacy-policy/` reads one explicit bounded digest-pinned model data
   policy with fatal UTF-8, same-project validation, and safe basename output;
 - `local-privacy-mapping/` stores immutable reversible mappings only as

@@ -93,9 +93,19 @@ test("reads the optional execution class and refuses one it does not know", asyn
     const original = await readFile(path, "utf8");
     await writeFile(
       path,
-      original.replace('"AGENT_EXECUTION"', '"LOCAL_MODEL"'),
+      original.replace('"AGENT_EXECUTION"', '"LOCAL_MODEL_X"'),
     );
     await assert.rejects(new JsonGeneralConversationStore(home).list());
+    await writeFile(
+      path,
+      original.replace('"AGENT_EXECUTION"', '"LOCAL_MODEL"'),
+    );
+    const local = (await new JsonGeneralConversationStore(home).list())[0]!
+      .events[1]!;
+    assert.equal(
+      local.type === "AGENT_MESSAGE" && local.provenance.executionClass,
+      "LOCAL_MODEL",
+    );
   } finally {
     await rm(home, { recursive: true });
   }

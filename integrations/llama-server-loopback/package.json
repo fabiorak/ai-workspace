@@ -1,0 +1,23 @@
+{
+  "name": "@ai-workspace/llama-server-loopback",
+  "version": "0.0.0",
+  "private": true,
+  "description": "HTTP adapter for a user-started llama-server bound to a loopback address",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/local-model-execution": "0.0.0"
+  }
+}

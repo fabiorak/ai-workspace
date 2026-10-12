@@ -79,6 +79,15 @@
       "@ai-workspace/agent-execution": [
         "./packages/agent-execution/src/index.ts"
       ],
+      "@ai-workspace/local-model-execution": [
+        "./packages/local-model-execution/src/index.ts"
+      ],
+      "@ai-workspace/llama-server-loopback": [
+        "./integrations/llama-server-loopback/src/index.ts"
+      ],
+      "@ai-workspace/local-model-run-attempts": [
+        "./integrations/local-model-run-attempts/src/index.ts"
+      ],
       "@ai-workspace/local-agent-attempts": [
         "./integrations/local-agent-attempts/src/index.ts"
       ],

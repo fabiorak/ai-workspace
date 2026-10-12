@@ -1,0 +1,20 @@
+{
+  "name": "@ai-workspace/local-model-execution",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local model execution port, limits, outcomes and coordinator behind a loopback boundary",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

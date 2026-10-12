@@ -314,7 +314,8 @@ function validProvenance(event: Record<string, unknown>): boolean {
     ]) &&
     (!Object.hasOwn(provenance, "executionClass") ||
       provenance.executionClass === "MODEL_DELIVERY" ||
-      provenance.executionClass === "AGENT_EXECUTION") &&
+      provenance.executionClass === "AGENT_EXECUTION" ||
+      provenance.executionClass === "LOCAL_MODEL") &&
     (!Object.hasOwn(provenance, "reportedModel") ||
       validText(provenance.reportedModel, 256)) &&
     event.provenance.kind === "MODEL_CONVERSATION" &&

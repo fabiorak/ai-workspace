@@ -555,6 +555,40 @@ whole-file comparison.
 - accepted residual risk: the process runs as the same account and can read
   files outside its run tree; the product's own service connection is needed.
 
+## Local model boundary (ADR-0051, offline)
+
+- the local model is a `LLAMA_SERVER_LOOPBACK` target started by the user; AI
+  Workspace starts and stops no process and holds no model file path;
+- it is offered only if the process receives
+  `AI_WORKSPACE_LOCAL_MODEL_ENDPOINT` at start, and the value must be a numeric
+  `http://127.0.0.1:<port>` or `http://[::1]:<port>` address; a name, `0.0.0.0`,
+  `https`, a path, credentials or a missing port stops the start, so no name is
+  resolved;
+- one non-streaming call, with no proxy from the environment, no redirect
+  followed and no fallback to another address, target, executor or delivery;
+- an `UNCLASSIFIED` target is unavailable; `LOCAL_ONLY` is the user's
+  declaration;
+- accepted residual risk: another program on the same machine can forward a
+  loopback port, and the listening process may not be the one the user believes
+  it is; a numeric address cannot prove otherwise, so the check is a floor and
+  the interface shows the boundary as a declaration;
+- risk: the model receives the original text. Pseudonymization is skipped only
+  for class `LOCAL_MODEL` with boundary `LOCAL_ONLY`; the data policy and the
+  block on reserved material stay active, the reviewed send is not offered, and
+  the exemption is written into the attempt. Agents and the API recompute
+  protection from the original text on every send, so changing from a local
+  target to an external one reuses no unprotected text;
+- an answer is valid only as one whole JSON document within fixed limits (900 s,
+  1 MiB request, 1 MiB response, 128 KiB answer, `max_tokens` 8192), with one
+  choice, finish reason `stop` and non-empty content; reasoning text is neither
+  stored nor shown;
+- attempts live in a separate append-only, hash-chained store with digests
+  only, claimed durably before the call; every later outcome that is not
+  validated is unknown and never rerun, including an answer cut by
+  `max_tokens`;
+- qualification is offline against a synthetic server; no real model has been
+  run.
+
 ## Implemented E7 privacy-preflight controls
 
 - ADR-0017 requires an explicit inspectable privacy decision before any future
