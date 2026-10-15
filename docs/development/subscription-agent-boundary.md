@@ -39,8 +39,12 @@ record target, model when reported, execution class and attempt identity.
 Build one production-owned subprocess adapter behind an injectable process port,
 but test it only with a deterministic fake executable. The intended real command
 uses non-interactive ephemeral execution, JSONL output, read-only sandbox, no
-approval prompts, ignored user config and rules, an isolated temporary working
-directory, and exact input on stdin. The implementation must resolve supported
+approval prompts, ignored user config and rules, no shared local daemon
+(`--no-daemon`), product features that an answer-only run does not need turned
+off with `--disable` (`CODEX_DISABLED_FEATURES`), an isolated temporary
+working directory, and exact input on stdin. On the reviewed release one
+command path, `unified_exec`, stays on despite `--disable`: a command can still
+run, and its event then voids the answer after it has run. The implementation must resolve supported
 flags from the installed version before a live review; frozen 2026-07-22 flags
 are evidence, not an eternal compatibility promise.
 
@@ -49,6 +53,8 @@ Gates:
 - exact argv and stdin construction, without shell interpolation;
 - bounded stdout and stderr, UTF-8 validation and strict event schema;
 - one final answer and zero tool, command, file-change or retry events;
+  reasoning items are discarded unread, never stored or shown, and only
+  answer and reasoning items may be announced with `item.started`;
 - timeout kills the complete process tree;
 - nonzero, incomplete, duplicate, malformed and oversized results fail closed;
 - environment allowlist excludes provider keys and unrelated process secrets;
@@ -128,17 +134,21 @@ directory checked by metadata only, a canonical executable fixed by digest and
 reviewed version, and process-group cancellation with after-the-fact checks for
 lingering descendants and files left behind. The ADR holds the capability
 table separating what is enforced before the run, what is checked after it and
-what is not controlled. The reviewed release lists are empty, so no real
-installation is available yet.
+what is not controlled. The Codex list holds the standalone release `0.160.0`
+for `x86_64-unknown-linux-musl`; the Claude Code list is empty, so no Claude
+Code installation is available yet. An automatic update changes the file
+digest, so the updated Codex installation is unavailable until it is reviewed.
 
 Before a live review of either product, on the installed release and without
 running a task:
 
-1. read its version once, with explicit authorization, through the confined
-   runner;
+1. read its version once, with explicit authorization, in an empty
+   environment with a temporary home and configuration directory;
 2. confirm every frozen flag in its own `--help` and current documentation,
    including `--safe-mode`, `--setting-sources` and `--strict-mcp-config` for
-   Claude Code and the read-only sandbox and ignore flags for Codex;
+   Claude Code and the read-only sandbox and ignore flags for Codex, then pass
+   the complete frozen argv followed by `--help`, which validates every flag
+   and value without starting a session;
 3. add the version and file digest to the adapter's reviewed list;
 4. sign in once inside the dedicated login directory, outside AI Workspace.
 

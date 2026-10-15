@@ -13,6 +13,7 @@ import {
 import {
   CodexAgentAdapter,
   buildCodexAgentInvocation,
+  CODEX_DISABLED_FEATURES,
   createCodexAgentProcessRunner,
   type CodexAgentObservation,
   parseCodexVersion,
@@ -50,6 +51,32 @@ describe("subscription-backed Codex agent adapter", () => {
     assert.equal(value.stdin, input.text);
     assert.equal(value.cwd, input.isolatedWorkspace);
     assert.deepEqual(value.args, [
+      "--no-daemon",
+      ...[
+        "shell_tool",
+        "unified_exec_tty",
+        "shell_snapshot",
+        "view_image",
+        "apps",
+        "plugins",
+        "remote_plugin",
+        "hooks",
+        "skill_search",
+        "skill_mcp_dependency_install",
+        "workspace_dependencies",
+        "browser_use",
+        "browser_use_external",
+        "browser_use_full_cdp_access",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "image_generation",
+        "tool_suggest",
+        "sleep_tool",
+        "goals",
+        "daemon_auto_start",
+        "unbounded_connection_retries",
+      ].flatMap((feature) => ["--disable", feature]),
       "--ask-for-approval",
       "never",
       "exec",
@@ -66,6 +93,12 @@ describe("subscription-backed Codex agent adapter", () => {
       input.isolatedWorkspace,
       "-",
     ]);
+    // Exactly the 23 features observed off; the one that stayed on is not
+    // listed as if it were disabled.
+    assert.equal(CODEX_DISABLED_FEATURES.length, 23);
+    assert.equal(new Set(CODEX_DISABLED_FEATURES).size, 23);
+    assert.equal(CODEX_DISABLED_FEATURES.includes("unified_exec"), false);
+    assert.ok(Object.isFrozen(CODEX_DISABLED_FEATURES));
   });
 
   it("accepts one final message and returns only bounded evidence", async () => {
@@ -82,6 +115,68 @@ describe("subscription-backed Codex agent adapter", () => {
       assert.equal(result.inputDigest.length, 64);
       assert.equal(JSON.stringify(result).includes(input.text), false);
     }
+  });
+
+  it("discards reasoning and answer-only announcements without keeping them", async () => {
+    const reasoning = "Synthetic private reasoning canary";
+    const result = await new CodexAgentAdapter(async () =>
+      observation({
+        stdout: [
+          { type: "thread.started", thread_id: "synthetic" },
+          { type: "turn.started" },
+          { type: "item.started", item: { id: "r", type: "reasoning" } },
+          {
+            type: "item.completed",
+            item: { id: "r", type: "reasoning", text: reasoning },
+          },
+          { type: "item.started", item: { id: "a", type: "agent_message" } },
+          {
+            type: "item.completed",
+            item: { id: "a", type: "agent_message", text: "answer" },
+          },
+          { type: "turn.completed", usage: { output_tokens: 1 } },
+        ]
+          .map((event) => JSON.stringify(event) + "\n")
+          .join(""),
+      }),
+    ).execute(input);
+    assert.equal(result.kind, "COMPLETED");
+    if (result.kind === "COMPLETED") {
+      assert.equal(result.text, "answer");
+      assert.equal(result.eventCount, 7);
+      assert.equal(JSON.stringify(result).includes(reasoning), false);
+    }
+  });
+
+  it("still fails closed for every other started or completed item", async () => {
+    const answer =
+      '{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n{"type":"turn.completed"}\n';
+    const cases = [
+      ...[
+        "command_execution",
+        "file_change",
+        "mcp_tool_call",
+        "web_search",
+        "todo_list",
+        "unreviewed",
+      ].flatMap((type) => [
+        `{"type":"item.started","item":{"type":"${type}"}}\n${answer}`,
+        `{"type":"item.completed","item":{"type":"${type}"}}\n${answer}`,
+      ]),
+      `{"type":"item.started"}\n${answer}`,
+      `{"type":"item.updated","item":{"type":"agent_message","text":"a"}}\n${answer}`,
+      `{"type":"turn.failed","error":{"message":"synthetic"}}\n${answer}`,
+      `{"type":"error","message":"synthetic"}\n${answer}`,
+      '{"type":"item.completed","item":{"type":"reasoning","text":"only"}}\n{"type":"turn.completed"}\n',
+    ];
+    for (const stdout of cases)
+      assert.deepEqual(
+        await new CodexAgentAdapter(async () =>
+          observation({ stdout }),
+        ).execute(input),
+        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        stdout,
+      );
   });
 
   it("fails closed for tools, duplicates, malformed output and nonzero exit", async () => {
@@ -113,8 +208,9 @@ describe("subscription-backed Codex agent adapter", () => {
       );
   });
 
-  it("reads only the exact version line and ships no reviewed release", async () => {
+  it("reads only the exact version line and ships one reviewed release", async () => {
     assert.equal(parseCodexVersion("codex-cli 0.63.0\n"), "0.63.0");
+    assert.equal(parseCodexVersion("codex-cli 0.160.0\n"), "0.160.0");
     for (const value of [
       "0.63.0",
       "codex-cli 0.63",
@@ -122,17 +218,41 @@ describe("subscription-backed Codex agent adapter", () => {
       " codex-cli 0.63.0",
     ])
       assert.equal(parseCodexVersion(value), null, value);
-    assert.deepEqual(QUALIFIED_CODEX_EXECUTABLES, []);
+    assert.deepEqual(QUALIFIED_CODEX_EXECUTABLES, [
+      {
+        version: "0.160.0",
+        sha256:
+          "12eb3e81114588aca3b7998f4f19e8997b056aca08e57a7ca7c8a3ec8c652aad",
+      },
+    ]);
+    assert.ok(Object.isFrozen(QUALIFIED_CODEX_EXECUTABLES));
+    assert.ok(QUALIFIED_CODEX_EXECUTABLES.every(Object.isFrozen));
     assert.deepEqual(
       await qualifyCodexExecutable(
         [dirname(process.execPath)],
-        "codex-cli 0.63.0\n",
+        "codex-cli 0.160.0\n",
       ),
       {
         kind: "NOT_QUALIFIED",
         reason: "NOT_FOUND",
       },
     );
+  });
+
+  it("refuses another file that reports the reviewed version", async () => {
+    const fixture = await fixtureCodex("process.exit(0);\n");
+    try {
+      assert.deepEqual(
+        await qualifyCodexExecutable([fixture.bin], "codex-cli 0.160.0\n"),
+        { kind: "NOT_QUALIFIED", reason: "DIGEST_NOT_QUALIFIED" },
+      );
+      assert.deepEqual(
+        await qualifyCodexExecutable([fixture.bin], "codex-cli 0.161.0\n"),
+        { kind: "NOT_QUALIFIED", reason: "VERSION_NOT_QUALIFIED" },
+      );
+    } finally {
+      await release(fixture);
+    }
   });
 
   it("voids an answer when a descendant lingered or the workspace was written", async () => {

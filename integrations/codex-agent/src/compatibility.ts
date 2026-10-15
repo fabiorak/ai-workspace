@@ -6,13 +6,22 @@ import {
 } from "@ai-workspace/agent-process";
 
 /**
- * Reviewed installations only (ADR-0050). It is empty on purpose: the flags in
- * `buildCodexAgentInvocation` are frozen from 2026-07-22 evidence and no
- * installed release has been checked against them, so every real installation
- * is unavailable until one is reviewed and added with its file digest.
+ * Reviewed installations only (ADR-0050). Each entry was checked without
+ * running a task: `--version`, `--help` and `exec --help` in an empty
+ * environment, then the complete `buildCodexAgentInvocation` argv followed by
+ * `--help`, which validates every flag and value before printing help. Any
+ * other release or file, including an automatic update, stays unavailable
+ * until it is reviewed the same way and added with its file digest.
  */
 export const QUALIFIED_CODEX_EXECUTABLES: readonly QualifiedExecutable[] =
-  Object.freeze([]);
+  Object.freeze([
+    // Standalone release 0.160.0, x86_64-unknown-linux-musl, static binary.
+    Object.freeze({
+      version: "0.160.0",
+      sha256:
+        "12eb3e81114588aca3b7998f4f19e8997b056aca08e57a7ca7c8a3ec8c652aad",
+    }),
+  ]);
 
 /** `codex --version` prints one line such as `codex-cli 0.63.0`. */
 export function parseCodexVersion(output: string): string | null {

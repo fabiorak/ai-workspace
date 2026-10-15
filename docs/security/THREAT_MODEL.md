@@ -549,7 +549,14 @@ whole-file comparison.
   environment built from nothing and a login directory dedicated to AI
   Workspace, whose contents AI Workspace never reads;
 - only a canonical executable whose version and digest are on a reviewed list
-  can start; the lists are empty until a release is reviewed;
+  can start; an update or any unlisted release stays unavailable until it is
+  reviewed, and the Claude Code list is empty;
+- the Codex invocation starts with `--no-daemon`, so a run never attaches to or
+  leaves behind the product's shared local daemon, and turns off the features
+  an answer-only run does not need, including account apps and connectors;
+- accepted residual risk: on the reviewed Codex release one command path stays
+  on despite `--disable`, so a command can run and send what it read before
+  its event voids the answer;
 - process-group cancellation proves termination; lingering descendants, an
   escaped process or files left behind turn the outcome unknown;
 - accepted residual risk: the process runs as the same account and can read

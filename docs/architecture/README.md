@@ -378,7 +378,8 @@ agent.
 ADR-0050 adds `integrations/agent-process`, used by both agent adapters for the
 confined run tree, the explicit environment, executable qualification by
 version and digest, and the process-group runner with lingering and workspace
-checks. Its reviewed release lists are empty, so no real installation qualifies.
+checks. The Codex list holds one reviewed release; the Claude Code list is
+empty, so no Claude Code installation qualifies.
 
 The conversation turn routes by class (ADR-0045 amendment). Agent targets go to
 `AgentExecution` only for kinds the host offers through

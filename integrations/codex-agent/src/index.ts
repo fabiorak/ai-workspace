@@ -7,6 +7,43 @@ export * from "./compatibility.ts";
 const MAX_INPUT_BYTES = 256 * 1024;
 const MAX_STREAM_BYTES = 2 * 1024 * 1024;
 const MAX_OUTPUT_BYTES = 1024 * 1024;
+const ANNOUNCED_ITEMS: ReadonlySet<unknown> = new Set([
+  "agent_message",
+  "reasoning",
+]);
+
+/**
+ * Product features turned off for an answer-only run. Each name was checked
+ * on the reviewed release: `features list` with these options reports every
+ * one as off. `unified_exec` is absent on purpose: that release keeps it on
+ * despite `--disable`, so command execution stays possible and voids the
+ * answer through the event check instead.
+ */
+export const CODEX_DISABLED_FEATURES: readonly string[] = Object.freeze([
+  "shell_tool",
+  "unified_exec_tty",
+  "shell_snapshot",
+  "view_image",
+  "apps",
+  "plugins",
+  "remote_plugin",
+  "hooks",
+  "skill_search",
+  "skill_mcp_dependency_install",
+  "workspace_dependencies",
+  "browser_use",
+  "browser_use_external",
+  "browser_use_full_cdp_access",
+  "computer_use",
+  "in_app_browser",
+  "multi_agent",
+  "image_generation",
+  "tool_suggest",
+  "sleep_tool",
+  "goals",
+  "daemon_auto_start",
+  "unbounded_connection_retries",
+]);
 
 export type CodexAgentInvocation = Readonly<{
   executable: "codex";
@@ -130,6 +167,9 @@ export function buildCodexAgentInvocation(input: {
   return Object.freeze({
     executable: "codex" as const,
     args: Object.freeze([
+      // Never attach to, or leave behind, the shared local app-server daemon.
+      "--no-daemon",
+      ...CODEX_DISABLED_FEATURES.flatMap((feature) => ["--disable", feature]),
       "--ask-for-approval",
       "never",
       "exec",
@@ -184,9 +224,18 @@ function finalAnswer(
       completed = true;
       continue;
     }
-    if (value.type === "item.completed") {
-      if (!record(value.item) || value.item.type !== "agent_message")
+    // Reasoning is discarded unread, never stored or shown; only the two
+    // answer-only item types may announce themselves. Any command, file,
+    // tool, search, plan or unknown item still voids the answer.
+    if (value.type === "item.started") {
+      if (!record(value.item) || !ANNOUNCED_ITEMS.has(value.item.type))
         return null;
+      continue;
+    }
+    if (value.type === "item.completed") {
+      if (!record(value.item)) return null;
+      if (value.item.type === "reasoning") continue;
+      if (value.item.type !== "agent_message") return null;
       if (
         text !== null ||
         typeof value.item.text !== "string" ||

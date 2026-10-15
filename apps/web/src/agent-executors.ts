@@ -78,7 +78,8 @@ const VERSION_TIMEOUT_MS = 10_000;
  * `AI_WORKSPACE_AGENT_EXECUTION` nothing is read or located. With it, each
  * named kind is offered only if its installed file is on the adapter's
  * reviewed list: the digest is compared first, so an unreviewed file is never
- * started, not even for `--version`. The shipped lists are empty.
+ * started, not even for `--version`. Codex ships one reviewed release; the
+ * Claude Code list is empty.
  */
 export async function agentExecutorsFromEnvironment(
   environment: AgentExecutionEnvironment,

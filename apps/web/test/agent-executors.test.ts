@@ -140,7 +140,9 @@ describe("agent execution opt-in", () => {
     );
     assert.equal(starts.filter((args) => args === "--version").length, 2);
     assert.equal(
-      starts.filter((args) => args.startsWith("--ask-for-approval")).length,
+      starts.filter((args) =>
+        args.startsWith("--no-daemon --disable shell_tool --disable"),
+      ).length,
       1,
     );
     assert.deepEqual(await readdir(runs), [], "every run tree was released");

@@ -94,8 +94,50 @@ Cloud agents need their service connection, so zero network is never claimed.
 
 ## Implementation status
 
-The module and its qualification functions exist with empty reviewed lists,
-tested with synthetic executables: canaries in the parent environment, links, shared
+The module and its qualification functions exist, tested with synthetic
+executables: canaries in the parent environment, links, shared
 directories, changed executables, a leader ignoring SIGTERM, descendants that
-outlive the leader, a process that leaves the group and files left behind. No
-real Codex or Claude Code executable is located, read or started.
+outlive the leader, a process that leaves the group and files left behind. The
+reviewed lists are described in the amendment below.
+
+## Amendment: the first reviewed Codex release
+
+Date: 2026-10-15. The ADR remains proposed.
+
+The Codex list now holds one entry: the standalone release `0.160.0` for
+`x86_64-unknown-linux-musl`, a static binary, with its file digest. It was
+reviewed without running a task: `--version`, `--help` and `exec --help` in an
+empty environment with a temporary `HOME` and `CODEX_HOME`, then the complete
+frozen argv followed by `--help`, which validates every flag and value before
+printing help. Every frozen flag is still present in that release.
+
+That release has a shared local app-server daemon. The Codex invocation now
+starts with `--no-daemon`, so a run never attaches to a daemon already running
+or leaves one behind; the lingering-process check remains the second line.
+Even `--version` writes helper files under `CODEX_HOME`, so the dedicated login
+directory is written by the product on every run; the run tree workspace check
+is unchanged.
+
+The official non-interactive documentation lists reasoning among the item
+types and shows `item.started` lines. The adapter now discards reasoning items
+unread, never storing or showing them, as for the local model, and accepts
+`item.started` only for an answer or reasoning item. Any command, file change,
+tool call, web search, plan, `turn.failed`, `error` or unknown event still voids
+the answer.
+
+The invocation also turns off, with `--disable`, the product features an
+answer-only run does not need: shell and snapshot, image viewing, account apps
+and connectors, plugins, hooks, skills and dependency installation, browser and
+computer use, sub-agents, image generation, tool suggestions, sleep, goals,
+daemon auto-start and unbounded connection retries. `features list` with those
+options, on the reviewed release, reports all 23 off. `unified_exec`, a second
+command path, stays on despite `--disable`, so it is not listed. It is an
+accepted residual risk: the model can still run a command, which can read files
+the account can read and reach the service before its event voids the answer.
+Disabling is the product's own promise; the event check remains the boundary
+AI Workspace enforces. Bounded network retries inside the product remain and
+are transport retries, not application retries: one send is still one turn.
+
+An automatic update changes the canonical file and its digest, so the updated
+installation is unavailable until it is reviewed the same way. The Claude Code
+list stays empty. Listing a release is not an authorization for a live run.
