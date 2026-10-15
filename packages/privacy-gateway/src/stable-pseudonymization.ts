@@ -256,9 +256,10 @@ function nextPseudonym(
   type: PiiEntityType,
 ) {
   const prefix = LABELS[type];
+  // `[[` + label + `_` precede the number and `]]` follows it.
   const used = entries
     .filter((entry) => entry.type === type)
-    .map((entry) => Number(entry.pseudonym.slice(prefix.length + 2, -2)))
+    .map((entry) => Number(entry.pseudonym.slice(prefix.length + 3, -2)))
     .filter(Number.isSafeInteger);
   return `[[${prefix}_${Math.max(0, ...used) + 1}]]`;
 }

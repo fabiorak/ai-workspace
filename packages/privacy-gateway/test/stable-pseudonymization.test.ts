@@ -32,6 +32,71 @@ describe("automatic stable pseudonymization", () => {
     );
   });
 
+  it("numbers distinct values of one type in one text and across texts", async () => {
+    const detector = new BuiltInPiiDetector();
+    const firstText =
+      "Scrivi a anna.rossi@example.test e a luca.bianchi@example.test.";
+    const first = protectWithStablePseudonyms({
+      text: firstText,
+      spans: await detector.detect(firstText, "it"),
+      mapping: emptyStablePseudonymMap("GENERAL"),
+    });
+    assert.equal(first.text, "Scrivi a [[EMAIL_1]] e a [[EMAIL_2]].");
+    assert.equal(first.mapping.entries.length, 2);
+    const secondText =
+      "Poi anna.rossi@example.test inoltra a marta.verdi@example.test.";
+    const second = protectWithStablePseudonyms({
+      text: secondText,
+      spans: await detector.detect(secondText, "it"),
+      mapping: first.mapping,
+    });
+    assert.equal(second.text, "Poi [[EMAIL_1]] inoltra a [[EMAIL_3]].");
+    assert.equal(second.mapping.revision, first.mapping.revision + 1);
+    assert.equal(
+      restoreStablePseudonyms(
+        "[[EMAIL_3]] risponde a [[EMAIL_2]].",
+        second.mapping,
+      ),
+      "marta.verdi@example.test risponde a luca.bianchi@example.test.",
+    );
+  });
+
+  it("continues numbering past nine and past a second type", () => {
+    let mapping = emptyStablePseudonymMap("GENERAL");
+    for (let index = 1; index <= 11; index += 1) {
+      const text = `u${index}@example.test`;
+      const result = protectWithStablePseudonyms({
+        text,
+        spans: [
+          {
+            startUtf8: 0,
+            endUtf8: Buffer.byteLength(text, "utf8"),
+            type: "EMAIL",
+            confidence: 1,
+            detector: "TEST",
+          },
+        ],
+        mapping,
+      });
+      assert.equal(result.text, `[[EMAIL_${index}]]`);
+      mapping = result.mapping;
+    }
+    const phone = protectWithStablePseudonyms({
+      text: "x",
+      spans: [
+        {
+          startUtf8: 0,
+          endUtf8: 1,
+          type: "PHONE",
+          confidence: 1,
+          detector: "TEST",
+        },
+      ],
+      mapping,
+    });
+    assert.equal(phone.text, "[[TELEFONO_1]]");
+  });
+
   it("fails closed for overlaps, type conflicts, and unknown placeholders", async () => {
     const text = "anna@example.test";
     const detector = new BuiltInPiiDetector();
