@@ -331,6 +331,30 @@ describe("the opening screen", () => {
     assert.match(HOME_TEXT.homeProtectionFake.it, /locale simulato/u);
   });
 
+  it("ties agents and the local model to what the server offers", () => {
+    /**
+     * An agent or the local model answers once the server offers it, and its
+     * target then shows Available: the Settings introduction must not still
+     * call them unconnected, nor promise more than the server offers.
+     */
+    const { modelTargetEnabled: available, modelTargetIntro: intro } =
+      HOME_TEXT;
+    assert.match(
+      intro.en,
+      /nothing is contacted and answers are simulated\. Agents and the local model answer only when the server offers them; the target then shows Available\./u,
+    );
+    assert.match(
+      intro.it,
+      /non viene contattato nulla e le risposte sono simulate\. Agenti e modello locale rispondono solo quando il server li offre; il target appare allora come Disponibile\./u,
+    );
+    for (const locale of SUPPORTED_LOCALES)
+      assert.ok(intro[locale].endsWith(`${available[locale]}.`), locale);
+    assert.doesNotMatch(
+      `${intro.en} ${intro.it}`,
+      /not connected yet|non sono ancora collegati/iu,
+    );
+  });
+
   it("carries no legacy continuation control into the ordinary path", () => {
     /** Settings keeps one legacy passphrase for migration, and the technical
      * view keeps the advanced privacy forms. Neither belongs to this screen. */

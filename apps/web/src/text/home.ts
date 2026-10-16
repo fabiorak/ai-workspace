@@ -33,8 +33,8 @@ export const HOME_TEXT = Object.freeze({
   },
   modelTargetHeading: { en: "Model targets", it: "Target dei modelli" },
   modelTargetIntro: {
-    en: "Named target metadata is stored locally. Credentials and provider access are not stored or enabled here. Without the explicit transport opt-in, answers are simulated; agents and local models are not connected yet.",
-    it: "I metadati dei target sono conservati localmente. Credenziali e accesso ai provider non vengono conservati né abilitati qui. Senza l'attivazione esplicita del trasporto le risposte sono simulate; agenti e modelli locali non sono ancora collegati.",
+    en: "Named target metadata is stored locally. Credentials and provider access are not stored or enabled here. Without an explicit opt-in at startup nothing is contacted and answers are simulated. Agents and the local model answer only when the server offers them; the target then shows Available.",
+    it: "I metadati dei target sono conservati localmente. Credenziali e accesso ai provider non vengono conservati né abilitati qui. Senza un'attivazione esplicita all'avvio non viene contattato nulla e le risposte sono simulate. Agenti e modello locale rispondono solo quando il server li offre; il target appare allora come Disponibile.",
   },
   modelTargetId: { en: "Target ID", it: "ID target" },
   modelTargetName: { en: "Display name", it: "Nome visualizzato" },
