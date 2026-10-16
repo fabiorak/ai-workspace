@@ -6,14 +6,23 @@ import {
 } from "@ai-workspace/agent-process";
 
 /**
- * Reviewed installations only (ADR-0050). It is empty on purpose. The current
- * CLI reference, read on 2026-09-28, documents most frozen flags but did not
- * show `--safe-mode`, `--setting-sources` or `--strict-mcp-config` in the part
- * that loaded, and names the retry event `system/api_retry`. Each flag must be
- * confirmed on the installed release before its digest is added here.
+ * Reviewed installations only (ADR-0050). Each entry was checked without
+ * running a task: `--version` and `--help` in an empty environment with a
+ * temporary `HOME` and `CLAUDE_CONFIG_DIR`, then the complete
+ * `buildClaudeCodeAgentInvocation` argv followed by `--help`, which validates
+ * every flag and choice before printing help. Any other release or file,
+ * including an automatic update, stays unavailable until it is reviewed the
+ * same way and added with its file digest.
  */
 export const QUALIFIED_CLAUDE_CODE_EXECUTABLES: readonly QualifiedExecutable[] =
-  Object.freeze([]);
+  Object.freeze([
+    // Native release 2.1.294, linux x64, dynamically linked ELF.
+    Object.freeze({
+      version: "2.1.294",
+      sha256:
+        "27122ca7b624f537546fbef35b80c66370d974ff258f3d9b10ac50bb8771f262",
+    }),
+  ]);
 
 /** `claude --version` prints one line such as `2.1.283 (Claude Code)`. */
 export function parseClaudeCodeVersion(output: string): string | null {

@@ -81,8 +81,8 @@ loopback address at start.
 Agent attempts are recorded in a separate store with an execution coordinator,
 and agent processes are confined by a private run tree, an explicit environment,
 a dedicated login directory, executables qualified by version and digest, and
-process-group cancellation with after-the-fact checks. One Codex release is
-reviewed; no Claude Code release is.
+process-group cancellation with after-the-fact checks. One Codex release and
+one Claude Code release are reviewed.
 Agent targets are routed through the conversation turn and keep their class in
 the history; they are qualified offline with synthetic agents, and real agents
 stay behind an exact opt-in and the reviewed lists; no real agent has been

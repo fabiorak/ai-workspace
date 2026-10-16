@@ -65,9 +65,16 @@ Gates:
 
 Apply the same port and evidence contract to managed-login `claude -p`. Do not
 use `--bare`, because it disables the subscription login. Use an isolated empty
-working directory, no tools, one agentic turn, structured output, no persistence,
-strict empty MCP configuration and a bounded process timeout. Reject API-retry,
-tool, MCP and plugin events rather than accepting them as a plain answer.
+working directory, no tools (`--tools ""`), safe and restricted modes, no
+setting sources, a strictly empty MCP configuration, no permission prompts
+(`--permission-prompts none`), no Chrome integration, no persistence and a
+bounded process timeout. The answer is the plain text of the final `result`
+event read from the stream; no JSON schema is requested, so the product never
+repeats a request to satisfy one. Assistant content is read from `message`, as
+documented. Reasoning blocks, quota notices (`rate_limit_event`) and the
+product's own API retries (`system/api_retry`, transport inside one send) are
+discarded unread. Tool, MCP, plugin, subagent, permission-denial and unknown
+events, an error result or anything after the result void the answer.
 
 The initial Claude Code target uses the stable `sonnet` model alias by default.
 The selected alias remains visible and configurable; no adapter may silently
@@ -135,9 +142,9 @@ reviewed version, and process-group cancellation with after-the-fact checks for
 lingering descendants and files left behind. The ADR holds the capability
 table separating what is enforced before the run, what is checked after it and
 what is not controlled. The Codex list holds the standalone release `0.160.0`
-for `x86_64-unknown-linux-musl`; the Claude Code list is empty, so no Claude
-Code installation is available yet. An automatic update changes the file
-digest, so the updated Codex installation is unavailable until it is reviewed.
+for `x86_64-unknown-linux-musl`; the Claude Code list holds the native release
+`2.1.294` for Linux x64. An automatic update changes the file digest, so the
+updated installation of either product is unavailable until it is reviewed.
 
 Before a live review of either product, on the installed release and without
 running a task:

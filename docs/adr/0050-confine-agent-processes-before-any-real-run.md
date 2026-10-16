@@ -141,3 +141,49 @@ are transport retries, not application retries: one send is still one turn.
 An automatic update changes the canonical file and its digest, so the updated
 installation is unavailable until it is reviewed the same way. The Claude Code
 list stays empty. Listing a release is not an authorization for a live run.
+
+## Amendment: the first reviewed Claude Code release
+
+Date: 2026-10-16. The ADR remains proposed.
+
+The Claude Code list now holds one entry: the native release `2.1.294` for
+Linux x64, a dynamically linked binary, with its file digest. It was reviewed
+without running a task: `--version` and `--help` in an empty environment with a
+temporary `HOME` and `CLAUDE_CONFIG_DIR`, then the complete argv followed by
+`--help`, which validates every flag and choice before printing help. Every
+frozen flag is present, including `--safe-mode`, `--setting-sources` and
+`--strict-mcp-config`. These reads wrote no file in the temporary directories.
+`--help` does not check conflicts the product may only detect at a real start.
+
+The official documentation shows that the stream does not have the shape the
+offline parser assumed. An assistant message carries its content in `message`,
+a Messages API reply, not at the top level, and a schema-constrained answer
+arrives in a separate `structured_output` field after internal validation
+retries. The invocation therefore drops `--json-schema`: the answer is the
+plain text of the final `result` event, so the product neither repeats a
+request to satisfy a schema nor needs a tool call to return it. A result that
+is not `success`, is marked as an error, is empty or lists a permission denial
+voids the answer.
+
+The parser discards reasoning blocks unread, never storing or showing them, as
+for Codex and the local model. It also discards, unread, quota notices
+(`rate_limit_event`) and the product's own retry of a failed API request
+(`system/api_retry`). That retry is a transport retry inside one send, as
+accepted for Codex's network retries, so one send is still one turn; this
+replaces the earlier refusal of `system/api_retry`. Any other event type, a
+subagent's message, an assistant message carrying an error, a block other than
+text or reasoning, or any event after the result still voids the answer.
+
+The invocation also adds `--restricted`, which removes the built-in tools that
+run commands or code and confines file tools to the working directory,
+`--permission-prompts none`, so nothing waits on an approval and Claude is told
+not to retry a denied call, and `--no-chrome`. With `--tools ""` these are a
+second line, not the boundary: the event check remains what AI Workspace
+enforces.
+
+Which event types a real answer-only run emits, and whether the initialization
+event lists built-in plugins or skills that the parser would refuse, is not
+observed until the first live run. Claude Code updates itself often; an update
+changes the digest, so the updated installation is unavailable until it is
+reviewed the same way. Listing a release is not an authorization for a live
+run.

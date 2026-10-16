@@ -21,15 +21,25 @@ export const CLAUDE_CODE_DEFAULT_MODEL = "sonnet";
 export const CLAUDE_CODE_SYSTEM_PROMPT =
   "Answer the supplied request in one reply. Use no tools, read no files and run no commands.";
 
-/** The answer comes back as data, so a truncated or decorated reply is a parse
- * failure here instead of a sentence that looks like an answer. */
-export const CLAUDE_CODE_ANSWER_SCHEMA =
-  '{"type":"object","required":["answer"],"properties":{"answer":{"type":"string"}},"additionalProperties":false}';
-
 /** Strictly empty, and strict about being empty: no server may be discovered
  * from user or project configuration. */
 const EMPTY_MCP_CONFIG = '{"mcpServers":{}}';
 const MAX_BUDGET_USD = "0.05";
+
+/**
+ * Events that carry no answer and are discarded unread: a quota notice, and the
+ * product's own retry of a failed API request. That retry is transport inside
+ * one send, not a second turn (ADR-0050), as for Codex's network retries.
+ */
+const DISCARDED_EVENT = "rate_limit_event";
+const DISCARDED_SYSTEM_SUBTYPE = "api_retry";
+
+/** Reasoning is discarded unread, never stored or shown, as for Codex and the
+ * local model. Every other non-text block voids the answer. */
+const DISCARDED_BLOCKS: ReadonlySet<unknown> = new Set([
+  "thinking",
+  "redacted_thinking",
+]);
 
 /** The one initialization event must load none of these. A non-empty list is a
  * context this boundary did not review, so it fails closed rather than counting
@@ -179,15 +189,15 @@ export function buildClaudeCodeAgentInvocation(input: {
     args: Object.freeze([
       "-p",
       "--safe-mode",
+      "--restricted",
       "--tools",
       "",
       "--disable-slash-commands",
       "--no-session-persistence",
+      "--no-chrome",
       "--output-format",
       "stream-json",
       "--verbose",
-      "--json-schema",
-      CLAUDE_CODE_ANSWER_SCHEMA,
       "--system-prompt",
       CLAUDE_CODE_SYSTEM_PROMPT,
       "--setting-sources",
@@ -197,6 +207,8 @@ export function buildClaudeCodeAgentInvocation(input: {
       EMPTY_MCP_CONFIG,
       "--permission-mode",
       "dontAsk",
+      "--permission-prompts",
+      "none",
       "--max-budget-usd",
       MAX_BUDGET_USD,
       "--model",
@@ -223,7 +235,9 @@ function finalAnswer(
     }
     if (!record(value) || typeof value.type !== "string" || result !== null)
       return null;
+    if (value.type === DISCARDED_EVENT) continue;
     if (value.type === "system") {
+      if (value.subtype === DISCARDED_SYSTEM_SUBTYPE) continue;
       if (value.subtype !== "init" || initialized) return null;
       for (const key of LOADED_CONTEXT_KEYS) {
         const loaded = value[key];
@@ -234,49 +248,45 @@ function finalAnswer(
       continue;
     }
     if (value.type === "assistant") {
-      if (!Array.isArray(value.content)) return null;
-      // A tool call, a thinking block or anything else means the turn did more
-      // than answer, which this boundary is not qualified to report.
-      for (const block of value.content)
-        if (!record(block) || block.type !== "text") return null;
+      // A subagent's message, a failed message or a block other than text or
+      // reasoning means the turn did more than answer, which this boundary is
+      // not qualified to report.
+      if (
+        (value.parent_tool_use_id !== undefined &&
+          value.parent_tool_use_id !== null) ||
+        value.error !== undefined ||
+        !record(value.message) ||
+        !Array.isArray(value.message.content)
+      )
+        return null;
+      for (const block of value.message.content) {
+        if (!record(block)) return null;
+        if (DISCARDED_BLOCKS.has(block.type)) continue;
+        if (block.type !== "text") return null;
+      }
       continue;
     }
     if (value.type === "result") {
       if (
         value.subtype !== "success" ||
+        value.is_error === true ||
+        (value.permission_denials !== undefined &&
+          (!Array.isArray(value.permission_denials) ||
+            value.permission_denials.length > 0)) ||
         typeof value.result !== "string" ||
-        !value.result.isWellFormed()
+        !value.result.trim() ||
+        !value.result.isWellFormed() ||
+        Buffer.byteLength(value.result, "utf8") > MAX_OUTPUT_BYTES
       )
         return null;
       result = value.result;
       continue;
     }
-    // `retry` included: an automatic rerun is never accepted as a plain answer.
     return null;
   }
-  if (!initialized || result === null) return null;
-  const answer = schemaValidAnswer(result);
-  return answer === null ? null : { text: answer, eventCount: lines.length };
-}
-
-/** The result carries the schema-valid object, not prose about it. */
-function schemaValidAnswer(result: string): string | null {
-  let value: unknown;
-  try {
-    value = JSON.parse(result);
-  } catch {
-    return null;
-  }
-  if (
-    !record(value) ||
-    Object.keys(value).length !== 1 ||
-    typeof value.answer !== "string" ||
-    !value.answer.trim() ||
-    !value.answer.isWellFormed() ||
-    Buffer.byteLength(value.answer, "utf8") > MAX_OUTPUT_BYTES
-  )
-    return null;
-  return value.answer;
+  return initialized && result !== null
+    ? { text: result, eventCount: lines.length }
+    : null;
 }
 
 const digest = (value: string) =>

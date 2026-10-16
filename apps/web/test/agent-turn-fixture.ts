@@ -90,7 +90,7 @@ const claudeOutput = () =>
     {
       type: "result",
       subtype: "success",
-      result: JSON.stringify({ answer: "Synthetic Claude answer" }),
+      result: "Synthetic Claude answer",
     },
   ]
     .map((event) => JSON.stringify(event))

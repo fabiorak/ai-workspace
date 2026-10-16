@@ -11,7 +11,6 @@ import {
 } from "@ai-workspace/agent-process";
 
 import {
-  CLAUDE_CODE_ANSWER_SCHEMA,
   CLAUDE_CODE_DEFAULT_MODEL,
   CLAUDE_CODE_SYSTEM_PROMPT,
   ClaudeCodeAgentAdapter,
@@ -46,14 +45,29 @@ const init = (override: Record<string, unknown> = {}) =>
     memory: [],
     ...override,
   });
-const answered = (text: string) =>
+const answered = (text: string, override: Record<string, unknown> = {}) =>
   JSON.stringify({
     type: "result",
     subtype: "success",
-    result: JSON.stringify({ answer: text }),
+    is_error: false,
+    result: text,
+    permission_denials: [],
+    ...override,
   });
-const said = (text: string) =>
-  JSON.stringify({ type: "assistant", content: [{ type: "text", text }] });
+/** The documented shape: the content sits in `message`, a Messages API reply. */
+const assistant = (
+  content: readonly unknown[],
+  override: Record<string, unknown> = {},
+) =>
+  JSON.stringify({
+    type: "assistant",
+    message: { role: "assistant", content },
+    parent_tool_use_id: null,
+    ...override,
+  });
+const said = (text: string) => assistant([{ type: "text", text }]);
+
+const DISCARDED_RATE_LIMIT = "rate_limit_event";
 
 const observation = (
   override: Partial<ClaudeCodeAgentObservation> = {},
@@ -84,15 +98,15 @@ describe("subscription-backed Claude Code agent adapter", () => {
     assert.deepEqual(value.args, [
       "-p",
       "--safe-mode",
+      "--restricted",
       "--tools",
       "",
       "--disable-slash-commands",
       "--no-session-persistence",
+      "--no-chrome",
       "--output-format",
       "stream-json",
       "--verbose",
-      "--json-schema",
-      CLAUDE_CODE_ANSWER_SCHEMA,
       "--system-prompt",
       CLAUDE_CODE_SYSTEM_PROMPT,
       "--setting-sources",
@@ -102,6 +116,8 @@ describe("subscription-backed Claude Code agent adapter", () => {
       '{"mcpServers":{}}',
       "--permission-mode",
       "dontAsk",
+      "--permission-prompts",
+      "none",
       "--max-budget-usd",
       "0.05",
       "--model",
@@ -109,6 +125,8 @@ describe("subscription-backed Claude Code agent adapter", () => {
     ]);
     assert.equal(CLAUDE_CODE_DEFAULT_MODEL, "sonnet");
     assert.equal(value.args.includes("--bare"), false);
+    // Plain text: no schema retries inside the product, no hidden tool call.
+    assert.equal(value.args.includes("--json-schema"), false);
     // The alias stays inspectable and replaceable, and reaches argv verbatim.
     assert.deepEqual(
       buildClaudeCodeAgentInvocation({ ...input, model: "opus" }).args.slice(
@@ -135,7 +153,7 @@ describe("subscription-backed Claude Code agent adapter", () => {
       );
   });
 
-  it("accepts one schema-valid answer and returns only bounded evidence", async () => {
+  it("accepts one plain answer and returns only bounded evidence", async () => {
     const result = await new ClaudeCodeAgentAdapter(async () =>
       observation(),
     ).execute(input);
@@ -150,16 +168,70 @@ describe("subscription-backed Claude Code agent adapter", () => {
   });
 
   /**
+   * Reasoning, a quota notice and the product's own API retry carry no answer.
+   * They are discarded unread, so none of their text can reach the result.
+   */
+  it("discards reasoning, quota notices and API retries unread", async () => {
+    const stdout = [
+      JSON.stringify({ type: DISCARDED_RATE_LIMIT, rate_limit_info: {} }),
+      init(),
+      JSON.stringify({ type: "system", subtype: "api_retry", attempt: 1 }),
+      assistant([
+        { type: "thinking", thinking: "Synthetic hidden reasoning." },
+        { type: "redacted_thinking", data: "synthetic" },
+        { type: "text", text: "Synthetic output." },
+      ]),
+      JSON.stringify({ type: DISCARDED_RATE_LIMIT, rate_limit_info: {} }),
+      answered("answer"),
+    ].join("\n");
+    const result = await new ClaudeCodeAgentAdapter(async () =>
+      observation({ stdout }),
+    ).execute(input);
+    assert.equal(result.kind, "COMPLETED");
+    if (result.kind === "COMPLETED") {
+      assert.equal(result.text, "answer");
+      assert.equal(result.eventCount, 6);
+      assert.equal(JSON.stringify(result).includes("hidden reasoning"), false);
+    }
+  });
+
+  /**
    * Anything the turn loaded or did besides answering is context this boundary
    * did not review, so it is refused rather than reported as a plain answer.
    */
   it("fails closed for tools, loaded context, retries and malformed evidence", async () => {
     const cases = [
       observation({
+        stdout: `${init()}\n${assistant([{ type: "tool_use", name: "synthetic" }])}\n${answered("answer")}\n`,
+      }),
+      // The undocumented top-level shape is not an answer either.
+      observation({
         stdout: `${init()}\n${JSON.stringify({
           type: "assistant",
-          content: [{ type: "tool_use", name: "synthetic" }],
+          content: [{ type: "text", text: "Synthetic output." }],
         })}\n${answered("answer")}\n`,
+      }),
+      observation({
+        stdout: `${init()}\n${assistant([{ type: "text", text: "x" }], { parent_tool_use_id: "synthetic" })}\n${answered("answer")}\n`,
+      }),
+      observation({
+        stdout: `${init()}\n${assistant([{ type: "text", text: "x" }], { error: "unknown" })}\n${answered("answer")}\n`,
+      }),
+      observation({
+        stdout: `${init()}\n${JSON.stringify({ type: "user", message: { content: [] } })}\n${answered("answer")}\n`,
+      }),
+      observation({
+        stdout: `${init()}\n${JSON.stringify({ type: "system", subtype: "permission_denied" })}\n${answered("answer")}\n`,
+      }),
+      observation({
+        stdout: `${init()}\n${answered("answer", { permission_denials: [{ tool_name: "Read" }] })}\n`,
+      }),
+      observation({
+        stdout: `${init()}\n${answered("answer", { is_error: true })}\n`,
+      }),
+      observation({ stdout: `${init()}\n${answered("   ")}\n` }),
+      observation({
+        stdout: `${init()}\n${answered("answer")}\n${JSON.stringify({ type: DISCARDED_RATE_LIMIT })}\n`,
       }),
       observation({
         stdout: `${init({ mcp_servers: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
@@ -183,25 +255,10 @@ describe("subscription-backed Claude Code agent adapter", () => {
         stdout: `${init()}\n${JSON.stringify({ type: "unreviewed.event" })}\n${answered("answer")}\n`,
       }),
       observation({
-        stdout: `${init()}\n${JSON.stringify({
-          type: "result",
-          subtype: "success",
-          result: "A sentence instead of the schema-valid object.",
-        })}\n`,
+        stdout: `${init()}\n${answered("answer", { subtype: "error_during_execution" })}\n`,
       }),
       observation({
-        stdout: `${init()}\n${JSON.stringify({
-          type: "result",
-          subtype: "success",
-          result: JSON.stringify({ answer: "answer", note: "extra" }),
-        })}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${JSON.stringify({
-          type: "result",
-          subtype: "error_during_execution",
-          result: JSON.stringify({ answer: "answer" }),
-        })}\n`,
+        stdout: `${init()}\n${answered("answer", { subtype: "error_max_budget_usd" })}\n`,
       }),
       observation({ stdout: "not-json\n" }),
       observation({ exitCode: 1 }),
@@ -216,7 +273,7 @@ describe("subscription-backed Claude Code agent adapter", () => {
       );
   });
 
-  it("reads only the exact version line and ships no reviewed release", async () => {
+  it("reads only the exact version line and ships one reviewed release", async () => {
     assert.equal(parseClaudeCodeVersion("2.1.283 (Claude Code)\n"), "2.1.283");
     for (const value of [
       "2.1.283",
@@ -224,7 +281,15 @@ describe("subscription-backed Claude Code agent adapter", () => {
       "2.1.283 (Claude Code) x",
     ])
       assert.equal(parseClaudeCodeVersion(value), null, value);
-    assert.deepEqual(QUALIFIED_CLAUDE_CODE_EXECUTABLES, []);
+    assert.deepEqual(QUALIFIED_CLAUDE_CODE_EXECUTABLES, [
+      {
+        version: "2.1.294",
+        sha256:
+          "27122ca7b624f537546fbef35b80c66370d974ff258f3d9b10ac50bb8771f262",
+      },
+    ]);
+    assert.ok(Object.isFrozen(QUALIFIED_CLAUDE_CODE_EXECUTABLES));
+    assert.ok(QUALIFIED_CLAUDE_CODE_EXECUTABLES.every(Object.isFrozen));
     assert.deepEqual(
       await qualifyClaudeCodeExecutable(
         [dirname(process.execPath)],
@@ -281,7 +346,7 @@ describe("subscription-backed Claude Code agent adapter", () => {
 const input = require("node:fs").readFileSync(0, "utf8");
 const text = [Boolean(process.env.ANTHROPIC_API_KEY), Boolean(process.env.PRIVATE_CANARY), input.length].join(":");
 process.stdout.write(JSON.stringify({type:"system",subtype:"init",tools:[],mcp_servers:[],plugins:[],hooks:[],skills:[],memory:[]}) + "\\n");
-process.stdout.write(JSON.stringify({type:"result",subtype:"success",result:JSON.stringify({answer:text})}) + "\\n");
+process.stdout.write(JSON.stringify({type:"result",subtype:"success",result:text}) + "\\n");
 `);
     try {
       process.env.ANTHROPIC_API_KEY = "must-not-cross";

@@ -110,7 +110,7 @@ export function syntheticAgents(log: SyntheticAgentLog) {
               {
                 type: "result",
                 subtype: "success",
-                result: JSON.stringify({ answer }),
+                result: answer,
               },
             ]
               .map((event) => JSON.stringify(event))
