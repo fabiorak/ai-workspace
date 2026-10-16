@@ -98,3 +98,26 @@ agent process, login or credential is used.
 The coordinator is wired into the conversation turn for agent targets whose kind
 the host offers; see the ADR-0045 amendment. The turn and the store are
 qualified with synthetic executors only.
+
+## Amendment: why an outcome is unknown
+
+Date: 2026-10-16. The ADR remains proposed.
+
+An unknown outcome said nothing about which check failed, so finding the cause
+of a real run needed evidence left on disk or another run. An unknown record now
+carries two more fields: `unknownReason`, one value from a closed list
+(`RUNNER_FAILED`, `TIMED_OUT`, `OUTPUT_LIMIT`, `STREAM_ENCODING`,
+`LINGERING_PROCESS`, `WORKSPACE_WRITTEN`, `EXIT_CODE`, `MALFORMED_EVENT`,
+`UNEXPECTED_EVENT`, `CONTEXT_LOADED`, `ERROR_RESULT`, `NO_ANSWER`,
+`UNRESOLVED`), and `unexpectedEvent`, the product's event type such as
+`system/status` when the reason is `UNEXPECTED_EVENT`, otherwise null.
+
+Neither field holds content. The adapters name the first check that failed; the
+coordinator accepts a reason only from the closed list and an event type only
+as identifier-like segments joined by `/`, and records anything else as
+`UNRESOLVED` or a null event. A thrown executor, an invalid answer or a failed
+completion write is `UNRESOLVED`.
+
+The fields appear only on an unknown record and always together. The schema
+version is unchanged: a record written before this amendment has neither field
+and stays valid, and its hash chain is untouched.

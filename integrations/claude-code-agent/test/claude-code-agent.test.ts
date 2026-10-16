@@ -200,75 +200,158 @@ describe("subscription-backed Claude Code agent adapter", () => {
    * did not review, so it is refused rather than reported as a plain answer.
    */
   it("fails closed for tools, loaded context, retries and malformed evidence", async () => {
-    const cases = [
-      observation({
-        stdout: `${init()}\n${assistant([{ type: "tool_use", name: "synthetic" }])}\n${answered("answer")}\n`,
-      }),
+    const unknown = (
+      reason: string,
+      unexpectedEvent: string | null = null,
+    ) => ({
+      kind: "UNKNOWN_AFTER_EXECUTION",
+      reason,
+      unexpectedEvent,
+    });
+    const cases: Array<[ClaudeCodeAgentObservation, object]> = [
+      [
+        observation({
+          stdout: `${init()}\n${assistant([{ type: "tool_use", name: "synthetic" }])}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "assistant/tool_use"),
+      ],
       // The undocumented top-level shape is not an answer either.
-      observation({
-        stdout: `${init()}\n${JSON.stringify({
-          type: "assistant",
-          content: [{ type: "text", text: "Synthetic output." }],
-        })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${assistant([{ type: "text", text: "x" }], { parent_tool_use_id: "synthetic" })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${assistant([{ type: "text", text: "x" }], { error: "unknown" })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${JSON.stringify({ type: "user", message: { content: [] } })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${JSON.stringify({ type: "system", subtype: "permission_denied" })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${answered("answer", { permission_denials: [{ tool_name: "Read" }] })}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${answered("answer", { is_error: true })}\n`,
-      }),
-      observation({ stdout: `${init()}\n${answered("   ")}\n` }),
-      observation({
-        stdout: `${init()}\n${answered("answer")}\n${JSON.stringify({ type: DISCARDED_RATE_LIMIT })}\n`,
-      }),
-      observation({
-        stdout: `${init({ mcp_servers: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init({ plugins: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init({ memory: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${JSON.stringify({ type: "retry", attempt: 2 })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${answered("one")}\n${answered("two")}\n`,
-      }),
-      observation({ stdout: `${init()}\n${said("Synthetic output.")}\n` }),
-      observation({ stdout: `${answered("answer")}\n` }),
-      observation({ stdout: `${init()}\n${init()}\n${answered("answer")}\n` }),
-      observation({
-        stdout: `${init()}\n${JSON.stringify({ type: "unreviewed.event" })}\n${answered("answer")}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${answered("answer", { subtype: "error_during_execution" })}\n`,
-      }),
-      observation({
-        stdout: `${init()}\n${answered("answer", { subtype: "error_max_budget_usd" })}\n`,
-      }),
-      observation({ stdout: "not-json\n" }),
-      observation({ exitCode: 1 }),
-      observation({ outputLimitExceeded: true }),
-      observation({ streamEncodingInvalid: true }),
+      [
+        observation({
+          stdout: `${init()}\n${JSON.stringify({
+            type: "assistant",
+            content: [{ type: "text", text: "Synthetic output." }],
+          })}\n${answered("answer")}\n`,
+        }),
+        unknown("MALFORMED_EVENT"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${assistant([{ type: "text", text: "x" }], { parent_tool_use_id: "synthetic" })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "assistant"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${assistant([{ type: "text", text: "x" }], { error: "unknown" })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "assistant"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${JSON.stringify({ type: "user", message: { content: [] } })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "user"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${JSON.stringify({ type: "system", subtype: "permission_denied" })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "system/permission_denied"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${answered("answer", { permission_denials: [{ tool_name: "Read" }] })}\n`,
+        }),
+        unknown("ERROR_RESULT"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${answered("answer", { is_error: true })}\n`,
+        }),
+        unknown("ERROR_RESULT"),
+      ],
+      [
+        observation({ stdout: `${init()}\n${answered("   ")}\n` }),
+        unknown("NO_ANSWER"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${answered("answer")}\n${JSON.stringify({ type: DISCARDED_RATE_LIMIT })}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "rate_limit_event"),
+      ],
+      [
+        observation({
+          stdout: `${init({ mcp_servers: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
+        }),
+        unknown("CONTEXT_LOADED"),
+      ],
+      [
+        observation({
+          stdout: `${init({ plugins: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
+        }),
+        unknown("CONTEXT_LOADED"),
+      ],
+      [
+        observation({
+          stdout: `${init({ memory: [{ name: "synthetic" }] })}\n${answered("answer")}\n`,
+        }),
+        unknown("CONTEXT_LOADED"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${JSON.stringify({ type: "retry", attempt: 2 })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "retry"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${answered("one")}\n${answered("two")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "result/success"),
+      ],
+      [
+        observation({ stdout: `${init()}\n${said("Synthetic output.")}\n` }),
+        unknown("NO_ANSWER"),
+      ],
+      [
+        observation({ stdout: `${answered("answer")}\n` }),
+        unknown("NO_ANSWER"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${init()}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "system/init"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${JSON.stringify({ type: "unreviewed.event" })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT", "unreviewed.event"),
+      ],
+      // A type that is not an identifier is reported without its value.
+      [
+        observation({
+          stdout: `${init()}\n${JSON.stringify({ type: "Synthetic sentence, not a type" })}\n${answered("answer")}\n`,
+        }),
+        unknown("UNEXPECTED_EVENT"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${answered("answer", { subtype: "error_during_execution" })}\n`,
+        }),
+        unknown("ERROR_RESULT"),
+      ],
+      [
+        observation({
+          stdout: `${init()}\n${answered("answer", { subtype: "error_max_budget_usd" })}\n`,
+        }),
+        unknown("ERROR_RESULT"),
+      ],
+      [observation({ stdout: "not-json\n" }), unknown("MALFORMED_EVENT")],
+      [observation({ exitCode: 1 }), unknown("EXIT_CODE")],
+      [observation({ outputLimitExceeded: true }), unknown("OUTPUT_LIMIT")],
+      [
+        observation({ streamEncodingInvalid: true }),
+        unknown("STREAM_ENCODING"),
+      ],
     ];
-    for (const value of cases)
+    for (const [value, expected] of cases)
       assert.deepEqual(
         await new ClaudeCodeAgentAdapter(async () => value).execute(input),
-        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        expected,
         value.stdout,
       );
   });
@@ -303,32 +386,38 @@ describe("subscription-backed Claude Code agent adapter", () => {
   });
 
   it("voids an answer when a descendant lingered or the workspace was written", async () => {
-    for (const override of [
-      { lingeringProcesses: true },
-      { workspaceWritten: true },
-    ])
+    for (const [override, reason] of [
+      [{ lingeringProcesses: true }, "LINGERING_PROCESS"],
+      [{ workspaceWritten: true }, "WORKSPACE_WRITTEN"],
+    ] as const)
       assert.deepEqual(
         await new ClaudeCodeAgentAdapter(async () =>
           observation(override),
         ).execute(input),
-        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        { kind: "UNKNOWN_AFTER_EXECUTION", reason, unexpectedEvent: null },
         JSON.stringify(override),
       );
   });
 
   it("requires verified process-tree termination on timeout", async () => {
-    for (const value of [
-      observation({
-        stdout: "",
-        timedOut: true,
-        processTreeTerminated: true,
-        exitCode: null,
-      }),
-      observation({ stdout: "", timedOut: true, exitCode: null }),
-    ])
+    for (const [value, reason] of [
+      [
+        observation({
+          stdout: "",
+          timedOut: true,
+          processTreeTerminated: true,
+          exitCode: null,
+        }),
+        "TIMED_OUT",
+      ],
+      [
+        observation({ stdout: "", timedOut: true, exitCode: null }),
+        "LINGERING_PROCESS",
+      ],
+    ] as const)
       assert.deepEqual(
         await new ClaudeCodeAgentAdapter(async () => value).execute(input),
-        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        { kind: "UNKNOWN_AFTER_EXECUTION", reason, unexpectedEvent: null },
       );
   });
 
@@ -337,7 +426,11 @@ describe("subscription-backed Claude Code agent adapter", () => {
       await new ClaudeCodeAgentAdapter(async () => {
         throw new Error("Synthetic spawn failure.");
       }).execute(input),
-      { kind: "UNKNOWN_AFTER_EXECUTION" },
+      {
+        kind: "UNKNOWN_AFTER_EXECUTION",
+        reason: "RUNNER_FAILED",
+        unexpectedEvent: null,
+      },
     );
   });
 

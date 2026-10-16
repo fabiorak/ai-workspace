@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
 
+import {
+  agentEventName,
+  observationUnknown,
+  unknownOutcome,
+  type AgentUnknownOutcome,
+} from "@ai-workspace/agent-process";
+
 export { createClaudeCodeAgentProcessRunner } from "./process-runner.ts";
 export type { ClaudeCodeAgentProcessRunnerOptions } from "./process-runner.ts";
 export * from "./compatibility.ts";
@@ -89,7 +96,7 @@ export type ClaudeCodeAgentResult =
       eventCount: number;
     }>
   | Readonly<{ kind: "REJECTED_BEFORE_EXECUTION" }>
-  | Readonly<{ kind: "UNKNOWN_AFTER_EXECUTION" }>;
+  | AgentUnknownOutcome;
 
 export class ClaudeCodeAgentError extends Error {
   public constructor() {
@@ -131,23 +138,12 @@ export class ClaudeCodeAgentAdapter {
     try {
       observation = await this.#runner(invocation);
     } catch {
-      return { kind: "UNKNOWN_AFTER_EXECUTION" };
+      return unknownOutcome("RUNNER_FAILED");
     }
-    if (
-      !validObservation(observation) ||
-      !boundedStream(observation.stdout) ||
-      !boundedStream(observation.stderr) ||
-      observation.outputLimitExceeded ||
-      observation.streamEncodingInvalid ||
-      observation.lingeringProcesses ||
-      observation.workspaceWritten ||
-      (observation.timedOut && !observation.processTreeTerminated)
-    )
-      return { kind: "UNKNOWN_AFTER_EXECUTION" };
-    if (observation.timedOut) return { kind: "UNKNOWN_AFTER_EXECUTION" };
-    if (observation.exitCode !== 0) return { kind: "UNKNOWN_AFTER_EXECUTION" };
+    const failed = observationUnknown(observation, MAX_STREAM_BYTES);
+    if (failed !== null) return failed;
     const parsed = finalAnswer(observation.stdout);
-    if (parsed === null) return { kind: "UNKNOWN_AFTER_EXECUTION" };
+    if ("kind" in parsed) return parsed;
     return Object.freeze({
       kind: "COMPLETED" as const,
       text: parsed.text,
@@ -220,9 +216,13 @@ export function buildClaudeCodeAgentInvocation(input: {
   });
 }
 
+/**
+ * The first event that fails names the outcome. Only event types and subtypes
+ * the product declared are kept, and only through `agentEventName`.
+ */
 function finalAnswer(
   stdout: string,
-): { text: string; eventCount: number } | null {
+): { text: string; eventCount: number } | AgentUnknownOutcome {
   const lines = stdout.split("\n").filter(Boolean);
   let initialized = false;
   let result: string | null = null;
@@ -231,18 +231,28 @@ function finalAnswer(
     try {
       value = JSON.parse(line);
     } catch {
-      return null;
+      return unknownOutcome("MALFORMED_EVENT");
     }
-    if (!record(value) || typeof value.type !== "string" || result !== null)
-      return null;
+    if (!record(value) || typeof value.type !== "string")
+      return unknownOutcome("MALFORMED_EVENT");
+    if (result !== null)
+      return unknownOutcome(
+        "UNEXPECTED_EVENT",
+        agentEventName(value.type, value.subtype),
+      );
     if (value.type === DISCARDED_EVENT) continue;
     if (value.type === "system") {
       if (value.subtype === DISCARDED_SYSTEM_SUBTYPE) continue;
-      if (value.subtype !== "init" || initialized) return null;
+      if (value.subtype !== "init" || initialized)
+        return unknownOutcome(
+          "UNEXPECTED_EVENT",
+          agentEventName(value.type, value.subtype),
+        );
       for (const key of LOADED_CONTEXT_KEYS) {
         const loaded = value[key];
         if (loaded === undefined) continue;
-        if (!Array.isArray(loaded) || loaded.length > 0) return null;
+        if (!Array.isArray(loaded) || loaded.length > 0)
+          return unknownOutcome("CONTEXT_LOADED");
       }
       initialized = true;
       continue;
@@ -254,15 +264,19 @@ function finalAnswer(
       if (
         (value.parent_tool_use_id !== undefined &&
           value.parent_tool_use_id !== null) ||
-        value.error !== undefined ||
-        !record(value.message) ||
-        !Array.isArray(value.message.content)
+        value.error !== undefined
       )
-        return null;
+        return unknownOutcome("UNEXPECTED_EVENT", "assistant");
+      if (!record(value.message) || !Array.isArray(value.message.content))
+        return unknownOutcome("MALFORMED_EVENT");
       for (const block of value.message.content) {
-        if (!record(block)) return null;
+        if (!record(block)) return unknownOutcome("MALFORMED_EVENT");
         if (DISCARDED_BLOCKS.has(block.type)) continue;
-        if (block.type !== "text") return null;
+        if (block.type !== "text")
+          return unknownOutcome(
+            "UNEXPECTED_EVENT",
+            agentEventName("assistant", block.type),
+          );
       }
       continue;
     }
@@ -272,27 +286,30 @@ function finalAnswer(
         value.is_error === true ||
         (value.permission_denials !== undefined &&
           (!Array.isArray(value.permission_denials) ||
-            value.permission_denials.length > 0)) ||
+            value.permission_denials.length > 0))
+      )
+        return unknownOutcome("ERROR_RESULT");
+      if (
         typeof value.result !== "string" ||
         !value.result.trim() ||
         !value.result.isWellFormed() ||
         Buffer.byteLength(value.result, "utf8") > MAX_OUTPUT_BYTES
       )
-        return null;
+        return unknownOutcome("NO_ANSWER");
       result = value.result;
       continue;
     }
-    return null;
+    return unknownOutcome(
+      "UNEXPECTED_EVENT",
+      agentEventName(value.type, value.subtype),
+    );
   }
-  return initialized && result !== null
-    ? { text: result, eventCount: lines.length }
-    : null;
+  if (!initialized || result === null) return unknownOutcome("NO_ANSWER");
+  return { text: result, eventCount: lines.length };
 }
 
 const digest = (value: string) =>
   createHash("sha256").update(value, "utf8").digest("hex");
-const boundedStream = (value: string) =>
-  value.isWellFormed() && Buffer.byteLength(value, "utf8") <= MAX_STREAM_BYTES;
 const bounded = (value: string, maximum: number) =>
   typeof value === "string" &&
   value.trim() === value &&
@@ -301,17 +318,3 @@ const bounded = (value: string, maximum: number) =>
   !/\p{Cc}/u.test(value);
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-function validObservation(value: unknown): value is ClaudeCodeAgentObservation {
-  if (!record(value)) return false;
-  return (
-    typeof value.stdout === "string" &&
-    typeof value.stderr === "string" &&
-    (value.exitCode === null || Number.isInteger(value.exitCode)) &&
-    typeof value.timedOut === "boolean" &&
-    typeof value.processTreeTerminated === "boolean" &&
-    typeof value.outputLimitExceeded === "boolean" &&
-    typeof value.streamEncodingInvalid === "boolean" &&
-    typeof value.lingeringProcesses === "boolean" &&
-    typeof value.workspaceWritten === "boolean"
-  );
-}

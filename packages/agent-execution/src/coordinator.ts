@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { AgentAttempts } from "./attempts.ts";
 import {
   AGENT_EXECUTION_KINDS,
+  agentUnknownDetail,
   validDigest,
   validText,
   type AgentExecutionKind,
@@ -28,7 +29,12 @@ export type AgentExecutionPlan = Readonly<{
 export type AgentRunResult =
   | Readonly<{ kind: "COMPLETED"; text: string; reportedModel: string | null }>
   | Readonly<{ kind: "REJECTED_BEFORE_EXECUTION" }>
-  | Readonly<{ kind: "UNKNOWN_AFTER_EXECUTION" }>;
+  | Readonly<{
+      kind: "UNKNOWN_AFTER_EXECUTION";
+      /** Checked against the closed list; anything else becomes UNRESOLVED. */
+      reason?: string;
+      unexpectedEvent?: string | null;
+    }>;
 
 /**
  * One qualified agent adapter behind a port. `plan` is pure and may throw;
@@ -242,8 +248,10 @@ export class AgentExecution {
         reason: "LOCAL_EVIDENCE_UNAVAILABLE",
       };
     }
+    let reported: unknown = null;
     try {
       const result = await executor.execute(request(input));
+      if (result.kind === "UNKNOWN_AFTER_EXECUTION") reported = result;
       if (
         result.kind !== "COMPLETED" ||
         typeof result.text !== "string" ||
@@ -268,7 +276,12 @@ export class AgentExecution {
       };
     } catch {
       await this.#attempts
-        .markUnknown(input.scopeId, attemptId, this.#now())
+        .markUnknown(
+          input.scopeId,
+          attemptId,
+          this.#now(),
+          agentUnknownDetail(reported),
+        )
         .catch(() => undefined);
       return { kind: "UNKNOWN_AFTER_EXECUTION", attemptId };
     }

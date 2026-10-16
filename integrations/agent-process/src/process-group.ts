@@ -22,7 +22,8 @@ export type AgentProcessSpec = Readonly<{
 /**
  * Evidence about one run. The last two fields are after-the-fact checks: a
  * descendant still alive or holding the streams, and files left where an
- * answer-only run has no reason to write. Either one voids the answer.
+ * answer-only run has no reason to write; empty directories are not files.
+ * Either one voids the answer.
  */
 export type AgentProcessObservation = Readonly<{
   stdout: string;
@@ -155,7 +156,7 @@ export async function runAgentProcess(
   const groupTerminated = termination === undefined ? false : await termination;
   const workspace = await inspectConfinedWorkspace(
     spec.environment.workspace,
-  ).catch(() => ({ workEntries: 1, tmpEntries: 1 }));
+  ).catch(() => ({ workFiles: 1, tmpFiles: 1 }));
   const stdoutText = stdout.decode();
   const stderrText = stderr.decode();
   return Object.freeze({
@@ -167,7 +168,7 @@ export async function runAgentProcess(
     outputLimitExceeded: stdout.exceeded || stderr.exceeded,
     streamEncodingInvalid: !stdoutText.valid || !stderrText.valid,
     lingeringProcesses: lingering || streamsHeldOpen,
-    workspaceWritten: workspace.workEntries + workspace.tmpEntries > 0,
+    workspaceWritten: workspace.workFiles + workspace.tmpFiles > 0,
   });
 }
 

@@ -17,6 +17,38 @@ export const AGENT_EXECUTION_KINDS = Object.freeze([
 export type AgentExecutionKind = (typeof AGENT_EXECUTION_KINDS)[number];
 
 /**
+ * Why an outcome is unknown, without any content (ADR-0049 amendment). The
+ * adapters report the same closed list; anything else is recorded as
+ * `UNRESOLVED`.
+ */
+export const AGENT_UNKNOWN_REASONS = Object.freeze([
+  "RUNNER_FAILED",
+  "TIMED_OUT",
+  "OUTPUT_LIMIT",
+  "STREAM_ENCODING",
+  "LINGERING_PROCESS",
+  "WORKSPACE_WRITTEN",
+  "EXIT_CODE",
+  "MALFORMED_EVENT",
+  "UNEXPECTED_EVENT",
+  "CONTEXT_LOADED",
+  "ERROR_RESULT",
+  "NO_ANSWER",
+  "UNRESOLVED",
+] as const);
+
+export type AgentUnknownReason = (typeof AGENT_UNKNOWN_REASONS)[number];
+
+/** Identifier-like segments only: an event type, never a sentence or path. */
+const EVENT_NAME = /^[a-z][a-z0-9_.-]{0,47}(?:\/[a-z][a-z0-9_.-]{0,47}){0,2}$/u;
+
+export type AgentUnknownDetail = Readonly<{
+  unknownReason: AgentUnknownReason;
+  /** The product's event type when the reason is `UNEXPECTED_EVENT`. */
+  unexpectedEvent: string | null;
+}>;
+
+/**
  * ADR-0049. A process has no provider receipt, so there is no acknowledged
  * state: execution either produced a validated answer or its outcome is
  * unknown. A refusal is recorded only while no process was started.
@@ -59,14 +91,18 @@ export type AgentAttemptRecord = AgentAttemptInput &
     predecessorRecordHash: string | null;
     recordHash: string;
     effect: typeof AGENT_ATTEMPT_EFFECT;
-  }>;
+  }> &
+  // Present only on an unknown outcome recorded since the ADR-0049 amendment;
+  // an older unknown record has neither field and stays valid.
+  Partial<AgentUnknownDetail>;
 
 export type AgentAttemptPatch = Readonly<
   Partial<
     Pick<
       AgentAttemptRecord,
       "state" | "executionCount" | "outputDigest" | "reportedModel"
-    >
+    > &
+      AgentUnknownDetail
   > & { updatedAt: string }
 >;
 
@@ -116,6 +152,7 @@ const RECORD_KEYS = Object.freeze([
   "state",
   "updatedAt",
 ]);
+const UNKNOWN_DETAIL_KEYS = Object.freeze(["unexpectedEvent", "unknownReason"]);
 const STATES: readonly AgentAttemptState[] = Object.freeze([
   "PREPARED",
   "REFUSED_BEFORE_EXECUTION",
@@ -141,7 +178,11 @@ export function validateAgentAttemptInput(value: unknown): AgentAttemptInput {
 export function validateAgentAttemptRecord(value: unknown): AgentAttemptRecord {
   if (
     !record(value) ||
-    !exactKeys(value, RECORD_KEYS) ||
+    !(
+      exactKeys(value, RECORD_KEYS) ||
+      exactKeys(value, [...RECORD_KEYS, ...UNKNOWN_DETAIL_KEYS])
+    ) ||
+    !validUnknownDetail(value) ||
     !validInput(value) ||
     !STATES.includes(value.state as AgentAttemptState) ||
     !Number.isSafeInteger(value.revision) ||
@@ -168,6 +209,12 @@ export function validateAgentAttemptRecord(value: unknown): AgentAttemptRecord {
     predecessorRecordHash: value.predecessorRecordHash as string | null,
     recordHash: value.recordHash,
     effect: AGENT_ATTEMPT_EFFECT,
+    ...("unknownReason" in value
+      ? {
+          unknownReason: value.unknownReason as AgentUnknownReason,
+          unexpectedEvent: value.unexpectedEvent as string | null,
+        }
+      : {}),
   });
   const { recordHash, ...withoutHash } = normalized;
   if (hashAgentAttemptRecord(withoutHash) !== recordHash)
@@ -259,6 +306,42 @@ function validateState(value: AgentAttemptRecord): void {
         ? executed && answered
         : executed && !answered && value.reportedModel === null;
   if (!valid) throw new AgentAttemptError();
+}
+
+/** Both fields or neither; only on an unknown outcome; only declared values. */
+function validUnknownDetail(value: Record<string, unknown>): boolean {
+  if (!("unknownReason" in value)) return !("unexpectedEvent" in value);
+  return (
+    value.state === "UNKNOWN_AFTER_EXECUTION" &&
+    (AGENT_UNKNOWN_REASONS as readonly unknown[]).includes(
+      value.unknownReason,
+    ) &&
+    (value.unexpectedEvent === null ||
+      (value.unknownReason === "UNEXPECTED_EVENT" &&
+        validAgentEventName(value.unexpectedEvent)))
+  );
+}
+
+export function validAgentEventName(value: unknown): value is string {
+  return typeof value === "string" && EVENT_NAME.test(value);
+}
+
+/** What an executor reported, reduced to the closed list or `UNRESOLVED`. */
+export function agentUnknownDetail(reported: unknown): AgentUnknownDetail {
+  const candidate = record(reported) ? reported : {};
+  const reason = (AGENT_UNKNOWN_REASONS as readonly unknown[]).includes(
+    candidate.reason,
+  )
+    ? (candidate.reason as AgentUnknownReason)
+    : "UNRESOLVED";
+  return Object.freeze({
+    unknownReason: reason,
+    unexpectedEvent:
+      reason === "UNEXPECTED_EVENT" &&
+      validAgentEventName(candidate.unexpectedEvent)
+        ? candidate.unexpectedEvent
+        : null,
+  });
 }
 
 function validInput(value: Record<string, unknown>): boolean {

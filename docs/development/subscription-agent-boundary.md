@@ -113,8 +113,10 @@ compatibility promise.
 
 ADR-0049 adds the separate agent attempt store and the coordinator that claims
 execution durably before a process can start and keeps every later failure
-unknown, with no rerun. Turns link to agent attempts through the durable turn
-registry. Both adapters are exercised behind a synthetic runner.
+unknown, with no rerun. An unknown record names the first check that failed
+from a closed list and, for an unexpected event, only its type. Turns link to
+agent attempts through the durable turn registry. Both adapters are exercised
+behind a synthetic runner.
 
 ## Local model
 
@@ -139,7 +141,9 @@ ADR-0050 moves both runners onto `integrations/agent-process`: a new private
 run tree per invocation, an environment built from nothing, a dedicated login
 directory checked by metadata only, a canonical executable fixed by digest and
 reviewed version, and process-group cancellation with after-the-fact checks for
-lingering descendants and files left behind. The ADR holds the capability
+lingering descendants and files left behind; empty directories a product
+creates in `TMPDIR` are not files and are removed at release. The ADR holds the
+capability
 table separating what is enforced before the run, what is checked after it and
 what is not controlled. The Codex list holds the standalone release `0.160.0`
 for `x86_64-unknown-linux-musl`; the Claude Code list holds the native release

@@ -80,6 +80,82 @@ describe("agent attempt records", () => {
       );
   });
 
+  /**
+   * The reason names which check failed, never what the run said. A record
+   * written before the reason existed has neither field and stays valid.
+   */
+  it("records why an outcome is unknown and keeps older unknown records valid", () => {
+    const prepared = createAgentAttemptRecord(attemptInput(), 1, null);
+    const started = transitionAgentAttemptRecord(prepared, 2, {
+      state: "EXECUTION_STARTED",
+      executionCount: 1,
+      updatedAt: AT,
+    });
+    const legacy = transitionAgentAttemptRecord(started, 3, {
+      state: "UNKNOWN_AFTER_EXECUTION",
+      updatedAt: AT,
+    });
+    assert.equal("unknownReason" in legacy, false);
+    assert.deepEqual(validateAgentAttemptRecord({ ...legacy }), legacy);
+    const unknown = transitionAgentAttemptRecord(started, 3, {
+      state: "UNKNOWN_AFTER_EXECUTION",
+      unknownReason: "UNEXPECTED_EVENT",
+      unexpectedEvent: "system/status",
+      updatedAt: AT,
+    });
+    assert.equal(unknown.unknownReason, "UNEXPECTED_EVENT");
+    assert.equal(unknown.unexpectedEvent, "system/status");
+    assert.deepEqual(validateAgentAttemptRecord({ ...unknown }), unknown);
+    for (const [from, patch] of [
+      [
+        started,
+        {
+          state: "UNKNOWN_AFTER_EXECUTION",
+          unknownReason: "NOT_LISTED",
+          unexpectedEvent: null,
+        },
+      ],
+      [
+        started,
+        {
+          state: "UNKNOWN_AFTER_EXECUTION",
+          unknownReason: "EXIT_CODE",
+          unexpectedEvent: "system/status",
+        },
+      ],
+      [
+        started,
+        {
+          state: "UNKNOWN_AFTER_EXECUTION",
+          unknownReason: "UNEXPECTED_EVENT",
+          unexpectedEvent: "A sentence, not a type",
+        },
+      ],
+      [
+        started,
+        { state: "UNKNOWN_AFTER_EXECUTION", unknownReason: "UNEXPECTED_EVENT" },
+      ],
+      [
+        prepared,
+        {
+          state: "EXECUTION_STARTED",
+          executionCount: 1,
+          unknownReason: "EXIT_CODE",
+          unexpectedEvent: null,
+        },
+      ],
+    ] as const)
+      assert.throws(
+        () =>
+          transitionAgentAttemptRecord(from, from.revision + 1, {
+            ...patch,
+            updatedAt: AT,
+          } as never),
+        AgentAttemptError,
+        JSON.stringify(patch),
+      );
+  });
+
   it("rejects altered, oversized or non-canonical evidence", () => {
     const prepared = createAgentAttemptRecord(attemptInput(), 1, null);
     for (const change of [
@@ -253,6 +329,69 @@ describe("agent execution coordinator", () => {
       fixture.store.current("id-2").state,
       "UNKNOWN_AFTER_EXECUTION",
     );
+  });
+
+  it("records the executor's reason and reduces anything else to UNRESOLVED", async () => {
+    const cases: readonly [AgentRunResult | Error, string, string | null][] = [
+      [
+        {
+          kind: "UNKNOWN_AFTER_EXECUTION",
+          reason: "WORKSPACE_WRITTEN",
+          unexpectedEvent: null,
+        },
+        "WORKSPACE_WRITTEN",
+        null,
+      ],
+      [
+        {
+          kind: "UNKNOWN_AFTER_EXECUTION",
+          reason: "UNEXPECTED_EVENT",
+          unexpectedEvent: "assistant/tool_use",
+        },
+        "UNEXPECTED_EVENT",
+        "assistant/tool_use",
+      ],
+      // A value outside the closed list, or text in place of a type, is dropped.
+      [
+        { kind: "UNKNOWN_AFTER_EXECUTION", reason: "SYNTHETIC_FREE_TEXT" },
+        "UNRESOLVED",
+        null,
+      ],
+      [
+        {
+          kind: "UNKNOWN_AFTER_EXECUTION",
+          reason: "UNEXPECTED_EVENT",
+          unexpectedEvent: "Synthetic protected sentence",
+        },
+        "UNEXPECTED_EVENT",
+        null,
+      ],
+      [
+        {
+          kind: "UNKNOWN_AFTER_EXECUTION",
+          reason: "EXIT_CODE",
+          unexpectedEvent: "system/status",
+        },
+        "EXIT_CODE",
+        null,
+      ],
+      [{ kind: "UNKNOWN_AFTER_EXECUTION" }, "UNRESOLVED", null],
+      [new Error("spawn ambiguous"), "UNRESOLVED", null],
+      [
+        { kind: "COMPLETED", text: "  ", reportedModel: null },
+        "UNRESOLVED",
+        null,
+      ],
+    ];
+    for (const [result, reason, unexpectedEvent] of cases) {
+      const fixture = harness(result);
+      const prepared = fixture.execution.prepare(executionInput());
+      await fixture.confirm(prepared.authorizationId);
+      const record = fixture.store.current("id-2");
+      assert.equal(record.state, "UNKNOWN_AFTER_EXECUTION");
+      assert.equal(record.unknownReason, reason, JSON.stringify(result));
+      assert.equal(record.unexpectedEvent, unexpectedEvent);
+    }
   });
 
   it("spends one authorization once even for concurrent confirmations", async () => {

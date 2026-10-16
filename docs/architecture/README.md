@@ -370,8 +370,9 @@ without writing and preserves its exact bytes before the first v2 publication.
 ADR-0049 adds `packages/agent-execution` and `integrations/local-agent-attempts`.
 The coordinator plans an agent invocation as digests without I/O, links the
 attempt to the durable turn identity, prepares, rechecks, claims execution and
-rereads the claim before the injected executor can start a process. The agent
-store is separate from model-delivery attempts; the turn reference names its
+rereads the claim before the injected executor can start a process. An
+unknown record names the failed check from a closed list, never content. The
+agent store is separate from model-delivery attempts; the turn reference names its
 class so recovery reads the right store, even after a start that offers no
 agent.
 

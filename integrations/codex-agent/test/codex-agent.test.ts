@@ -151,7 +151,7 @@ describe("subscription-backed Codex agent adapter", () => {
   it("still fails closed for every other started or completed item", async () => {
     const answer =
       '{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n{"type":"turn.completed"}\n';
-    const cases = [
+    const cases: Array<[string, string, string | null]> = [
       ...[
         "command_execution",
         "file_change",
@@ -159,52 +159,93 @@ describe("subscription-backed Codex agent adapter", () => {
         "web_search",
         "todo_list",
         "unreviewed",
-      ].flatMap((type) => [
-        `{"type":"item.started","item":{"type":"${type}"}}\n${answer}`,
-        `{"type":"item.completed","item":{"type":"${type}"}}\n${answer}`,
+      ].flatMap((type): Array<[string, string, string | null]> => [
+        [
+          `{"type":"item.started","item":{"type":"${type}"}}\n${answer}`,
+          "UNEXPECTED_EVENT",
+          `item.started/${type}`,
+        ],
+        [
+          `{"type":"item.completed","item":{"type":"${type}"}}\n${answer}`,
+          "UNEXPECTED_EVENT",
+          `item.completed/${type}`,
+        ],
       ]),
-      `{"type":"item.started"}\n${answer}`,
-      `{"type":"item.updated","item":{"type":"agent_message","text":"a"}}\n${answer}`,
-      `{"type":"turn.failed","error":{"message":"synthetic"}}\n${answer}`,
-      `{"type":"error","message":"synthetic"}\n${answer}`,
-      '{"type":"item.completed","item":{"type":"reasoning","text":"only"}}\n{"type":"turn.completed"}\n',
+      [`{"type":"item.started"}\n${answer}`, "MALFORMED_EVENT", null],
+      [
+        `{"type":"item.updated","item":{"type":"agent_message","text":"a"}}\n${answer}`,
+        "UNEXPECTED_EVENT",
+        "item.updated/agent_message",
+      ],
+      [
+        `{"type":"turn.failed","error":{"message":"synthetic"}}\n${answer}`,
+        "ERROR_RESULT",
+        null,
+      ],
+      [
+        `{"type":"error","message":"synthetic"}\n${answer}`,
+        "ERROR_RESULT",
+        null,
+      ],
+      [
+        '{"type":"item.completed","item":{"type":"reasoning","text":"only"}}\n{"type":"turn.completed"}\n',
+        "NO_ANSWER",
+        null,
+      ],
     ];
-    for (const stdout of cases)
+    for (const [stdout, reason, unexpectedEvent] of cases)
       assert.deepEqual(
         await new CodexAgentAdapter(async () =>
           observation({ stdout }),
         ).execute(input),
-        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        { kind: "UNKNOWN_AFTER_EXECUTION", reason, unexpectedEvent },
         stdout,
       );
   });
 
   it("fails closed for tools, duplicates, malformed output and nonzero exit", async () => {
-    const cases = [
-      observation({
-        stdout:
-          '{"type":"item.completed","item":{"type":"command_execution"}}\n{"type":"turn.completed"}\n',
-      }),
-      observation({
-        stdout:
-          '{"type":"item.completed","item":{"type":"agent_message","text":"one"}}\n{"type":"item.completed","item":{"type":"agent_message","text":"two"}}\n{"type":"turn.completed"}\n',
-      }),
-      observation({ stdout: "not-json\n" }),
-      observation({
-        stdout:
-          '{"type":"unreviewed.event"}\n{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n{"type":"turn.completed"}\n',
-      }),
-      observation({
-        stdout:
-          '{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n{"type":"turn.completed"}\n{"type":"turn.started"}\n',
-      }),
-      observation({ exitCode: 1 }),
-      observation({ outputLimitExceeded: true }),
+    const cases: Array<[CodexAgentObservation, string, string | null]> = [
+      [
+        observation({
+          stdout:
+            '{"type":"item.completed","item":{"type":"command_execution"}}\n{"type":"turn.completed"}\n',
+        }),
+        "UNEXPECTED_EVENT",
+        "item.completed/command_execution",
+      ],
+      [
+        observation({
+          stdout:
+            '{"type":"item.completed","item":{"type":"agent_message","text":"one"}}\n{"type":"item.completed","item":{"type":"agent_message","text":"two"}}\n{"type":"turn.completed"}\n',
+        }),
+        "UNEXPECTED_EVENT",
+        "item.completed/agent_message",
+      ],
+      [observation({ stdout: "not-json\n" }), "MALFORMED_EVENT", null],
+      [
+        observation({
+          stdout:
+            '{"type":"unreviewed.event"}\n{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n{"type":"turn.completed"}\n',
+        }),
+        "UNEXPECTED_EVENT",
+        "unreviewed.event",
+      ],
+      [
+        observation({
+          stdout:
+            '{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n{"type":"turn.completed"}\n{"type":"turn.started"}\n',
+        }),
+        "UNEXPECTED_EVENT",
+        "turn.started",
+      ],
+      [observation({ exitCode: 1 }), "EXIT_CODE", null],
+      [observation({ outputLimitExceeded: true }), "OUTPUT_LIMIT", null],
     ];
-    for (const value of cases)
+    for (const [value, reason, unexpectedEvent] of cases)
       assert.deepEqual(
         await new CodexAgentAdapter(async () => value).execute(input),
-        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        { kind: "UNKNOWN_AFTER_EXECUTION", reason, unexpectedEvent },
+        value.stdout,
       );
   });
 
@@ -256,15 +297,15 @@ describe("subscription-backed Codex agent adapter", () => {
   });
 
   it("voids an answer when a descendant lingered or the workspace was written", async () => {
-    for (const override of [
-      { lingeringProcesses: true },
-      { workspaceWritten: true },
-    ])
+    for (const [override, reason] of [
+      [{ lingeringProcesses: true }, "LINGERING_PROCESS"],
+      [{ workspaceWritten: true }, "WORKSPACE_WRITTEN"],
+    ] as const)
       assert.deepEqual(
         await new CodexAgentAdapter(async () => observation(override)).execute(
           input,
         ),
-        { kind: "UNKNOWN_AFTER_EXECUTION" },
+        { kind: "UNKNOWN_AFTER_EXECUTION", reason, unexpectedEvent: null },
         JSON.stringify(override),
       );
   });
@@ -279,13 +320,21 @@ describe("subscription-backed Codex agent adapter", () => {
           exitCode: null,
         }),
       ).execute(input),
-      { kind: "UNKNOWN_AFTER_EXECUTION" },
+      {
+        kind: "UNKNOWN_AFTER_EXECUTION",
+        reason: "TIMED_OUT",
+        unexpectedEvent: null,
+      },
     );
     assert.deepEqual(
       await new CodexAgentAdapter(async () =>
         observation({ stdout: "", timedOut: true, exitCode: null }),
       ).execute(input),
-      { kind: "UNKNOWN_AFTER_EXECUTION" },
+      {
+        kind: "UNKNOWN_AFTER_EXECUTION",
+        reason: "LINGERING_PROCESS",
+        unexpectedEvent: null,
+      },
     );
   });
 

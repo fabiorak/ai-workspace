@@ -1,5 +1,6 @@
 import {
   AgentAttemptError,
+  agentUnknownDetail,
   sha256,
   validateAgentAttemptInput,
   validText,
@@ -8,6 +9,7 @@ import {
   type AgentAttemptRecord,
   type AgentAttemptSnapshot,
   type AgentAttemptState,
+  type AgentUnknownDetail,
 } from "./record.ts";
 
 export type AgentAttemptStore = Readonly<{
@@ -93,10 +95,13 @@ export class AgentAttempts {
     scopeId: string,
     attemptId: string,
     at: string,
+    detail: AgentUnknownDetail = agentUnknownDetail(null),
   ): Promise<AgentAttemptRecord> {
     return this.#run(() =>
       this.#store.transition(scopeId, attemptId, ["EXECUTION_STARTED"], {
         state: "UNKNOWN_AFTER_EXECUTION",
+        unknownReason: detail.unknownReason,
+        unexpectedEvent: detail.unexpectedEvent,
         updatedAt: at,
       }),
     );

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   chmod,
+  lstat,
   mkdir,
   mkdtemp,
   readFile,
@@ -97,8 +98,8 @@ describe("confined agent workspace", () => {
     for (const path of [first.run, first.home, first.work, first.tmp])
       assert.equal((await stat(path)).mode & 0o777, 0o700);
     assert.deepEqual(await inspectConfinedWorkspace(first), {
-      workEntries: 0,
-      tmpEntries: 0,
+      workFiles: 0,
+      tmpFiles: 0,
     });
     assert.equal(await releaseConfinedWorkspace(first), true);
     await assert.rejects(stat(first.run), { code: "ENOENT" });
@@ -108,6 +109,48 @@ describe("confined agent workspace", () => {
       await readFile(join(second.work, "left-behind.txt"), "utf8"),
       "kept\n",
     );
+  });
+
+  /**
+   * A product may create an empty working directory in `TMPDIR` on every run.
+   * It holds no content, so it neither voids the answer nor keeps the run; a
+   * file anywhere below it still does, and is never removed.
+   */
+  it("counts only files, at any depth, and releases empty directories", async () => {
+    const base = await root();
+    const runs = join(base, "runs");
+    await mkdir(runs, { mode: 0o700 });
+    const empty = await createConfinedWorkspace(runs);
+    await mkdir(join(empty.tmp, "claude-1000", "nested"), { recursive: true });
+    await mkdir(join(empty.home, ".cache"), { recursive: true });
+    assert.deepEqual(await inspectConfinedWorkspace(empty), {
+      workFiles: 0,
+      tmpFiles: 0,
+    });
+    assert.equal(await releaseConfinedWorkspace(empty), true);
+    await assert.rejects(stat(empty.run), { code: "ENOENT" });
+
+    const written = await createConfinedWorkspace(runs);
+    const deep = join(written.tmp, "claude-1000", "nested");
+    await mkdir(deep, { recursive: true });
+    await mkdir(join(written.tmp, "empty"));
+    await writeFile(join(deep, "left-behind.txt"), "kept\n");
+    await symlink(base, join(written.work, "link"));
+    assert.deepEqual(await inspectConfinedWorkspace(written), {
+      workFiles: 1,
+      tmpFiles: 1,
+    });
+    assert.equal(await releaseConfinedWorkspace(written), false);
+    assert.equal(
+      await readFile(join(deep, "left-behind.txt"), "utf8"),
+      "kept\n",
+    );
+    // The link is kept and was never followed; the empty sibling is gone.
+    assert.equal(
+      (await lstat(join(written.work, "link"))).isSymbolicLink(),
+      true,
+    );
+    await assert.rejects(stat(join(written.tmp, "empty")), { code: "ENOENT" });
   });
 
   it("refuses a root that is shared, missing, relative or reached through a link", async () => {
@@ -364,6 +407,17 @@ process.stdout.write("done\\n");
       await readFile(join(workspace.work, "note.txt"), "utf8"),
       "written",
     );
+  });
+
+  it("does not count an empty working directory the product creates in TMPDIR", async () => {
+    const { run } = await fixture(`
+const { join } = require("node:path");
+require("node:fs").mkdirSync(join(process.env.TMPDIR, "claude-1000", "nested"), { recursive: true });
+process.stdout.write("done\\n");
+`);
+    const observed = await run();
+    assert.equal(observed.exitCode, 0);
+    assert.equal(observed.workspaceWritten, false);
   });
 
   it("delivers stdin, returns bounded clean streams and leaves nothing running", async () => {

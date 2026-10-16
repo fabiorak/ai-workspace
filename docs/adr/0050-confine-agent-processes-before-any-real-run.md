@@ -187,3 +187,19 @@ observed until the first live run. Claude Code updates itself often; an update
 changes the digest, so the updated installation is unavailable until it is
 reviewed the same way. Listing a release is not an authorization for a live
 run.
+
+## Amendment: empty directories in the run tree
+
+Date: 2026-10-16. The ADR remains proposed.
+
+A real run of the reviewed Claude Code release creates an empty working
+directory under `TMPDIR`; `--version` and `--help` do not, so the review could
+not see it. Counting every entry made that directory a written workspace and
+voided the answer. The after-the-fact check now counts only entries that are not
+directories, at any depth, in `work` and `tmp`; a link counts and is never
+followed, and a walk beyond its bound counts as written. A file anywhere still
+voids the answer and is kept for inspection.
+
+Releasing a run removes empty directories from the deepest up, one at a time,
+in `work`, `tmp` and `home`, and never removes a file, so a run that left only
+empty directories leaves nothing behind.

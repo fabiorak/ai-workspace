@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
 
+import {
+  agentEventName,
+  observationUnknown,
+  unknownOutcome,
+  type AgentUnknownOutcome,
+} from "@ai-workspace/agent-process";
+
 export { createCodexAgentProcessRunner } from "./process-runner.ts";
 export type { CodexAgentProcessRunnerOptions } from "./process-runner.ts";
 export * from "./compatibility.ts";
@@ -80,7 +87,7 @@ export type CodexAgentResult =
       eventCount: number;
     }>
   | Readonly<{ kind: "REJECTED_BEFORE_EXECUTION" }>
-  | Readonly<{ kind: "UNKNOWN_AFTER_EXECUTION" }>;
+  | AgentUnknownOutcome;
 
 export class CodexAgentError extends Error {
   public constructor() {
@@ -113,23 +120,12 @@ export class CodexAgentAdapter {
     try {
       observation = await this.#runner(invocation);
     } catch {
-      return { kind: "UNKNOWN_AFTER_EXECUTION" };
+      return unknownOutcome("RUNNER_FAILED");
     }
-    if (
-      !validObservation(observation) ||
-      !boundedStream(observation.stdout) ||
-      !boundedStream(observation.stderr) ||
-      observation.outputLimitExceeded ||
-      observation.streamEncodingInvalid ||
-      observation.lingeringProcesses ||
-      observation.workspaceWritten ||
-      (observation.timedOut && !observation.processTreeTerminated)
-    )
-      return { kind: "UNKNOWN_AFTER_EXECUTION" };
-    if (observation.timedOut) return { kind: "UNKNOWN_AFTER_EXECUTION" };
-    if (observation.exitCode !== 0) return { kind: "UNKNOWN_AFTER_EXECUTION" };
+    const failed = observationUnknown(observation, MAX_STREAM_BYTES);
+    if (failed !== null) return failed;
     const parsed = finalAnswer(observation.stdout);
-    if (parsed === null) return { kind: "UNKNOWN_AFTER_EXECUTION" };
+    if ("kind" in parsed) return parsed;
     return Object.freeze({
       kind: "COMPLETED" as const,
       text: parsed.text,
@@ -192,35 +188,47 @@ export function buildCodexAgentInvocation(input: {
   });
 }
 
+/** The first event that fails names the outcome, by its declared type only. */
 function finalAnswer(
   stdout: string,
-): { text: string; eventCount: number } | null {
+): { text: string; eventCount: number } | AgentUnknownOutcome {
   const lines = stdout.split("\n").filter(Boolean);
   let text: string | null = null;
   let completed = false;
   let threadStarted = false;
   let turnStarted = false;
+  const unexpected = (value: Record<string, unknown>) =>
+    unknownOutcome(
+      "UNEXPECTED_EVENT",
+      agentEventName(
+        value.type,
+        record(value.item) ? value.item.type : undefined,
+      ),
+    );
   for (const line of lines) {
     let value: unknown;
     try {
       value = JSON.parse(line);
     } catch {
-      return null;
+      return unknownOutcome("MALFORMED_EVENT");
     }
-    if (!record(value) || typeof value.type !== "string" || completed)
-      return null;
+    if (!record(value) || typeof value.type !== "string")
+      return unknownOutcome("MALFORMED_EVENT");
+    if (completed) return unexpected(value);
     if (value.type === "thread.started") {
-      if (threadStarted || !boundedValue(value.thread_id, 256)) return null;
+      if (threadStarted) return unexpected(value);
+      if (!boundedValue(value.thread_id, 256))
+        return unknownOutcome("MALFORMED_EVENT");
       threadStarted = true;
       continue;
     }
     if (value.type === "turn.started") {
-      if (turnStarted) return null;
+      if (turnStarted) return unexpected(value);
       turnStarted = true;
       continue;
     }
     if (value.type === "turn.completed") {
-      if (text === null) return null;
+      if (text === null) return unknownOutcome("NO_ANSWER");
       completed = true;
       continue;
     }
@@ -228,34 +236,36 @@ function finalAnswer(
     // answer-only item types may announce themselves. Any command, file,
     // tool, search, plan or unknown item still voids the answer.
     if (value.type === "item.started") {
-      if (!record(value.item) || !ANNOUNCED_ITEMS.has(value.item.type))
-        return null;
+      if (!record(value.item)) return unknownOutcome("MALFORMED_EVENT");
+      if (!ANNOUNCED_ITEMS.has(value.item.type)) return unexpected(value);
       continue;
     }
     if (value.type === "item.completed") {
-      if (!record(value.item)) return null;
+      if (!record(value.item)) return unknownOutcome("MALFORMED_EVENT");
       if (value.item.type === "reasoning") continue;
-      if (value.item.type !== "agent_message") return null;
+      if (value.item.type !== "agent_message" || text !== null)
+        return unexpected(value);
       if (
-        text !== null ||
         typeof value.item.text !== "string" ||
         !value.item.text.trim() ||
         !value.item.text.isWellFormed() ||
         Buffer.byteLength(value.item.text, "utf8") > MAX_OUTPUT_BYTES
       )
-        return null;
+        return unknownOutcome("NO_ANSWER");
       text = value.item.text;
       continue;
     }
-    return null;
+    if (value.type === "turn.failed" || value.type === "error")
+      return unknownOutcome("ERROR_RESULT");
+    return unexpected(value);
   }
-  return completed && text !== null ? { text, eventCount: lines.length } : null;
+  return completed && text !== null
+    ? { text, eventCount: lines.length }
+    : unknownOutcome("NO_ANSWER");
 }
 
 const digest = (value: string) =>
   createHash("sha256").update(value, "utf8").digest("hex");
-const boundedStream = (value: string) =>
-  value.isWellFormed() && Buffer.byteLength(value, "utf8") <= MAX_STREAM_BYTES;
 const boundedValue = (value: unknown, maximum: number): value is string =>
   typeof value === "string" &&
   value.length > 0 &&
@@ -269,17 +279,3 @@ const bounded = (value: string, maximum: number) =>
   !/\p{Cc}/u.test(value);
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-function validObservation(value: unknown): value is CodexAgentObservation {
-  if (!record(value)) return false;
-  return (
-    typeof value.stdout === "string" &&
-    typeof value.stderr === "string" &&
-    (value.exitCode === null || Number.isInteger(value.exitCode)) &&
-    typeof value.timedOut === "boolean" &&
-    typeof value.processTreeTerminated === "boolean" &&
-    typeof value.outputLimitExceeded === "boolean" &&
-    typeof value.streamEncodingInvalid === "boolean" &&
-    typeof value.lingeringProcesses === "boolean" &&
-    typeof value.workspaceWritten === "boolean"
-  );
-}

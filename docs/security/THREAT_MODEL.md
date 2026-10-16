@@ -563,7 +563,10 @@ whole-file comparison.
   the product's own API retries are discarded unread, and any other event
   voids the answer;
 - process-group cancellation proves termination; lingering descendants, an
-  escaped process or files left behind turn the outcome unknown;
+  escaped process or files left behind turn the outcome unknown; empty
+  directories are not files, and release removes them without removing a file;
+- an unknown agent record names the failed check from a closed list and, for
+  an unexpected event, only its type; free text from the product is dropped;
 - accepted residual risk: the process runs as the same account and can read
   files outside its run tree; the product's own service connection is needed.
 
