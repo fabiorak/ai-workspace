@@ -54,6 +54,8 @@
     "@ai-workspace/local-model-attempts": "0.0.0",
     "@ai-workspace/model-targets": "0.0.0",
     "@ai-workspace/local-model-targets": "0.0.0",
+    "@ai-workspace/target-configuration": "0.0.0",
+    "@ai-workspace/local-target-configuration": "0.0.0",
     "@ai-workspace/openai-responses": "0.0.0",
     "@ai-workspace/local-conversation-turns": "0.0.0",
     "@ai-workspace/agent-execution": "0.0.0",

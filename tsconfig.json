@@ -93,6 +93,12 @@
       "@ai-workspace/local-model-targets": [
         "./integrations/local-model-targets/src/index.ts"
       ],
+      "@ai-workspace/target-configuration": [
+        "./packages/target-configuration/src/index.ts"
+      ],
+      "@ai-workspace/local-target-configuration": [
+        "./integrations/local-target-configuration/src/index.ts"
+      ],
       "@ai-workspace/local-privacy-policy": [
         "./integrations/local-privacy-policy/src/index.ts"
       ],

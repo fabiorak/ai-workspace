@@ -339,9 +339,19 @@ ${PRIVACY_SECTION}
           <label for="model-target-kind" data-i18n="modelTargetKind">Target kind</label><select id="model-target-kind"><option value="OPENAI_RESPONSES" data-i18n="modelTargetKindResponses">OpenAI Responses - direct model delivery (API)</option><option value="CODEX_CLI" data-i18n="modelTargetKindCodex">Codex CLI - subscription agent</option><option value="CLAUDE_CODE" data-i18n="modelTargetKindClaude">Claude Code - subscription agent</option><option value="LLAMA_SERVER_LOOPBACK" data-i18n="modelTargetKindLocal">llama-server on loopback - local model</option></select>
           <label for="model-target-model" data-i18n="modelTargetModel">Model identifier</label><input id="model-target-model" required maxlength="256">
           <label for="model-target-boundary" data-i18n="modelTargetBoundary">Execution boundary</label><select id="model-target-boundary"><option value="EXTERNAL_SERVICE">EXTERNAL_SERVICE</option><option value="LOCAL_ONLY">LOCAL_ONLY</option><option value="UNCLASSIFIED">UNCLASSIFIED</option></select>
-          <label for="model-target-profile" data-i18n="modelTargetProfile">Reviewed profile reference</label><input id="model-target-profile" required maxlength="2048">
-          <label for="model-target-policy" data-i18n="modelTargetPolicy">Reviewed policy reference</label><input id="model-target-policy" required maxlength="2048">
-          <label for="model-target-instructions" data-i18n="modelTargetInstructions">Instruction references, one per line</label><textarea id="model-target-instructions" required></textarea>
+          <label for="model-target-configuration-mode" data-i18n="modelTargetConfigurationMode">Configuration</label><select id="model-target-configuration-mode"><option value="GUIDED" data-i18n="modelTargetConfigurationGuided">Guided, from the fields below</option><option value="FILES" data-i18n="modelTargetConfigurationFiles">Files of my own</option></select>
+          <div id="model-target-guided" class="form-fields">
+            <p class="help form-wide" id="model-target-guided-help" data-i18n="modelTargetGuidedHelp">AI Workspace writes the profile, policy and instructions for you.</p>
+            <label for="model-target-scope" data-i18n="modelTargetScope">Conversations served</label><select id="model-target-scope" aria-describedby="model-target-guided-help"><option value="" data-i18n="modelTargetScopeGeneral">General conversations</option></select>
+            <label for="model-target-rules" data-i18n="modelTargetRules">Instructions for the model, one per line</label><textarea id="model-target-rules" rows="4" required></textarea>
+            <label for="model-target-continuity-budget" data-i18n="modelTargetContinuityBudget">Space for conversation context (bytes)</label><input id="model-target-continuity-budget" type="number" min="1" max="1000000" value="65536" required>
+            <label for="model-target-instruction-budget" data-i18n="modelTargetInstructionBudget">Space for instructions (bytes)</label><input id="model-target-instruction-budget" type="number" min="1" max="1000000" value="16384" required>
+          </div>
+          <div id="model-target-files" class="form-fields" hidden>
+            <label for="model-target-profile" data-i18n="modelTargetProfile">Reviewed profile reference</label><input id="model-target-profile" maxlength="2048">
+            <label for="model-target-policy" data-i18n="modelTargetPolicy">Reviewed policy reference</label><input id="model-target-policy" maxlength="2048">
+            <label for="model-target-instructions" data-i18n="modelTargetInstructions">Instruction references, one per line</label><textarea id="model-target-instructions"></textarea>
+          </div>
           <label for="model-target-input-limit" data-i18n="modelTargetInputLimit">Maximum input bytes</label><input id="model-target-input-limit" type="number" min="1" max="1048576" value="65536" required>
           <label for="model-target-output-limit" data-i18n="modelTargetOutputLimit">Maximum output bytes</label><input id="model-target-output-limit" type="number" min="1" max="1048576" value="16384" required>
           <label class="checkbox-label"><input id="model-target-enabled" type="checkbox" checked><span data-i18n="modelTargetEnabledLabel">Enabled for selection</span></label>

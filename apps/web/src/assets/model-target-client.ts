@@ -67,7 +67,8 @@ export const MODEL_TARGET_BEHAVIOUR = `
       const body = document.createElement("div"); const heading = document.createElement("h4"); text(heading, target.displayName);
       const detailLine = document.createElement("p"); detailLine.className = "help"; say(detailLine, "modelTargetDetail", { class: { key: modelTargetClassKeys[target.executionClass] || "modelTargetClassNone" }, kind: target.kind || target.legacyProviderKind, model: target.modelId, boundary: target.boundary });
       const state = document.createElement("span"); state.className = "setting-value"; modelTargetState(state, availability.get(target.targetId));
-      body.append(heading, detailLine); article.append(body, state); modelTargetList.append(article);
+      const edit = document.createElement("button"); edit.type = "button"; edit.className = "secondary"; say(edit, "modelTargetEdit"); edit.addEventListener("click", () => editModelTarget(target));
+      body.append(heading, detailLine); article.append(body, state, edit); modelTargetList.append(article);
     }
   };
   const loadModelTargets = async () => {
@@ -97,11 +98,58 @@ export const MODEL_TARGET_BEHAVIOUR = `
     if (modelTargetKind.value === "CLAUDE_CODE" && model.value.trim() === "") model.value = "sonnet";
   };
   modelTargetKind.addEventListener("change", alignModelTargetBoundary); alignModelTargetBoundary();
-  document.getElementById("model-target-form").addEventListener("submit", async (event) => {
-    event.preventDefault(); text(document.getElementById("model-target-error"), ""); const value = (id) => document.getElementById(id).value.trim();
-    const kind = value("model-target-kind");
-    const target = { targetId: value("model-target-id"), displayName: value("model-target-name"), executionClass: modelTargetKinds[kind] ? modelTargetKinds[kind].executionClass : null, kind, modelId: value("model-target-model"), boundary: value("model-target-boundary"), profileRef: value("model-target-profile"), policyRef: value("model-target-policy"), instructionRefs: value("model-target-instructions").split(/\\r?\\n/u).map((entry) => entry.trim()).filter(Boolean), maxInputBytes: Number(value("model-target-input-limit")), maxOutputBytes: Number(value("model-target-output-limit")), enabled: document.getElementById("model-target-enabled").checked };
+  // Guided configuration (ADR-0052): the server writes the three files and the
+  // target is then saved with their references through the unchanged route.
+  const modelTargetMode = document.getElementById("model-target-configuration-mode");
+  const modelTargetScope = document.getElementById("model-target-scope");
+  const modelTargetRules = document.getElementById("model-target-rules");
+  const modelTargetLines = (id) => document.getElementById(id).value.split(/\\r?\\n/u).map((entry) => entry.trim()).filter(Boolean);
+  const alignModelTargetMode = () => {
+    const guided = modelTargetMode.value === "GUIDED";
+    document.getElementById("model-target-guided").hidden = !guided; document.getElementById("model-target-files").hidden = guided;
+    for (const id of ["model-target-rules", "model-target-continuity-budget", "model-target-instruction-budget"]) document.getElementById(id).required = guided;
+    for (const id of ["model-target-profile", "model-target-policy", "model-target-instructions"]) document.getElementById(id).required = !guided;
+  };
+  const renderModelTargetScopes = (extraProjectId = null) => {
+    const current = extraProjectId ?? modelTargetScope.value;
+    modelTargetScope.replaceChildren(modelTargetMessageOption("", "modelTargetScopeGeneral"));
+    const projects = [...registeredProjects.values()];
+    if (current && !registeredProjects.has(current)) projects.push({ id: current, name: current });
+    for (const project of projects) { const option = document.createElement("option"); option.value = project.id; say(option, "modelTargetScopeProject", { name: project.name }); modelTargetScope.append(option); }
+    modelTargetScope.value = current || "";
+  };
+  modelTargetMode.addEventListener("change", alignModelTargetMode); alignModelTargetMode();
+  modelTargetScope.addEventListener("focus", () => renderModelTargetScopes());
+  if (!modelTargetRules.value) modelTargetRules.value = message("modelTargetRulesDefault");
+  const editModelTarget = async (target) => {
+    const error = document.getElementById("model-target-error"); text(error, "");
+    const set = (id, value) => { document.getElementById(id).value = value; };
+    set("model-target-id", target.targetId); set("model-target-name", target.displayName);
+    if (target.kind) { modelTargetKind.value = target.kind; alignModelTargetBoundary(); }
+    set("model-target-model", target.modelId); modelTargetBoundary.value = target.boundary;
+    set("model-target-input-limit", String(target.maxInputBytes)); set("model-target-output-limit", String(target.maxOutputBytes));
+    document.getElementById("model-target-enabled").checked = target.enabled;
+    set("model-target-profile", target.profileRef); set("model-target-policy", target.policyRef); set("model-target-instructions", target.instructionRefs.join("\\n"));
     try {
+      const { configuration } = await api("/api/target-configurations/" + encodeURIComponent(target.targetId));
+      modelTargetMode.value = configuration ? "GUIDED" : "FILES";
+      if (configuration) {
+        renderModelTargetScopes(configuration.scope.kind === "PROJECT" ? configuration.scope.projectId : "");
+        modelTargetRules.value = configuration.rules.join("\\n");
+        set("model-target-continuity-budget", String(configuration.continuityBudgetBytes)); set("model-target-instruction-budget", String(configuration.instructionBudgetBytes));
+      }
+    } catch (cause) { modelTargetMode.value = "FILES"; detail(error, cause); }
+    alignModelTargetMode(); say(modelTargetStatus, "modelTargetEditing", { name: target.displayName });
+    document.getElementById("model-target-id").focus();
+  };
+  document.getElementById("model-target-form").addEventListener("submit", async (event) => {
+    event.preventDefault(); text(document.getElementById("model-target-error"), ""); text(modelTargetStatus, ""); const value = (id) => document.getElementById(id).value.trim();
+    const kind = value("model-target-kind");
+    try {
+      const references = modelTargetMode.value === "GUIDED"
+        ? await api("/api/target-configurations", { method: "POST", body: JSON.stringify({ scope: modelTargetScope.value ? { kind: "PROJECT", projectId: modelTargetScope.value } : { kind: "GENERAL" }, modelId: value("model-target-model"), rules: modelTargetLines("model-target-rules"), continuityBudgetBytes: Number(value("model-target-continuity-budget")), instructionBudgetBytes: Number(value("model-target-instruction-budget")) }) })
+        : { profileRef: value("model-target-profile"), policyRef: value("model-target-policy"), instructionRefs: modelTargetLines("model-target-instructions") };
+      const target = { targetId: value("model-target-id"), displayName: value("model-target-name"), executionClass: modelTargetKinds[kind] ? modelTargetKinds[kind].executionClass : null, kind, modelId: value("model-target-model"), boundary: value("model-target-boundary"), profileRef: references.profileRef, policyRef: references.policyRef, instructionRefs: references.instructionRefs, maxInputBytes: Number(value("model-target-input-limit")), maxOutputBytes: Number(value("model-target-output-limit")), enabled: document.getElementById("model-target-enabled").checked };
       await api("/api/model-targets", { method: "POST", body: JSON.stringify({ target, expectedRevision: modelTargetRevision }) });
       await loadModelTargets(); say(modelTargetStatus, "modelTargetSaved", { name: target.displayName });
     } catch (cause) { detail(document.getElementById("model-target-error"), cause); document.getElementById("model-target-id").focus(); }

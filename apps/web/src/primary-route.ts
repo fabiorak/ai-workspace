@@ -4,6 +4,7 @@ import type { GuiApplication } from "./application.ts";
 import { handleConversationRoute } from "./conversation-route.ts";
 import { handleModelTargetRoute } from "./model-target-route.ts";
 import { handlePrivacyProtectionRoute } from "./privacy-protection-route.ts";
+import { handleTargetConfigurationRoute } from "./target-configuration-route.ts";
 
 type MutationGuard = (request: IncomingMessage) => boolean;
 
@@ -17,6 +18,13 @@ export async function handlePrimaryRoute(
 ) {
   return (
     (await handlePrivacyProtectionRoute(
+      request,
+      response,
+      url,
+      application,
+      authorizeWrite,
+    )) ||
+    (await handleTargetConfigurationRoute(
       request,
       response,
       url,

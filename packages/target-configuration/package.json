@@ -1,0 +1,24 @@
+{
+  "name": "@ai-workspace/target-configuration",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Guided model target configuration built from a few reviewed fields",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@ai-workspace/instruction-manager": "0.0.0",
+    "@ai-workspace/privacy-gateway": "0.0.0"
+  }
+}

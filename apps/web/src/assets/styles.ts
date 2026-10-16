@@ -278,6 +278,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .model-target-settings { margin-block-start: 1.5rem; padding-block-start: 1.5rem; border-block-start: 1px solid var(--border); }
 .model-target-settings form { display: grid; grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr); gap: .65rem 1rem; align-items: center; margin-block: 1rem; }
 .model-target-settings form button { grid-column: 2; justify-self: start; width: auto; }
+.model-target-settings form .form-fields { display: contents; }
+.model-target-settings form .form-wide { grid-column: 1 / -1; margin: 0; }
+.model-target-row { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: center; }
+.model-target-row > div { flex: 1 1 14rem; }
 .model-target-row { margin-block: .5rem; }
 .model-target-row h4 { margin: 0; }
 #scripts { min-height: 28rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }

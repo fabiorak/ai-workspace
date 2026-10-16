@@ -1,4 +1,5 @@
 import { JsonModelTargetStore } from "@ai-workspace/local-model-targets";
+import { LocalTargetConfigurationStore } from "@ai-workspace/local-target-configuration";
 import { ModelTargets } from "@ai-workspace/model-targets";
 
 import type { ExecutionHost } from "./execution-host.ts";
@@ -10,7 +11,8 @@ export { executionHost } from "./execution-host.ts";
  * unless the process received the explicit transport opt-in. An agent kind is
  * launchable only when an executor for it was injected, and says whether that
  * executor is synthetic. The local model is offered only when the process
- * received its loopback address at start (ADR-0051).
+ * received its loopback address at start (ADR-0051). Guided configurations
+ * travel with the targets they configure (ADR-0052).
  */
 export function modelTargetArea(workspaceHome: string, host: ExecutionHost) {
   const agents = Object.fromEntries(
@@ -19,7 +21,7 @@ export function modelTargetArea(workspaceHome: string, host: ExecutionHost) {
       executor.launch,
     ]),
   );
-  return new ModelTargets(new JsonModelTargetStore(workspaceHome), {
+  const targets = new ModelTargets(new JsonModelTargetStore(workspaceHome), {
     qualifiedOffline: [
       "OPENAI_RESPONSES",
       "CODEX_CLI",
@@ -33,5 +35,8 @@ export function modelTargetArea(workspaceHome: string, host: ExecutionHost) {
         ? { LLAMA_SERVER_LOOPBACK: host.localModelExecutor.launch }
         : {}),
     },
+  });
+  return Object.assign(targets, {
+    configurations: new LocalTargetConfigurationStore(workspaceHome),
   });
 }

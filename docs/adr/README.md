@@ -76,3 +76,4 @@ Status: proposed | accepted | superseded
 - [ADR-0049: Record agent execution attempts separately](0049-record-agent-execution-attempts-separately.md) - proposed.
 - [ADR-0050: Confine agent processes before any real run](0050-confine-agent-processes-before-any-real-run.md) - proposed.
 - [ADR-0051: Confine the local model behind a loopback boundary](0051-confine-the-local-model-behind-a-loopback-boundary.md) - proposed.
+- [ADR-0052: Generate target configuration from Settings as immutable files](0052-generate-target-configuration-from-settings-as-immutable-files.md) - proposed.

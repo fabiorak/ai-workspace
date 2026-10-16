@@ -62,6 +62,9 @@
       "path": "./packages/model-targets/tsconfig.build.json"
     },
     {
+      "path": "./packages/target-configuration/tsconfig.build.json"
+    },
+    {
       "path": "./packages/session-ingestion/tsconfig.build.json"
     },
     {
@@ -117,6 +120,9 @@
     },
     {
       "path": "./integrations/local-model-targets/tsconfig.build.json"
+    },
+    {
+      "path": "./integrations/local-target-configuration/tsconfig.build.json"
     },
     {
       "path": "./integrations/local-privacy-mapping/tsconfig.build.json"

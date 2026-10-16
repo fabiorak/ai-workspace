@@ -16,6 +16,40 @@ configuration contract: the handoff path still requires matching project-owned
 schema 1 configuration. The schema 2 project examples in this guide describe
 the reduced-turn path only; they do not claim a handoff schema 2 migration.
 
+## Guided configuration from Settings
+
+Settings can write the three files instead of asking for paths (ADR-0052). The
+person chooses the scope, the model of the target, the instruction rules (one
+per line) and the two context budgets. The server builds the documents, checks
+them with the same scoped validators and composition the turn uses, refuses
+rules that do not fit the instruction budget or look like a credential, and
+writes them to:
+
+```text
+<home>/target-configurations/<sha256 of the three files>/profile.json
+<home>/target-configurations/<sha256 of the three files>/policy.json
+<home>/target-configurations/<sha256 of the three files>/instructions.json
+```
+
+The directory is `0700` and the files `0600`. They are never overwritten: the
+same configuration reuses its directory, a different one gets a new directory,
+and a file changed by hand stops the save. The target is then saved with those
+references through the usual target route, so a failed target save leaves the
+configuration in use untouched.
+
+The guided documents fix everything a reduced turn does not use: one agent, one
+skill, one descriptive tool, and `ADVISORY` autonomy. The policy ceiling is
+`CONFIDENTIAL` with no assertions, because a reduced turn evaluates its whole
+envelope as one item that defaults to `CONFIDENTIAL`, and an assertion would need
+the digest of an envelope that changes on every turn; a lower ceiling would block
+every turn. Each rule is a non-overridable `CONSTRAINT`; the source precedence is
+`WORKSPACE` for General and `PROJECT` for a project.
+
+A target is shown as guided when its three references are exactly the files of
+one such directory and their contents rebuild to the same bytes. Anything else,
+including a guided file edited by hand, is treated as files of one's own and
+read exactly as described below.
+
 ## Configuration files and scope
 
 Three explicit files are selected by the model target:

@@ -86,6 +86,21 @@ declare the `LOCAL_ONLY` boundary shows **Unclassified** and cannot answer.
 Nothing falls back to another target. Choosing Claude Code proposes the `sonnet` alias
 when the model field is empty.
 
+A target also needs a profile, a data policy and instructions. With
+**Configuration: Guided**, the default, you write them in Settings: choose which
+conversations the target serves (General conversations or one registered
+project), write the instructions for the model one per line, and keep or change
+the space reserved for conversation context and for instructions. AI Workspace
+writes the three files for you in the local workspace and never changes them
+afterwards; each save with different values writes new ones, and the target
+switches to them only when its own save succeeds. The guided policy admits data
+up to `CONFIDENTIAL`, the level every conversation needs. A target serves one
+scope: for a project, also choose the target for that project or for its
+conversation. **Edit** next to a target fills the form again, including the
+guided fields. To use skills, tools or a different policy, choose **Files of my
+own** and enter the paths of files you wrote following the
+[reduced-turn configuration guide](../development/reduced-turn-configuration.md).
+
 When the host offers an agent, a Codex or Claude Code target answers from the
 same conversation: choose it, write and send. The answer is saved with the
 agent's name and class, and the next message, with any target, sees it as

@@ -86,6 +86,55 @@ export const HOME_TEXT = Object.freeze({
     en: "Instruction references, one per line",
     it: "Riferimenti alle istruzioni, uno per riga",
   },
+  modelTargetConfigurationMode: {
+    en: "Configuration",
+    it: "Configurazione",
+  },
+  modelTargetConfigurationGuided: {
+    en: "Guided, from the fields below",
+    it: "Guidata, dai campi qui sotto",
+  },
+  modelTargetConfigurationFiles: {
+    en: "Files of my own",
+    it: "File miei",
+  },
+  modelTargetGuidedHelp: {
+    en: "AI Workspace writes the profile, policy and instructions for you. A target serves either General conversations or one project: for a project, also choose this target for that project. The policy admits data up to CONFIDENTIAL, the level every conversation needs; for skills, tools or a different policy, use files of your own.",
+    it: "AI Workspace scrive per te profilo, policy e istruzioni. Un target serve le conversazioni generali oppure un solo progetto: per un progetto, scegli poi questo target per quel progetto. La policy ammette dati fino a CONFIDENTIAL, il livello che serve a ogni conversazione; per abilità, strumenti o una policy diversa usa file tuoi.",
+  },
+  modelTargetScope: {
+    en: "Conversations served",
+    it: "Conversazioni servite",
+  },
+  modelTargetScopeGeneral: {
+    en: "General conversations",
+    it: "Conversazioni generali",
+  },
+  modelTargetScopeProject: {
+    en: "Project {name}",
+    it: "Progetto {name}",
+  },
+  modelTargetRules: {
+    en: "Instructions for the model, one per line",
+    it: "Istruzioni per il modello, una per riga",
+  },
+  modelTargetRulesDefault: {
+    en: "Answer using the supplied context and say clearly when it is incomplete.",
+    it: "Rispondi usando il contesto fornito e di' chiaramente quando è incompleto.",
+  },
+  modelTargetContinuityBudget: {
+    en: "Space for conversation context (bytes)",
+    it: "Spazio per il contesto della conversazione (byte)",
+  },
+  modelTargetInstructionBudget: {
+    en: "Space for instructions (bytes)",
+    it: "Spazio per le istruzioni (byte)",
+  },
+  modelTargetEdit: { en: "Edit", it: "Modifica" },
+  modelTargetEditing: {
+    en: "Editing {name}. Saving replaces the target with the same ID.",
+    it: "Stai modificando {name}. Il salvataggio sostituisce il target con lo stesso ID.",
+  },
   modelTargetInputLimit: {
     en: "Maximum input bytes",
     it: "Byte massimi in ingresso",

@@ -117,6 +117,12 @@
       "path": "../../integrations/local-model-targets/tsconfig.build.json"
     },
     {
+      "path": "../../packages/target-configuration/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/local-target-configuration/tsconfig.build.json"
+    },
+    {
       "path": "../../integrations/local-conversation-turns/tsconfig.build.json"
     },
     {
