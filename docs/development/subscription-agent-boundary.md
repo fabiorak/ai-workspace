@@ -29,7 +29,7 @@ Official references observed on 2026-09-17:
 | ----------------- | ------------------------------------------- | -------------------------------------------------------------------- |
 | `MODEL_DELIVERY`  | OpenAI Responses; future Anthropic Messages | Exact application-supplied request through a provider API            |
 | `AGENT_EXECUTION` | Codex CLI; later Claude Code                | Managed product process with its own instructions and agent boundary |
-| `LOCAL_MODEL`     | Qwen through loopback llama-server          | Local inference adapter with no external exposure                    |
+| `LOCAL_MODEL`     | A model served by llama-server on loopback  | Local inference adapter with no external exposure                    |
 
 Changing the selected target never changes its class silently. The answer must
 record target, model when reported, execution class and attempt identity.
