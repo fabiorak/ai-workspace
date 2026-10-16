@@ -437,6 +437,7 @@ describe("subscription-backed Claude Code agent adapter", () => {
     assert.deepEqual(claudeCodeBuiltInPlugins("2.1.294"), [
       "cc-plugin-agents-md",
       "cc-plugin-plugin-authoring",
+      "cc-plugin-sec-default",
     ]);
     for (const version of ["2.1.295", "__proto__", "constructor"])
       assert.deepEqual(claudeCodeBuiltInPlugins(version), [], version);

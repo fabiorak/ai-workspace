@@ -564,8 +564,9 @@ whole-file comparison.
   voids the answer;
 - Claude Code runs with its nonessential traffic off (no telemetry, error
   reporting or self-update); accepted residual risk: the reviewed release
-  loads two built-in plugins that no flag can turn off, accepted by name for
-  that release only, whose internals AI Workspace does not observe;
+  loads three built-in plugins, one of them only with a signed-in account,
+  that no flag can turn off, accepted by name for that release only, whose
+  internals AI Workspace does not observe;
 - process-group cancellation proves termination; lingering descendants, an
   escaped process or files left behind turn the outcome unknown; empty
   directories are not files, and release removes them without removing a file;

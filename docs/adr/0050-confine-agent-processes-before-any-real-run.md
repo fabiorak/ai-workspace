@@ -228,3 +228,10 @@ without a reviewed list, and any other non-empty loaded context still void the
 answer. `system/ui_invalidate` carries no content and is discarded unread, like
 quota notices. An update needs a new review of the plugin names as well as of
 the digest.
+
+With a signed-in account, a start stopped as soon as the initialization event
+appeared, before an answer, lists one more built-in plugin,
+`cc-plugin-sec-default`, and still no tools, MCP servers, skills, hooks or
+memory; analytics stay off. It is added to the reviewed release's accepted
+names on the same terms as the other two. The list allows names and requires
+none: a run that loads fewer of these plugins is accepted.
