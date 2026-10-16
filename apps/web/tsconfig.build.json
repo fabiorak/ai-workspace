@@ -12,6 +12,9 @@
       "path": "../../packages/core/tsconfig.build.json"
     },
     {
+      "path": "../../packages/active-memory/tsconfig.build.json"
+    },
+    {
       "path": "../../packages/context-builder/tsconfig.build.json"
     },
     {
@@ -88,6 +91,12 @@
     },
     {
       "path": "../../packages/model-delivery/tsconfig.build.json"
+    },
+    {
+      "path": "../../integrations/openai-responses/tsconfig.build.json"
+    },
+    {
+      "path": "../../packages/conversation-turn/tsconfig.build.json"
     },
     {
       "path": "../../packages/model-attempts/tsconfig.build.json"
