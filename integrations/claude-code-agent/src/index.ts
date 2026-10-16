@@ -39,7 +39,11 @@ const MAX_BUDGET_USD = "0.05";
  * one send, not a second turn (ADR-0050), as for Codex's network retries.
  */
 const DISCARDED_EVENT = "rate_limit_event";
-const DISCARDED_SYSTEM_SUBTYPE = "api_retry";
+/** A retry of a failed API request, and a display refresh with no content. */
+const DISCARDED_SYSTEM_SUBTYPES: ReadonlySet<unknown> = new Set([
+  "api_retry",
+  "ui_invalidate",
+]);
 
 /** Reasoning is discarded unread, never stored or shown, as for Codex and the
  * local model. Every other non-text block voids the answer. */
@@ -116,8 +120,17 @@ export class ClaudeCodeAgentError extends Error {
  */
 export class ClaudeCodeAgentAdapter {
   readonly #runner: ClaudeCodeAgentRunner;
-  public constructor(runner: ClaudeCodeAgentRunner) {
+  readonly #builtInPlugins: ReadonlySet<string>;
+  /**
+   * `builtInPlugins` are the reviewed release's own plugins
+   * (`claudeCodeBuiltInPlugins`); by default none is accepted.
+   */
+  public constructor(
+    runner: ClaudeCodeAgentRunner,
+    options: Readonly<{ builtInPlugins?: readonly string[] }> = {},
+  ) {
     this.#runner = runner;
+    this.#builtInPlugins = new Set(options.builtInPlugins ?? []);
   }
 
   public async execute(input: {
@@ -142,7 +155,7 @@ export class ClaudeCodeAgentAdapter {
     }
     const failed = observationUnknown(observation, MAX_STREAM_BYTES);
     if (failed !== null) return failed;
-    const parsed = finalAnswer(observation.stdout);
+    const parsed = finalAnswer(observation.stdout, this.#builtInPlugins);
     if ("kind" in parsed) return parsed;
     return Object.freeze({
       kind: "COMPLETED" as const,
@@ -222,6 +235,7 @@ export function buildClaudeCodeAgentInvocation(input: {
  */
 function finalAnswer(
   stdout: string,
+  builtInPlugins: ReadonlySet<string>,
 ): { text: string; eventCount: number } | AgentUnknownOutcome {
   const lines = stdout.split("\n").filter(Boolean);
   let initialized = false;
@@ -242,7 +256,7 @@ function finalAnswer(
       );
     if (value.type === DISCARDED_EVENT) continue;
     if (value.type === "system") {
-      if (value.subtype === DISCARDED_SYSTEM_SUBTYPE) continue;
+      if (DISCARDED_SYSTEM_SUBTYPES.has(value.subtype)) continue;
       if (value.subtype !== "init" || initialized)
         return unknownOutcome(
           "UNEXPECTED_EVENT",
@@ -251,7 +265,17 @@ function finalAnswer(
       for (const key of LOADED_CONTEXT_KEYS) {
         const loaded = value[key];
         if (loaded === undefined) continue;
-        if (!Array.isArray(loaded) || loaded.length > 0)
+        if (!Array.isArray(loaded)) return unknownOutcome("CONTEXT_LOADED");
+        // Only the reviewed release's own plugins, by name; nothing else.
+        const reviewed =
+          key === "plugins" &&
+          loaded.every(
+            (plugin) =>
+              record(plugin) &&
+              typeof plugin.name === "string" &&
+              builtInPlugins.has(plugin.name),
+          );
+        if (loaded.length > 0 && !reviewed)
           return unknownOutcome("CONTEXT_LOADED");
       }
       initialized = true;

@@ -11,7 +11,9 @@ import {
 } from "@ai-workspace/agent-process";
 
 import {
+  CLAUDE_CODE_BUILT_IN_PLUGINS,
   CLAUDE_CODE_DEFAULT_MODEL,
+  claudeCodeBuiltInPlugins,
   CLAUDE_CODE_SYSTEM_PROMPT,
   ClaudeCodeAgentAdapter,
   buildClaudeCodeAgentInvocation,
@@ -196,6 +198,64 @@ describe("subscription-backed Claude Code agent adapter", () => {
   });
 
   /**
+   * The reviewed release loads two built-in plugins even in safe mode, and no
+   * flag turns them off. Exactly those names are accepted for that release;
+   * another plugin, any plugin without the reviewed list, or any other loaded
+   * context still voids the answer.
+   */
+  it("accepts only the reviewed release's built-in plugins, by name", async () => {
+    const reviewed = claudeCodeBuiltInPlugins("2.1.294");
+    const plugins = (...names: string[]) =>
+      names.map((name) => ({ name, path: `/synthetic/${name}` }));
+    const run = (
+      initOverride: Record<string, unknown>,
+      builtInPlugins?: readonly string[],
+    ) =>
+      new ClaudeCodeAgentAdapter(
+        async () =>
+          observation({
+            stdout: [
+              JSON.stringify({ type: "system", subtype: "ui_invalidate" }),
+              init(initOverride),
+              said("Synthetic output."),
+              answered("answer"),
+            ].join("\n"),
+          }),
+        builtInPlugins === undefined ? {} : { builtInPlugins },
+      ).execute(input);
+    const accepted = await run(
+      { plugins: plugins("cc-plugin-agents-md", "cc-plugin-plugin-authoring") },
+      reviewed,
+    );
+    assert.equal(accepted.kind, "COMPLETED");
+    assert.equal(
+      (await run({ plugins: plugins("cc-plugin-agents-md") }, reviewed)).kind,
+      "COMPLETED",
+    );
+    for (const [override, list] of [
+      [
+        { plugins: plugins("cc-plugin-agents-md", "cc-plugin-telemetry") },
+        reviewed,
+      ],
+      [{ plugins: plugins("cc-plugin-agents-md") }, undefined],
+      [{ plugins: ["cc-plugin-agents-md"] }, reviewed],
+      [
+        { plugins: plugins("cc-plugin-agents-md"), skills: ["synthetic"] },
+        reviewed,
+      ],
+    ] as const)
+      assert.deepEqual(
+        await run(override, list),
+        {
+          kind: "UNKNOWN_AFTER_EXECUTION",
+          reason: "CONTEXT_LOADED",
+          unexpectedEvent: null,
+        },
+        JSON.stringify(override),
+      );
+  });
+
+  /**
    * Anything the turn loaded or did besides answering is context this boundary
    * did not review, so it is refused rather than reported as a plain answer.
    */
@@ -373,6 +433,19 @@ describe("subscription-backed Claude Code agent adapter", () => {
     ]);
     assert.ok(Object.isFrozen(QUALIFIED_CLAUDE_CODE_EXECUTABLES));
     assert.ok(QUALIFIED_CLAUDE_CODE_EXECUTABLES.every(Object.isFrozen));
+    // Built-in plugins belong to the reviewed release and to no other.
+    assert.deepEqual(claudeCodeBuiltInPlugins("2.1.294"), [
+      "cc-plugin-agents-md",
+      "cc-plugin-plugin-authoring",
+    ]);
+    for (const version of ["2.1.295", "__proto__", "constructor"])
+      assert.deepEqual(claudeCodeBuiltInPlugins(version), [], version);
+    assert.ok(Object.isFrozen(CLAUDE_CODE_BUILT_IN_PLUGINS));
+    assert.ok(
+      QUALIFIED_CLAUDE_CODE_EXECUTABLES.every((entry) =>
+        Object.isFrozen(claudeCodeBuiltInPlugins(entry.version)),
+      ),
+    );
     assert.deepEqual(
       await qualifyClaudeCodeExecutable(
         [dirname(process.execPath)],

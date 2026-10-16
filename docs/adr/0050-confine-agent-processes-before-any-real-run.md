@@ -203,3 +203,28 @@ voids the answer and is kept for inspection.
 Releasing a run removes empty directories from the deepest up, one at a time,
 in `work`, `tmp` and `home`, and never removes a file, so a run that left only
 empty directories leaves nothing behind.
+
+## Amendment: Claude Code's built-in plugins and nonessential traffic
+
+Date: 2026-10-16. The ADR remains proposed.
+
+A start of the reviewed Claude Code release with the complete argv, an
+invented one-word input and an empty temporary configuration directory, so
+with no login and no possible model call, shows what its initialization event
+lists. Tools, MCP servers, skills and slash commands are empty. Three built-in
+plugins are listed even in safe mode, one of them for telemetry, and analytics
+are on. No flag turns built-in plugins off. A `system/ui_invalidate` event
+precedes initialization.
+
+Every Claude Code run now gets `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`,
+the product's documented switch for auto-update, telemetry, error reporting and
+feature-flag fetches; with it the telemetry plugin is gone and analytics and
+product feedback are reported off. Codex's environment is unchanged.
+
+The two built-in plugins that remain are accepted by name for the reviewed
+release only (`claudeCodeBuiltInPlugins`), because the release digest covers
+them and nothing can remove them. Any other plugin, any plugin for a release
+without a reviewed list, and any other non-empty loaded context still void the
+answer. `system/ui_invalidate` carries no content and is discarded unread, like
+quota notices. An update needs a new review of the plugin names as well as of
+the digest.

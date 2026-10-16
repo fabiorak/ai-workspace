@@ -72,8 +72,12 @@ bounded process timeout. The answer is the plain text of the final `result`
 event read from the stream; no JSON schema is requested, so the product never
 repeats a request to satisfy one. Assistant content is read from `message`, as
 documented. Reasoning blocks, quota notices (`rate_limit_event`) and the
-product's own API retries (`system/api_retry`, transport inside one send) are
-discarded unread. Tool, MCP, plugin, subagent, permission-denial and unknown
+product's own API retries (`system/api_retry`, transport inside one send) and
+display refreshes (`system/ui_invalidate`) are discarded unread. Every run
+gets `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`, so the product sends no
+telemetry or error reports and does not update itself. The reviewed release's
+built-in plugins, which no flag turns off, are accepted by name for that
+release only. Tool, MCP, plugin, subagent, permission-denial and unknown
 events, an error result or anything after the result void the answer.
 
 The initial Claude Code target uses the stable `sonnet` model alias by default.

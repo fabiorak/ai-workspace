@@ -24,6 +24,28 @@ export const QUALIFIED_CLAUDE_CODE_EXECUTABLES: readonly QualifiedExecutable[] =
     }),
   ]);
 
+/**
+ * Built-in plugins a reviewed release loads even in safe mode, by name, as its
+ * initialization event lists them with nonessential traffic off. No flag turns
+ * them off; the release digest covers them, and any other plugin still voids
+ * the answer (ADR-0050).
+ */
+export const CLAUDE_CODE_BUILT_IN_PLUGINS: Readonly<
+  Record<string, readonly string[]>
+> = Object.freeze({
+  "2.1.294": Object.freeze([
+    "cc-plugin-agents-md",
+    "cc-plugin-plugin-authoring",
+  ]),
+});
+
+/** The reviewed built-in plugins of one release; none for any other. */
+export function claudeCodeBuiltInPlugins(version: string): readonly string[] {
+  return Object.hasOwn(CLAUDE_CODE_BUILT_IN_PLUGINS, version)
+    ? CLAUDE_CODE_BUILT_IN_PLUGINS[version]!
+    : Object.freeze([]);
+}
+
 /** `claude --version` prints one line such as `2.1.283 (Claude Code)`. */
 export function parseClaudeCodeVersion(output: string): string | null {
   const match = /^(\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?) \(Claude Code\)\n?$/u.exec(

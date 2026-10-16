@@ -16,6 +16,7 @@ import type { AgentExecutionKind } from "@ai-workspace/agent-execution";
 import {
   buildClaudeCodeAgentInvocation,
   ClaudeCodeAgentAdapter,
+  claudeCodeBuiltInPlugins,
   createClaudeCodeAgentProcessRunner,
   parseClaudeCodeVersion,
   QUALIFIED_CLAUDE_CODE_EXECUTABLES,
@@ -224,6 +225,7 @@ function hostedExecutor(
               ).execute(input)
             : await new ClaudeCodeAgentAdapter(
                 createClaudeCodeAgentProcessRunner(options),
+                { builtInPlugins: claudeCodeBuiltInPlugins(version) },
               ).execute(input);
         // The requested alias stays the record; the product reports no model.
         return result.kind === "COMPLETED"

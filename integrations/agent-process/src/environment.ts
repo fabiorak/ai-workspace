@@ -11,6 +11,20 @@ import {
 export type AgentConfigVariable = "CODEX_HOME" | "CLAUDE_CONFIG_DIR";
 
 /**
+ * Fixed variables one product gets beyond the shared set. Claude Code's
+ * documented switch turns off auto-update, telemetry, error reporting and
+ * feature-flag fetches in every run AI Workspace starts (ADR-0050).
+ */
+const PRODUCT_VARIABLES: Readonly<
+  Record<AgentConfigVariable, Readonly<Record<string, string>>>
+> = Object.freeze({
+  CODEX_HOME: Object.freeze({}),
+  CLAUDE_CONFIG_DIR: Object.freeze({
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
+  }),
+});
+
+/**
  * The complete environment of an agent process. Nothing is inherited: no
  * provider key, proxy, certificate override or unrelated secret can cross,
  * because only the variables built here exist.
@@ -67,6 +81,7 @@ export async function agentEnvironment(
       XDG_CACHE_HOME: join(home, ".cache"),
       XDG_DATA_HOME: join(home, ".local", "share"),
       XDG_STATE_HOME: join(home, ".local", "state"),
+      ...PRODUCT_VARIABLES[input.configVariable],
     }),
   });
 }

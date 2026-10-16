@@ -211,6 +211,28 @@ process.stdout.write(lines.join("\\n") + "\\n");
     }
   });
 
+  it("adds only Claude Code's fixed switch for nonessential traffic", async () => {
+    const { workspace, login, bin } = await fixture("");
+    const build = (configVariable: "CODEX_HOME" | "CLAUDE_CONFIG_DIR") =>
+      agentEnvironment({
+        workspace,
+        configVariable,
+        configDirectory: login,
+        searchPath: [bin],
+      });
+    const claude = (await build("CLAUDE_CONFIG_DIR")).variables;
+    const codex = (await build("CODEX_HOME")).variables;
+    assert.equal(claude.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC, "1");
+    assert.equal(claude.CLAUDE_CONFIG_DIR, login);
+    assert.equal("CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC" in codex, false);
+    assert.deepEqual(
+      Object.keys(claude)
+        .filter((name) => !(name in codex))
+        .sort(),
+      ["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC", "CLAUDE_CONFIG_DIR"],
+    );
+  });
+
   it("refuses a login directory that is personal, shared or inside the run", async () => {
     const { workspace, login } = await fixture("");
     const personal = await root();
