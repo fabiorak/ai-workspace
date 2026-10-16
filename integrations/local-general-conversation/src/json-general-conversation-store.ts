@@ -266,7 +266,7 @@ function validateConversation(value: GeneralConversation): void {
       !validEventKind(event) ||
       event.verification !== "UNVERIFIED" ||
       event.dataClass !== "CONFIDENTIAL" ||
-      !validText(event.content, GENERAL_LIMITS.contentBytes) ||
+      !validContent(event.content, GENERAL_LIMITS.contentBytes) ||
       event.exactBytes !== Buffer.byteLength(event.content, "utf8") ||
       typeof event.contentSha256 !== "string" ||
       !DIGEST_PATTERN.test(event.contentSha256) ||
@@ -346,6 +346,16 @@ function validText(value: unknown, bytes: number): value is string {
     value.length > 0 &&
     Buffer.byteLength(value, "utf8") <= bytes &&
     !/\p{Cc}/u.test(value)
+  );
+}
+/** Message content may hold line feeds and no other control character. */
+function validContent(value: unknown, bytes: number): value is string {
+  return (
+    typeof value === "string" &&
+    value.trim() === value &&
+    value.length > 0 &&
+    Buffer.byteLength(value, "utf8") <= bytes &&
+    !/[\p{Cc}&&[^\n]]/v.test(value)
   );
 }
 function validTimestamp(value: unknown): value is string {

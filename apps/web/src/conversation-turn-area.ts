@@ -9,7 +9,10 @@ import {
   type ResolvedConversationTurn,
 } from "@ai-workspace/conversation-turn";
 import type { ActiveMemory } from "@ai-workspace/active-memory";
-import type { GeneralConversations } from "@ai-workspace/general-conversation";
+import {
+  generalMessageContent,
+  type GeneralConversations,
+} from "@ai-workspace/general-conversation";
 import type { GeneralProjectLinks } from "@ai-workspace/general-project-link";
 import type { Handoffs } from "@ai-workspace/handoff";
 import {
@@ -394,6 +397,17 @@ export function conversationTurnArea(dependencies: Dependencies) {
         };
       }
       const target = selection.target;
+      // A General conversation stores the message after exposure, so a message
+      // it could not store is refused before anything leaves.
+      if (turn.scope.projectId === null)
+        try {
+          generalMessageContent(turn.request.userText, "Question");
+        } catch {
+          return {
+            kind: "REFUSED_BEFORE_EXPOSURE",
+            reason: reviewed ? "REVIEW_INVALID" : "CONTEXT_UNAVAILABLE",
+          };
+        }
       let context: Context;
       try {
         context = await compose(turn, target, true);

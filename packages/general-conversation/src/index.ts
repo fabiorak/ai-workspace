@@ -157,11 +157,7 @@ export class GeneralConversations {
       throw new GeneralConversationError(
         "Expected event count is invalid or the bounded conversation is full. Start a new General conversation.",
       );
-    const content = requiredText(
-      input.content,
-      "Question",
-      GENERAL_LIMITS.contentBytes,
-    );
+    const content = generalMessageContent(input.content, "Question");
     const restricted = detectRestrictedData(content);
     if (restricted !== null)
       throw new GeneralConversationError(
@@ -305,8 +301,26 @@ export class GeneralConversations {
   }
 }
 
+/**
+ * Message text may span lines: a line feed is the one control character it
+ * keeps, and a carriage return before a line feed is dropped. Any other
+ * control character is still refused. Titles and identifiers stay one line.
+ */
+export function generalMessageContent(value: string, label: string): string {
+  const text = value.replace(/\r\n/gu, "\n").trim();
+  if (
+    text.length === 0 ||
+    Buffer.byteLength(text, "utf8") > GENERAL_LIMITS.contentBytes ||
+    /[\p{Cc}&&[^\n]]/v.test(text)
+  )
+    throw new GeneralConversationError(
+      `${label} must be non-empty text without control characters other than line breaks and at most ${GENERAL_LIMITS.contentBytes} UTF-8 bytes.`,
+    );
+  return text;
+}
+
 function safeContent(value: string, label: string): string {
-  const content = requiredText(value, label, GENERAL_LIMITS.contentBytes);
+  const content = generalMessageContent(value, label);
   const restricted = detectRestrictedData(content);
   if (restricted !== null)
     throw new GeneralConversationError(

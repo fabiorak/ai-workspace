@@ -13,6 +13,10 @@ even when the Project Registry is empty.
 4. Inspect the immutable event, exact UTF-8 byte count, SHA-256 digest,
    timestamp, and provenance shown in the inbox.
 
+A question and an answer may span several lines. A tab or another control
+character is refused; in a conversation turn this happens before anything is
+sent.
+
 Capture creates only a local `USER_MESSAGE`. It does not call a model, create
 an assistant answer, run an agent or tool, promote active memory, build a
 Context Pack, deliver data, or infer ownership from project selection.

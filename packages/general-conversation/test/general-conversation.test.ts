@@ -5,6 +5,7 @@ import {
   GeneralConversationConflictError,
   GeneralConversationError,
   GeneralConversations,
+  generalMessageContent,
   type GeneralConversation,
   type GeneralConversationStore,
 } from "../src/index.ts";
@@ -154,6 +155,74 @@ test("records the execution class and a reported model only when given", async (
       expectedEventCount: 4,
       executionClass: "LOCAL_MODEL_X" as never,
     }),
+    GeneralConversationError,
+  );
+});
+
+/**
+ * Messages and answers often span lines. A line feed is kept, a carriage
+ * return before it is dropped, and every other control character is still
+ * refused; titles and identifiers stay on one line.
+ */
+test("keeps line breaks in message content and nothing else", async () => {
+  const values = new Map<string, GeneralConversation>();
+  let count = 0;
+  const service = new GeneralConversations({
+    store: memoryStore(values),
+    ids: () => `id-${++count}`,
+    clock: () => new Date("2026-10-16T10:00:00.000Z"),
+  });
+  const conversation = await service.create("Synthetic lines");
+  const turn = {
+    conversationId: conversation.id,
+    attemptId: "attempt-1",
+    model: "sonnet",
+    displayName: "Claude Code",
+    targetId: "claude",
+  };
+  const updated = await service.appendTurn({
+    ...turn,
+    expectedEventCount: 0,
+    userText: "Prima riga sintetica\r\nseconda riga",
+    assistantText: "Una risposta\nsu due righe.",
+  });
+  assert.deepEqual(
+    updated.events.map((event) => [event.content, event.exactBytes]),
+    [
+      ["Prima riga sintetica\nseconda riga", 33],
+      ["Una risposta\nsu due righe.", 26],
+    ],
+  );
+  const captured = await service.append({
+    conversationId: conversation.id,
+    expectedEventCount: 2,
+    content: "Una domanda\nsu due righe",
+  });
+  assert.equal(captured.events[2]!.content, "Una domanda\nsu due righe");
+  for (const text of [
+    "Colonna\tvalore",
+    "Ritorno\rcarrello",
+    "Nulla\u0000qui",
+  ]) {
+    assert.throws(
+      () => generalMessageContent(text, "Question"),
+      GeneralConversationError,
+      JSON.stringify(text),
+    );
+    await assert.rejects(
+      service.appendTurn({
+        ...turn,
+        attemptId: `attempt-${text.length}`,
+        expectedEventCount: 3,
+        userText: "Domanda sintetica",
+        assistantText: text,
+      }),
+      GeneralConversationError,
+      JSON.stringify(text),
+    );
+  }
+  await assert.rejects(
+    service.create("Titolo\nsu due righe"),
     GeneralConversationError,
   );
 });

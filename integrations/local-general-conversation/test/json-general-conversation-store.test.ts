@@ -106,6 +106,28 @@ test("reads the optional execution class and refuses one it does not know", asyn
       local.type === "AGENT_MESSAGE" && local.provenance.executionClass,
       "LOCAL_MODEL",
     );
+    // Line feeds in message content survive storage and a fresh read.
+    await new GeneralConversations({
+      store: new JsonGeneralConversationStore(home),
+      ids: () => `id-${++count}`,
+      clock: () => new Date("2026-10-16T10:00:00.000Z"),
+    }).appendTurn({
+      conversationId: created.id,
+      expectedEventCount: 2,
+      userText: "Prima riga\r\nseconda riga",
+      assistantText: "Una risposta\nsu due righe.",
+      attemptId: "attempt-2",
+      model: "sonnet",
+      displayName: "Claude Code",
+      targetId: "claude",
+      executionClass: "AGENT_EXECUTION",
+    });
+    assert.deepEqual(
+      (await new JsonGeneralConversationStore(home).list())[0]!.events
+        .slice(2)
+        .map((event) => event.content),
+      ["Prima riga\nseconda riga", "Una risposta\nsu due righe."],
+    );
   } finally {
     await rm(home, { recursive: true });
   }

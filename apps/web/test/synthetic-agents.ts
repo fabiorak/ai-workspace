@@ -35,7 +35,8 @@ const clean = {
 export type SyntheticAgentLog = {
   stdin: string[];
   models: string[];
-  mode: "ANSWER" | "BROKEN";
+  /** `MULTILINE` answers on two lines, as real models often do. */
+  mode: "ANSWER" | "BROKEN" | "MULTILINE";
 };
 
 export function syntheticAgents(log: SyntheticAgentLog) {
@@ -93,7 +94,10 @@ export function syntheticAgents(log: SyntheticAgentLog) {
         async (invocation): Promise<ClaudeCodeAgentObservation> => {
           log.stdin.push(invocation.stdin);
           log.models.push(invocation.args.at(-1) ?? "");
-          const answer = echo(invocation.stdin, "Synthetic Claude");
+          const answer =
+            log.mode === "MULTILINE"
+              ? `${echo(invocation.stdin, "Synthetic Claude")}\nUna seconda riga sintetica.`
+              : echo(invocation.stdin, "Synthetic Claude");
           return {
             ...clean,
             stdout: [

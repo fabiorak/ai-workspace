@@ -284,6 +284,65 @@ describe("agent journey from the conversation", () => {
     }
   });
 
+  /**
+   * Real answers often span lines. A General conversation stores them, with a
+   * carriage return before a line feed dropped; a message it could not store
+   * is refused before anything is exposed, never after.
+   */
+  it("stores a multi-line answer and refuses an unstorable message before exposure", async () => {
+    const root = await mkdtemp(join(tmpdir(), "ai-workspace-multiline-"));
+    roots.push(root);
+    const log: SyntheticAgentLog = { stdin: [], models: [], mode: "MULTILINE" };
+    const sent: string[] = [];
+    const fixture = await start(root, log, sent);
+    try {
+      const revision = await configureAgents(fixture.application, root, null);
+      const general = await fixture.application.createGeneralConversation(
+        "Synthetic multi-line",
+      );
+      await fixture.application.modelTargets.selectConversation(
+        general.id,
+        null,
+        "claude",
+        revision,
+      );
+      const path = `/api/conversations/${encodeURIComponent(general.id)}`;
+      const answered = await fixture.post(`${path}/turn`, {
+        targetId: "claude",
+        userText: "Prima riga sintetica\r\nseconda riga sintetica",
+        clientRequestId: "multiline-1",
+      });
+      assert.equal(answered.body.result.kind, "COMPLETED");
+      assert.equal(
+        answered.body.result.text,
+        "Synthetic Claude answer\nUna seconda riga sintetica.",
+      );
+      const conversation = (await fixture.get(path)) as {
+        moments: { text: string }[];
+      };
+      assert.deepEqual(
+        conversation.moments.map((moment) => moment.text),
+        [
+          "Prima riga sintetica\nseconda riga sintetica",
+          "Synthetic Claude answer\nUna seconda riga sintetica.",
+        ],
+      );
+      const refused = await fixture.post(`${path}/turn`, {
+        targetId: "claude",
+        userText: "Colonna\tvalore sintetico",
+        clientRequestId: "multiline-2",
+      });
+      assert.deepEqual(refused.body.result, {
+        kind: "REFUSED_BEFORE_EXPOSURE",
+        reason: "CONTEXT_UNAVAILABLE",
+      });
+      assert.equal(log.stdin.length, 1, "nothing ran for the refused message");
+      assert.deepEqual(sent, []);
+    } finally {
+      await fixture.close();
+    }
+  });
+
   it("keeps an invalid agent answer unknown, never shows it and never reruns it after restart", async () => {
     const root = await mkdtemp(join(tmpdir(), "ai-workspace-n7-unknown-"));
     roots.push(root);
